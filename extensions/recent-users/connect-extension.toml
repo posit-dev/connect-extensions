@@ -1,0 +1,4 @@
+name = "connect-extension-recent-users"
+title = "Last 10 Active Users"
+description = "Connect Extension: List last 10 active users"
+access_type = "logged_in"

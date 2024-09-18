@@ -1,0 +1,53 @@
+---
+title: "Last 10 Active Users"
+---
+
+```{python}
+#| echo: false
+
+from IPython.display import Markdown
+from datetime import *
+from posit.connect import Client
+from tabulate import tabulate
+import json
+import os
+import pytz
+
+CONNECT_API_KEY = os.getenv('CONNECT_API_KEY')
+CONNECT_SERVER = os.getenv('CONNECT_SERVER')
+
+def sort_by_login(user):
+  return user['active_time']
+
+def find_users():
+  with Client(
+  api_key=CONNECT_API_KEY, url=CONNECT_SERVER
+  ) as client:
+    find_results = client.users.find()
+    find_results.sort(key=sort_by_login, reverse=True)
+    return find_results
+
+
+def last_active_time(dt):
+  utc_time = pytz.utc.localize(dt)
+  local_timezone = pytz.timezone('US/Eastern')
+  local_time = utc_time.astimezone(local_timezone)
+  # return local_time.strftime("%Y-%m-%d %-I:%M %p")
+  return local_time.strftime("%c")
+
+recent_users = find_users()
+display_users = []
+for user in recent_users[:10]:
+  local_time = datetime.strptime(user.active_time, '%Y-%m-%dT%H:%M:%SZ')
+
+  display_users.append({
+    'email': user.email,
+    'name': f'{user.first_name} {user.last_name}',
+    'username': user.username,
+    'last_active': last_active_time(local_time)
+  })
+
+rows = [x.values() for x in display_users]
+
+Markdown(tabulate( rows, headers=["Email", "Name", "Username", "Last Active"]))
+```
