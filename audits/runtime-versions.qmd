@@ -1,0 +1,56 @@
+---
+title: Runtime Versions
+jupyter: python3
+---
+
+```{python}
+import polars as pl
+import polars.selectors as cs
+
+from reactable import Reactable, Column, embed_css
+
+from posit import connect
+client = connect.Client()
+
+content = client.content.find()
+embed_css()
+```
+
+
+## Python
+
+```{python}
+python_content = (
+    pl.DataFrame(content, infer_schema_length=None)
+    .filter(pl.col("py_version").is_not_null())
+)
+
+py_version_dfs = list(g for k, g in python_content.group_by("py_version"))
+py_summary_df = python_content.group_by("py_version").agg(n=pl.count())
+
+Reactable(
+    py_summary_df,
+    details=Column(
+        details=lambda ri: Reactable(py_version_dfs[ri.row_index]).to_widget(),
+    ),
+)
+```
+
+## R
+
+```{python}
+r_content = (
+    pl.DataFrame(content, infer_schema_length=None)
+    .filter(pl.col("r_version").is_not_null())
+)
+
+r_version_dfs = list(g for k, g in r_content.group_by("py_version"))
+r_summary_df = r_content.group_by("py_version").agg(n=pl.count())
+
+Reactable(
+    r_summary_df,
+    details=Column(
+        details=lambda ri: Reactable(r_version_dfs[ri.row_index]).to_widget(),
+    ),
+)
+```
