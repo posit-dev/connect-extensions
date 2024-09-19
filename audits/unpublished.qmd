@@ -1,0 +1,31 @@
+---
+title: Unpublished Content
+jupyter: python3
+---
+
+
+```{python}
+#| echo: false
+import os
+
+import polars as pl
+from posit import connect
+from reactable import Reactable, embed_css
+
+client = connect.Client()
+
+content = client.content.find()
+unpublished  = (
+    pl.DataFrame(content, infer_schema_length=None)
+    .filter(pl.col("app_mode") == "unknown")
+    .select(pl.col("name", "title", "guid"))
+    )
+
+embed_css()
+
+Reactable(
+    unpublished,
+    searchable=True,
+    )
+```
+

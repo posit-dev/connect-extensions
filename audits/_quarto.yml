@@ -1,0 +1,24 @@
+project:
+  type: website
+
+website:
+  title: "Connect Audits"
+  navbar:
+    left:
+      - href: index.qmd
+        text: Home
+      - href: unpublished.qmd
+        text: Unpublished Content
+      - href: runtime-versions.qmd
+        text: Runtime Versions
+
+
+format:
+  html:
+    theme: cosmo
+    css: styles.css
+    toc: true
+    code-fold: true
+
+
+
