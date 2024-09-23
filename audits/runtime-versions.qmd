@@ -23,13 +23,29 @@ embed_css()
 python_content = (
     pl.DataFrame(content, infer_schema_length=None)
     .filter(pl.col("py_version").is_not_null())
+    .with_columns(
+        pl.col("py_version")
+        .str.split_exact(".", 3)
+        .alias("split_version")
+    )
+    .with_columns([
+        pl.col("split_version").struct.field("field_0").cast(pl.Int64).alias("major"),
+        pl.col("split_version").struct.field("field_1").cast(pl.Int64).alias("minor"),
+        pl.col("split_version").struct.field("field_2").cast(pl.Int64).alias("patch")
+    ])
 )
 
 py_version_dfs = list(g for k, g in python_content.group_by("py_version"))
-py_summary_df = python_content.group_by("py_version").agg(n=pl.count())
+py_summary_df = (
+    python_content
+    .group_by(["py_version", "major", "minor", "patch"])
+    .agg(n=pl.len())
+    .sort(["major", "minor", "patch"])
+    .select(pl.col(["py_version", "n"])))
 
 Reactable(
     py_summary_df,
+    default_sorted=["major"],
     details=Column(
         details=lambda ri: Reactable(py_version_dfs[ri.row_index]).to_widget(),
     ),
