@@ -1,0 +1,4 @@
+name = "pylist"
+title = "pylist"
+description = "i can't believe it's not connectwidgets"
+access_type = "logged_in"

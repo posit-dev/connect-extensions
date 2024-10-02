@@ -1,0 +1,57 @@
+---
+title: an example page
+format: html
+---
+
+```{r setup, include=FALSE}
+library(connectwidgets)
+library(dplyr)
+
+knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE)
+
+client <- connect()
+
+all_content <- client %>%
+  content()
+
+some_content <-
+  all_content %>%
+  dplyr::slice_sample(prop = .25)
+
+sample_content <- all_content %>%
+  arrange(desc(updated_time)) %>%
+  slice_head(n = 50)
+```
+
+![](https://source.unsplash.com/1920x1080/?forest "A random forest.")
+
+## Components
+
+### card
+
+```{r card}
+sample_content %>%
+  slice(1) %>%
+  rsc_card()
+```
+
+### grid
+
+```{r grid}
+sample_content %>%
+  rsc_grid()
+```
+
+### table
+
+```{r table}
+sample_content %>%
+  rsc_table()
+```
+
+### search & filter
+
+```{r search-and-filter}
+rsc_cols(rsc_search(some_content), rsc_filter(some_content), widths = c(2, 2))
+rsc_table(some_content)
+```
