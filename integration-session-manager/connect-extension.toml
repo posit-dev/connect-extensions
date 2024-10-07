@@ -1,0 +1,4 @@
+name = "connect-integration-session-manager"
+title = "Connect OAuth Integration Session Manager"
+description = "Allows Connect admins to view and manage OAuth integration sessions."
+access_type = "logged_in"
