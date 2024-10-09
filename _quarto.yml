@@ -1,0 +1,3 @@
+project:
+  type: website
+  pre-render: pre-render.ts

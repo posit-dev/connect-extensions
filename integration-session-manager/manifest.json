@@ -1,0 +1,27 @@
+{
+  "version": 1,
+  "locale": "en_US.UTF-8",
+  "metadata": {
+    "appmode": "python-shiny",
+    "entrypoint": "app"
+  },
+  "python": {
+    "version": "3.10.12",
+    "package_manager": {
+      "name": "pip",
+      "version": "24.2",
+      "package_file": "requirements.txt"
+    }
+  },
+  "files": {
+    "requirements.txt": {
+      "checksum": "ad96c76e9e6206cb681729471b4498cd"
+    },
+    "app.py": {
+      "checksum": "728ed25edcf98158b655feed22c850c8"
+    },
+    "connect-extension.toml": {
+      "checksum": "110f38ecd19febb0014b401396035605"
+    }
+  }
+}
