@@ -1,3 +1,6 @@
 project:
   type: website
   pre-render: pre-render-1.5.ts
+  resources: 
+    - "*.tar.gz"
+
