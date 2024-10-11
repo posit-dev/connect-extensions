@@ -1,3 +1,0 @@
-# reaper
-
-kill your darlings

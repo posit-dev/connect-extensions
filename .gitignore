@@ -1,0 +1,4 @@
+/.quarto/
+*.tar.gz
+scratch/
+_site/
