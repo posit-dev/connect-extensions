@@ -1,0 +1,36 @@
+---
+title: Contributing
+---
+
+Add your extension in the `extensions/` subdirectory.
+In addition to the extension code, include:
+
+## `index.qmd`
+
+A file that has the name of your extension, the categories it falls into, and a brief description
+
+```{filename="index.qmd"}
+---
+title: extension title
+categories:
+    -
+---
+
+extension description
+
+```
+
+## `connect-extension.toml`
+
+A file with the name, title, a brief description of the extension, and the access type it should have on being created
+
+```{filename="connect-extension.toml"}
+name = "<extension-name>"
+title = "<extension-title>"
+description = "<extension-categories>"
+access_type = "logged_in|acl"
+```
+
+## `manifest.json`
+
+Use `rsconnect` or `rsconnect-python` to generate a manifest, which is required as part of the extension bundle
