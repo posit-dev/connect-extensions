@@ -1,0 +1,9 @@
+---
+title: Integration Session Manager
+categories:
+    - OAuth
+    - shiny
+    - python
+    - ps
+---
+This Shiny for Python extension allows Connect admins to view and manage their users' OAuth integration sessions.
