@@ -1,0 +1,4 @@
+This Shiny for Python extension allows Connect content viewers to examine the parsed user session
+token injected from the `Posit-User-Session-Token` HTTP header identifying the content viewer.
+
+User's can also debug issues related to OAuth credential exchange.
