@@ -1,0 +1,10 @@
+---
+title: audit-api
+categories:
+    - R
+    - plumber
+    - admin
+    - audit
+---
+
+an api publishers can call for audit logs.

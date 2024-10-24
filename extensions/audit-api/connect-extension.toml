@@ -1,0 +1,4 @@
+name="audit-log-api"
+title="audit log api"
+access_type="acl"
+description="an api publishers can call for audit logs."

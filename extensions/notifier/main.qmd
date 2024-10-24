@@ -1,0 +1,81 @@
+---
+title: notifier
+format: email
+---
+
+```{r}
+library(connectapi)
+library(dplyr)
+library(httr2)
+
+client <- connect()
+
+WEBHOOK_URL <- Sys.getenv("WEBHOOK_URL")
+AUDIT_HOURS <- as.integer(Sys.getenv("AUDIT_HOURS"))
+
+get_hours_of_audit_logs <- function(cnct, hours = 1, max_retries = 3) {
+    end_time <- Sys.time()
+    target_time <- end_time - as.difftime(hours, units = "hours")
+
+    fetch_audit_logs <- function(current_logs = NULL, retry_count = 0) {
+        new_logs <- get_audit_logs(cnct, asc_order = FALSE)
+
+        if(nrow(new_logs) == 0 && retry_count < max_retries) {
+            return(fetch_logs(current_logs, retry_count + 1))
+        }
+
+        if (nrow(new_logs) == 0) {
+            return(current_logs)
+        }
+
+        combined_logs <- if (!is.null(current_logs)) {
+            bind_rows(current_logs, new_logs)
+        } else {
+            new_logs
+        }
+
+        oldest <- combined_logs |>
+            slice_min(order_by = time, with_ties = FALSE, na_rm = TRUE) |>
+            pull(time)
+
+        if (oldest <= target_time) {
+            return(combined_logs |> filter(time >= target_time))
+        } else {
+            return(fetch_audit_logs(combined_logs))
+        }
+    }
+
+    fetch_audit_logs() |>
+        arrange(desc(time))
+}
+
+notification <- request(WEBHOOK_URL)
+```
+
+
+```{r}
+last_hour <- get_hours_of_audit_logs(client, AUDIT_HOURS)
+
+deployments <- last_hour |>
+    filter(action == "deploy_application")
+
+who_deployed <- deployments |>
+    distinct(user_description) |>
+    select(user_description)
+
+notification |>
+    req_body_json(list(hourly_deployment_log = who_deployed)) |>
+    req_perform()
+```
+
+
+::: {.email}
+::: {.subject}
+hourly deployment log
+:::
+
+## users who performed a deployment in the last `r AUDIT_HOURS` hour(s)
+```{r}
+who_deployed
+```
+:::

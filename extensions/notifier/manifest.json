@@ -1,0 +1,29 @@
+{
+  "version": 1,
+  "locale": "en_US",
+  "platform": "4.4.1",
+  "metadata": {
+    "appmode": "quarto-static",
+    "primary_rmd": "main.qmd",
+    "primary_html": null,
+    "content_category": null,
+    "has_parameters": false
+  },
+  "quarto": {
+    "version": "1.6.24",
+    "engines": ["markdown"]
+  },
+  "packages": null,
+  "files": {
+    "connect-extension.toml": {
+      "checksum": "e05918b676bbd0a8dbc321ab8839f0d3"
+    },
+    "main.qmd": {
+      "checksum": "b3fde42764626e29023fd9e226b9c83c"
+    },
+    "renv.lock": {
+      "checksum": "834a5b2904ebeb6dd2be5181e0387db3"
+    }
+  },
+  "users": null
+}
