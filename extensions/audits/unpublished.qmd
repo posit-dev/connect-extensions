@@ -12,6 +12,10 @@ import polars as pl
 from posit import connect
 from reactable import Reactable, embed_css
 
+if os.getenv("RSTUDIO_PRODUCT") != "CONNECT":
+    from dotenv import load_dotenv
+    load_dotenv()
+
 client = connect.Client()
 
 content = client.content.find()

@@ -6,8 +6,12 @@ jupyter: python3
 ```{python}
 import polars as pl
 import polars.selectors as cs
-
+import os
 from reactable import Reactable, Column, embed_css
+
+if os.getenv("RSTUDIO_PRODUCT") != "CONNECT":
+    from dotenv import load_dotenv
+    load_dotenv()
 
 from posit import connect
 client = connect.Client()

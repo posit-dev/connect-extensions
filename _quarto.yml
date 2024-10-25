@@ -1,9 +1,10 @@
 project:
   type: website
   render:
-    - "**/index.qmd"
+    - "extensions/**/connect-extension.qmd"
     - contributing.qmd
     - extensions.qmd
+    - index.qmd
 
 
 website:
