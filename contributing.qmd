@@ -5,11 +5,11 @@ title: Contributing
 Add your extension in the `extensions/` subdirectory.
 In addition to the extension code, include:
 
-## `index.qmd`
+## `connect-extension.qmd`
 
 A file that has the name of your extension, the categories it falls into, and a brief description
 
-```{filename="index.qmd"}
+```{filename="connect-extension.qmd"}
 ---
 title: extension title
 categories:

@@ -2,5 +2,5 @@
 title: Extensions
 listing:
     categories: true
-    contents: "extensions/**/index.qmd"
+    contents: "extensions/**/connect-extension.qmd"
 ---
