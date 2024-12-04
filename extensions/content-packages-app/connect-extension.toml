@@ -1,0 +1,4 @@
+name = "connect-extension-content-by-package"
+title = "Find Content by Package"
+description = "Connect Extension: Find Content by Package"
+access_type = "logged_in"
