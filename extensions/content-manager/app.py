@@ -1,11 +1,13 @@
 import json
+
 import pendulum
 from posit import connect
 from posit.connect.content import ContentItem
-from shiny import App, render, ui, reactive
+from shiny import App, reactive, render, ui
 from shiny.ui import Tag as e
 
 from assets import bootstrap, fontawesome
+from components import ContentDetailsComponent, TitleComponent
 
 client = connect.Client()
 
@@ -56,14 +58,15 @@ def get_time(value):
     return date.format("MMM Do, YYYY")
 
 
-def ContentDetailsComponent(content: ContentItem):
-    return [
-        e("h5", "Details"),
-        e("p", content.get("title") or "No Name"),
-        e("p", f"{content.owner.get('first_name')} {content.owner.get('last_name')}"),
-        e("p", content.get("app_mode")),
-        ("p", content.get("content_category")) if content.get("content_category") else "",
-    ]
+# def ContentDetailsComponent(content: ContentItem):
+#     print(content)
+#     return [
+#         e("h5", "Details"),
+#         e("p", content.get("title") or "No Name"),
+#         e("p", f"{content.owner.get('first_name')} {content.owner.get('last_name')}"),
+#         e("p", content.get("app_mode")),
+#         e("p", content.get("content_category")) if content.get("content_category") else "",
+#     ]
 
 
 # Create the table rows
@@ -80,7 +83,13 @@ for idx, row in enumerate(content):
         },
         [
             e("td", get_link(row)),
-            e("td", get_title(row)),
+            e(
+                "td",
+                [
+                    e("div", {"class": "fw-bold"}, TitleComponent(row.get("title"))),
+                    e("div", {"class": "text-secondary"}, row.get("guid")),
+                ],
+            ),
             e("td", get_language(row)),
             e("td", get_time(row["last_deployed_time"])),
             e("td", get_time(row["created_time"])),
@@ -88,8 +97,8 @@ for idx, row in enumerate(content):
         e(
             "script",
             f"""
-            document.getElementById('{element_id}').addEventListener('click', () => {{
-                Shiny.setInputValue('selected_content_guid', {json.dumps(row["guid"])});
+            document.getElementById('{element_id}').addEventListener('click', async () => {{
+                await Shiny.setInputValue('selected_content_guid', {json.dumps(row["guid"])});
             }})
             """,
         ),
@@ -133,12 +142,53 @@ html = e(
         e("meta", **{"http-equiv": "X-UA-Compatible", "content": "ie=edge"}),
         bootstrap.css,
         fontawesome.icons,
+        e(
+            "style",
+            """
+            .offcanvas.offcanvas-end {
+                width: 1200px;
+            }
+            """,
+        ),
     ),
     e(
         "body",
         [
             e("div", {"class": "container"}, table),
-            ui.output_ui("sidebar"),
+            e(
+                "div",
+                {
+                    "class": "offcanvas offcanvas-end",
+                    "tabindex": "-1",
+                    "id": "details",
+                },
+                [
+                    e(
+                        "div",
+                        {"class": "offcanvas-header"},
+                        [
+                            e(
+                                "h3",
+                                {"class": "offcanvas-title"},
+                                "Content Details",
+                            ),
+                            e(
+                                "button",
+                                {
+                                    "type": "button",
+                                    "class": "btn-close",
+                                    "data-bs-dismiss": "offcanvas",
+                                },
+                            ),
+                        ],
+                    ),
+                    e(
+                        "div",
+                        {"class": "offcanvas-body"},
+                        ui.output_ui("sidebar"),
+                    ),
+                ],
+            ),
             bootstrap.js,
         ],
     ),
@@ -147,46 +197,26 @@ html = e(
 
 def server(input, output, session):
 
+    def get_processes():
+        response = client.get("metrics/procs")
+        processes = response.json()
+        return processes
+
     @output
     @render.ui
     def sidebar():
         content_guid = input.selected_content_guid.get()
-        item = client.content.get(content_guid)
-        print(item)
-        return e(
-            "div",
-            {
-                "class": "offcanvas offcanvas-end",
-                "tabindex": "-1",
-                "id": "details",
-            },
-            [
-                e(
-                    "div",
-                    {"class": "offcanvas-header"},
-                    [
-                        e(
-                            "h4",
-                            {"class": "offcanvas-title"},
-                            "Content",
-                        ),
-                        e(
-                            "button",
-                            {
-                                "type": "button",
-                                "class": "btn-close",
-                                "data-bs-dismiss": "offcanvas",
-                            },
-                        ),
-                    ],
-                ),
-                e(
-                    "div",
-                    {"class": "offcanvas-body"},
-                    ContentDetailsComponent(item),
-                ),
-            ],
-        )
+        content = client.content.get(content_guid)
+        metrics = client.metrics.usage.find(content_guid=content_guid)
+
+        processes = [
+            process
+            for process in get_processes()
+            if process.get("app_guid") == content_guid
+        ]
+
+        print(processes)
+        return ContentDetailsComponent(content, metrics, content.jobs, processes)
 
 
 app = App(html, server)
