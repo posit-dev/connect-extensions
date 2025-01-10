@@ -1,9 +1,10 @@
 import humanize
 import pendulum
 from shiny.ui import Tag as e
+from shiny import ui
 
 
-def TitleComponent(title: str | None):
+def NameComponent(title: str | None):
     if title:
         return title
     return e("em", "No Name")
@@ -20,7 +21,7 @@ def DateTimeComponent(value: str):
     date = pendulum.parse(value)
     local_tz = pendulum.local_timezone()
     date = local_tz.convert(date)
-    return date.format("MMMM Do YYYY, hh:mm:ss A zz")
+    return date.format("MMM Do YYYY, hh:mm:ss A zz")
 
 
 def DurationComponent(value: str):
@@ -32,86 +33,142 @@ def DurationComponent(value: str):
 
 
 def ContentDetailsComponent(
-    content: dict, metrics: dict, jobs: list[dict], processes: list[dict]
+    content: dict, author: dict, metrics: dict, jobs: list[dict], processes: list[dict],
 ):
     return [
         ContentInformationComponent(content),
+        ContentAuthorComponent(author),
         ContentActivityComponent(metrics),
-        ContentSessionComponent(processes),
+        ContentSessionsComponent(processes),
     ]
 
 
 def ContentInformationComponent(content: dict):
-    return e(
-        "div",
-        {"id": "content-information", "class": "row pb-4 gap-2"},
-        [
-            e("h5", "Details"),
-            DetailsComponent("Title", TitleComponent(content.get("title"))),
-            DetailsComponent(
-                "Updated", DateTimeComponent(content.get("last_deployed_time"))
-            ),
-            DetailsComponent("Created", DateTimeComponent(content.get("created_time"))),
-        ],
-    )
+    title = "Details"
+    details = [
+        CardBodyLabelAndValueComponent(
+            "Name", NameComponent(content.get("title"))
+        ),
+        CardBodyLabelAndValueComponent(
+            "Updated", DurationComponent(content.get("last_deployed_time"))
+        ),
+        CardBodyLabelAndValueComponent(
+            "Created", DateComponent(content.get("created_time"))
+        ),
+    ]
+    return CardComponent(title, details)
 
+def ContentAuthorComponent(author: dict ):
+    print(author)
+    title = "Author"
+    author = [
+        CardBodyLabelAndValueComponent(
+            "First Name", NameComponent(author.get("first_name"))
+        ),
+        CardBodyLabelAndValueComponent(
+            "Last Name", NameComponent(author.get("last_name"))
+        ),
+        CardBodyLabelAndValueComponent("Email", NameComponent(author.get("email"))),
+        CardBodyLabelAndValueComponent(
+            "Last Active", DurationComponent(author.get("active_time"))
+        ),
+    ]
 
-def ContentActivityComponent(metrics: list[dict]):
-    times = [event.get("started") for event in metrics]
+    return CardComponent(title, author)
+
+def ContentActivityComponent(events: list[dict]):
+    if len(events) == 0:
+        return
+
+    title = "Activity"
+
+    times = [event.get("started") for event in events]
     times = sorted(times)
 
-    return e(
-        "div",
-        {"id": "content-metrics", "class": "row pb-4 gap-2"},
-        [
-            e("h5", "Activity"),
-            DetailsComponent("Views", len(metrics)),
-            DetailsComponent("Last Visit", DateTimeComponent(times[-1])),
-            DetailsComponent("First Visit", DateTimeComponent(times[0])),
-        ],
+    details = [
+        CardBodyLabelAndValueComponent("Views", len(times)),
+        CardBodyLabelAndValueComponent("Last Visit", DurationComponent(times[-1])),
+        CardBodyLabelAndValueComponent("First Visit", DateComponent(times[0])),
+    ]
+
+    return CardComponent(
+        title,
+        details,
+        # ui.output_ui("views_chart"),
     )
 
 
-def ContentSessionComponent(processes: list[dict]):
+def ContentSessionsComponent(processes: list[dict]):
     if len(processes) == 0:
         return
 
+    def ContentSessionComponent(process: dict):
+        return [
+            CardBodyLabelAndValueComponent("Id", process.get("pid")),
+            CardBodyLabelAndValueComponent(
+                "Started", DurationComponent(process.get("start_time"))
+            ),
+            CardBodyLabelAndValueComponent(
+                "CPUs", format(process.get("cpu_current"), ".1f")
+            ),
+            CardBodyLabelAndValueComponent(
+                "Memory", humanize.naturalsize(process.get("ram"), gnu=True)
+            ),
+            CardBodyLabelAndValueComponent("Host", process.get("hostname")),
+            e(
+                "div",
+                {"class": "d-flex flex-row-reverse"},
+                e(
+                    "button",
+                    {
+                        "type": "button",
+                        "class": "btn btn-sm btn-outline-danger",
+                    },
+                    [
+                        e("i", {"class": "fa-solid fa-trash"}),
+                    ],
+                ),
+            ),
+        ]
+
+    title = "Instances"
+    details = [ContentSessionComponent(process) for process in processes]
+    return CardComponent(title, *details)
+
+
+def CardBodyLabelAndValueComponent(label, value):
+    return (
+        e(
+            "div",
+            {"class": "d-flex justify-content-between mb-1"},
+            [
+                e(
+                    "span",
+                    {"class": "text-secondary"},
+                    label,
+                ),
+                e("span", value),
+            ],
+        ),
+    )
+
+def CardComponent(title, *details):
     return e(
         "div",
-        {"id": "content-metrics", "class": "row pb-4 gap-2"},
+        {"class": "row m-3"},
         [
-            e("h5", "Sessions"),
+            e("h5", title),
             [
                 e(
                     "div",
-                    {"class": "row pb-3 gap-2"},
-                    [
-                        DetailsComponent("Process Id", process.get("pid")),
-                        DetailsComponent(
-                            "Started", DurationComponent(process.get("start_time"))
-                        ),
-                        DetailsComponent(
-                            "CPUs", format(process.get("cpu_current"), ".1f")
-                        ),
-                        DetailsComponent(
-                            "Memory", humanize.naturalsize(process.get("ram"), gnu=True)
-                        ),
-                        DetailsComponent("Host", process.get("hostname")),
-                    ],
+                    {"class": "col-6"},
+                    e(
+                        "div",
+                        {"class": "card position"},
+                        e("div", {"class": "card-body"}, detail),
+                    ),
                 )
-                for process in processes
+                for detail in details
             ],
-        ],
-    )
-
-
-def DetailsComponent(label: str, value: str | None):
-    """Helper function to create a Bootstrap row with label and value."""
-    return e(
-        "div",
-        {"class": "row"},
-        [
-            e("span", {"class": "col-2 text-secondary"}, label),
-            e("span", {"class": "col-10"}, value),
         ],
     )

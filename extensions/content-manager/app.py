@@ -2,12 +2,11 @@ import json
 
 import pendulum
 from posit import connect
-from posit.connect.content import ContentItem
-from shiny import App, reactive, render, ui
+from shiny import App, render, ui
 from shiny.ui import Tag as e
 
 from assets import bootstrap, fontawesome
-from components import ContentDetailsComponent, TitleComponent
+from components import ContentDetailsComponent, NameComponent
 
 client = connect.Client()
 
@@ -57,18 +56,6 @@ def get_time(value):
     date = pendulum.parse(value)
     return date.format("MMM Do, YYYY")
 
-
-# def ContentDetailsComponent(content: ContentItem):
-#     print(content)
-#     return [
-#         e("h5", "Details"),
-#         e("p", content.get("title") or "No Name"),
-#         e("p", f"{content.owner.get('first_name')} {content.owner.get('last_name')}"),
-#         e("p", content.get("app_mode")),
-#         e("p", content.get("content_category")) if content.get("content_category") else "",
-#     ]
-
-
 # Create the table rows
 rows = []
 for idx, row in enumerate(content):
@@ -86,7 +73,7 @@ for idx, row in enumerate(content):
             e(
                 "td",
                 [
-                    e("div", {"class": "fw-bold"}, TitleComponent(row.get("title"))),
+                    e("div", {"class": "fw-bold"}, NameComponent(row.get("title"))),
                     e("div", {"class": "text-secondary"}, row.get("guid")),
                 ],
             ),
@@ -146,7 +133,7 @@ html = e(
             "style",
             """
             .offcanvas.offcanvas-end {
-                width: 1200px;
+                width: 800px;
             }
             """,
         ),
@@ -215,8 +202,7 @@ def server(input, output, session):
             if process.get("app_guid") == content_guid
         ]
 
-        print(processes)
-        return ContentDetailsComponent(content, metrics, content.jobs, processes)
+        return ContentDetailsComponent(content, content.owner, metrics, content.jobs, processes)
 
 
 app = App(html, server)
