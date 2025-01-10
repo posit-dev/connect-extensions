@@ -115,20 +115,6 @@ def ContentSessionsComponent(processes: list[dict]):
                 "Memory", humanize.naturalsize(process.get("ram"), gnu=True)
             ),
             CardBodyLabelAndValueComponent("Host", process.get("hostname")),
-            e(
-                "div",
-                {"class": "d-flex flex-row-reverse"},
-                e(
-                    "button",
-                    {
-                        "type": "button",
-                        "class": "btn btn-sm btn-outline-danger",
-                    },
-                    [
-                        e("i", {"class": "fa-solid fa-trash"}),
-                    ],
-                ),
-            ),
         ]
 
     title = "Instances"

@@ -2,7 +2,7 @@
 '$schema' = 'https://cdn.posit.co/publisher/schemas/posit-publishing-record-schema-v3.json'
 server_type = 'connect'
 server_url = 'https://rsc.radixu.com'
-client_version = '1.6.0'
+client_version = '1.8.0'
 created_at = '2025-01-08T14:17:07-05:00'
 type = 'python-shiny'
 configuration_name = 'content-manager-2HLC'
@@ -10,9 +10,9 @@ id = '55df6261-6db0-4b3f-8bb3-1d3bebcc0feb'
 dashboard_url = 'https://rsc.radixu.com/connect/#/apps/55df6261-6db0-4b3f-8bb3-1d3bebcc0feb'
 direct_url = 'https://rsc.radixu.com/content/55df6261-6db0-4b3f-8bb3-1d3bebcc0feb/'
 logs_url = 'https://rsc.radixu.com/connect/#/apps/55df6261-6db0-4b3f-8bb3-1d3bebcc0feb/logs'
-deployed_at = '2025-01-08T14:29:58-05:00'
-bundle_id = '206134'
-bundle_url = 'https://rsc.radixu.com/__api__/v1/content/55df6261-6db0-4b3f-8bb3-1d3bebcc0feb/bundles/206134/download'
+deployed_at = '2025-01-09T23:55:04-05:00'
+bundle_id = '207255'
+bundle_url = 'https://rsc.radixu.com/__api__/v1/content/55df6261-6db0-4b3f-8bb3-1d3bebcc0feb/bundles/207255/download'
 files = [
   '.posit/publish/content-manager-2HLC.toml',
   '.posit/publish/deployments/deployment-IJJ6.toml',
