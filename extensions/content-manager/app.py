@@ -202,7 +202,7 @@ def server(input, output, session):
             if process.get("app_guid") == content_guid
         ]
 
-        return ContentDetailsComponent(content, content.owner, metrics, content.jobs, processes)
+        return ContentDetailsComponent(content, content.owner, metrics, content.jobs, processes, input, output, session)
 
 
 app = App(html, server)

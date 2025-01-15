@@ -1,7 +1,12 @@
+
 import humanize
 import pendulum
 from shiny.ui import Tag as e
 from shiny import ui
+from shiny import reactive, ui
+
+from posit import connect
+from posit.connect.content import ContentItem
 
 
 def NameComponent(title: str | None):
@@ -33,13 +38,20 @@ def DurationComponent(value: str):
 
 
 def ContentDetailsComponent(
-    content: dict, author: dict, metrics: dict, jobs: list[dict], processes: list[dict],
+    content: dict,
+    author: dict,
+    metrics: dict,
+    jobs: list[dict],
+    processes: list[dict],
+    input,
+    output,
+    session,
 ):
     return [
         ContentInformationComponent(content),
         ContentAuthorComponent(author),
         ContentActivityComponent(metrics),
-        ContentSessionsComponent(processes),
+        ContentSessionsComponent(content, processes, input, output, session),
     ]
 
 
@@ -59,7 +71,6 @@ def ContentInformationComponent(content: dict):
     return CardComponent(title, details)
 
 def ContentAuthorComponent(author: dict ):
-    print(author)
     title = "Author"
     author = [
         CardBodyLabelAndValueComponent(
@@ -98,11 +109,22 @@ def ContentActivityComponent(events: list[dict]):
     )
 
 
-def ContentSessionsComponent(processes: list[dict]):
+def ContentSessionsComponent(content: ContentItem, processes: list[dict], input, output, session):
     if len(processes) == 0:
         return
 
     def ContentSessionComponent(process: dict):
+
+        _id = f"session_{process.get("pid")}"
+
+        @reactive.Effect
+        @reactive.event(input[_id])
+        def _():
+            pid = process.get("pid")
+            job = content.jobs.find_by(pid=str(pid))
+            job.destroy()
+
+
         return [
             CardBodyLabelAndValueComponent("Id", process.get("pid")),
             CardBodyLabelAndValueComponent(
@@ -115,6 +137,9 @@ def ContentSessionsComponent(processes: list[dict]):
                 "Memory", humanize.naturalsize(process.get("ram"), gnu=True)
             ),
             CardBodyLabelAndValueComponent("Host", process.get("hostname")),
+            ui.input_action_button(
+                _id, "Kill", **{"class": "btn btn-danger"}
+            ),
         ]
 
     title = "Instances"
