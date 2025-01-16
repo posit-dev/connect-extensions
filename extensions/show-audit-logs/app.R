@@ -348,7 +348,7 @@ server <- function(input, output, session) {
       select(time, user_description, action, event_description) %>%
       arrange(desc(time)) %>%
       mutate(time = format(time, "%Y-%m-%dT%H:%M:%S%z")) %>%
-      reactable::reactable(pagination = FALSE)
+      reactable::reactable(pageSizeOptions = 100)
   })
 }
 
