@@ -102,7 +102,7 @@ server <- function(input, output, session) {
             div(
               class = "small",
               a(
-                div(bs_icon("arrow-up-right-circle"), "Open Dashboard "),
+                div("Open Dashboard ", bs_icon("arrow-up-right-square")),
                 href = data$dashboard_url[i],
                 target = "_blank", class = "text-decoration-none"
               )
