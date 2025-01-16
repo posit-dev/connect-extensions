@@ -93,11 +93,11 @@ ui <- page_fluid(
               )
             ),
             tabPanel(
-              "User Timeline",
+              "Activity By User",
               plotOutput("user_timeline")
             ),
             tabPanel(
-              "Action Timeline",
+              "Activity By Event Type",
               plotOutput("action_timeline")
             ),
             tabPanel(
@@ -124,9 +124,15 @@ server <- function(input, output, session) {
   audit_data <- reactive({
     req(input$limit)
 
-    # In a real app, you would connect to your Posit Connect server here
-    client <- connect()
-    logs <- get_audit_logs(client, limit = input$limit, asc_order = FALSE)
+
+    withProgress(
+      {
+        client <- connect()
+        logs <- get_audit_logs(client, limit = input$limit, asc_order = FALSE)
+      },
+      message = "Loading audit logs...",
+      value = NULL
+    )
   })
 
   # Handle action filters updates
