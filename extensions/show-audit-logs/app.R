@@ -106,7 +106,7 @@ ui <- page_fluid(
                 card_header("Event List"),
                 div(
                   style = "height: 500px; overflow-y: auto;",
-                  tableOutput("audit_list")
+                  reactable::reactableOutput("audit_list")
                 )
               )
             )
@@ -343,11 +343,12 @@ server <- function(input, output, session) {
   })
 
   # Audit list
-  output$audit_list <- renderTable({
+  output$audit_list <- reactable::renderReactable({
     filtered_data() %>%
       select(time, user_description, action, event_description) %>%
       arrange(desc(time)) %>%
-      mutate(time = format(time, "%Y-%m-%dT%H:%M:%S%z"))
+      mutate(time = format(time, "%Y-%m-%dT%H:%M:%S%z")) %>%
+      reactable::reactable(pagination = FALSE)
   })
 }
 
