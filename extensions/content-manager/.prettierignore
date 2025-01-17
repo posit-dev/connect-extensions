@@ -1,0 +1,5 @@
+# Ignore artifacts:
+.posit
+.venv
+node_modules
+dist

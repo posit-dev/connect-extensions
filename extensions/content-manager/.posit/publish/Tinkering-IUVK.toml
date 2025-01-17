@@ -12,7 +12,7 @@ files = [
   '/.posit/publish/deployments/deployment-291R.toml',
   '/dist'
 ]
-title = 'Tinkering'
+title = 'Content Manager'
 
 [python]
 version = '3.12.5'

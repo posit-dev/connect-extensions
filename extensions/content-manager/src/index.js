@@ -1,5 +1,13 @@
 import m from "mithril";
-import { App } from "./App";
+import Home from "./views/Home";
+import Edit from "./views/Edit";
 
 const root = document.getElementById("app");
-m.mount(root, App);
+m.route(root, "/", {
+  "/": Home,
+  "/edit/:id": {
+    render: function (vnode) {
+      return m(Edit, vnode.attrs);
+    },
+  },
+});
