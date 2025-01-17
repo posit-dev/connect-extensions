@@ -69,4 +69,13 @@ async def get_author(
     return content.owner
 
 
+@app.get("/api/contents/{content_id}/releases")
+async def get_releases(
+    content_id,
+    posit_connect_user_session_token: str = Header(None),
+):
+    content = client.content.get(content_id)
+    return content.bundles.find()
+
+
 app.mount("/", StaticFiles(directory="dist", html=True), name="static")

@@ -9,7 +9,7 @@ const ContentsComponent = {
 
   oninit: function () {
     try {
-      Contents.load()
+      Contents.load();
     } catch (err) {
       this.error = "Failed to load data.";
       console.error(err);
@@ -21,13 +21,13 @@ const ContentsComponent = {
       return m("div", { class: "error" }, this.error);
     }
 
-    const contents = Contents.data
+    const contents = Contents.data;
     if (contents === null) {
-      return
+      return;
     }
 
     if (contents.length === 0) {
-      return ""
+      return "";
     }
 
     return m(

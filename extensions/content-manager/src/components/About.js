@@ -2,10 +2,9 @@ import m from "mithril";
 
 import { format, formatDistanceToNow } from "date-fns";
 
-import Content from '../models/Content'
+import Content from "../models/Content";
 
 const About = {
-
   error: null,
 
   oninit: function (vnode) {
@@ -18,23 +17,22 @@ const About = {
   },
 
   onremove: function () {
-    Content.reset()
+    Content.reset();
   },
 
   view: function (vnode) {
-
     if (this.error) {
       return m("div", { class: "error" }, this.error);
     }
 
     const content = Content.data;
     if (content === null) {
-      return ""
+      return "";
     }
 
-    const desc =  content?.description;
-    const updated =  content?.last_deployed_time;
-    const created =  content?.created_time;
+    const desc = content?.description;
+    const updated = content?.last_deployed_time;
+    const created = content?.created_time;
 
     return m(".mb-3.border-bottom", [
       m(".", [
@@ -44,8 +42,7 @@ const About = {
           "p",
           m(
             "small.text-body-secondary",
-            "Updated " +
-              formatDistanceToNow(updated, { addSuffix: true }),
+            "Updated " + formatDistanceToNow(updated, { addSuffix: true }),
           ),
         ),
         m(

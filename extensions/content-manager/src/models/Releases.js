@@ -14,7 +14,7 @@ export default {
     }
 
     this._fetch = m
-      .request({ method: "GET", url: `api/contents` })
+      .request({ method: "GET", url: `api/contents/${id}/releases` })
       .then((result) => {
         this.data = result;
         this._fetch = null;

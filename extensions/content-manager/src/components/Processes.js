@@ -24,7 +24,7 @@ export default {
 
     const processes = Processes.data;
     if (processes === null) {
-      return
+      return;
     }
 
     if (processes.length === 0) {

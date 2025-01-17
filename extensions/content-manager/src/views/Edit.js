@@ -26,23 +26,20 @@ const Edit = {
   },
 
   view: function (vnode) {
-
     if (this.error) {
       return m("div", { class: "error" }, this.error);
     }
 
     const content = Content.data;
     if (content === null) {
-      return ""
+      return "";
     }
 
     return m(
       "div",
       { class: "container" },
       m(".d-flex.flex-row.justify-content-between.align-items-center.my-3", [
-        m("h2.mb-0",
-          content?.title || m("i", "No Name")
-        ),
+        m("h2.mb-0", content?.title || m("i", "No Name")),
         m(
           "a.btn.btn-lg.btn-outline-primary.d-flex.align-items-center.justify-content-center",
           {
@@ -60,8 +57,10 @@ const Edit = {
             updated: content?.last_deployed_time,
             created: content?.created_time,
           }),
-          m(Releases, {}),
           m(AuthorComponent, {
+            content_id: content?.guid,
+          }),
+          m(Releases, {
             content_id: content?.guid,
           }),
         ]),

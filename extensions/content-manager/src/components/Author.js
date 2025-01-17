@@ -27,7 +27,7 @@ export default {
 
     const author = Author.data;
     if (author === null) {
-      return ""
+      return "";
     }
 
     return m(".mb-3.border-bottom", [

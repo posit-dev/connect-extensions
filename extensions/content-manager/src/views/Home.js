@@ -8,7 +8,11 @@ const Home = {
       "div",
       { class: "container" },
       m("h1", "Content Manager"),
-      m("p", { class: "text-secondary" }, "Manage your content and their settings here."),
+      m(
+        "p",
+        { class: "text-secondary" },
+        "Manage your content and their settings here.",
+      ),
       m(ContentsComponent),
     );
   },
