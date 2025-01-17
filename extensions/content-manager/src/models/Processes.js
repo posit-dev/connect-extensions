@@ -25,6 +25,13 @@ const Processes = {
       });
   },
 
+  destroy: function (content_id, process_id) {
+    return m.request({
+      method: "DELETE",
+      url: `api/contents/${content_id}/processes/${process_id}`,
+    });
+  },
+
   reset: function () {
     this.data = null;
     this._fetch = null;

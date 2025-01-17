@@ -9,6 +9,7 @@
   },
   "dependencies": {
     "date-fns": "^4.1.0",
+    "filesize": "^10.1.6",
     "mithril": "^2.0.4"
   },
   "devDependencies": {
