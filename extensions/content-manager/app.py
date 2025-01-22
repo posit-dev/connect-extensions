@@ -54,8 +54,9 @@ async def get_content_processes(
     # Assert the viewer has access to the content
     assert viewer.content.get(content_id)
 
-    response = viewer.get("metrics/procs")
+    response = client.get("metrics/procs")
     processes = response.json()
+
     return [process for process in processes if process.get("app_guid") == content_id]
 
 

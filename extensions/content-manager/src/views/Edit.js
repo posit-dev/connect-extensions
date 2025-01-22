@@ -47,8 +47,8 @@ const Edit = {
             target: "_blank",
           },
           [
-            "Open Dashboard",
-            m("i.fa-solid.fa-arrow-up-right-from-square"), // Ensure it's inside an array for proper rendering
+            "Open in Connect",
+            m("i.fa-solid.fa-arrow-up-right-from-square"),
           ],
         ),
       ]),
@@ -66,7 +66,6 @@ const Edit = {
             }),
           ),
           m(Processes, { id: vnode.attrs.id }),
-          m(Metrics, { id: vnode.attrs.id }),
         ]),
         m(".col-4", [
           m(About, {

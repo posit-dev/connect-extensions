@@ -8,10 +8,11 @@ validate = true
 files = [
   '/app.py',
   '/requirements.txt',
-  '/.posit/publish/Tinkering-IUVK.toml',
-  '/.posit/publish/deployments/deployment-291R.toml'
+  '/.posit/publish/Publisher Dashboard-V7KE.toml',
+  '/.posit/publish/deployments/deployment-VF7C.toml',
+  '/dist'
 ]
-title = 'Content Manager'
+title = 'Publisher Dashboard'
 
 [python]
 version = '3.12.5'

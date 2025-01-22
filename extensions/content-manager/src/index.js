@@ -1,9 +1,10 @@
 import m from "mithril";
 
-import "bootstrap/dist/css/bootstrap.min.css";
-import "./index.scss";
-
 import "bootstrap/dist/js/bootstrap.bundle.min.js";
+import "@fortawesome/fontawesome-free/css/all.min.css";
+
+import "../scss/index.scss";
+
 
 import Home from "./views/Home";
 import Edit from "./views/Edit";
