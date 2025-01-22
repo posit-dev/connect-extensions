@@ -1,0 +1,8 @@
+connect-extension.toml
+---
+title: extension title
+categories:
+    -
+---
+
+extension description

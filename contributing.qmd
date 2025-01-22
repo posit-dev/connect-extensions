@@ -3,34 +3,29 @@ title: Contributing
 ---
 
 Add your extension in the `extensions/` subdirectory.
-In addition to the extension code, include:
 
-## `connect-extension.qmd`
+To help you get started, call `make create-extension DIR=my_extension_name` to create a new extension directory with the necessary files. Note, you will need to manually create your `manifest.json` file.
+
+<br />
+
+## Required files
+
+### `manifest.json`
+
+Use `rsconnect` or `rsconnect-python` to generate a manifest, which is required as part of the extension bundle
+
+### `connect-extension.qmd`
 
 A file that has the name of your extension, the categories it falls into, and a brief description
 
 ```{filename="connect-extension.qmd"}
----
-title: extension title
-categories:
-    -
----
-
-extension description
-
+{{< include _template/connect-extension.qmd >}}
 ```
 
-## `connect-extension.toml`
+### `connect-extension.toml`
 
 A file with the name, title, a brief description of the extension, and the access type it should have on being created
 
 ```{filename="connect-extension.toml"}
-name = "<extension-name>"
-title = "<extension-title>"
-description = "<extension-categories>"
-access_type = "logged_in|acl"
+{{< include _template/connect-extension.toml >}}
 ```
-
-## `manifest.json`
-
-Use `rsconnect` or `rsconnect-python` to generate a manifest, which is required as part of the extension bundle
