@@ -6,8 +6,7 @@ const Home = {
   view: function () {
     return m(
       "div",
-      { class: "container" },
-      m("h1", "Content Manager"),
+      m("h1", "Contents"),
       m(
         "p",
         { class: "text-secondary" },

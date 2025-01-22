@@ -8,10 +8,10 @@ validate = true
 files = [
   '/app.py',
   '/requirements.txt',
-  '/.posit/publish/Tinkering-IUVK.toml',
-  '/.posit/publish/deployments/deployment-291R.toml'
+  '/.posit/publish/h.com-content-53751332-edb6-4686-96ce-4598bf3b8648-VM2P.toml',
+  '/.posit/publish/deployments/deployment-VHRQ.toml'
 ]
-title = 'Content Manager'
+title = 'https://rsc.radixu.com/content/53751332-edb6-4686-96ce-4598bf3b8648'
 
 [python]
 version = '3.12.5'

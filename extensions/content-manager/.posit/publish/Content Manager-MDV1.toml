@@ -8,8 +8,9 @@ validate = true
 files = [
   '/app.py',
   '/requirements.txt',
-  '/.posit/publish/Tinkering-IUVK.toml',
-  '/.posit/publish/deployments/deployment-291R.toml'
+  '/.posit/publish/Content Manager-MDV1.toml',
+  '/.posit/publish/deployments/deployment-RJCR.toml',
+  '/dist'
 ]
 title = 'Content Manager'
 

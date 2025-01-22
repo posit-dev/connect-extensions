@@ -8,15 +8,26 @@ app = FastAPI()
 
 client = connect.Client()
 
+
 @app.get("/api/contents")
 async def contents(posit_connect_user_session_token: str = Header(None)):
-
     if posit_connect_user_session_token:
         viewer = client.with_user_session_token(posit_connect_user_session_token)
-        viewer = viewer.me["guid"]
-        return client.content.find(owner_guid=viewer)
+    else:
+        viewer = client
 
-    return client.me.content.find()
+    response = client.get("metrics/procs")
+    processes = response.json()
+
+    contents = viewer.me.content.find()
+    for content in contents:
+        content["processes"] = [
+            process
+            for process in processes
+            if content["guid"] == process["app_guid"]
+        ]
+
+    return contents
 
 
 @app.get("/api/contents/{content_id}")
@@ -25,16 +36,25 @@ async def content(
 ):
     if posit_connect_user_session_token:
         viewer = client.with_user_session_token(posit_connect_user_session_token)
-        return viewer.content.get(content_id)
+    else:
+        viewer = client
 
-    return client.content.get(content_id)
+    return viewer.content.get(content_id)
 
 
 @app.get("/api/contents/{content_id}/processes")
-async def processes(
+async def get_content_processes(
     content_id: str, posit_connect_user_session_token: str = Header(None)
 ):
-    response = client.get("metrics/procs")
+    if posit_connect_user_session_token:
+        viewer = client.with_user_session_token(posit_connect_user_session_token)
+    else:
+        viewer = client
+
+    # Assert the viewer has access to the content
+    assert viewer.content.get(content_id)
+
+    response = viewer.get("metrics/procs")
     processes = response.json()
     return [process for process in processes if process.get("app_guid") == content_id]
 
@@ -45,7 +65,12 @@ async def destroy_process(
     process_id: str,
     posit_connect_user_session_token: str = Header(None),
 ):
-    content = client.content.get(content_id)
+    if posit_connect_user_session_token:
+        viewer = client.with_user_session_token(posit_connect_user_session_token)
+    else:
+        viewer = client
+
+    content = viewer.content.get(content_id)
     job = content.jobs.find(process_id)
     if job:
         job.destroy()
@@ -55,6 +80,7 @@ async def destroy_process(
                 return
             sleep(1)
 
+
 @app.get("/api/contents/{content_id}/author")
 async def get_author(
     content_id,
@@ -62,10 +88,10 @@ async def get_author(
 ):
     if posit_connect_user_session_token:
         viewer = client.with_user_session_token(posit_connect_user_session_token)
-        content = viewer.content.get(content_id)
     else:
-        content = client.content.get(content_id)
+        viewer = client
 
+    content = viewer.content.get(content_id)
     return content.owner
 
 
@@ -74,8 +100,28 @@ async def get_releases(
     content_id,
     posit_connect_user_session_token: str = Header(None),
 ):
-    content = client.content.get(content_id)
+    if posit_connect_user_session_token:
+        viewer = client.with_user_session_token(posit_connect_user_session_token)
+    else:
+        viewer = client
+
+    content = viewer.content.get(content_id)
     return content.bundles.find()
+
+
+@app.get("/api/contents/{content_id}/metrics")
+async def get_metrics(
+    content_id,
+    posit_connect_user_session_token: str = Header(None),
+):
+    if posit_connect_user_session_token:
+        viewer = client.with_user_session_token(posit_connect_user_session_token)
+    else:
+        viewer = client
+
+    content = viewer.content.get(content_id)
+    metrics = viewer.metrics.usage.find(content_guid=content["guid"])
+    return metrics
 
 
 app.mount("/", StaticFiles(directory="dist", html=True), name="static")

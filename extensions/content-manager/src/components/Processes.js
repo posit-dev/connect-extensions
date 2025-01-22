@@ -2,6 +2,7 @@ import m from "mithril";
 import { formatDistanceToNow } from "date-fns";
 import { filesize } from "filesize";
 import Processes from "../models/Processes";
+import Process from "../models/Process";
 
 const StopButton = {
   oninit(vnode) {
@@ -75,6 +76,10 @@ export default {
     }
   },
 
+  onremove: function (vnode) {
+    Processes.reset();
+  },
+
   view: function (vnode) {
     if (this.error) {
       return m("div", { class: "error" }, this.error);
@@ -82,10 +87,13 @@ export default {
 
     const processes = Processes.data;
     if (processes === null || processes.length === 0) {
-      return;
+      return m(".pt-3.border-top", [
+        m("h5", "Processes"),
+        m("p.text-dark", "There are no server processes running at this time...")
+      ])
     }
 
-    return m(".mb-3", [
+    return m(".pt-3.border-top", [
       m("h5", "Processes"),
       m(
         "table.table",

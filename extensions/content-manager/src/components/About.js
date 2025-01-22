@@ -34,7 +34,7 @@ const About = {
     const updated = content?.last_deployed_time;
     const created = content?.created_time;
 
-    return m(".mb-3.border-bottom", [
+    return m(".pt-3.border-top", [
       m(".", [
         m("h5", "About"),
         m("p", desc || m("i", "No Description")),

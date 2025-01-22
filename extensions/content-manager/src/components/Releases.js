@@ -88,7 +88,7 @@ export default {
       ];
     }
 
-    return m(".mb-3.border-bottom", [
+    return m(".pt-3.border-top", [
       m(".", [
         m("h5", [
           "Releases ",
