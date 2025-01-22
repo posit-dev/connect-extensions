@@ -10,15 +10,23 @@ id = 'cd4a05a2-992a-43b9-83ab-30c4de7f302a'
 dashboard_url = 'https://rsc.radixu.com/connect/#/apps/cd4a05a2-992a-43b9-83ab-30c4de7f302a'
 direct_url = 'https://rsc.radixu.com/content/cd4a05a2-992a-43b9-83ab-30c4de7f302a/'
 logs_url = 'https://rsc.radixu.com/connect/#/apps/cd4a05a2-992a-43b9-83ab-30c4de7f302a/logs'
-deployed_at = '2025-01-22T12:00:28-05:00'
-bundle_id = '214904'
-bundle_url = 'https://rsc.radixu.com/__api__/v1/content/cd4a05a2-992a-43b9-83ab-30c4de7f302a/bundles/214904/download'
+deployed_at = '2025-01-22T12:22:56-05:00'
+bundle_id = '214915'
+bundle_url = 'https://rsc.radixu.com/__api__/v1/content/cd4a05a2-992a-43b9-83ab-30c4de7f302a/bundles/214915/download'
 files = [
   '.posit/publish/Publisher Dashboard-V7KE.toml',
   '.posit/publish/deployments/deployment-VF7C.toml',
   'app.py',
-  'dist/assets/index.3af31bfb.js',
-  'dist/assets/index.bdaa66a3.css',
+  'dist/assets/fa-brands-400.808443ae.ttf',
+  'dist/assets/fa-brands-400.d7236a19.woff2',
+  'dist/assets/fa-regular-400.54cf6086.ttf',
+  'dist/assets/fa-regular-400.e3456d12.woff2',
+  'dist/assets/fa-solid-900.aa759986.woff2',
+  'dist/assets/fa-solid-900.d2f05935.ttf',
+  'dist/assets/fa-v4compatibility.0ce9033c.woff2',
+  'dist/assets/fa-v4compatibility.30f6abf6.ttf',
+  'dist/assets/index.0c2ac2eb.css',
+  'dist/assets/index.18f7bbf0.js',
   'dist/index.html',
   'requirements.txt'
 ]
