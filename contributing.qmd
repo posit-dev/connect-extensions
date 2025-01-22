@@ -3,21 +3,17 @@ title: Contributing
 ---
 
 Add your extension in the `extensions/` subdirectory.
-In addition to the extension code, include:
 
 ## `connect-extension.qmd`
 
 A file that has the name of your extension, the categories it falls into, and a brief description
 
+
+
+A file that has the name of your extension, the categories it falls into, and a brief description
+
 ```{filename="connect-extension.qmd"}
----
-title: extension title
-categories:
-    -
----
-
-extension description
-
+{{< include _template/connect-extension.qmd >}}
 ```
 
 ## `connect-extension.toml`
@@ -25,10 +21,7 @@ extension description
 A file with the name, title, a brief description of the extension, and the access type it should have on being created
 
 ```{filename="connect-extension.toml"}
-name = "<extension-name>"
-title = "<extension-title>"
-description = "<extension-categories>"
-access_type = "logged_in|acl"
+{{< include _template/connect-extension.toml >}}
 ```
 
 ## `manifest.json`
