@@ -4,10 +4,9 @@ import Content from "../models/Content";
 import About from "../components/About";
 import Releases from "../components/Releases";
 import Processes from "../components/Processes";
-import Metrics from "../components/Metrics";
-import { default as AuthorComponent } from "../components/Author";
+import Author from "../components/Author";
 
-import { default as Author } from "../models/Author";
+import Languages from "../components/Languages";
 
 const Edit = {
   error: null,
@@ -22,7 +21,6 @@ const Edit = {
   },
 
   onremove: function () {
-    Author.reset();
     Content.reset();
   },
 
@@ -46,12 +44,10 @@ const Edit = {
             href: content?.dashboard_url,
             target: "_blank",
           },
-          [
-            "Open in Connect",
-            m("i.fa-solid.fa-arrow-up-right-from-square"),
-          ],
+          ["Open in Connect", m("i.fa-solid.fa-arrow-up-right-from-square")],
         ),
       ]),
+      m(".row", m(".pb-3", m(Languages, content))),
       m(".row.", [
         m(".col-8", [
           m(
@@ -73,7 +69,7 @@ const Edit = {
             updated: content?.last_deployed_time,
             created: content?.created_time,
           }),
-          m(AuthorComponent, {
+          m(Author, {
             content_id: content?.guid,
           }),
           m(Releases, {

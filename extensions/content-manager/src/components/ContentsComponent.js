@@ -1,6 +1,7 @@
 import m from "mithril";
 import { format } from "date-fns";
 import Contents from "../models/Contents";
+import Languages from "./Languages";
 
 const ContentsComponent = {
   error: null,
@@ -47,7 +48,6 @@ const ContentsComponent = {
         "tbody",
         Contents.data.map((content) => {
           const guid = content["guid"];
-          const languages = getLanguages(content);
           return m(
             "tr",
             {
@@ -70,13 +70,7 @@ const ContentsComponent = {
               ),
               m(
                 "td",
-                languages.map((language) => {
-                  return m(
-                    "span",
-                    { class: "mx-1 badge text-bg-primary" },
-                    language,
-                  );
-                }),
+                m(Languages, content)
               ),
               m("td", content?.processes.length),
               m("td", format(content["last_deployed_time"], "MMM do, yyyy")),
@@ -96,23 +90,6 @@ const ContentsComponent = {
       ),
     );
   },
-};
-
-const getLanguages = (content) => {
-  const languages = [];
-  if (content["r_version"] != null && content["r_version"] !== "") {
-    languages.push("R");
-  }
-  if (content["py_version"] != null && content["py_version"] !== "") {
-    languages.push("Python");
-  }
-  if (content["quarto_version"] != null && content["quarto_version"] !== "") {
-    languages.push("Quarto");
-  }
-  if (content["content_category"] === "pin") {
-    languages.push("Pin");
-  }
-  return languages.sort();
 };
 
 export default ContentsComponent;
