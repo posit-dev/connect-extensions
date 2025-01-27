@@ -1,5 +1,7 @@
 # Posit Connect SDK Assistant
 
+![SDK Assistant](sdk-assistant.gif)
+
 This is a tool to help developers understand how to use the [Posit Connect SDK python package](https://github.com/posit-dev/posit-sdk-py).
 
 Currently, it does not execute any code.
