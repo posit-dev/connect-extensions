@@ -99,9 +99,8 @@ def server(input: Inputs):  # noqa: A002
         await local_session.send_custom_message("submit-chat", {"id": "chat"})
 
     @render.text
+    @reactive.event(chat_ui.messages)
     def cost():
-        _ = chat_ui.messages()
-
         tokens = chat.tokens("cumulative")
         if len(tokens) == 0:
             return None
