@@ -186,7 +186,6 @@ client = Client()
             )
         )
 
-        # if chat_ui.messages(format="anthropic")
         return ui.a(
             ui.img(src="new_gh_issue.svg", alt="New GitHub Issue", height="100%"),
             title="Submit script example to Posit SDK",
