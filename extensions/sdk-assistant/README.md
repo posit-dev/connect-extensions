@@ -8,8 +8,6 @@ Currently, it does not execute any code.
 
 ## Usage
 
-To view the live application, visit [this link](https://connect.posit.it/sdk-assistant/).
-
 To run the assistant, simply run the following command:
 
 ```bash
