@@ -33,7 +33,10 @@ def cleanup() -> None:
         path = here / f
         if path.exists():
             print("Removing path:", path.relative_to(here))
-            shutil.rmtree(path)
+            if path.is_file():
+                path.unlink()
+            else:
+                shutil.rmtree(path)
     print("--\n")
 
 

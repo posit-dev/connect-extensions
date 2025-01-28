@@ -6,11 +6,10 @@
 # ///
 from __future__ import annotations
 
-from copy import deepcopy
 import pathlib
 import os
 import json
-from typing_extensions import Any, NotRequired, TypedDict, TypeVar
+from typing_extensions import TypedDict, TypeVar
 
 here = pathlib.Path(__file__).parent
 os.chdir(here)
@@ -18,152 +17,83 @@ os.chdir(here)
 T = TypeVar("T")
 
 
-def find_value(root, path):
-    """
-    Find a value in an object graph.
-
-    This function is used to follow the specified path through the object graph at root
-    and return the item in the graph, if any, that the path refers to.
-
-    :param root: the root of the object graph to traverse.
-    :param path: the path through the graph to take.
-    :return: the resulting value or None.
-    """
-    if isinstance(path, str):
-        path = path.split("/")
-    parent = root
-    for part in path:
-        if part in parent:
-            parent = parent[part]
-        else:
-            return None
-    return parent
-
-
-def expand_refs(
-    document, obj
-) -> Any:  # Use `Any` for return type to hack around typing requirement
-    """
-    Expands `ref`s in the given object.
-
-    Returns an object semantically equivalent to the original but with references expanded.
-
-    Parameters
-    ----------
-    document
-        the master swagger document containing the responses and definitions.
-    obj
-        is either a normal swagger object, a ref object, or a swagger object with a schema.
-    """
-    if isinstance(obj, list):
-        return [expand_refs(document, item) for item in obj]
-    elif isinstance(obj, dict):
-        if "$ref" in obj:
-            ref_path = obj["$ref"].strip("#/").split("/")
-            ref_value = find_value(document, ref_path)
-            if ref_value is None:
-                raise RuntimeError(
-                    f"Reference {obj['$ref']} not found in the document."
-                )
-            return expand_refs(document, ref_value)
-        else:
-            return {key: expand_refs(document, value) for key, value in obj.items()}
-    else:
-        return obj
-
-
 class SwaggerOperation(TypedDict, total=False):
-    operationId: str
-    tags: list[str]
     summary: str
-    description: str
-    parameters: list[dict[str, Any]]
-    responses: dict[str, Any]
 
 
 class SwaggerDocument(TypedDict):
-    paths: NotRequired[dict[str, SwaggerOperation]]
-    parameters: NotRequired[dict[str, Any]]
-    responses: NotRequired[dict[str, Any]]
-    definitions: NotRequired[dict[str, Any]]
+    paths: dict[str, SwaggerOperation]
 
 
-def expand_all_references(document: SwaggerDocument) -> SwaggerDocument:
+class Route(TypedDict):
+    method: str
+    path: str
+    summary: str
+
+
+def transform_swagger_to_routes(
+    swagger_dict: SwaggerDocument,
+) -> list[Route]:
     """
-    Expands all JSON references.
+    Swagger to routes.
 
-    Expands all references ($ref) in the merged swagger document by replacing them with
-    their full definitions.
-
-    This returns a new document with all references expanded.
+    Transforms the structure of a Swagger object to create a list where each object includes the route method, route path, and route summary.
 
     Arguments
     ---------
-    document
-        The dictionary representing the Swagger document to process
+    swagger_dict
+        The dictionary representing the Swagger document.
 
     Returns
     -------
     :
-        The processed Swagger document with all references expanded.
+        A list of dictionaries where each dictionary includes the method, path, and summary of an API route.
     """
-    ret_document = deepcopy(document)
-    # List of error response keys to ignore
-    error_responses = [
-        "BadRequest",
-        "Unauthorized",
-        "PaymentRequired",
-        "Forbidden",
-        "NotFound",
-        "Conflict",
-        "APIError",
-        "InternalServerError",
-    ]
+    routes: list[Route] = []
 
-    # We need to expand refs in paths
-    if "paths" in ret_document:
-        for _path, operations in ret_document["paths"].items():
-            for _method, operation in operations.items():
+    if "paths" not in swagger_dict:
+        raise ValueError(
+            "The Swagger document `swagger_dict=` does not contain a 'paths' key."
+        )
+
+    if "paths" in swagger_dict:
+        for path, operations in swagger_dict["paths"].items():
+            if not isinstance(path, str):
+                raise ValueError(
+                    f"Expected route to be a string, but got {type(path)}."
+                )
+            for method, operation in operations.items():
+                if not isinstance(method, str):
+                    raise ValueError(
+                        f"Expected method to be a string, but got {type(method)}."
+                    )
                 if not isinstance(operation, dict):
-                    continue
-                # Expand refs in parameters
-                if "parameters" in operation:
-                    operation["parameters"] = expand_refs(
-                        ret_document, operation["parameters"]
+                    raise ValueError(
+                        f"Expected operation to be a dictionary, but got {type(operation)}."
+                    )
+                if "summary" not in operation:
+                    raise ValueError(
+                        f"Expected operation to have a 'summary' key, but got {operation}."
                     )
 
-                # Expand refs in responses
-                if "responses" in operation:
-                    for code, response in operation["responses"].items():
-                        if "schema" in response and code not in error_responses:
-                            response["schema"] = expand_refs(
-                                ret_document, response["schema"]
-                            )
+                summary = operation["summary"]
+                if not isinstance(summary, str):
+                    raise ValueError(
+                        f"Expected summary to be a string, but got {type(summary)}."
+                    )
 
-    # Expand refs in top-level parameters
-    if "parameters" in ret_document:
-        ret_document["parameters"] = expand_refs(
-            ret_document, ret_document["parameters"]
-        )
-
-    # Expand refs in top-level responses, ignoring error responses
-    if "responses" in ret_document:
-        for response_key, response_value in ret_document["responses"].items():
-            if response_key not in error_responses:
-                ret_document["responses"][response_key] = expand_refs(
-                    ret_document, response_value
+                routes.append(
+                    {
+                        "method": method,
+                        "path": path,
+                        "summary": summary,
+                    }
                 )
 
-    # Expand refs in definitions
-    if "definitions" in ret_document:
-        ret_document["definitions"] = expand_refs(
-            ret_document, ret_document["definitions"]
-        )
-
-    return ret_document
+    return routes
 
 
-def require_swagger():
+def main():
     if not (here / "_swagger.json").exists():
         import urllib.request
 
@@ -172,81 +102,27 @@ def require_swagger():
             here / "_swagger.json",
         )
 
-    doc = json.load(here / "_swagger.json")
+    swagger = json.loads((here / "_swagger.json").read_text())
 
-    swagger = expand_all_references(doc)
-    return swagger
+    routes = transform_swagger_to_routes(swagger)
 
-
-class OperationDef(TypedDict):
-    name: str
-    tags: list[str]
-    method: str
-    route: str
-    definition: dict[str, Any]
-
-
-def transform_swagger_to_operation_dict(
-    swagger_dict: SwaggerDocument,
-) -> dict[str, OperationDef]:
-    """
-    Swagger to operation dictionary transformation.
-
-    Transforms the structure of a Swagger dictionary to create a dictionary where each entry key is
-    the operation ID and the value is the definition for that operation, including the HTTP verb
-    and the route.
-
-    Args:
-        swagger_dict: The dictionary representing the Swagger document.
-
-    Returns
-    -------
-    :
-        A dictionary where each key is an operation ID and the value is the operation definition.
-    """
-    operation_dict = {}
-
-    if "paths" in swagger_dict:
-        for route, operations in swagger_dict["paths"].items():
-            for method, operation in operations.items():
-                if not isinstance(operation, dict):
-                    continue
-                if "operationId" in operation:
-                    operation_id = operation["operationId"]
-                    tags = operation["tags"] if "tags" in operation else []
-                    # response_parent = operation["responses"]["200"] or operation["responses"]["204"]
-                    # if response_parent and "response"
-                    operation_dict[operation_id] = {
-                        "name": operation_id,
-                        "tags": tags,
-                        "method": method,
-                        "route": route,
-                        "definition": operation,
-                    }
-
-    return operation_dict
-
-
-def main():
-    swagger = require_swagger()
-
-    operations = transform_swagger_to_operation_dict(swagger)
-
+    # Write out the swagger portion of the instructions with a preamble and a
+    # list of all the API routes and their short summaries.
     with open(here / "_swagger_prompt.md", "w") as f:
         f.write(
             "If an answer can not be resolved, suggest to the user that they can explore calling these API routes themselves. Never produce code that calls these routes as we do not know the return type or successful status codes.\n\nAPI Routes:\n"
             ""
         )
 
-        for operation in operations.values():
-            # `"GET /v1/tasks/{id} Get task details"`
+        for route in routes:
+            # `"* GET /v1/tasks/{id} Get task details"`
             f.write(
                 "* "
-                + operation["method"].upper()
+                + route["method"].upper()
                 + " "
-                + operation["route"]
+                + route["path"]
                 + " "
-                + operation["definition"]["summary"].replace("\n", " ").strip()
+                + route["summary"].replace("\n", " ").strip()
                 + "\n",
             )
 
