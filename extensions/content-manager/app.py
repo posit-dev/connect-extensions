@@ -1,30 +1,39 @@
 from http import client
-from time import sleep
+import asyncio
 from fastapi import FastAPI, Header
 from fastapi.staticfiles import StaticFiles
 from posit import connect
 
-app = FastAPI()
+from cachetools import TTLCache, cached
 
 client = connect.Client()
+
+app = FastAPI()
+
+# Create cache with TTL=1hour and unlimited size
+client_cache = TTLCache(maxsize=float("inf"), ttl=3600)
+
+
+@cached(client_cache)
+def get_visitor_client(token: str | None) -> connect.Client:
+    """Create and cache API client per token with 1 hour TTL"""
+    if token:
+        return client.with_user_session_token(token)
+    else:
+        return client
 
 
 @app.get("/api/contents")
 async def contents(posit_connect_user_session_token: str = Header(None)):
-    if posit_connect_user_session_token:
-        viewer = client.with_user_session_token(posit_connect_user_session_token)
-    else:
-        viewer = client
+    visitor = get_visitor_client(posit_connect_user_session_token)
 
     response = client.get("metrics/procs")
     processes = response.json()
 
-    contents = viewer.me.content.find()
+    contents = visitor.me.content.find()
     for content in contents:
         content["processes"] = [
-            process
-            for process in processes
-            if content["guid"] == process["app_guid"]
+            process for process in processes if content["guid"] == process["app_guid"]
         ]
 
     return contents
@@ -34,25 +43,18 @@ async def contents(posit_connect_user_session_token: str = Header(None)):
 async def content(
     content_id: str, posit_connect_user_session_token: str = Header(None)
 ):
-    if posit_connect_user_session_token:
-        viewer = client.with_user_session_token(posit_connect_user_session_token)
-    else:
-        viewer = client
-
-    return viewer.content.get(content_id)
+    visitor = get_visitor_client(posit_connect_user_session_token)
+    return visitor.content.get(content_id)
 
 
 @app.get("/api/contents/{content_id}/processes")
 async def get_content_processes(
     content_id: str, posit_connect_user_session_token: str = Header(None)
 ):
-    if posit_connect_user_session_token:
-        viewer = client.with_user_session_token(posit_connect_user_session_token)
-    else:
-        viewer = client
+    visitor = get_visitor_client(posit_connect_user_session_token)
 
     # Assert the viewer has access to the content
-    assert viewer.content.get(content_id)
+    assert visitor.content.get(content_id)
 
     response = client.get("metrics/procs")
     processes = response.json()
@@ -66,12 +68,9 @@ async def destroy_process(
     process_id: str,
     posit_connect_user_session_token: str = Header(None),
 ):
-    if posit_connect_user_session_token:
-        viewer = client.with_user_session_token(posit_connect_user_session_token)
-    else:
-        viewer = client
+    visitor = get_visitor_client(posit_connect_user_session_token)
 
-    content = viewer.content.get(content_id)
+    content = visitor.content.get(content_id)
     job = content.jobs.find(process_id)
     if job:
         job.destroy()
@@ -79,7 +78,7 @@ async def destroy_process(
             job = content.jobs.find(process_id)
             if job["status"] != 0:
                 return
-            sleep(1)
+            await asyncio.sleep(1)
 
 
 @app.get("/api/contents/{content_id}/author")
@@ -87,12 +86,8 @@ async def get_author(
     content_id,
     posit_connect_user_session_token: str = Header(None),
 ):
-    if posit_connect_user_session_token:
-        viewer = client.with_user_session_token(posit_connect_user_session_token)
-    else:
-        viewer = client
-
-    content = viewer.content.get(content_id)
+    visitor = get_visitor_client(posit_connect_user_session_token)
+    content = visitor.content.get(content_id)
     return content.owner
 
 
@@ -101,12 +96,8 @@ async def get_releases(
     content_id,
     posit_connect_user_session_token: str = Header(None),
 ):
-    if posit_connect_user_session_token:
-        viewer = client.with_user_session_token(posit_connect_user_session_token)
-    else:
-        viewer = client
-
-    content = viewer.content.get(content_id)
+    visitor = get_visitor_client(posit_connect_user_session_token)
+    content = visitor.content.get(content_id)
     return content.bundles.find()
 
 
@@ -115,13 +106,9 @@ async def get_metrics(
     content_id,
     posit_connect_user_session_token: str = Header(None),
 ):
-    if posit_connect_user_session_token:
-        viewer = client.with_user_session_token(posit_connect_user_session_token)
-    else:
-        viewer = client
-
-    content = viewer.content.get(content_id)
-    metrics = viewer.metrics.usage.find(content_guid=content["guid"])
+    visitor = get_visitor_client(posit_connect_user_session_token)
+    content = visitor.content.get(content_id)
+    metrics = visitor.metrics.usage.find(content_guid=content["guid"])
     return metrics
 
 
