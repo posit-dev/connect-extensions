@@ -19,13 +19,8 @@ import shutil
 import pyright
 
 
-# # Set working directory to the root of the repository
-# repo_root = pathlib.Path(__file__)
-# while not os.path.exists(repo_root / "pyproject.toml"):
-#     repo_root = repo_root.parent
-# os.chdir(repo_root)
-
 here = pathlib.Path(__file__).parent
+os.chdir(here)
 
 
 def cleanup() -> None:
@@ -36,12 +31,9 @@ def cleanup() -> None:
         "_repomix-instructions.md",
     ]:
         path = here / f
-        if os.path.exists(path):
+        if path.exists():
             print("Removing path:", path.relative_to(here))
-            if path.is_dir():
-                shutil.rmtree(path)
-            else:
-                os.remove(path)
+            shutil.rmtree(path)
     print("--\n")
 
 
@@ -63,14 +55,11 @@ async def main() -> None:
     print("Getting Swagger information")
     os.system("python ./_update_swagger.py")
 
-    with open("_repomix-instructions.md", "w") as prompt_f:
-        with open("custom-prompt-instructions.md", "r") as instructions_f:
-            prompt_f.write(instructions_f.read())
-
+    with open(here / "_repomix-instructions.md", "w") as prompt_f:
+        prompt_f.write((here / "custom-prompt-instructions.md").read_text())
         prompt_f.write("\n")
+        prompt_f.write((here / "_swagger_prompt.md").read_text())
 
-        with open("_swagger_prompt.md", "r") as swagger_f:
-            prompt_f.write(swagger_f.read())
     print("--\n")
 
     # repomix GitHub Repo: https://github.com/yamadashy/repomix
@@ -94,13 +83,8 @@ async def main() -> None:
 def remove_prefix_from_files(folder: str | pathlib.Path, prefix: str) -> None:
     root_folder = pathlib.Path(folder)
     for path in root_folder.rglob("*.pyi"):
-        with open(path, "r") as f:
-            file_txt = f.read()
-
-        file_txt = file_txt.removeprefix(prefix)
-
-        with open(path, "w") as f:
-            f.write(file_txt)
+        file_txt = path.read_text().removeprefix(prefix)
+        path.write_text(file_txt)
 
 
 if __name__ == "__main__":

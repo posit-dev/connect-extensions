@@ -79,13 +79,14 @@ def server(input: Inputs):  # noqa: A002
     aws_model = os.getenv("AWS_MODEL", "us.anthropic.claude-3-5-sonnet-20241022-v2:0")
     aws_region = os.getenv("AWS_REGION", "us-east-1")
     chat = chatlas.ChatBedrockAnthropic(model=aws_model, aws_region=aws_region)
-    prompt_file = pathlib.Path(__file__).parent / "_prompt.xml"
-    if not os.path.exists(prompt_file):
+
+    prompt = pathlib.Path(__file__).parent / "_prompt.xml"
+    if not prompt.exists():
         raise FileNotFoundError(
-            f"Prompt file not found: {prompt_file} ; Please run `make shiny` to generate it."
+            f"Prompt file not found: {prompt}; run `make shiny` to generate it."
         )
-    with open(prompt_file, "r") as f:
-        chat.system_prompt = f.read()
+
+    chat.system_prompt = prompt.read_text()
 
     chat_ui = ui.Chat("chat")
 
@@ -128,11 +129,10 @@ def server(input: Inputs):  # noqa: A002
         first_message_content: str = str(messages[0].get("content", ""))
 
         with tempfile.TemporaryDirectory() as tmpdirname:
-            export_path = tmpdirname + "/chat_export.md"
+            export_path = pathlib.Path(tmpdirname) / "chat_export.md"
             chat.export(export_path, include="all", include_system_prompt=False)
 
-            with open(export_path, "r") as f:
-                exported_content = f.read()
+            exported_content = export_path.read_text()
 
         body = f"""
 **First message:**

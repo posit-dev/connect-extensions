@@ -7,11 +7,14 @@
 from __future__ import annotations
 
 from copy import deepcopy
-from pathlib import Path
-
+import pathlib
+import os
+import json
 from typing_extensions import Any, NotRequired, TypedDict, TypeVar
 
-here = Path(__file__).parent
+here = pathlib.Path(__file__).parent
+os.chdir(here)
+
 T = TypeVar("T")
 
 
@@ -169,10 +172,7 @@ def require_swagger():
             here / "_swagger.json",
         )
 
-    import json
-
-    with open(here / "_swagger.json") as f:
-        doc = json.load(f)
+    doc = json.load(here / "_swagger.json")
 
     swagger = expand_all_references(doc)
     return swagger
@@ -230,7 +230,7 @@ def transform_swagger_to_operation_dict(
 def main():
     swagger = require_swagger()
 
-    operations = transform_swagger_to_operation_dict(require_swagger())
+    operations = transform_swagger_to_operation_dict(swagger)
 
     with open(here / "_swagger_prompt.md", "w") as f:
         f.write(
@@ -239,9 +239,7 @@ def main():
         )
 
         for operation in operations.values():
-            # print("Operation:", operation["name"])
-
-            # "GET /v1/tasks/{id} Get task details"
+            # `"GET /v1/tasks/{id} Get task details"`
             f.write(
                 "* "
                 + operation["method"].upper()

@@ -18,6 +18,9 @@ import pathlib
 
 import chatlas
 
+here = pathlib.Path(__file__).parent
+os.chdir(here)
+
 
 async def main() -> None:
     print("Running chatlas")
@@ -25,8 +28,7 @@ async def main() -> None:
     aws_region = os.getenv("AWS_REGION", "us-east-1")
     chat = chatlas.ChatBedrockAnthropic(model=aws_model, aws_region=aws_region)
 
-    with open("_prompt.xml", "r") as f:
-        chat.system_prompt = f.read()
+    chat.system_prompt = (here / "_prompt.xml").read_text()
 
     prompt = "Which groups do I belong to?"
     # Worked!
@@ -74,9 +76,7 @@ async def main() -> None:
 
     # Save to ./chatlas folder
     pathlib.Path("chatlas").mkdir(exist_ok=True)
-    chat.export(
-        pathlib.Path(__file__).parent / "chatlas" / f"{prompt}.md", overwrite=True
-    )
+    chat.export(here / "chatlas" / f"{prompt}.md", overwrite=True)
 
 
 if __name__ == "__main__":
