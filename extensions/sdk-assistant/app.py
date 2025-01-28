@@ -87,10 +87,7 @@ def server(input: Inputs):  # noqa: A002
     with open(prompt_file, "r") as f:
         chat.system_prompt = f.read()
 
-    chat_ui = ui.Chat(
-        "chat",
-        # messages=[{"role": turn.role, "content": turn.text} for turn in chat.get_turns()],
-    )
+    chat_ui = ui.Chat("chat")
 
     async def submit_chat(new_value: str):
         chat_ui.update_user_input(value=new_value)
