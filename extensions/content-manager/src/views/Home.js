@@ -6,7 +6,7 @@ const Home = {
   view: function () {
     return m(
       "div",
-      m("h1", "Contents"),
+      m("h1", "Content"),
       m(
         "p",
         { class: "text-secondary" },

@@ -12,7 +12,7 @@ export default {
               style: { cursor: "pointer" },
               onclick: () => m.route.set(`/`),
             },
-            "Publisher Dashboard",
+            "Publisher Command Center",
           ),
           m("ul.navbar-nav.me-auto", [
             m(
@@ -23,7 +23,7 @@ export default {
                   style: { cursor: "pointer" },
                   onclick: () => m.route.set("/contents"),
                 },
-                "Contents",
+                "Content",
               ),
             ),
           ]),

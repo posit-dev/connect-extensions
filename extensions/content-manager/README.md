@@ -1,7 +1,7 @@
 
-# Publisher Dashboard
+# Publisher Command Center
 
-**Publisher Dashboard** is a web-based application designed to help publishers manage and track their content.
+**Publisher Command Center** is a web-based application designed to help publishers manage and track their content.
 
 ## Features
 
