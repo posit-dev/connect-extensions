@@ -1,0 +1,17 @@
+# R specific files
+.Rproj.user
+.Rhistory
+.RData
+.Ruserdata
+
+# OS specific files
+.DS_Store
+Thumbs.db
+
+# Editor specific files
+.vscode/
+.idea/
+
+# Temporary files
+*.log
+*.tmp
