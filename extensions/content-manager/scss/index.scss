@@ -1,0 +1,29 @@
+// index.scss
+
+$blue: #447099;
+$indigo: #3d348b;
+$purple: #9a4665;
+$pink: #d96b94;
+$red: #d44000;
+$orange: #ee6331;
+$yellow: #e7b10a;
+$green: #72994e;
+$teal: #419599;
+$cyan: #53b0ae;
+$gray: #404041;
+
+$colors: (
+  "blue": $blue,
+  "indigo": $indigo,
+  "purple": $purple,
+  "pink": $pink,
+  "red": $red,
+  "orange": $orange,
+  "yellow": $yellow,
+  "green": $green,
+  "teal": $teal,
+  "cyan": $cyan,
+  "gray": $gray,
+);
+
+@import "bootstrap/scss/bootstrap";

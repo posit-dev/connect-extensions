@@ -1,0 +1,26 @@
+{
+  "name": "publisher-dashboard",
+  "version": "0.0.1",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build --base ./ --minify false",
+    "watch": "vite build --watch",
+    "preview": "vite preview",
+    "server": "uv run fastapi dev app.py"
+  },
+  "dependencies": {
+    "@fortawesome/fontawesome-free": "^6.7.2",
+    "@fortawesome/free-regular-svg-icons": "^6.7.2",
+    "@fortawesome/free-solid-svg-icons": "^6.7.2",
+    "@popperjs/core": "^2.11.8",
+    "bootstrap": "^5.3.3",
+    "date-fns": "^4.1.0",
+    "filesize": "^10.1.6",
+    "mithril": "^2.0.4"
+  },
+  "devDependencies": {
+    "prettier": "3.4.2",
+    "sass": "^1.83.4",
+    "vite": "^2.6.2"
+  }
+}
