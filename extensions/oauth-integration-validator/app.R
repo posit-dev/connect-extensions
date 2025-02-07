@@ -72,7 +72,7 @@ server <- function(input, output, session) {
       # remind the user that they don't have a token 
       output$results <- renderUI({
         HTML('<span style="color:red; font-size:larger;">No access token found.',
-        '<br/>Try logging out and logging back in to the integration if you haven not ',
+        '<br/>Try logging out and logging back in to the integration if you have not ',
         'visited this content recently.<br/>If an integration is not associated with ',
         'the content then ask your publisher to add one.</span><br/>')
       })
