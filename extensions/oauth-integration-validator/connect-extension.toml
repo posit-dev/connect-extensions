@@ -1,0 +1,4 @@
+name = "oauth-integration-validator"
+title = "Connect OAuth Integration Validator"
+description = "Allows Connect content viewers to perform a GET request to a specified endpoint using the access token obtained by Connect."
+access_type = "logged_in"
