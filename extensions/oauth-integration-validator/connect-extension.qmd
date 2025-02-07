@@ -10,11 +10,18 @@ This R Shiny extension allows Posit Connect content viewers to make a GET
 request to a specified endpoint using their OAuth access token obtained by 
 Connect. 
 
-If the request succeeds a message reflecting the same is displayed to the user, 
-and the results of the request can be viewed by expanding the "Show results" 
-section.
+If Connect is unable to obtain an access token the app does not fail to start, 
+but instead notifies the user of the failure. If the user attempts to request an 
+endpoint without a token then an error message is displayed that suggests logging 
+out and back in to the integration or associating an OAuth integration if one was 
+not added.
+
+The GET request is made to the provided endpoint with the access token in the 
+headers as `Authorization: Bearer <token>`. If the request succeeds a message 
+reflecting the same is displayed to the user, and the results of the request can 
+be viewed by expanding the "Show results" section.
 
 On failure an error message is displayed that includes the HTTP error code. The 
 results of the request are logged instead of displayed to the user, as the 
-Connect publisher or administrator is likely handling debugging the resource 
+Connect publisher or administrator is likely in charge of debugging the resource 
 request failure.
