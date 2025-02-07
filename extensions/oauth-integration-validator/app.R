@@ -40,12 +40,16 @@ server <- function(input, output, session) {
         })
       })
    
+    # set token to null
+    token <- reactiveVal(NULL)
+    
+    # react to the credentials request
     observeEvent(credentials(), {
       creds <- credentials()
       
       # check if the credentials exchange was successful
       if (is.null(creds$error)) {
-        token <- creds$access_token
+        token(creds$access_token)
       } else {
         # show notification to user
         showNotification(creds$error, creds$message)
@@ -64,7 +68,7 @@ server <- function(input, output, session) {
     endpoint <- input$endpoint
     
     # do not allow request without an access token
-    if (!exists("token")) {
+    if (is.null(token())) {
       # remind the user that they don't have a token 
       output$results <- renderUI({
         HTML('<span style="color:red; font-size:larger;">No access token found.',
@@ -76,7 +80,7 @@ server <- function(input, output, session) {
       # make the request 
       resp <- httr2::request(endpoint) |>
         httr2::req_headers("Accept" = "application/json") |>
-        httr2::req_auth_bearer_token(token) |>
+        httr2::req_auth_bearer_token(token()) |>
         # to avoid HTTP response error codes being surfaced as R errors
         httr2::req_error(is_error = ~FALSE) |>
         httr2::req_perform()
