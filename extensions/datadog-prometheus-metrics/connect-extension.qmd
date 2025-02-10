@@ -1,0 +1,14 @@
+---
+title: Plotting Connect Prometheus Metrics from Datadog 
+categories:
+    - python 
+    - metrics 
+    - prometheus
+    - datadog
+---
+
+This Streamlit Python application allows users to query Datadog for 
+Connect Prometheus metrics such as total jobs in queue and content 
+visits. Users are able to select a metric and timeframe to query. 
+A plot displays the timeseries data returned from Datadog. 
+

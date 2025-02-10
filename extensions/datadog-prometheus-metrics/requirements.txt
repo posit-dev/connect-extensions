@@ -1,0 +1,4 @@
+datadog_api_client==2.32.0
+matplotlib==3.8.2
+pandas==2.2.3
+streamlit==1.42.0
