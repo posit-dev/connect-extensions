@@ -3,12 +3,14 @@ library(httr2)
 library(bslib)
 library(connectapi)
 
-ui <- page_sidebar(
+ui <- page_fluid(
   title = "OAuth Integration Validation in R",
-  sidebar = sidebar(
-    title = "Request an endpoint",
-    textInput("endpoint", "GET endpoint to request:", placeholder = "https://example.com/api/list"),
-    actionButton("request", "Request")
+  layout_columns(
+    card_header = "Request an endpoint",
+    card_body(
+      textInput("endpoint", "GET endpoint to request:", placeholder = "https://example.com/api/list", width = "640"),
+      actionButton("request", "Request", width = "640")
+    )
   ),
   layout_columns(
     card(
@@ -74,7 +76,7 @@ server <- function(input, output, session) {
         HTML('<span style="color:red; font-size:larger;">No access token found.',
         '<br/>Try logging out and logging back in to the integration if you have not ',
         'visited this content recently.<br/>If an integration is not associated with ',
-        'the content then ask your publisher to add one.</span><br/>')
+        'this content then request the content owner add one.</span><br/>')
       })
     } else {
       # make the request 
