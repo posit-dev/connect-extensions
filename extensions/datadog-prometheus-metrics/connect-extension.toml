@@ -1,0 +1,4 @@
+name = "datadog-prometheus-metrics"
+title = "Plotting Connect Prometheus Metrics from Datadog"
+description = "Allows users to query Datadog for a selected Connect Prometheus metric over a given timeframe and view a plot of the results."
+access_type = "acl"
