@@ -1,0 +1,22 @@
+name: Reaper Extension Pull Request
+
+on:
+  pull_request:
+    paths:
+      - 'extensions/reaper/**'
+
+jobs:
+  package:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Create tar
+        working-directory: ./extensions/reaper
+        run: tar -czf reaper.tar.gz .
+
+      - name: Upload Reaper extension tar
+        uses: actions/upload-artifact@v4
+        with:
+          name: reaper.tar.gz
+          path: extensions/reaper/reaper.tar.gz
