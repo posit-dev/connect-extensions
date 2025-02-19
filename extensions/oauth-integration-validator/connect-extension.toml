@@ -1,0 +1,4 @@
+name = "oauth-integration-validator"
+title = "Connect OAuth Integration Validator"
+description = "Test an OAuth integration by performing a GET request to a specified endpoint using the access token obtained by Connect."
+access_type = "logged_in"
