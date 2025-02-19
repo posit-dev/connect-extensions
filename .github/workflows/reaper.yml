@@ -12,11 +12,11 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Create tar
-        working-directory: ./extensions/reaper
-        run: tar -czf reaper.tar.gz .
+        working-directory: ./extensions
+        run: tar -czf reaper.tar.gz reaper
 
       - name: Upload Reaper extension tar
         uses: actions/upload-artifact@v4
         with:
           name: reaper.tar.gz
-          path: extensions/reaper/reaper.tar.gz
+          path: extensions/reaper.tar.gz
