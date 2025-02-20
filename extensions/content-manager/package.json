@@ -1,5 +1,6 @@
 {
-  "name": "publisher-dashboard",
+  "name": "publisher-command-center",
+  "description": "A dashboard for publishers to help manage and track their content",
   "version": "0.0.1",
   "scripts": {
     "dev": "vite",
