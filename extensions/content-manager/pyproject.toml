@@ -1,0 +1,11 @@
+[project]
+name = "publisher-command-center"
+version = "0.1.0"
+description = "A dashboard for publishers to help manage and track their content"
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "cachetools>=5.5.1",
+    "fastapi[standard]>=0.115.8",
+    "posit-sdk>=0.8.0",
+]
