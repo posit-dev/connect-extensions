@@ -1,4 +1,3 @@
-
 # Publisher Command Center
 
 **Publisher Command Center** is a web-based application designed to help publishers manage and track their content.
@@ -27,6 +26,7 @@ Clone the repository and install dependencies:
 
 ```sh
 npm install
+uv sync
 ```
 
 ### Running the Development Server
@@ -43,7 +43,7 @@ Start the backend development server:
 npm run server
 ```
 
-Start the watcher to enable continuous rebuilds:
+Start the watcher to enable continuous rebuilds of the frontend:
 
 ```sh
 npm run watch
