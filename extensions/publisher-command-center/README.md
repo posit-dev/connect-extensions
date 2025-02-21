@@ -1,4 +1,3 @@
-
 # Publisher Command Center
 
 **Publisher Command Center** is a web-based application designed to help publishers manage and track their content.
@@ -27,6 +26,7 @@ Clone the repository and install dependencies:
 
 ```sh
 npm install
+uv sync
 ```
 
 ### Running the Development Server
@@ -43,12 +43,11 @@ Start the backend development server:
 npm run server
 ```
 
-Start the watcher to enable continuous rebuilds:
+Start the watcher to enable continuous rebuilds of the frontend:
 
 ```sh
 npm run watch
 ```
-
 
 
 ### Building for Production
@@ -58,6 +57,13 @@ To build the frontend for production:
 ```sh
 npm run build
 ```
+
+### Publishing on Connect
+
+This extension utilizes the [Connect API OAuth Integration](https://docs.posit.co/connect/admin/integrations/oauth-integrations/connect/index.html#create-connect-api-integration-in-posit-connect).
+
+After deploying the extension create a Connect API Viewer role integration, if
+one doesn't already exist on the server, and select it as a integration.
 
 ## Technologies Used
 
