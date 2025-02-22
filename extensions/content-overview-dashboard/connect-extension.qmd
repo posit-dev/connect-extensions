@@ -1,0 +1,9 @@
+---
+title: Most Active Content Dashboard
+categories:
+    - metrics
+    - shiny
+    - r
+---
+
+Get an overview of most active content items on your Connect server.

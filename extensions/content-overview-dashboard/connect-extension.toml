@@ -1,0 +1,4 @@
+name = "most-active-content-dashboard"
+title = "Most Active Content Dashboard"
+description = "Get an overview of most active content items on your Connect server."
+access_type = "logged_in"
