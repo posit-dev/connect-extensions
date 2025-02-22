@@ -5,6 +5,9 @@ on:
     paths:
       - 'extensions/reaper/**'
 
+env:
+  EXTENSION_NAME: reaper
+
 jobs:
   package:
     runs-on: ubuntu-latest
@@ -13,10 +16,10 @@ jobs:
 
       - name: Create tar
         working-directory: ./extensions
-        run: tar -czf reaper.tar.gz reaper
+        run: tar -czf $EXTENSION_NAME.tar.gz $EXTENSION_NAME
 
       - name: Upload extension tar
         uses: actions/upload-artifact@v4
         with:
-          name: reaper.tar.gz
-          path: extensions/reaper.tar.gz
+          name: ${{ env.EXTENSION_NAME }}.tar.gz
+          path: extensions/${{ env.EXTENSION_NAME }}.tar.gz
