@@ -1,4 +1,4 @@
-name: Reaper Extension Pull Request
+name: Reaper Extension
 
 on:
   pull_request:
@@ -15,7 +15,7 @@ jobs:
         working-directory: ./extensions
         run: tar -czf reaper.tar.gz reaper
 
-      - name: Upload Reaper extension tar
+      - name: Upload extension tar
         uses: actions/upload-artifact@v4
         with:
           name: reaper.tar.gz
