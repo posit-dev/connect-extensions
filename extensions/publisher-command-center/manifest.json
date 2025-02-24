@@ -49,9 +49,6 @@
 		"dist/index.html": {
 			"checksum": "4be76de8432e10c1b1ec25dc9e965a64"
 		},
-		"index.html": {
-			"checksum": "7433a22d0845c4d09abaaa8643c6c7f1"
-		},
 		"requirements.txt": {
 			"checksum": "a162a98758867a701ce693948ffdfa67"
 		}

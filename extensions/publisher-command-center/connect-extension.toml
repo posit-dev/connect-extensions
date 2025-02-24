@@ -1,0 +1,4 @@
+name = "publisher-command-center"
+title = "Publisher Command Center"
+description = "A dashboard for publishers to help manage and track their content."
+access_type = "acl"
