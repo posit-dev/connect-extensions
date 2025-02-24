@@ -1,0 +1,57 @@
+name: Publisher Commander Center Extension
+
+on:
+  pull_request:
+    paths:
+      - 'extensions/publisher-command-center/**'
+
+env:
+  EXTENSION_NAME: publisher-command-center
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./extensions/${{ env.EXTENSION_NAME }}
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 'lts/*'
+          cache: 'npm'
+          cache-dependency-path: extensions/${{ env.EXTENSION_NAME }}/package-lock.json
+
+      - run: npm ci
+      - run: npm run build
+
+      - name: Upload built extension
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.EXTENSION_NAME }}
+          path: |
+            extensions/${{ env.EXTENSION_NAME }}/dist/
+            extensions/${{ env.EXTENSION_NAME }}/requirements.txt
+            extensions/${{ env.EXTENSION_NAME }}/app.py
+            extensions/${{ env.EXTENSION_NAME }}/manifest.json
+            extensions/${{ env.EXTENSION_NAME }}/connect-extension.toml
+
+  package:
+    needs: build
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+            name: ${{ env.EXTENSION_NAME}}
+            path: ${{ env.EXTENSION_NAME }}
+
+      - name: Create tar
+        run: tar -czf $EXTENSION_NAME.tar.gz $EXTENSION_NAME
+
+      - name: Upload extension tar
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.EXTENSION_NAME }}.tar.gz
+          path: ${{ env.EXTENSION_NAME }}.tar.gz
