@@ -7,3 +7,6 @@ _site/
 __pycache__/
 *.py[cod]
 *$py.class
+
+# license files should not be commited to this repository
+*.lic
