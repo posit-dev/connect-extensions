@@ -74,5 +74,3 @@ Reactable(
     ),
 )
 ```
-
-## The End
