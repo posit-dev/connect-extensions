@@ -52,7 +52,7 @@ server <- function(input, output, session) {
     summarize(
       total_views = n(),
       unique_viewers = n_distinct(user_guid, na.rm = TRUE),
-      last_viewed_at = max(timestamp, na.rm = TRUE)
+      last_viewed_at = format(max(timestamp, na.rm = TRUE), "%Y-%m-%d at %I:%M %p")
     )
 
   content_usage <- content |>
