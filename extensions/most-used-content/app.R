@@ -52,7 +52,7 @@ server <- function(input, output, session) {
     summarize(
       total_views = n(),
       unique_viewers = n_distinct(user_guid, na.rm = TRUE),
-      last_viewed_at = format(max(timestamp, na.rm = TRUE), "%Y-%m-%d at %I:%M %p")
+      last_viewed_at = max(timestamp, na.rm = TRUE)
     )
 
   content_usage <- content |>
@@ -61,21 +61,24 @@ server <- function(input, output, session) {
     right_join(usage_stats, by = "content_guid") |>
     arrange(desc(total_views))
 
-  output$content_usage <- renderDT(
-    content_usage,
-    options = list(
-      order = list(list(4, "desc")),
-      paging = FALSE
-    ),
-    colnames = c(
-      "Content Title" = "title",
-      "Content GUID" = "content_guid",
-      "Owner Isername" = "owner_username",
-      "Total Views" = "total_views",
-      "Unique Logged-in Viewers" = "unique_viewers",
-      "Last Viewed At" = "last_viewed_at"
-    )
-  )
+  output$content_usage <- renderDT({
+    datatable(
+      content_usage,
+      options = list(
+        order = list(list(4, "desc")),
+        paging = FALSE
+      ),
+      colnames = c(
+        "Content Title" = "title",
+        "Content GUID" = "content_guid",
+        "Owner Isername" = "owner_username",
+        "Total Views" = "total_views",
+        "Unique Logged-in Viewers" = "unique_viewers",
+        "Last Viewed At" = "last_viewed_at"
+      )
+    ) |>
+      formatDate(columns = "Last Viewed At", method = "toLocaleString")
+  })
 }
 
 shinyApp(ui, server)
