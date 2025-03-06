@@ -26,9 +26,12 @@ server <- function(input, output, session) {
 
   # Load data
   content <- get_content(client) |>
+    # Fake data, to be replaced with real data later.
     mutate(n_bundles = rpois(n(), 3))
 
   user_table <- content |>
+    # The `owner` column is a nested list-column.
+    # We extract the requisite metadata up to be first-class atomic vector columns.
     mutate(
       username = map_chr(owner, "username"),
       user_full_name = paste(map_chr(owner, "first_name"), map_chr(owner, "last_name"))
