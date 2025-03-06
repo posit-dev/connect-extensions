@@ -6,6 +6,10 @@ library(dplyr)
 library(purrr)
 library(lubridate)
 
+shinyOptions(
+  cache = cachem::cache_disk("./app_cache/cache/", max_age = 60 * 60 * 8)
+)
+
 source("get_usage.R")
 
 ui <- page_fillable(
@@ -20,7 +24,7 @@ ui <- page_fillable(
       ),
       card(
         DTOutput(
-          "content_usage"
+          "content_usage_table"
         )
       )
     )
@@ -30,55 +34,65 @@ ui <- page_fillable(
 server <- function(input, output, session) {
   client <- connect()
 
-  content <- get_content(client)
 
   # Default dates. "This week" is best "common sense" best represented by six
   # days ago thru the end of today. Without these, content takes too long to
   # display on some servers.
-  from_date <- today() - ddays(6)
-  to_date <- today()
-  from_time <- format(from_date, "%Y-%m-%dT%H:%M:%SZ")
-  to_time <- format(to_date + hours(23) + minutes(59) + seconds(59), "%Y-%m-%dT%H:%M:%SZ")
+  date_range <- reactive({
+    list(
+      from_date = today() - ddays(6),
+      to_date = today()
+    )
+  })
 
-  usage <- get_usage(
-    client,
-    from = from_time,
-    to = to_time
-  )
+  content <- reactive({
+    get_content(client)
+  }) |> bindCache("static_key")
+
+  usage_data <- reactive({
+    get_usage(
+      client,
+      from = format(date_range()$from_date, "%Y-%m-%dT%H:%M:%SZ"),
+      to = format(date_range()$to_date + hours(23) + minutes(59) + seconds(59), "%Y-%m-%dT%H:%M:%SZ")
+    )
+  }) |> bindCache(date_range()$from_date, date_range()$to_date)
 
   # Compute basic usage stats
-  usage_stats <- usage |>
-    group_by(content_guid) |>
-    summarize(
-      total_views = n(),
-      unique_viewers = n_distinct(user_guid, na.rm = TRUE),
-      last_viewed_at = max(timestamp, na.rm = TRUE)
-    )
-
-  content_usage <- content |>
-    mutate(owner_username = map_chr(owner, "username")) |>
-    select(title, content_guid = guid, owner_username) |>
-    right_join(usage_stats, by = "content_guid") |>
-    arrange(desc(total_views))
-
-  output$content_usage <- renderDT({
-    datatable(
-      content_usage,
-      options = list(
-        order = list(list(4, "desc")),
-        paging = FALSE
-      ),
-      colnames = c(
-        "Content Title" = "title",
-        "Content GUID" = "content_guid",
-        "Owner Isername" = "owner_username",
-        "Total Views" = "total_views",
-        "Unique Logged-in Viewers" = "unique_viewers",
-        "Last Viewed At" = "last_viewed_at"
+  content_usage_data <- reactive({
+    usage_summary <- usage_data() |>
+      group_by(content_guid) |>
+      summarize(
+        total_views = n(),
+        unique_viewers = n_distinct(user_guid, na.rm = TRUE),
+        last_viewed_at = max(timestamp, na.rm = TRUE)
       )
-    ) |>
-      formatDate(columns = "Last Viewed At", method = "toLocaleString")
-  })
+
+    content() |>
+      mutate(owner_username = map_chr(owner, "username")) |>
+      select(title, content_guid = guid, owner_username) |>
+      right_join(usage_summary, by = "content_guid") |>
+      arrange(desc(total_views))
+  }) |> bindCache(date_range()$from_date, date_range()$to_date)
+
+    output$content_usage_table <- renderDT({
+      datatable(
+        content_usage_data(),
+        options = list(
+          order = list(list(4, "desc")),
+          paging = FALSE
+        ),
+        colnames = c(
+          "Content Title" = "title",
+          "Content GUID" = "content_guid",
+          "Owner Username" = "owner_username",
+          "Total Views" = "total_views",
+          "Unique Logged-in Viewers" = "unique_viewers",
+          "Last Viewed At" = "last_viewed_at"
+        )
+      ) |>
+        formatDate(columns = "Last Viewed At", method = "toLocaleString")
+
+    })
 }
 
 shinyApp(ui, server)
