@@ -3,10 +3,8 @@ library(connectapi)
 # This file contains functions that ultimately will more likely be part of
 # connectapi. As such, I'm not using dplyr or pipes here.
 
-NA_datetime_ <- # nolint: object_name_linter
-  vctrs::new_datetime(NA_real_, tzone = "UTC")
-NA_list_ <- # nolint: object_name_linter
-  list(list())
+NA_datetime_ <- vctrs::new_datetime(NA_real_, tzone = "UTC")
+NA_list_ <- list(list())
 
 usage_dtype <- tibble::tibble(
   "id" = NA_integer_,

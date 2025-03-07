@@ -20,7 +20,9 @@ ui <- page_fillable(
     layout_sidebar(
       sidebar = sidebar(
         title = "No Filters Yet",
-        open = FALSE
+        open = FALSE,
+
+        actionButton("clear_cache", "Clear Cache", icon = icon("refresh"))
       ),
       card(
         DTOutput(
@@ -32,8 +34,16 @@ ui <- page_fillable(
 )
 
 server <- function(input, output, session) {
-  client <- connect()
+  # Cache invalidation button ----
+  cache <- cachem::cache_disk("./app_cache/cache/")
+  observeEvent(input$clear_cache, {
+    print("Cache cleared!")
+    cache$reset()  # Clears all cached data
+    session$reload()  # Reload the app to ensure fresh data
+  })
 
+  # Loading and processing data ----
+  client <- connect()
 
   # Default dates. "This week" is best "common sense" best represented by six
   # days ago thru the end of today. Without these, content takes too long to
@@ -52,8 +62,8 @@ server <- function(input, output, session) {
   usage_data <- reactive({
     get_usage(
       client,
-      from = format(date_range()$from_date, "%Y-%m-%dT%H:%M:%SZ"),
-      to = format(date_range()$to_date + hours(23) + minutes(59) + seconds(59), "%Y-%m-%dT%H:%M:%SZ")
+      from = date_range()$from_date,
+      to = date_range()$to_date + hours(23) + minutes(59) + seconds(59)
     )
   }) |> bindCache(date_range()$from_date, date_range()$to_date)
 
