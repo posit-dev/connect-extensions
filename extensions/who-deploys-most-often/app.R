@@ -1,23 +1,37 @@
 library(shiny)
 library(bslib)
+library(shinyjs)
+library(DT)
 library(dplyr)
 library(purrr)
 library(connectapi)
-library(DT)
 
 shinyOptions(
   cache = cachem::cache_disk("./app_cache/cache/", max_age = 60 * 60 * 12)
 )
 
 ui <- page_fillable(
+  useShinyjs(),
+
   theme = bs_theme(version = 5),
 
   card(
     card_header("Who Deploys Most Often"),
     layout_sidebar(
       sidebar = sidebar(
-        title = "No Filters Yet",
-        open = FALSE
+        title = "Filter Data",
+        open = FALSE,
+        checkboxInput("enable_date", "Filter Deploys", value = FALSE),
+
+        dateRangeInput(
+          "date_range",
+          label = "Date Range",
+          start = Sys.Date() - 7,
+          end = Sys.Date(),
+          min = "2020-01-01",
+          max = Sys.Date()
+        )
+
       ),
       card_body("Note: \"Number of Deploys\" is using synthetic data.", fill = FALSE),
       card(
@@ -28,6 +42,18 @@ ui <- page_fillable(
 )
 
 server <- function(input, output, session) {
+  # Enable or disable the date range filter.
+  observe({
+    if (input$enable_date) {
+      print("enableing date range")
+      enable("date_range")
+    } else {
+      print("disabling date range")
+      disable("date_range")
+    }
+  })
+
+
   client <- connect()
 
   # Load data
