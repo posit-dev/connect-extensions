@@ -1,0 +1,7 @@
+htmltools
+packaging
+pandas
+posit-sdk
+shiny
+mobsf==4.1.3
+requests
