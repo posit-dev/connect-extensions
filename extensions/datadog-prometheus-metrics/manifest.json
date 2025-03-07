@@ -1,0 +1,30 @@
+{
+  "version": 1,
+  "locale": "en_US.UTF-8",
+  "metadata": {
+    "appmode": "python-streamlit",
+    "entrypoint": "app"
+  },
+  "python": {
+    "version": "3.11.3",
+    "package_manager": {
+      "name": "pip",
+      "version": "25.0.1",
+      "package_file": "requirements.txt"
+    }
+  },
+  "files": {
+    "requirements.txt": {
+      "checksum": "9855f69d0437096286851bae43b2eceb"
+    },
+    "app.py": {
+      "checksum": "96b60bc4e32f2b4d809207ec6d2a880d"
+    },
+    "connect-extension.qmd": {
+      "checksum": "168f0a708df0811fa9225bda634a7cb3"
+    },
+    "connect-extension.toml": {
+      "checksum": "a47a27c677363b99083eae5af19482b4"
+    }
+  }
+}
