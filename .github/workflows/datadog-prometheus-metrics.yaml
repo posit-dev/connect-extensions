@@ -1,12 +1,12 @@
-name: SDK Assistant Extension
+name: Datadog Prometheus Metrics Extension
 
 on:
   pull_request:
     paths:
-      - 'extensions/sdk-assistant/**'
+      - 'extensions/datadog-prometheus-metrics/**'
 
 env:
-  EXTENSION_NAME: sdk-assistant
+  EXTENSION_NAME: datadog-prometheus-metrics
 
 jobs:
   package:
