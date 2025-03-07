@@ -20,18 +20,7 @@ ui <- page_fillable(
     layout_sidebar(
       sidebar = sidebar(
         title = "Filter Data",
-        open = FALSE,
-        checkboxInput("enable_date", "Filter Deploys", value = FALSE),
-
-        dateRangeInput(
-          "date_range",
-          label = "Date Range",
-          start = Sys.Date() - 7,
-          end = Sys.Date(),
-          min = "2020-01-01",
-          max = Sys.Date()
-        )
-
+        open = FALSE
       ),
       card_body("Note: \"Number of Deploys\" is using synthetic data.", fill = FALSE),
       card(
