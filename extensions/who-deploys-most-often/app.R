@@ -60,10 +60,9 @@ server <- function(input, output, session) {
         })
         print(paste0("Fetched bundles for ", nrow(content), " content items."))
         print(paste("Time elapsed:", time_taken["elapsed"]))
-        bundle_count_method <- "per content"
         list(
           content = content,
-          bundle_count_method = bundle_count_method
+          bundle_count_method = "per_content"
         )
       },
       error = function(e) {
@@ -73,10 +72,9 @@ server <- function(input, output, session) {
         # Note: The number of bundles will be aggregated from apps, won't include collaborators, because we don't have that info.
         content <- content|>
           mutate(n_bundles = rpois(n(), 3))
-        bundle_count_method <- "fake"
         list(
           content = content,
-          bundle_count_method = bundle_count_method
+          bundle_count_method = "synthetic"
         )
       }
     )
@@ -91,7 +89,7 @@ server <- function(input, output, session) {
         "user's owned content. Bundles published by collaborators count towards ",
         "content owners' totals."
       ),
-      "fake" = "Note: \"Number of Deploys\" uses synthetic data."
+      "synthetic" = "Note: \"Number of Deploys\" uses synthetic data."
     )
   })
 
