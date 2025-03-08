@@ -6,6 +6,8 @@ library(dplyr)
 library(purrr)
 library(connectapi)
 
+source("functions.R")
+
 shinyOptions(
   cache = cachem::cache_disk("./app_cache/cache/", max_age = 60 * 60 * 12)
 )
@@ -20,9 +22,10 @@ ui <- page_fillable(
     layout_sidebar(
       sidebar = sidebar(
         title = "Filter Data",
-        open = FALSE
+        open = FALSE,
+        actionButton("clear_cache", "Clear Cache", icon = icon("refresh"))
       ),
-      card_body("Note: \"Number of Deploys\" is using synthetic data.", fill = FALSE),
+      card_body(textOutput("bundle_count_method"), fill = FALSE),
       card(
         DTOutput("user_table")
       )
@@ -31,29 +34,69 @@ ui <- page_fillable(
 )
 
 server <- function(input, output, session) {
-  # Enable or disable the date range filter.
-  observe({
-    if (input$enable_date) {
-      print("enableing date range")
-      enable("date_range")
-    } else {
-      print("disabling date range")
-      disable("date_range")
-    }
+  # Cache invalidation button ----
+  cache <- cachem::cache_disk("./app_cache/cache/")
+  observeEvent(input$clear_cache, {
+    print("Cache cleared!")
+    cache$reset()  # Clears all cached data
+    session$reload()  # Reload the app to ensure fresh data
   })
 
+  # Data processing ----
 
   client <- connect()
 
   # Load data
   content <- reactive({
-    get_content(client) |>
-      # Fake data, to be replaced with real data later.
-      mutate(n_bundles = rpois(n(), 3))
+    content <- get_content(client)
+    bundle_count_method <- NA
+    tryCatch(
+      {
+        # Number of bundles is summed per content item.
+        time_taken <- system.time({
+          content$n_bundles <- content |>
+            as_content_list(client) |>
+            map_int(function(x) nrow(get_bundles(x)))
+        })
+        print(paste0("Fetched bundles for ", nrow(content), " content items."))
+        print(paste("Time elapsed:", time_taken["elapsed"]))
+        bundle_count_method <- "per content"
+        list(
+          content = content,
+          bundle_count_method = bundle_count_method
+        )
+      },
+      error = function(e) {
+        print("Unable to use bundle count method")
+        print(e)
+        # Fake data, to be replaced with real data later.
+        # Note: The number of bundles will be aggregated from apps, won't include collaborators, because we don't have that info.
+        content <- content|>
+          mutate(n_bundles = rpois(n(), 3))
+        bundle_count_method <- "fake"
+        list(
+          content = content,
+          bundle_count_method = bundle_count_method
+        )
+      }
+    )
+
   }) |> bindCache("static_key")
 
+  output$bundle_count_method <- renderText({
+      switch(
+      content()$bundle_count_method,
+      "per_content" = paste0(
+        "Note: \"Number of Deploys\" was generated using total bundle counts from each ",
+        "user's owned content. Bundles published by collaborators count towards ",
+        "content owners' totals."
+      ),
+      "fake" = "Note: \"Number of Deploys\" uses synthetic data."
+    )
+  })
+
   content_by_user <- reactive({
-    content() |>
+    content()$content |>
       # The `owner` column is a nested list-column.
       # We extract the requisite metadata up to be first-class atomic vector columns.
       mutate(
