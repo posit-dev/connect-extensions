@@ -44,17 +44,29 @@ get_failed_job_data <- function(item, usage, client, connectServer) {
       get_jobs(item) |> 
         # filter successful jobs
         filter(exit_code != 0) |> 
-        # map job types to something more readable 
+        # map content job types to something more readable 
         mutate(tag = case_when(
-               tag == "run_app" ~ "Run R Application",
-               tag == "packrat_restore" ~ "Packrat Cache Restore",
+               tag == "unknown" ~ "Unknown Job Type",
                tag == "build_report" ~ "Build Report",
                tag == "build_site" ~ "Build Site",
                tag == "build_jupyter" ~ "Build Jupyter Notebook",
+               tag == "packrat_restore" ~ "Packrat Cache Restore",
                tag == "python_restore" ~ "Python Envrionment Restore",
+               tag == "configure_report" ~ "Parametrized Report Configure",
+               tag == "run_app" ~ "Run R Application",
+               tag == "run_api" ~ "Run Plumber API",
+               tag == "run_tensorflow" ~ "Run Tensorflow API Model",
+               tag == "run_python_api" ~ "Run Python API",
+               tag == "run_dash_app" ~ "Run Dash Application",
+               tag == "run_gradio_app" ~ "Run Gradio Application",
+               tag == "run_streamlit" ~ "Run Streamlit Application",
+               tag == "run_bokeh_app" ~ "Run Bokeh Application",
                tag == "run_fastapi_app" ~ "Run Python FastAPI",
-               tag == "run_gradio_app" ~ "Run Python Gradio",
                tag == "run_pyshiny_app" ~ "Run PyShiny Application",
+               tag == "render_shiny" ~ "Render Quarto or RMarkdown Interactive Document",
+               tag == "run_voila_app" ~ "Run Voila Application",
+               tag == "run_pyshiny_app" ~ "Run PyShiny Application",
+               tag == "ctrl_extraction" ~ "Extract Parameter Controls From Report",
                TRUE ~ tag)) |>
         # map exit codes to something more readable 
         mutate(exit_code = as.character(exit_code)) |>
@@ -64,6 +76,10 @@ get_failed_job_data <- function(item, usage, client, connectServer) {
                exit_code == "137" ~ "Application terminated due to low memory",
                exit_code == "2" ~ "Command encountered an error during execution",
                exit_code == "134" ~ "Terminated due to critical error, potential segfault",
+               exit_code == "255" ~ "Abnormal termination of process",
+               exit_code == "130" ~ "Process terminated by user-initiated signal",
+               exit_code == "13" ~ "File permissions issue",
+               exit_code == "15" ~ "Process terminated externally",
                TRUE ~ exit_code))
     },
     error = function(e) {
