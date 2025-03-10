@@ -157,7 +157,7 @@ ui <- fluidPage(
   
   fluidRow(
     column(12, 
-      titlePanel("Content With Issues (table view)")
+      titlePanel("Content With Issues (interactive table)")
     )
   ),
     
