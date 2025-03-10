@@ -117,7 +117,7 @@ server <- function(input, output, session) {
     map_dfr(content_list(), ~ get_failed_job_data(.x, usage()))
   }) |> bindCache("static_key")
   
-  # output the table on load, wrapping in render UI 
+  # output the datatable of failed jobs
   output$jobs <- renderDT({
     datatable(bad_content_df(), 
               rownames = FALSE, 
@@ -142,7 +142,7 @@ ui <- fluidPage(
     
   fluidRow(
     column(12,
-           titlePanel(tags$h6("All content with a failed job:")), 
+           titlePanel(tags$h6("All failed content jobs:")), 
            DTOutput("jobs"),
     )
   )
