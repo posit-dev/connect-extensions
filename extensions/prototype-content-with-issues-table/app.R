@@ -42,8 +42,8 @@ get_failed_job_data <- function(item, usage, client, connectServer) {
   failed_jobs <- tryCatch(
     {
       get_jobs(item) |> 
-        #slice_max(start_time) |> # don't filter to only latest job
-        filter(status != 0 && exit_code != 0) |>
+        # filter successful jobs
+        filter(exit_code != 0) |> 
         # map job types to something more readable 
         mutate(tag = case_when(
                tag == "run_app" ~ "Run R Application",
@@ -75,6 +75,8 @@ get_failed_job_data <- function(item, usage, client, connectServer) {
   if (is.null(failed_jobs) || nrow(failed_jobs) == 0) {
     return(NULL)
   } else {
+    print(item)
+    print(failed_jobs)
     # handle content without usage data, such as unpublished content
     last_visit <- usage %>%
       filter(content_guid == item$content$guid) %>%
@@ -105,6 +107,7 @@ get_failed_job_data <- function(item, usage, client, connectServer) {
         "last_viewed_time" = visit_timestamp
       )
     }))
+    print(all_failed_jobs)
     all_failed_jobs
   }
 }
@@ -119,8 +122,8 @@ server <- function(input, output, session) {
   # set dashboard URL, needed for call to v1/users for visitor user_guid replacement
   connectServer <- client$get_dashboard_url()
   # get content once up front and pass it around for additional filtering
-  content <- get_content(client, limit = Inf)
-
+  content <- get_content(client, limit = inf)
+  
   # cache content list
   content_list <- reactive({
     as_content_list(content, client)
