@@ -24,21 +24,9 @@ as_content_list <- function(content_df, client) {
   })
 }
 
-# grab the username associated with a provided user_guid
-get_user_info <- function(client, user_guid, connectServer) {
-  if (is.na(user_guid)) {
-    # NA user_guid populates when ACL is no login required / public access
-    as.character("Anonymous")
-  } else {
-    user_endpoint <- paste0("v1/users/", user_guid)
-    user <- client$GET(user_endpoint)
-    user$username
-  }
-}
-
 # checks to see if a content item has failed jobs, grabs usage data if it does,
 # then compiles content, job, and usage data together, returning it.
-get_failed_job_data <- function(item, usage, client, connectServer) {
+get_failed_job_data <- function(item, usage) {
   failed_jobs <- tryCatch(
     {
       get_jobs(item) |> 
@@ -46,40 +34,30 @@ get_failed_job_data <- function(item, usage, client, connectServer) {
         filter(exit_code != 0) |> 
         # map content job types to something more readable 
         mutate(tag = case_when(
-               tag == "unknown" ~ "Unknown Job Type",
-               tag == "build_report" ~ "Build Report",
-               tag == "build_site" ~ "Build Site",
-               tag == "build_jupyter" ~ "Build Jupyter Notebook",
-               tag == "packrat_restore" ~ "Packrat Cache Restore",
-               tag == "python_restore" ~ "Python Envrionment Restore",
-               tag == "configure_report" ~ "Parametrized Report Configure",
-               tag == "run_app" ~ "Run R Application",
-               tag == "run_api" ~ "Run Plumber API",
-               tag == "run_tensorflow" ~ "Run Tensorflow API Model",
-               tag == "run_python_api" ~ "Run Python API",
-               tag == "run_dash_app" ~ "Run Dash Application",
-               tag == "run_gradio_app" ~ "Run Gradio Application",
-               tag == "run_streamlit" ~ "Run Streamlit Application",
-               tag == "run_bokeh_app" ~ "Run Bokeh Application",
-               tag == "run_fastapi_app" ~ "Run Python FastAPI",
-               tag == "run_pyshiny_app" ~ "Run PyShiny Application",
-               tag == "render_shiny" ~ "Render Quarto or RMarkdown Interactive Document",
-               tag == "run_voila_app" ~ "Run Voila Application",
-               tag == "run_pyshiny_app" ~ "Run PyShiny Application",
-               tag == "ctrl_extraction" ~ "Extract Parameter Controls From Report",
+               tag %in% c("build_report", "build_site", "build_jupyter") ~ "Building",
+               tag %in% c("packrat_restore", "python_restore") ~ "Restoring environment",
+               tag == "configure_report" ~ "Configuring report",
+               tag %in% c("run_app", 
+                          "run_api", 
+                          "run_tensorflow", 
+                          "run_python_api",
+                          "run_dash_app",
+                          "run_gradio_app",
+                          "run_streamlit",
+                          "run_bokeh_app",
+                          "run_fastapi_app",
+                          "run_voila_app",
+                          "run_pyshiny_app") ~ "Running",
+               tag == "render_shiny" ~ "Rendering",
+               tag == "ctrl_extraction" ~ "Extracting parameters",
                TRUE ~ tag)) |>
         # map exit codes to something more readable 
         mutate(exit_code = as.character(exit_code)) |>
         mutate(exit_code = case_when(
-               exit_code == "1" ~ "Ended with errors",
-               exit_code == "127" ~ "Command could not be executed outside container",
-               exit_code == "137" ~ "Application terminated due to low memory",
-               exit_code == "2" ~ "Command encountered an error during execution",
-               exit_code == "134" ~ "Terminated due to critical error, potential segfault",
-               exit_code == "255" ~ "Abnormal termination of process",
-               exit_code == "130" ~ "Process terminated by user-initiated signal",
-               exit_code == "13" ~ "File permissions issue",
-               exit_code == "15" ~ "Process terminated externally",
+               exit_code %in% c("1", "2", "134") ~ "failed to run / error during running",
+               exit_code == "137" ~ "out of memory",
+               exit_code %in% c("255", "15", "130") ~ "process terminated by server",
+               exit_code %in% c("13", "127") ~ "configuration / permissions error",
                TRUE ~ exit_code))
     },
     error = function(e) {
@@ -91,21 +69,11 @@ get_failed_job_data <- function(item, usage, client, connectServer) {
   if (is.null(failed_jobs) || nrow(failed_jobs) == 0) {
     return(NULL)
   } else {
-    print(item)
-    print(failed_jobs)
     # handle content without usage data, such as unpublished content
     last_visit <- usage %>%
       filter(content_guid == item$content$guid) %>%
       slice_max(timestamp) %>%
-      select(user_guid, timestamp)
-    # some content with issues do not have visit data (ex: unpublished)
-    if (nrow(last_visit) == 0){
-      visit_timestamp <- as.POSIXct(0) 
-      visitor_username <- "No visit data exists for this content"
-    } else {
-      visit_timestamp <- last_visit$timestamp
-      visitor_username <- get_user_info(client, last_visit$user_guid, connectServer)
-    }
+      select(timestamp)
     if (is.na(item$content$title)) {
       item$content$title <- "" # use empty strings when content is missing title
     }
@@ -119,24 +87,17 @@ get_failed_job_data <- function(item, usage, client, connectServer) {
         "failed_job_type" = failed_jobs$tag[i],
         "failure_reason" = failed_jobs$exit_code[i],
         "last_deployed_time" = item$content$last_deployed_time,
-        "last_viewed_by" = visitor_username,
-        "last_viewed_time" = visit_timestamp
+        "last_visited" = as.POSIXct(last_visit$timestamp)
       )
     }))
-    print(all_failed_jobs)
     all_failed_jobs
   }
 }
 
 server <- function(input, output, session) {
-  # use API key environment variables for now
-  # we can add local run and connect API integration functionality later
-  api_key <- Sys.getenv("CONNECT_API_KEY")
-  connect_server <- Sys.getenv("CONNECT_SERVER")
   # initialize Connect API client
-  client <- connect(server = connect_server, api_key = api_key)
-  # set dashboard URL, needed for call to v1/users for visitor user_guid replacement
-  connectServer <- client$get_dashboard_url()
+  client <- connect()
+  
   # get content once up front and pass it around for additional filtering
   content <- get_content(client, limit = inf)
   
@@ -153,7 +114,7 @@ server <- function(input, output, session) {
   # cache content with failed jobs 
   bad_content_df <- reactive({
     req(content_list(), usage())
-    map_dfr(content_list(), ~ get_failed_job_data(.x, usage(), client, connectServer))
+    map_dfr(content_list(), ~ get_failed_job_data(.x, usage()))
   }) |> bindCache("static_key")
   
   # output the table on load, wrapping in render UI 
@@ -173,18 +134,12 @@ server <- function(input, output, session) {
 }
 
 ui <- fluidPage(
-  tags$head(
-    # icons for pretty display 
-    tags$link(rel = "stylesheet", href = "https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css")
-  ),
-  
   fluidRow(
     column(12, 
       titlePanel("Content With Issues (table view)")
     )
   ),
     
-  tags$h3(class = "header-title", tags$i(class = "fas fa-exclamation-triangle"), "Content with Failures"),
   fluidRow(
     column(12,
            titlePanel(tags$h6("All content with a failed job:")), 
