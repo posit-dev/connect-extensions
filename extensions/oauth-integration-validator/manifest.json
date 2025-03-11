@@ -1391,5 +1391,12 @@
       "checksum": "718c08fd6eaada9a0259cb6a9f9463be"
     }
   },
-  "users": null
+  "users": null,
+  "extension": {
+    "name": "oauth-integration-validator",
+    "title": "Connect OAuth Integration Validator",
+    "description": "Test an OAuth integration by performing a GET request to a specified endpoint using the access token obtained by Connect.",
+    "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/oauth-integration-validator",
+    "version": "0.0.0"
+  }
 }
