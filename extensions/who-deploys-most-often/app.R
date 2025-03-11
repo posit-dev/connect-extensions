@@ -52,12 +52,10 @@ server <- function(input, output, session) {
   }) |> bindCache("static_key")
 
   users <- reactive({
-    get_users(client) |>
-      mutate(full_name = paste(first_name, last_name)) |>
-      select(user_guid = guid, username, full_name)
+    get_users(client)
   }) |> bindCache("static_key")
 
-  # No need to cache, as it is only loaded when audit_log_summary is refreshed
+  # No need to cache, as it is only loaded when summarized_data is refreshed
   # (and is already cached in a pin).
   audit_logs <- reactive({
     board <- board_connect()
@@ -65,8 +63,8 @@ server <- function(input, output, session) {
     pin_read(board, PIN_NAME)
   })
 
-  audit_log_summary <- reactive({
-    audit_logs() |>
+  summarized_data <- reactive({
+    audit_log_summary <- audit_logs() |>
       filter(action %in% c("deploy_application", "add_application")) |>
       group_by(user_guid, action) |>
       summarize(
@@ -74,18 +72,31 @@ server <- function(input, output, session) {
         latest = max(time),
         .groups = "drop"
       ) |>
-      pivot_wider(names_from = action, values_from = c(n, latest), values_fill = list(n = 0)) |>
-      inner_join(users()) |>
+      pivot_wider(names_from = action, values_from = c(n, latest), values_fill = list(n = 0))
+
+    content_summary <- content() |>
+      mutate(user_guid = map_chr(owner, "guid")) |>
+      group_by(user_guid) |>
+      summarize(active_content = n())
+
+    # Merge all the data together by user guid.
+    users () |>
+      mutate(full_name = paste(first_name, last_name)) |>
+      select(user_guid = guid, username, full_name) |>
+      full_join(audit_log_summary, by = "user_guid") |>
+      full_join(content_summary, by = "user_guid") |>
       select(
         username,
         full_name,
-        n_add_app = n_add_application,
+        active_content,
+        n_new_content = n_add_application,
         n_deploy = n_deploy_application,
         latest_deploy = latest_deploy_application
-      )
+      ) |>
+      filter(!(is.na(active_content) & is.na(n_new_content) & is.na(n_deploy)))
   }) |> bindCache("static_key")
 
-  # Cached on the same cadence as audit_log_summary to avoid loading audit logs
+  # Cached on the same cadence as summarized_data to avoid loading audit logs
   # when not required.
   earliest_record <- reactive({
     min(audit_logs()$time)
@@ -93,15 +104,15 @@ server <- function(input, output, session) {
 
   output$data_note <- renderText(
     paste(
-      "Earliest data loaded:",
+      "* Since",
       earliest_record()
     )
   )
 
   output$user_table <- renderDT({
-    print(names(audit_log_summary()))
+    print(names(summarized_data()))
     datatable(
-      audit_log_summary(),
+      summarized_data(),
       options = list(
         order = list(list(3, "desc")),
         paging = FALSE,
@@ -111,8 +122,9 @@ server <- function(input, output, session) {
       colnames = c(
         "Username" = "username",
         "User" = "full_name",
-        "Number of New Content Items" = "n_add_app",
-        "Number of Deploys" = "n_deploy",
+        "Total Active Content" = "active_content",
+        "Number of Newly Created Content*" = "n_new_content",
+        "Number of Deploys*" = "n_deploy",
         "Time of Latest Deploy" = "latest_deploy"
       )
     ) |>
