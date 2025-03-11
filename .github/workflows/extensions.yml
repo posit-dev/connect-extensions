@@ -1,0 +1,170 @@
+name: Extension Workflow
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+jobs:
+  # Detects file changes in extension directories that utilize the `simple-extensions`
+  # job below
+  simple-extension-changes:
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: read
+    outputs:
+      # Expose matched filters as 'changes' output variable
+      changes: ${{ steps.changes.outputs.changes }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: dorny/paths-filter@v3
+        id: changes
+        with:
+          # Adding a new extension that has a directory that can be TARed?
+          # Add a new line here with the name of the extension and directory path
+          # Be sure the extension name and directory have the same name
+          # e.g. `extension-name: extensions/extension-name/**`
+          filters: |
+            reaper: extensions/reaper/**
+            integration-session-manager: extensions/integration-session-manager/**
+
+  # Runs for each extension that has changed from `simple-extension-changes`
+  # Lints, packages, and releases the extension if the semver is updated.
+  simple-extensions:
+    needs: [simple-extension-changes]
+    # Will only run if there are changes in the simple extensions
+    # https://github.com/dorny/paths-filter/issues/66#issuecomment-778267385
+    if: ${{ needs.simple-extension-changes.outputs.changes != '[]' && needs.simple-extension-changes.outputs.changes != '' }}
+    strategy:
+      # Do not fail fast so all extensions are processed
+      fail-fast: false
+      matrix:
+        # Parse JSON containing names of all filters matching any of changed extensions
+        # e.g. ['reaper'] if the reaper extension dir changed
+        extension: ${{ fromJSON(needs.simple-extension-changes.outputs.changes) }}
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: ./.github/actions/lint-extension
+        with:
+          extension-name: ${{ matrix.extension }}
+
+      - uses: ./.github/actions/package-extension
+        with:
+          extension-name: ${{ matrix.extension }}
+
+      # Extensions are only released when this workflow triggers on `main`
+      # otherwise, the release is skipped
+      # See the action comments for more details
+      - uses: ./.github/actions/release-extension
+        with:
+          extension-name: ${{ matrix.extension }}
+
+  # Detects file changes for complex extension directories that require more
+  # than the `simple-extensions` job offers.
+  # For example, run a build script prior to packaging the extension TAR
+  complex-extension-changes:
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: read
+    outputs:
+      # Adding a new extension with a complex build process?
+      # Add a new line here with the name of the extension step output variable below
+      # e.g. `extension-name: ${{ steps.changes.outputs.extension-name }}`
+      publisher-command-center: ${{ steps.changes.outputs.publisher-command-center }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: dorny/paths-filter@v3
+        id: changes
+        with:
+          # Adding a new extension that has a complex build process?
+          # Add a new line here with the name of the extension and directory path
+          # Be sure the extension name and directory have the same name
+          # e.g. `extension-name: extensions/extension-name/**`
+          filters: |
+            publisher-command-center: extensions/publisher-command-center/**
+
+  # Creates and releases the Publisher Command Center extension using a custom
+  # workflow
+  publisher-command-center:
+    needs: [complex-extension-changes]
+    if: ${{ needs.complex-extension-changes.outputs.publisher-command-center == 'true' }}
+    uses: ./.github/workflows/publisher-command-center.yml
+
+  # Gathers all release data from GitHub releases triggered by this workflow
+  # For use in the `update-extension-list` job
+  # If no releases were triggered the output for releases will be `[]`
+  fetch-releases:
+    runs-on: ubuntu-latest
+    needs: [simple-extensions, publisher-command-center]
+    if: ${{ always() }}
+    outputs:
+      releases: ${{ steps.fetch-releases.outputs.releases }}
+
+    steps:
+      # Downloads every release data file from the release-extension action
+      # merging them under the .releases/ directory
+      - name: Download GitHub release data
+        uses: actions/download-artifact@v4
+        with:
+          pattern: release-*.json
+          path: releases
+          merge-multiple: true
+
+      # We use jq --slurp to create a single JSON array from all the JSON files
+      # to use in the `update-extension-list` job
+      - name: Fetch releases
+        id: fetch-releases
+        run: echo "releases=$(cat releases/*.json | jq -c --slurp .)" >> "$GITHUB_OUTPUT"
+
+  # Updates the `extensions.json` file with the latest release data from
+  # all extensions that were released in this workflow using the `fetch-releases`
+  # job output
+  update-extension-list:
+    runs-on: ubuntu-latest
+    needs: [fetch-releases]
+    # Only runs if there are releases to update the extension list with
+    # https://github.com/actions/runner/issues/2205
+    if: ${{ always() && needs.fetch-releases.result == 'success' && needs.fetch-releases.outputs.releases != '[]' }}
+    # Sets the RELEASES environment variable for the extension list update
+    # script to read in
+    env:
+      RELEASES: ${{ needs.fetch-releases.outputs.releases }}
+
+    steps:
+      # Checkout main to commit the updated extension list
+      # reduces the chance of conflicts when updating the extension list with
+      # multiple running workflows
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "lts/*"
+          cache: "npm"
+          cache-dependency-path: scripts/package-lock.json
+
+      - run: npm ci
+        working-directory: ./scripts
+
+      - run: npm run update-extension-list
+        working-directory: ./scripts
+
+      # Commits and pushes the updated extension list to the repository
+      # https://github.com/actions/checkout/tree/v4/?tab=readme-ov-file#push-a-commit-using-the-built-in-token
+      - run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add extensions.json
+          git commit -m "Update extension list"
+          git push
