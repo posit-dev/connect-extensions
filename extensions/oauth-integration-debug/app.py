@@ -58,5 +58,4 @@ def server(input: Inputs, output: Outputs, session: Session):
         except jwt.exceptions.DecodeError:
             return credentials.get("access_token", "unable to parse access_token.")
 
-
 app = App(app_ui, server)
