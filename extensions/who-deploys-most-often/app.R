@@ -5,8 +5,8 @@ library(DT)
 library(dplyr)
 library(purrr)
 library(connectapi)
-
-source("functions.R")
+library(pins)
+library(tidyr)
 
 shinyOptions(
   cache = cachem::cache_disk("./app_cache/cache/", max_age = 60 * 60 * 24)
@@ -25,7 +25,7 @@ ui <- page_fillable(
         open = FALSE,
         actionButton("clear_cache", "Clear Cache", icon = icon("refresh"))
       ),
-      card_body(textOutput("bundle_count_method"), fill = FALSE),
+      card_body(textOutput("data_note"), fill = FALSE),
       card(
         DTOutput("user_table")
       )
@@ -48,71 +48,60 @@ server <- function(input, output, session) {
 
   # Load data
   content <- reactive({
-    content <- get_content(client)
-    bundle_count_method <- NA
-    tryCatch(
-      {
-        # Number of bundles is summed per content item.
-        time_taken <- system.time({
-          content$n_bundles <- content |>
-            as_content_list(client) |>
-            map_int(function(x) nrow(get_bundles(x)))
-        })
-        print(paste0("Fetched bundles for ", nrow(content), " content items."))
-        print(paste("Time elapsed:", time_taken["elapsed"]))
-        list(
-          content = content,
-          bundle_count_method = "per_content"
-        )
-      },
-      error = function(e) {
-        print("Unable to use bundle count method")
-        print(e)
-        # Fake data, to be replaced with real data later.
-        # Note: The number of bundles will be aggregated from apps, won't include collaborators, because we don't have that info.
-        content <- content|>
-          mutate(n_bundles = rpois(n(), 3))
-        list(
-          content = content,
-          bundle_count_method = "synthetic"
-        )
-      }
-    )
-
+    get_content(client)
   }) |> bindCache("static_key")
 
-  output$bundle_count_method <- renderText({
-      switch(
-      content()$bundle_count_method,
-      "per_content" = paste0(
-        "Note: \"Number of Deploys\" was generated using total bundle counts from each ",
-        "user's owned content. Bundles published by collaborators count towards ",
-        "content owners' totals."
-      ),
-      "synthetic" = "Note: \"Number of Deploys\" uses synthetic data."
-    )
+  users <- reactive({
+    get_users(client) |>
+      mutate(full_name = paste(first_name, last_name)) |>
+      select(user_guid = guid, username, full_name)
+  }) |> bindCache("static_key")
+
+  # No need to cache, as it is only loaded when audit_log_summary is refreshed
+  # (and is already cached in a pin).
+  audit_logs <- reactive({
+    board <- board_connect()
+    PIN_NAME <- paste0(board$account, "/", "connect_metrics_cache_audit_logs")
+    pin_read(board, PIN_NAME)
   })
 
-  content_by_user <- reactive({
-    content()$content |>
-      # The `owner` column is a nested list-column.
-      # We extract the requisite metadata up to be first-class atomic vector columns.
-      mutate(
-        username = map_chr(owner, "username"),
-        user_full_name = paste(map_chr(owner, "first_name"), map_chr(owner, "last_name"))
-      ) |>
-      group_by(username) |>
+  audit_log_summary <- reactive({
+    audit_logs() |>
+      filter(action %in% c("deploy_application", "add_application")) |>
+      group_by(user_guid, action) |>
       summarize(
-        user_full_name = first(user_full_name),
-        n_content_items = n(),
-        n_bundles = sum(n_bundles),
-        last_deploy = max(last_deployed_time)
+        n = n(),
+        latest = max(time),
+        .groups = "drop"
+      ) |>
+      pivot_wider(names_from = action, values_from = c(n, latest), values_fill = list(n = 0)) |>
+      inner_join(users()) |>
+      select(
+        username,
+        full_name,
+        n_add_app = n_add_application,
+        n_deploy = n_deploy_application,
+        latest_deploy = latest_deploy_application
       )
   }) |> bindCache("static_key")
 
+  # Cached on the same cadence as audit_log_summary to avoid loading audit logs
+  # when not required.
+  earliest_record <- reactive({
+    min(audit_logs()$time)
+  }) |> bindCache("static_key")
+
+  output$data_note <- renderText(
+    paste(
+      "Earliest data loaded:",
+      earliest_record()
+    )
+  )
+
   output$user_table <- renderDT({
+    print(names(audit_log_summary()))
     datatable(
-      content_by_user(),
+      audit_log_summary(),
       options = list(
         order = list(list(3, "desc")),
         paging = FALSE,
@@ -120,13 +109,14 @@ server <- function(input, output, session) {
       ),
       filter = "top",
       colnames = c(
-        "User" = "user_full_name",
-        "Number of Content Items" = "n_content_items",
-        "Number of Deploys" = "n_bundles",
-        "Time of Last Deploy" = "last_deploy"
+        "Username" = "username",
+        "User" = "full_name",
+        "Number of New Content Items" = "n_add_app",
+        "Number of Deploys" = "n_deploy",
+        "Time of Latest Deploy" = "latest_deploy"
       )
     ) |>
-      formatDate(columns = "Time of Last Deploy", method = "toLocaleString")
+      formatDate(columns = "Time of Latest Deploy", method = "toLocaleString")
   })
 }
 
