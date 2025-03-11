@@ -78,6 +78,7 @@ runs:
 
     # We fetch the full release data to utilize in the extension list update
     - name: Get release data
+      if: github.ref_name == 'main' && steps.should_release.outputs.should_release == 'true'
       run: gh api /repos/${{ github.repository }}/releases/tags/$RELEASE_TAG > release-${{ inputs.extension-name }}.json
       shell: bash
 
@@ -85,6 +86,7 @@ runs:
     # The naming convention is `release-<extension-name>.json` to easily
     # download each artifact matching the pattern
     - name: Upload release data
+      if: github.ref_name == 'main' && steps.should_release.outputs.should_release == 'true'
       uses: actions/upload-artifact@v4
       with:
         name: release-${{ inputs.extension-name }}.json
