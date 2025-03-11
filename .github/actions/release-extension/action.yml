@@ -1,0 +1,91 @@
+name: Release Extension
+description: Release an extension as a GitHub Release
+
+inputs:
+  extension-name:
+    description: The name of the extension
+    required: true
+    type: string
+
+runs:
+  using: "composite"
+
+  steps:
+    - uses: actions/setup-node@v4
+
+    - run: npm install -g semver
+      shell: bash
+
+    - name: Get manifest extension version
+      run: |
+        MANIFEST_VERSION=$(semver -c $(jq -c -r '.extension.version' < ./extensions/${{ inputs.extension-name }}/manifest.json))
+        echo "MANIFEST_VERSION=$MANIFEST_VERSION" >> "$GITHUB_ENV"
+      shell: bash
+
+    # Grabs the latest version from the extensions.json file
+    # If an extension hasn't been released yet we default to `0.0.0` so any
+    # version in the manifest will be higher
+    - name: Get lastest version from extension list
+      continue-on-error: true
+      run: |
+        LATEST_VERSION=$(jq -c '.extensions[] | select(.name=="${{ inputs.extension-name }}").latestVersion.version' < extensions.json)
+        LATEST_VERSION=$(semver -c "${LATEST_VERSION:-0.0.0}")
+        echo "LATEST_VERSION=$LATEST_VERSION" >> "$GITHUB_ENV"
+      shell: bash
+
+    # We only want to release if the manifest.json contains a newer semver
+    # version than the latest version in the extensions.json
+    # We compare that here, and echo if a release will occur
+    # This can be helpful when looking at Pull Request action outputs
+    # so it is clear what will happen on a merge to `main`
+    - name: Check if manifest has newer version
+      id: should_release
+      run: |
+        echo "The last released version is '$LATEST_VERSION' and the manifest version is '$MANIFEST_VERSION'"
+        HIGHER_VERSION=$(semver "$MANIFEST_VERSION" "$LATEST_VERSION" | tail -n 1)
+          if [ "$MANIFEST_VERSION" = "$HIGHER_VERSION" ] && [ "$MANIFEST_VERSION" != "$LATEST_VERSION" ]; then
+          echo "Should release: the manifest version is higher than the lastest version"
+          echo "should_release=true" >> "$GITHUB_OUTPUT"
+        else
+          echo "Should not release: the manifest version is not higher than the lastest version"
+          echo "should_release=false" >> "$GITHUB_OUTPUT"
+        fi
+      shell: bash
+
+    # Here we download the packaged extension artifact to release
+    - uses: actions/download-artifact@v4
+      if: github.ref_name == 'main' && steps.should_release.outputs.should_release == 'true'
+      with:
+        name: ${{ inputs.extension-name }}.tar.gz
+
+    # The release tag utilizes both the extension name and semver version
+    # to create a unique tag for the repository
+    - name: Release tag
+      if: github.ref_name == 'main' && steps.should_release.outputs.should_release == 'true'
+      id: release_tag
+      run: |
+        RELEASE_TAG="${{ inputs.extension-name }}@v$MANIFEST_VERSION"
+        echo "RELEASE_TAG=$RELEASE_TAG" >> "$GITHUB_ENV"
+      shell: bash
+
+    - name: Release
+      if: github.ref_name == 'main' && steps.should_release.outputs.should_release == 'true'
+      run: |
+        gh release create $RELEASE_TAG \
+          --title "${{ inputs.extension-name }} v$MANIFEST_VERSION" \
+          ${{ inputs.extension-name }}.tar.gz
+      shell: bash
+
+    # We fetch the full release data to utilize in the extension list update
+    - name: Get release data
+      run: gh api /repos/${{ github.repository }}/releases/tags/$RELEASE_TAG > release-${{ inputs.extension-name }}.json
+      shell: bash
+
+    # Each release data file is uploaded as an artifact for the extension list update
+    # The naming convention is `release-<extension-name>.json` to easily
+    # download each artifact matching the pattern
+    - name: Upload release data
+      uses: actions/upload-artifact@v4
+      with:
+        name: release-${{ inputs.extension-name }}.json
+        path: release-${{ inputs.extension-name }}.json
