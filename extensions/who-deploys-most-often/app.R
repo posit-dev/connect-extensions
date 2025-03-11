@@ -9,7 +9,7 @@ library(connectapi)
 source("functions.R")
 
 shinyOptions(
-  cache = cachem::cache_disk("./app_cache/cache/", max_age = 60 * 60 * 12)
+  cache = cachem::cache_disk("./app_cache/cache/", max_age = 60 * 60 * 24)
 )
 
 ui <- page_fillable(
@@ -115,8 +115,10 @@ server <- function(input, output, session) {
       content_by_user(),
       options = list(
         order = list(list(3, "desc")),
-        paging = FALSE
+        paging = FALSE,
+        searching = FALSE
       ),
+      filter = "top",
       colnames = c(
         "User" = "user_full_name",
         "Number of Content Items" = "n_content_items",

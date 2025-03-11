@@ -1,0 +1,4 @@
+name = "who-deploys-most-often"
+title = "Who Deploys Most Often (interactive table edition)"
+description = "A prototype extension showing who deploys most often."
+access_type = "acl"
