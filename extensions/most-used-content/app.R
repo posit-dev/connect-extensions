@@ -5,6 +5,9 @@ library(connectapi)
 library(dplyr)
 library(purrr)
 library(lubridate)
+library(ggplot2)
+library(plotly)
+library(tidyr)
 
 shinyOptions(
   cache = cachem::cache_disk("./app_cache/cache/", max_age = 60 * 60 * 8)
@@ -24,6 +27,18 @@ ui <- page_fillable(
 
         actionButton("clear_cache", "Clear Cache", icon = icon("refresh"))
       ),
+
+      tabsetPanel(
+        tabPanel(
+          "Plot of Daily Views",
+          plotlyOutput("daily_views_plot")
+        ),
+        tabPanel(
+          "Plot of Unique Daily Visitors",
+          plotlyOutput("unique_daily_visitor_plot")
+        )
+      ),
+
       card(
         DTOutput(
           "content_usage_table"
@@ -84,25 +99,64 @@ server <- function(input, output, session) {
       arrange(desc(total_views))
   }) |> bindCache(date_range()$from_date, date_range()$to_date)
 
-    output$content_usage_table <- renderDT({
-      datatable(
-        content_usage_data(),
-        options = list(
-          order = list(list(4, "desc")),
-          paging = FALSE
-        ),
-        colnames = c(
-          "Content Title" = "title",
-          "Content GUID" = "content_guid",
-          "Owner Username" = "owner_username",
-          "Total Views" = "total_views",
-          "Unique Logged-in Viewers" = "unique_viewers",
-          "Last Viewed At" = "last_viewed_at"
-        )
-      ) |>
-        formatDate(columns = "Last Viewed At", method = "toLocaleString")
+  # Compute daily usage numbers for plots
+  usage_by_date <- reactive({
+    all_dates <- seq.Date(date_range()$from_date, date_range()$to_date, by = "day")
 
-    })
+    usage_data() |>
+      mutate(date = date(timestamp)) |>
+      group_by(date) |>
+      summarize(
+        daily_views = n(),
+        unique_daily_visitors = n_distinct(user_guid, na.rm = TRUE)
+      ) |>
+      full_join(tibble(date = all_dates)) |>
+      mutate(across(c(unique_daily_visitors, daily_views), ~ replace_na(.x, 0)))
+  })
+
+  # Render table
+  output$content_usage_table <- renderDT({
+    datatable(
+      content_usage_data(),
+      options = list(
+        order = list(list(4, "desc")),
+        paging = FALSE
+      ),
+      colnames = c(
+        "Content Title" = "title",
+        "Content GUID" = "content_guid",
+        "Owner Username" = "owner_username",
+        "Total Views" = "total_views",
+        "Unique Logged-in Viewers" = "unique_viewers",
+        "Last Viewed At" = "last_viewed_at"
+      )
+    ) |>
+      formatStyle(
+        columns = "Content Title",
+        `white-space` = "nowrap",
+        `overflow` = "hidden",
+        `text-overflow` = "ellipsis",
+        `max-width` = "300px"
+      ) |>
+      formatDate(columns = "Last Viewed At", method = "toLocaleString")
+  })
+
+  output$daily_views_plot <- renderPlotly(
+    ggplotly(
+      ggplot(usage_by_date()) +
+        geom_col(aes(x = date, y = daily_views)) +
+        labs(x = "Date", y = "Daily Views")
+    )
+  )
+
+  output$unique_daily_visitor_plot <- renderPlotly(
+    ggplotly(
+      ggplot(usage_by_date()) +
+        geom_col(aes(x = date, y = unique_daily_visitors)) +
+        labs(x = "Date", y = "Unique Daily Visitors (Logged-in)")
+    )
+  )
+
 }
 
 shinyApp(ui, server)
