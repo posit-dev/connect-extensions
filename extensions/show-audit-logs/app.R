@@ -4,9 +4,11 @@ library(dplyr)
 library(ggplot2)
 library(lubridate)
 library(connectapi)
+library(pins)
+library(plotly)
 
 # UI definition
-ui <- page_fluid(
+ui <- page_fillable(
   theme = bs_theme(version = 5),
 
   # Title bar
@@ -18,6 +20,12 @@ ui <- page_fluid(
       # Sidebar with filter controls
       sidebar = sidebar(
         title = "Filters",
+
+        dateRangeInput(
+          "date_filter",
+          "Filter by Date",
+          start = today() - ddays(6)
+        ),
 
         accordion(
           accordion_panel(
@@ -52,15 +60,7 @@ ui <- page_fluid(
             )
           ),
           open = TRUE
-        ),
-
-        numericInput(
-          "limit",
-          "Number of Records",
-          value = 5000,
-          min = 1,
-          max = 50000
-        ),
+        )
 
       ),
 
@@ -80,32 +80,32 @@ ui <- page_fluid(
                   height = "100%",  # Make card fill space
                   card_header("Events by Type"),
                   card_body(
-                    plotOutput("event_plot")
+                    plotlyOutput("event_plot")
                   )
                 ),
                 card(
                   height = "100%",  # Make card fill space
                   card_header("Activity Timeline"),
                   card_body(
-                    plotOutput("timeline_plot")
+                    plotlyOutput("timeline_plot")
                   )
                 )
               )
             ),
             tabPanel(
               "Activity By User",
-              plotOutput("user_timeline")
+              plotlyOutput("user_timeline")
             ),
             tabPanel(
               "Activity By Event Type",
-              plotOutput("action_timeline")
+              plotlyOutput("action_timeline")
             ),
             tabPanel(
               "Event List",
               card(
                 card_header("Event List"),
                 div(
-                  style = "height: 500px; overflow-y: auto;",
+                  style = "overflow-y: auto;",
                   reactable::reactableOutput("audit_list")
                 )
               )
@@ -122,24 +122,34 @@ ui <- page_fluid(
 server <- function(input, output, session) {
   # Reactive expression to fetch audit logs
   audit_data <- reactive({
-    req(input$limit)
-
-
-    withProgress(
-      {
-        client <- connect()
-        logs <- get_audit_logs(client, limit = input$limit, asc_order = FALSE)
-      },
-      message = "Loading audit logs...",
-      value = NULL
-    )
+    board <- board_connect()
+    PIN_NAME <- paste0(board$account, "/", "connect_metrics_cache_audit_logs")
+    pin_read(board, PIN_NAME)
   })
+
+    # Update date range input
+    observe({
+      req(audit_data())
+      updateDateRangeInput(
+        session,
+        "date_filter",
+        min = min(audit_data()$time, na.rm = TRUE)
+      )
+    })
+
+  date_filtered_audits <- reactive(
+    audit_data() |>
+      filter(
+        time >= input$date_filter[1],
+        time <= input$date_filter[2] + 86399  # Add 23h 59m 59s
+      )
+  )
 
   # Handle action filters updates
   observe({
-    data <- audit_data()
-    actions <- data %>%
-      count(action) %>%
+    data <- date_filtered_audits()
+    actions <- data |>
+      count(action) |>
       arrange(desc(n))
 
     all_actions <- actions$action
@@ -160,7 +170,7 @@ server <- function(input, output, session) {
 
   # Handle user filter updates
   observe({
-    data <- audit_data()
+    data <- date_filtered_audits()
     users <- data %>%
       count(user_description) %>%
       arrange(desc(n))
@@ -181,8 +191,9 @@ server <- function(input, output, session) {
   })
 
   # Filter data based on user inputs
-  filtered_data <- reactive({
-    data <- audit_data()
+  user_and_action_filtered_audits <- reactive({
+    req(date_filtered_audits())
+    data <- date_filtered_audits()
 
     if (!is.null(input$actions_exclude) && length(input$actions_exclude) > 0) {
       data <- data %>% filter(!(action %in% input$actions_exclude))
@@ -204,9 +215,9 @@ server <- function(input, output, session) {
   })
 
   # Action type plot
-  output$event_plot <- renderPlot({
+  output$event_plot <- renderPlotly({
 
-    data <- filtered_data()
+    data <- user_and_action_filtered_audits()
 
     # Explicitly check for data
     validate(need(nrow(data) > 0, "No data available for plotting"))
@@ -216,16 +227,13 @@ server <- function(input, output, session) {
       plot_data <- data %>%
         count(action)
 
-
       # Create plot
       p <- ggplot(plot_data, aes(x = reorder(action, n), y = n)) +
         geom_col(fill = "#0055AA") +
         coord_flip() +
         labs(x = "Action Type", y = "Count") +
         theme_minimal()
-
-
-      p
+      ggplotly(p)
 
     }, error = function(e) {
 
@@ -234,9 +242,9 @@ server <- function(input, output, session) {
   })
 
   # Timeline plot
-  output$timeline_plot <- renderPlot({
+  output$timeline_plot <- renderPlotly({
 
-    audit_data <- filtered_data()
+    audit_data <- user_and_action_filtered_audits()
 
     binwidth <- 3600
 
@@ -252,16 +260,16 @@ server <- function(input, output, session) {
       mutate(bin_time = as.POSIXct(bin_time, format = "%Y-%m-%d %H:%M:%S")) %>%
       tidyr::complete(bin_time = bins, fill = list(count = 0))
 
-    ggplot(plot_data, aes(x = bin_time, y = count)) +
+    p <- ggplot(plot_data, aes(x = bin_time, y = count)) +
       geom_line() +
       labs(x = "Time", y = "Event Count") +
       theme_minimal() +
       guides(color = "none")
-
+    ggplotly(p)
   })
 
-  output$user_timeline <- renderPlot({
-    audit_data <- filtered_data()
+  output$user_timeline <- renderPlotly({
+    audit_data <- user_and_action_filtered_audits()
 
     binwidth <- 3600
 
@@ -291,7 +299,7 @@ server <- function(input, output, session) {
       slice_max(count, with_ties = FALSE)
       # mutate(label = ifelse(user_description %in% top_n_users, user_description, NA))
 
-    ggplot(plot_data, aes(x = bin_time, y = count, color = user_description)) +
+    p <- ggplot(plot_data, aes(x = bin_time, y = count, color = user_description)) +
       geom_line() +
       geom_label(data = label_data,
                 aes(label = user_description),
@@ -299,10 +307,11 @@ server <- function(input, output, session) {
       labs(x = "Time", y = "Event Count") +
       theme_minimal() +
       guides(color = "none")
+    ggplotly(p)
   })
 
-  output$action_timeline <- renderPlot({
-    audit_data <- filtered_data()
+  output$action_timeline <- renderPlotly({
+    audit_data <- user_and_action_filtered_audits()
 
     binwidth <- 3600
 
@@ -332,7 +341,7 @@ server <- function(input, output, session) {
       slice_max(count, with_ties = FALSE)
       # mutate(label = ifelse(action %in% top_n_users, action, NA))
 
-    ggplot(plot_data, aes(x = bin_time, y = count, color = action)) +
+    p <- ggplot(plot_data, aes(x = bin_time, y = count, color = action)) +
       geom_line() +
       geom_label(data = label_data,
                 aes(label = action),
@@ -340,11 +349,12 @@ server <- function(input, output, session) {
       labs(x = "Time", y = "Event Count") +
       theme_minimal() +
       guides(color = "none")
+    ggplotly(p)
   })
 
   # Audit list
   output$audit_list <- reactable::renderReactable({
-    filtered_data() %>%
+    user_and_action_filtered_audits() %>%
       select(time, user_description, action, event_description) %>%
       arrange(desc(time)) %>%
       mutate(time = format(time, "%Y-%m-%dT%H:%M:%S%z")) %>%
