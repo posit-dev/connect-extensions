@@ -37,7 +37,7 @@ ui <- page_fillable(
         "Please enter a content GUID"
       ),
 
-      textOutput("summar_message"),
+      textOutput("summary_message"),
 
       tabsetPanel(
         id = "content_visit_tables",
@@ -128,7 +128,7 @@ server <- function(input, output, session) {
   }) |> bindCache(date_range()$from_date, date_range()$to_date, input$content_guid)
 
   summary_message <- reactive({
-    content_title <- content |>
+    content_title <- content() |>
       filter(guid == input$content_guid) |>
       pull(title)
     hits <- all_visits_data()
@@ -139,7 +139,7 @@ server <- function(input, output, session) {
   })
 
 
-  output$summary_message <- renderText(summary_message)
+  output$summary_message <- renderText(summary_message())
   output$all_visits <- renderTable(
     all_visits_data()
   )
