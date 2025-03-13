@@ -7,6 +7,8 @@ library(purrr)
 library(connectapi)
 library(pins)
 library(tidyr)
+library(ggplot2)
+library(plotly)
 
 shinyOptions(
   cache = cachem::cache_disk("./app_cache/cache/", max_age = 60 * 60 * 24)
@@ -24,6 +26,24 @@ ui <- page_fillable(
         title = "Filter Data",
         open = FALSE,
         actionButton("clear_cache", "Clear Cache", icon = icon("refresh"))
+      ),
+      tabsetPanel(
+        tabPanel(
+          "Plot by Total Active Content",
+          plotlyOutput("total_active_content_plot")
+        ),
+        tabPanel(
+          "Plot by Number of New Content",
+          plotlyOutput("new_content_plot")
+        ),
+        tabPanel(
+          "Plot by Number of Deploys",
+          plotlyOutput("n_deploys_plot")
+        ),
+        tabPanel(
+          "Timeline of Deploy Activity",
+          plotlyOutput("deploys_timeline")
+        )
       ),
       card_body(textOutput("data_note"), fill = FALSE),
       card(
@@ -96,6 +116,30 @@ server <- function(input, output, session) {
       filter(!(is.na(active_content) & is.na(n_new_content) & is.na(n_deploy)))
   }) |> bindCache("static_key")
 
+  deploys_by_date <- reactive({
+
+    binwidth <- 3600 # One day in seconds
+
+    audit_data <- audit_logs()
+
+    bins <- seq(from = min(audit_data$time),
+                    to = max(audit_data$time),
+                    by = binwidth)
+
+    deploys_by_date <- audit_data |>
+      filter(action %in% c("deploy_application")) |>
+      mutate(bin_time = cut(time, breaks = bins)) |>
+      group_by(user_guid, bin_time) |>
+      summarize(count = n(), .groups = "drop") |>
+      mutate(bin_time = as.POSIXct(bin_time, format = "%Y-%m-%d %H:%M:%S")) |>
+      tidyr::complete(bin_time = bins, fill = list(count = 0))
+
+    users () |>
+      mutate(full_name = paste(first_name, last_name)) |>
+      select(user_guid = guid, full_name) |>
+      right_join(deploys_by_date, by = "user_guid")
+  })
+
   # Cached on the same cadence as summarized_data to avoid loading audit logs
   # when not required.
   earliest_record <- reactive({
@@ -130,6 +174,49 @@ server <- function(input, output, session) {
     ) |>
       formatDate(columns = "Time of Latest Deploy", method = "toLocaleString")
   })
+
+  output$total_active_content_plot <- renderPlotly(
+    ggplotly(
+      summarized_data() |>
+        arrange(desc(active_content)) |>
+        slice_head(n = 25) |>
+        ggplot() +
+        geom_col(aes(x = reorder(full_name, active_content), y = active_content)) +
+        coord_flip() +
+        labs(x = "User", y = "Total Active Content")
+    )
+  )
+
+  output$new_content_plot <- renderPlotly(
+    ggplotly(
+      summarized_data() |>
+        arrange(desc(n_new_content)) |>
+        slice_head(n = 25) |>
+        ggplot() +
+        geom_col(aes(x = reorder(full_name, n_new_content), y = n_new_content)) +
+        coord_flip() +
+        labs(x = "User", y = "Newly Created Content")
+    )
+  )
+
+  output$n_deploys_plot <- renderPlotly(
+    ggplotly(
+      summarized_data() |>
+        arrange(desc(n_deploy)) |>
+        slice_head(n = 25) |>
+        ggplot() +
+        geom_col(aes(x = reorder(full_name, n_deploy), y = n_deploy)) +
+        coord_flip() +
+        labs(x = "User", y = "New Deploys")
+    )
+  )
+
+  output$deploys_timeline <- renderPlotly(
+    ggplotly(
+      ggplot(deploys_by_date()) +
+        geom_line(aes(x = bin_time, y = count, color = full_name))
+    )
+  )
 }
 
 shinyApp(ui, server)
