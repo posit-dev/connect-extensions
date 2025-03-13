@@ -4,6 +4,7 @@ library(DT)
 library(connectapi)
 library(dplyr)
 library(purrr)
+library(tidyr)
 
 # cache data to disk with a refresh every 8h
 shinyOptions(
@@ -31,34 +32,7 @@ get_failed_job_data <- function(item, usage) {
     {
       get_jobs(item) |> 
         # filter successful jobs
-        filter(exit_code != 0) |> 
-        # map content job types to something more readable 
-        mutate(tag = case_when(
-               tag %in% c("build_report", "build_site", "build_jupyter") ~ "Building",
-               tag %in% c("packrat_restore", "python_restore") ~ "Restoring environment",
-               tag == "configure_report" ~ "Configuring report",
-               tag %in% c("run_app", 
-                          "run_api", 
-                          "run_tensorflow", 
-                          "run_python_api",
-                          "run_dash_app",
-                          "run_gradio_app",
-                          "run_streamlit",
-                          "run_bokeh_app",
-                          "run_fastapi_app",
-                          "run_voila_app",
-                          "run_pyshiny_app") ~ "Running",
-               tag == "render_shiny" ~ "Rendering",
-               tag == "ctrl_extraction" ~ "Extracting parameters",
-               TRUE ~ tag)) |>
-        # map exit codes to something more readable 
-        mutate(exit_code = as.character(exit_code)) |>
-        mutate(exit_code = case_when(
-               exit_code %in% c("1", "2", "134") ~ "failed to run / error during running",
-               exit_code == "137" ~ "out of memory",
-               exit_code %in% c("255", "15", "130") ~ "process terminated by server",
-               exit_code %in% c("13", "127") ~ "configuration / permissions error",
-               TRUE ~ exit_code))
+        filter(exit_code != 0) 
     },
     error = function(e) {
       # content item does not have any jobs 
@@ -74,11 +48,8 @@ get_failed_job_data <- function(item, usage) {
       filter(content_guid == item$content$guid) %>%
       slice_max(timestamp) %>%
       select(timestamp)
-    if (is.na(item$content$title)) {
-      item$content$title <- "" # use empty strings when content is missing title
-    }
-    # return required information from https://github.com/posit-dev/connect/issues/30288 
-    all_failed_jobs <- bind_rows(lapply(seq_len(nrow(failed_jobs)), function(i) {
+    # return required information from https://github.com/posit-dev/connect/issues/30288
+    all_failed_jobs <- map_dfr(seq_len(nrow(failed_jobs)), function(i) {
       tibble(
         "content_title" = item$content$title,
         "content_guid" = item$content$guid,
@@ -89,7 +60,7 @@ get_failed_job_data <- function(item, usage) {
         "last_deployed_time" = item$content$last_deployed_time,
         "last_visited" = as.POSIXct(last_visit$timestamp)
       )
-    }))
+    })
     all_failed_jobs
   }
 }
@@ -119,7 +90,34 @@ server <- function(input, output, session) {
   
   # output the datatable of failed jobs
   output$jobs <- renderDT({
-    datatable(bad_content_df(), 
+    datatable(bad_content_df() |>
+                # map job type to something more readable
+                mutate(failed_job_type = case_when(
+                  failed_job_type %in% c("build_report", "build_site", "build_jupyter") ~ "Building",
+                  failed_job_type %in% c("packrat_restore", "python_restore") ~ "Restoring environment",
+                  failed_job_type == "configure_report" ~ "Configuring report",
+                  failed_job_type %in% c("run_app", 
+                             "run_api", 
+                             "run_tensorflow", 
+                             "run_python_api",
+                             "run_dash_app",
+                             "run_gradio_app",
+                             "run_streamlit",
+                             "run_bokeh_app",
+                             "run_fastapi_app",
+                             "run_voila_app",
+                             "run_pyshiny_app") ~ "Running",
+                  failed_job_type == "render_shiny" ~ "Rendering",
+                  failed_job_type == "ctrl_extraction" ~ "Extracting parameters",
+                  TRUE ~ failed_job_type)) |>
+                # map exit codes to something more readable 
+                mutate(failure_reason = case_when(
+                  failure_reason %in% c(1, 2, 134) ~ "failed to run / error during running",
+                  failure_reason == 137 ~ "out of memory",
+                  failure_reason %in% c(255, 15, 130) ~ "process terminated by server",
+                  failure_reason %in% c(13, 127) ~ "configuration / permissions error",
+                  TRUE ~ as.character(failure_reason))) |>
+                mutate(content_title = replace_na(content_title, "")),
               rownames = FALSE, 
               escape = FALSE,
               options = list( # non-interactive table for this prototype
