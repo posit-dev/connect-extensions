@@ -9,6 +9,7 @@ library(pins)
 library(tidyr)
 library(ggplot2)
 library(plotly)
+library(lubridate)
 
 shinyOptions(
   cache = cachem::cache_disk("./app_cache/cache/", max_age = 60 * 60 * 24)
@@ -117,27 +118,22 @@ server <- function(input, output, session) {
   }) |> bindCache("static_key")
 
   deploys_by_date <- reactive({
+    deploys_by_date <- audit_logs() |>
+      filter(action == "deploy_application") |>
+      mutate(date = date(time)) |>
+      group_by(user_guid, date) |>
+      summarize(count = n(), .groups = "drop")
 
-    binwidth <- 3600 # One day in seconds
-
-    audit_data <- audit_logs()
-
-    bins <- seq(from = min(audit_data$time),
-                    to = max(audit_data$time),
-                    by = binwidth)
-
-    deploys_by_date <- audit_data |>
-      filter(action %in% c("deploy_application")) |>
-      mutate(bin_time = cut(time, breaks = bins)) |>
-      group_by(user_guid, bin_time) |>
-      summarize(count = n(), .groups = "drop") |>
-      mutate(bin_time = as.POSIXct(bin_time, format = "%Y-%m-%d %H:%M:%S")) |>
-      tidyr::complete(bin_time = bins, fill = list(count = 0))
-
-    users () |>
+    all_dates <- seq.Date(min(deploys_by_date$date), max(deploys_by_date$date), by = "day")
+    usernames <- users() |>
       mutate(full_name = paste(first_name, last_name)) |>
-      select(user_guid = guid, full_name) |>
-      right_join(deploys_by_date, by = "user_guid")
+      select(user_guid = guid, full_name)
+
+    deploys_by_date |>
+      group_by(user_guid) |>
+      tidyr::complete(date = all_dates, fill = list(count = 0)) |>
+      ungroup() |>
+      left_join(usernames, by = "user_guid")
   })
 
   # Cached on the same cadence as summarized_data to avoid loading audit logs
@@ -214,7 +210,7 @@ server <- function(input, output, session) {
   output$deploys_timeline <- renderPlotly(
     ggplotly(
       ggplot(deploys_by_date()) +
-        geom_line(aes(x = bin_time, y = count, color = full_name))
+        geom_line(aes(x = date, y = count, color = full_name))
     )
   )
 }
