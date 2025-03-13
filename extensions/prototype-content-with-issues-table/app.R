@@ -8,7 +8,7 @@ library(tidyr)
 
 # cache data to disk with a refresh every 8h
 shinyOptions(
-  cache = cachem::cache_disk("./app_cache/cache/", max_age = 60 * 60 * 8)
+  cache = cachem::cache_disk("./app_cache/cache/", max_age = 60 * 60 * 12)
 )
 
 source("get_usage.R")
@@ -49,18 +49,18 @@ get_failed_job_data <- function(item, usage) {
       slice_max(timestamp) %>%
       select(timestamp)
     # return required information from https://github.com/posit-dev/connect/issues/30288
-    all_failed_jobs <- map_dfr(seq_len(nrow(failed_jobs)), function(i) {
+    all_failed_jobs <- map_dfr(seq_len(nrow(failed_jobs)), ~
       tibble(
         "content_title" = item$content$title,
         "content_guid" = item$content$guid,
         "content_owner" = item$content$owner[[1]]$username,
-        "job_failed_at" = failed_jobs$end_time[i],
-        "failed_job_type" = failed_jobs$tag[i],
-        "failure_reason" = failed_jobs$exit_code[i],
+        "job_failed_at" = failed_jobs$end_time[.x],
+        "failed_job_type" = failed_jobs$tag[.x],
+        "failure_reason" = failed_jobs$exit_code[.x],
         "last_deployed_time" = item$content$last_deployed_time,
         "last_visited" = as.POSIXct(last_visit$timestamp)
       )
-    })
+    )
     all_failed_jobs
   }
 }
