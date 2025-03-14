@@ -100,6 +100,10 @@ jobs:
     if: ${{ needs.complex-extension-changes.outputs.publisher-command-center == 'true' }}
     uses: ./.github/workflows/publisher-command-center.yml
 
+
+  # All extensions have been linted, packaged, and released, if necessary
+  # Continuing to update the extension list with the latest release data 
+
   # Gathers all release data from GitHub releases triggered by this workflow
   # For use in the `update-extension-list` job
   # If no releases were triggered the output for releases will be `[]`
