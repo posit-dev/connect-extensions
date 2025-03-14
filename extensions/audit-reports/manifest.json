@@ -39,5 +39,12 @@
     "unpublished.qmd": {
       "checksum": "dd2d6de0ce972611a454e80776c4ed3d"
     }
+  },
+  "extension": {
+    "name": "audit-reports",
+    "title": "Audit Reports",
+    "description": "A quarto site of audit reports.",
+    "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/audit-reports",
+    "version": "0.0.0"
   }
 }

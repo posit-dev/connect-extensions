@@ -26,5 +26,12 @@
     "connect-extension.toml": {
       "checksum": "a47a27c677363b99083eae5af19482b4"
     }
+  },
+  "extension": {
+    "name": "datadog-prometheus-metrics",
+    "title": "Plotting Connect Prometheus Metrics from Datadog",
+    "description": "Allows users to query Datadog for a selected Connect Prometheus metric over a given timeframe and view a plot of the results.",
+    "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/datadog-prometheus-metrics",
+    "version": "0.0.0"
   }
 }

@@ -29,5 +29,12 @@
     "connect-extension.toml": {
       "checksum": "110f38ecd19febb0014b401396035605"
     }
+  },
+  "extension": {
+    "name": "integration-session-manager",
+    "title": "Connect OAuth Integration Session Manager",
+    "description": "Allows Connect admins to view and manage OAuth integration sessions.",
+    "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/integration-session-manager",
+    "version": "0.0.0"
   }
 }

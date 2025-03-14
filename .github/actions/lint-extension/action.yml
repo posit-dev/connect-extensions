@@ -1,0 +1,38 @@
+name: Lint Extension
+description: Lint an extension for release
+
+inputs:
+  extension-name:
+    description: The name of the extension
+    required: true
+    type: string
+
+runs:
+  using: "composite"
+
+  steps:
+    # Ensures that the manifest.json for the given extension name
+    # contains all the required fields for the rest of the release workflow
+    - run: |
+        jq '
+          if (.extension | type) != "object" then error("Missing extension object")
+          elif (.extension.name | type) != "string" then error("Missing extension.name")
+          elif (.extension.title | type) != "string" then error("Missing extension.title")
+          elif (.extension.description | type) != "string" then error("Missing extension.description")
+          elif (.extension.homepage | type) != "string" then error("Missing extension.homepage")
+          elif (.extension.version | type) != "string" then error("Missing extension.version")
+          else . end
+        ' ./extensions/${{ inputs.extension-name }}/manifest.json
+      shell: bash
+
+    - uses: actions/setup-node@v4
+
+    - run: npm install -g semver
+      shell: bash
+
+    # The semver must be valid for the sorting, comparisons, and release
+    # process to work
+    - name: Check for valid semver
+      run: |
+        semver -c $(jq -c -r '.extension.version' < ./extensions/${{ inputs.extension-name }}/manifest.json)
+      shell: bash
