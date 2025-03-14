@@ -1,0 +1,4 @@
+name = "prototype-content-with-issues-plot)"
+title = "Content With Issues (plot edition)"
+description = "R Shiny prototype extension that displays plots of total failed jobs per content item, total failed jobs per content owner, and total failed jobs over time." 
+access_type = "acl"
