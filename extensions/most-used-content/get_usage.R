@@ -45,6 +45,8 @@ get_usage_legacy <- function(client, from = NULL, to = NULL) {
 }
 
 get_usage <- function(client, from = NULL, to = NULL) {
+  from <- format(from, "%Y-%m-%dT%H:%M:%SZ")
+  to <- format(to, "%Y-%m-%dT%H:%M:%SZ")
   tryCatch(
     {
       print("Trying firehose usage endpoint.")
