@@ -116,6 +116,7 @@ server <- function(input, output, session) {
                   failure_reason == 137 ~ "out of memory",
                   failure_reason %in% c(255, 15, 130) ~ "process terminated by server",
                   failure_reason %in% c(13, 127) ~ "configuration / permissions error",
+                  # treat any unmapped exit_code integers as characters 
                   TRUE ~ as.character(failure_reason))) |>
                 mutate(content_title = replace_na(content_title, "")),
               rownames = FALSE, 
