@@ -76,7 +76,8 @@ runs:
           ${{ inputs.extension-name }}.tar.gz
       shell: bash
 
-    # We fetch the full release data to utilize in the extension list update
+    # We fetch the GitHub release using the GitHub API, storing the data 
+    # for use in the extension list update.
     - name: Get release data
       if: github.ref_name == 'main' && steps.should_release.outputs.should_release == 'true'
       run: gh api /repos/${{ github.repository }}/releases/tags/$RELEASE_TAG > release-${{ inputs.extension-name }}.json
