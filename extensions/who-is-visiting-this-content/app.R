@@ -87,8 +87,10 @@ server <- function(input, output, session) {
   })
 
   content <- reactive({
-    # Somewhat hacky to get all content and filter for the guid, but makes error
-    # handling somewhat easier when printing content title.
+    # Grab the entire content data frame here and filter it using the pasted-in
+    # GUID to obtain content title and other metadata, rather than making a
+    # request to `v1/content/{GUID}`. If this were a prod, standalone dashboard,
+    # might be better to call that endpoint.
     get_content(client)
   }) |> bindCache("static_key")
 
