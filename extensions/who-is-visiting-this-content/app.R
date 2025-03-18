@@ -183,7 +183,12 @@ server <- function(input, output, session) {
   )
   output$aggregated_visits <- renderTable(
     aggregated_visits_data() |>
-      rename("Total Visits" = n_visits, "Full Name" = full_name, "Username" = username)
+      rename(
+        "Total Visits" = n_visits,
+        "Number of Hits" = n_hits,
+        "Full Name" = full_name,
+        "Username" = username
+      )
   )
 }
 
