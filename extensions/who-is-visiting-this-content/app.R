@@ -143,10 +143,13 @@ server <- function(input, output, session) {
 
   output$summary_message <- renderText(summary_message())
   output$all_visits <- renderTable(
-    all_visits_data()
+    all_visits_data() |>
+      transmute(timestamp = format(timestamp, "%Y-%m-%d %H:%M:%S"), full_name, username) |>
+      rename("Time" = timestamp, "Full Name" = full_name, "Username" = username)
   )
   output$aggregated_visits <- renderTable(
-    aggregated_visits_data()
+    aggregated_visits_data() |>
+      rename("Total Visits" = n_visits, "Full Name" = full_name, "Username" = username)
   )
 }
 
