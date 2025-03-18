@@ -137,19 +137,30 @@ server <- function(input, output, session) {
   })
 
   aggregated_visits_data <- reactive({
-    usage_data() |>
+    unfiltered_hits <- usage_data() |>
       filter(content_guid == input$content_guid) |>
       group_by(user_guid) |>
+      summarize(n_hits = n())
+
+    filtered_visits <- usage_data() |>
+      filter(content_guid == input$content_guid) |>
+      group_by(user_guid) |>
+
       # Compute time diffs and filter out hits within the session
       mutate(time_diff = seconds(timestamp - lag(timestamp, 1))) |>
       replace_na(list(time_diff = seconds(Inf))) |>
       filter(time_diff > input$visit_lag_cutoff) |>
 
-      summarize(n_visits = n()) |>
+      summarize(n_visits = n())
+
+    filtered_visits |>
+      left_join(unfiltered_hits, by = "user_guid") |>
       left_join(user_names(), by = "user_guid") |>
       replace_na(list(full_name = "[Anonymous]")) |>
       arrange(desc(n_visits)) |>
-      select(n_visits, full_name, username)
+      select(n_visits, n_hits, full_name, username)
+
+
   })
 
   summary_message <- reactive({
