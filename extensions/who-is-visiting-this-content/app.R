@@ -169,7 +169,7 @@ server <- function(input, output, session) {
       pull(title)
     hits <- all_visits_data()
     glue(
-      "Content '{content_title}' had {nrow(hits)} between ",
+      "Content '{content_title}' had {nrow(hits)} visits between ",
       "{min(hits$timestamp)} and {max(hits$timestamp)}."
     )
   })
