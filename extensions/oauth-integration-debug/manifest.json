@@ -26,5 +26,12 @@
     "connect-extension.toml": {
       "checksum": "1bed011ad19cbd33da1a44d9057c3298"
     }
+  },
+  "extension": {
+    "name": "oauth-integration-debug",
+    "title": "Connect OAuth Integration Debugger",
+    "description": "Allows Connect content viewers to debug user session tokens and credential exchange.",
+    "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/oauth-integration-debug",
+    "version": "0.0.0"
   }
 }

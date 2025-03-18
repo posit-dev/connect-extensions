@@ -1,0 +1,45 @@
+name: Package Extension
+description: Package an extension into a tarball for release
+
+inputs:
+  extension-name:
+    description: The name of the extension
+    required: true
+    type: string
+  artifact-name:
+    description: The name of the artifact
+    required: false
+    type: string
+
+runs:
+  using: "composite"
+
+  steps:
+    # If we are not passed an artifact to use as the source for the tarball
+    # we will create a tarball from the extension's directory
+    - name: Create tar
+      if: ${{ inputs.artifact-name == '' }}
+      run: tar -czf ${{ inputs.extension-name}}.tar.gz ./extensions/${{ inputs.extension-name}}
+      shell: bash
+
+    # If we are passed an artifact to use as the source for the tarball
+    # we will download the artifact and create a tarball from it
+    # this avoids including extra files in the extension
+    - name: Download optional artifact
+      if: ${{ inputs.artifact-name != '' }}
+      uses: actions/download-artifact@v4
+      with:
+        name: ${{ inputs.artifact-name }}
+        path: ${{ inputs.extension-name }}
+
+    - name: Create tar from artifact
+      if: ${{ inputs.artifact-name != '' }}
+      run: tar -czf ${{ inputs.extension-name }}.tar.gz ${{ inputs.extension-name }}
+      shell: bash
+
+    # Upload the extension's tarball for use in other actions in the workflow
+    - name: Upload extension tar
+      uses: actions/upload-artifact@v4
+      with:
+        name: ${{ inputs.extension-name }}.tar.gz
+        path: ${{ inputs.extension-name }}.tar.gz
