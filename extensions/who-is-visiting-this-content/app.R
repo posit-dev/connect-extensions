@@ -26,7 +26,7 @@ ui <- page_fillable(
 
         sliderInput(
           "visit_lag_cutoff",
-          label = "Visit Delay Cutoff (seconds)",
+          label = "Visit Delay Filter (seconds)",
           min = 0,
           max = 600,
           value = 1,
