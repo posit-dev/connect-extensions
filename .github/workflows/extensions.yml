@@ -24,8 +24,9 @@ jobs:
         id: changes
         with:
           # Adding a new extension that has a directory that can be TARed?
-          # Add a new line here with the name of the extension and directory path
-          # Be sure the extension name and directory have the same name
+          # Add a new line here with the name of the extension as the name of
+          # the filter and the value as the extension's directory path
+          # Be sure the extension name and directory name are the same
           # e.g. `extension-name: extensions/extension-name/**`
           filters: |
             reaper: extensions/reaper/**
@@ -76,8 +77,10 @@ jobs:
       pull-requests: read
     outputs:
       # Adding a new extension with a complex build process?
-      # Add a new line here with the name of the extension step output variable below
+      # Add a new line here with the name of the extension as the name of the
+      # filter and the step output variable below
       # e.g. `extension-name: ${{ steps.changes.outputs.extension-name }}`
+      # Be sure the extension name and directory name it is in are the same
       publisher-command-center: ${{ steps.changes.outputs.publisher-command-center }}
 
     steps:
