@@ -77,7 +77,7 @@ server <- function(input, output, session) {
     as_content_list(content, client)
   }) |> bindCache("static_key")
   
-  # cache last 30d of usage (Jobs.MaxCompleted is 30d), takes ~4m to build
+  # cache last 30d of usage (Jobs.MaxCompleted is 30d), takes ~5m to build
   usage <- reactive({
     from = (Sys.time() - days(30))
     to = Sys.time()
