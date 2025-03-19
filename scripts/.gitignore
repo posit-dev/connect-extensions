@@ -1,0 +1,13 @@
+!.env
+!.env.*
+coverage
+
+node_modules
+dist
+dist-ssr
+out
+npm-debug.log
+out-html
+
+# Log files
+npm-debug.log*
