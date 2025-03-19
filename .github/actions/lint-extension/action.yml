@@ -11,6 +11,16 @@ runs:
   using: "composite"
 
   steps:
+    - name: Check extension name matches directory
+      run: |
+        MANIFEST_NAME=$(jq -r '.extension.name' < ./extensions/${{ inputs.extension-name }}/manifest.json)
+        if [ ${{ inputs.extension-name }} != $MANIFEST_NAME ]; then
+          echo "Error: Extension name, directory, and manifest.json mismatch"
+          echo "Extension '${{ inputs.extension-name }}' must be in the folder '/extensions/${{ inputs.extension-name }}'" and have the name '${{ inputs.extension-name }}' in the manifest.json.
+          exit 1
+        fi
+      shell: bash
+
     # Ensures that the manifest.json for the given extension name
     # contains all the required fields for the rest of the release workflow
     - run: |
