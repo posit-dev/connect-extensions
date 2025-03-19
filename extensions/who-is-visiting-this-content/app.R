@@ -25,12 +25,18 @@ ui <- page_fillable(
         open = TRUE,
 
         sliderInput(
-          "visit_lag_cutoff",
-          label = "Visit Delay Filter (seconds)",
+          "visit_lag_cutoff_slider",
+          label = "Visit Merge Window (sec)",
           min = 0,
           max = 600,
           value = 1,
           step = 0.5
+        ),
+
+        textInput(
+          "visit_lag_cutoff_text",
+          label = "Visit Merge Window (sec)",
+          value = 1
         ),
 
         actionButton("clear_cache", "Clear Cache", icon = icon("refresh"))
@@ -82,6 +88,23 @@ server <- function(input, output, session) {
     }
   })
 
+  # Sync slider and text input ----
+
+  observeEvent(input$visit_lag_cutoff_slider, {
+    updateTextInput(session, "visit_lag_cutoff_text", value = input$visit_lag_cutoff_slider)
+  })
+
+  observeEvent(input$visit_lag_cutoff_text, {
+    new_value <- suppressWarnings(as.numeric(input$visit_lag_cutoff_text))
+
+    if (!is.na(new_value) && new_value >= 0 && new_value <= 600) {
+      updateSliderInput(session, "visit_lag_cutoff_slider", value = new_value)
+    } else {
+      updateTextInput(session, "visit_lag_cutoff_text", value = input$visit_lag_cutoff_slider)
+    }
+  })
+
+
   # Loading and processing data ----
   client <- connect()
 
@@ -126,7 +149,7 @@ server <- function(input, output, session) {
       group_by(user_guid) |>
       mutate(time_diff = seconds(timestamp - lag(timestamp, 1))) |>
       replace_na(list(time_diff = seconds(Inf))) |>
-      filter(time_diff > input$visit_lag_cutoff) |>
+      filter(time_diff > input$visit_lag_cutoff_slider) |>
       ungroup() |>
 
       # Join to usernames
@@ -149,7 +172,7 @@ server <- function(input, output, session) {
       # Compute time diffs and filter out hits within the session
       mutate(time_diff = seconds(timestamp - lag(timestamp, 1))) |>
       replace_na(list(time_diff = seconds(Inf))) |>
-      filter(time_diff > input$visit_lag_cutoff) |>
+      filter(time_diff > input$visit_lag_cutoff_slider) |>
 
       summarize(n_visits = n())
 
