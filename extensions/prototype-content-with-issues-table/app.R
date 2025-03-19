@@ -31,17 +31,9 @@ as_content_list <- function(content_df, client) {
 # usage data if it does, then compiles content, job, and usage data together 
 # into a tibble, returning it.
 get_failed_job_data <- function(item, usage) {
-  failed_jobs <- tryCatch(
-    {
-      get_jobs(item) |>
+  failed_jobs <- get_jobs(item) |>
         # filter out successful and running jobs
         filter(exit_code != 0 & status != 0 & !(is.na(end_time)))
-    },
-    error = function(e) {
-      # content item's content URL 404s (incomplete deployment)
-      NULL
-    }
-  )
   
   if (is.null(failed_jobs) || nrow(failed_jobs) == 0) {
     # content item does not have failed jobs
