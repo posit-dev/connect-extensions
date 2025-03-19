@@ -1,0 +1,12 @@
+/.quarto/
+_site/
+.Rproj.user
+
+
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# license files should not be commited to this repository
+*.lic
