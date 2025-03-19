@@ -63,6 +63,6 @@
 		"title": "Publisher Command Center",
 		"description": "A dashboard for publishers to help manage and track their content",
 		"homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/publisher-command-center",
-		"version": "0.0.0"
+		"version": "0.0.1"
 	}
 }
