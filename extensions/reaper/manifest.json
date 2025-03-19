@@ -34,6 +34,6 @@
     "title": "Reaper",
     "description": "A view to a kill.",
     "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/reaper",
-    "version": "0.0.0"
+    "version": "0.0.1"
   }
 }
