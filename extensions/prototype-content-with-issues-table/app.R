@@ -4,11 +4,13 @@ library(DT)
 library(connectapi)
 library(dplyr)
 library(purrr)
+library(lubridate)
 library(tidyr)
 
-# cache data to disk with a refresh every 8h
+# cache data to disk with a refresh every 8h, table renders in ~7m when cache
+# is expired, deleted, or on initial deploy
 shinyOptions(
-  cache = cachem::cache_disk("./app_cache/cache/", max_age = 60 * 60 * 12)
+  cache = cachem::cache_disk("./app_cache/cache/", max_age = 60 * 60 * 8)
 )
 
 source("get_usage.R")
@@ -25,41 +27,46 @@ as_content_list <- function(content_df, client) {
   })
 }
 
-# checks to see if a content item has failed jobs, grabs usage data if it does,
-# then compiles content, job, and usage data together, returning it.
+# checks to see if a content item has failed jobs within the last 30d, grabs 
+# usage data if it does, then compiles content, job, and usage data together 
+# into a tibble, returning it.
 get_failed_job_data <- function(item, usage) {
   failed_jobs <- tryCatch(
     {
-      get_jobs(item) |> 
-        # filter successful jobs
-        filter(exit_code != 0) 
+      get_jobs(item) |>
+        # filter out successful and running jobs
+        filter(exit_code != 0 & status != 0 & !(is.na(end_time)))
     },
     error = function(e) {
-      # content item does not have any jobs 
+      # content item's content URL 404s (incomplete deployment)
       NULL
     }
   )
   
   if (is.null(failed_jobs) || nrow(failed_jobs) == 0) {
+    # content item does not have failed jobs
     return(NULL)
   } else {
-    # handle content without usage data, such as unpublished content
     last_visit <- usage %>%
       filter(content_guid == item$content$guid) %>%
       slice_max(timestamp) %>%
       select(timestamp)
+    if (nrow(last_visit) == 0) { # display date 0 for content without visits
+      last_visit <- last_visit %>%
+        bind_rows(data.frame(timestamp = as.POSIXct(0)))
+    }
     # return required information from https://github.com/posit-dev/connect/issues/30288
     all_failed_jobs <- map_dfr(seq_len(nrow(failed_jobs)), ~
-      tibble(
-        "content_title" = item$content$title,
-        "content_guid" = item$content$guid,
-        "content_owner" = item$content$owner[[1]]$username,
-        "job_failed_at" = failed_jobs$end_time[.x],
-        "failed_job_type" = failed_jobs$tag[.x],
-        "failure_reason" = failed_jobs$exit_code[.x],
-        "last_deployed_time" = item$content$last_deployed_time,
-        "last_visited" = as.POSIXct(last_visit$timestamp)
-      )
+                                 tibble(
+                                   "content_title" = item$content$title,
+                                   "content_guid" = item$content$guid,
+                                   "content_owner" = item$content$owner[[1]]$username,
+                                   "job_failed_at" = failed_jobs$end_time[.x],
+                                   "failed_job_type" = failed_jobs$tag[.x],
+                                   "failure_reason" = failed_jobs$exit_code[.x],
+                                   "last_deployed_time" = item$content$last_deployed_time,
+                                   "last_visited" = as.POSIXct(last_visit$timestamp)
+                                 )
     )
     all_failed_jobs
   }
@@ -69,20 +76,24 @@ server <- function(input, output, session) {
   # initialize Connect API client
   client <- connect()
   
-  # get content once up front and pass it around for additional filtering
-  content <- get_content(client, limit = inf)
-  
-  # cache content list
+  # TODO: use `v1/content/failed` when #30414 merges so we only list content we
+  # know has failed before, filter to deployed within last 60d for now
   content_list <- reactive({
+    content <- get_content(client, limit = inf)
+    content <- content %>%
+      filter(last_deployed_time >= (Sys.time() - days(60)))
     as_content_list(content, client)
   }) |> bindCache("static_key")
   
-  # cache usage (uses firehose if available, legacy otherwise)
+  # cache last 30d of usage (Jobs.MaxCompleted is 30d), takes ~4m to build
   usage <- reactive({
-    get_usage(client)
+    from = (Sys.time() - days(30))
+    to = Sys.time()
+    get_usage(client, from, to) # ~100 pages of results
   }) |> bindCache("static_key")
-
-  # cache content with failed jobs 
+  
+  # cache failed jobs data, takes ~2m to build with content filtered to items 
+  # deployed within the last 60d
   bad_content_df <- reactive({
     req(content_list(), usage())
     map_dfr(content_list(), ~ get_failed_job_data(.x, usage()))
@@ -97,16 +108,16 @@ server <- function(input, output, session) {
                   failed_job_type %in% c("packrat_restore", "python_restore") ~ "Restoring environment",
                   failed_job_type == "configure_report" ~ "Configuring report",
                   failed_job_type %in% c("run_app", 
-                             "run_api", 
-                             "run_tensorflow", 
-                             "run_python_api",
-                             "run_dash_app",
-                             "run_gradio_app",
-                             "run_streamlit",
-                             "run_bokeh_app",
-                             "run_fastapi_app",
-                             "run_voila_app",
-                             "run_pyshiny_app") ~ "Running",
+                                         "run_api", 
+                                         "run_tensorflow", 
+                                         "run_python_api",
+                                         "run_dash_app",
+                                         "run_gradio_app",
+                                         "run_streamlit",
+                                         "run_bokeh_app",
+                                         "run_fastapi_app",
+                                         "run_voila_app",
+                                         "run_pyshiny_app") ~ "Running",
                   failed_job_type == "render_shiny" ~ "Rendering",
                   failed_job_type == "ctrl_extraction" ~ "Extracting parameters",
                   TRUE ~ failed_job_type)) |>
@@ -128,20 +139,20 @@ server <- function(input, output, session) {
                 info = FALSE, 
                 dom = "t" 
               )
-            )
+    )
   })
 }
 
 ui <- fluidPage(
   fluidRow(
     column(12, 
-      titlePanel("Content With Issues (table view)")
+           titlePanel("Content With Issues (table view)")
     )
   ),
-    
+  
   fluidRow(
     column(12,
-           titlePanel(tags$h6("All failed content jobs:")), 
+           titlePanel(tags$h6("All failed jobs on content deployed within 60d:")), 
            DTOutput("jobs"),
     )
   )
