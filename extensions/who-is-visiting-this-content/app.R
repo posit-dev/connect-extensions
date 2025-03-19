@@ -104,7 +104,6 @@ server <- function(input, output, session) {
     }
   })
 
-
   # Loading and processing data ----
   client <- connect()
 
@@ -182,8 +181,6 @@ server <- function(input, output, session) {
       replace_na(list(full_name = "[Anonymous]")) |>
       arrange(desc(n_visits)) |>
       select(n_visits, n_hits, full_name, username)
-
-
   })
 
   summary_message <- reactive({
@@ -196,7 +193,6 @@ server <- function(input, output, session) {
       "{min(hits$timestamp)} and {max(hits$timestamp)}."
     )
   })
-
 
   output$summary_message <- renderText(summary_message())
   output$all_visits <- renderTable(
