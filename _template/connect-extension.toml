@@ -1,4 +1,0 @@
-name = "<extension-name>"
-title = "<extension-title>"
-description = "<extension-categories>"
-access_type = "logged_in|acl"
