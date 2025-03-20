@@ -45,14 +45,9 @@ get_usage_legacy <- function(client, from = NULL, to = NULL) {
 }
 
 get_usage <- function(client, from = NULL, to = NULL) {
-  tryCatch(
-    {
-      print("Trying firehose usage endpoint.")
-      get_usage_firehose(client, from, to)
-    },
-    error = function(e) {
-      print("Could not use firehose endpoint; trying legacy usage endpoints.")
-      get_usage_legacy(client, from, to)
-    }
-  )
+  from <- format(from, "%Y-%m-%dT%H:%M:%SZ")
+  to <- format(to, "%Y-%m-%dT%H:%M:%SZ")
+  # disable firehose for deploying example to connect.posit.it 
+  #get_usage_firehose(client, from, to)
+  get_usage_legacy(client, from, to)
 }
