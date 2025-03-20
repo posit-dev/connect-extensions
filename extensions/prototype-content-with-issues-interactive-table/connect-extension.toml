@@ -1,4 +1,4 @@
 name = "prototype-content-with-issues-interactive-table"
 title = "Content With Issues (interactive table)"
-description = "R Shiny prototype extension that displays an interactive table of all content items with one or more failed jobs."
+description = "R Shiny prototype extension that displays an interactive table of all failed content jobs for items deployed within the last 60 days."
 access_type = "acl"
