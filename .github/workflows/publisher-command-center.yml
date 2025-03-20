@@ -1,31 +1,46 @@
 name: Publisher Commander Center Extension
 
 on:
-  pull_request:
-    paths:
-      - 'extensions/publisher-command-center/**'
+  workflow_call:
 
+# Setup the environment with the extension name for easy re-use
+# Also need the GH_TOKEN for the release-extension action to be able to use gh
 env:
   EXTENSION_NAME: publisher-command-center
+  GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
 jobs:
-  build:
+  extension:
     runs-on: ubuntu-latest
     defaults:
       run:
         working-directory: ./extensions/${{ env.EXTENSION_NAME }}
 
     steps:
+      # Checkout the repository so the rest of the actions can run with no issue
       - uses: actions/checkout@v4
+
+      # We want to fail quickly if the linting fails, do that first
+      - uses: ./.github/actions/lint-extension
+        with:
+          extension-name: ${{ env.EXTENSION_NAME }}
+
+      # Publisher Command Center needs to setup node, install dependencies, and
+      # build to make the files needed for the extension
       - uses: actions/setup-node@v4
         with:
-          node-version: 'lts/*'
-          cache: 'npm'
+          node-version: "lts/*"
+          cache: "npm"
           cache-dependency-path: extensions/${{ env.EXTENSION_NAME }}/package-lock.json
 
       - run: npm ci
       - run: npm run build
 
+      # Now that the extension is built we need to upload an artifact to pass
+      # to the package-extension action that contains the files we want to be
+      # included in the extension
+      # This only includes necessary files for the extension to run leaving out
+      # the files that were used to build the /dist/ directory
       - name: Upload built extension
         uses: actions/upload-artifact@v4
         with:
@@ -37,21 +52,16 @@ jobs:
             extensions/${{ env.EXTENSION_NAME }}/manifest.json
             extensions/${{ env.EXTENSION_NAME }}/connect-extension.toml
 
-  package:
-    needs: build
-    runs-on: ubuntu-latest
-
-    steps:
-      - uses: actions/download-artifact@v4
+      # Package up the extension into a TAR using the generalized
+      # package-extension action
+      - uses: ./.github/actions/package-extension
         with:
-            name: ${{ env.EXTENSION_NAME}}
-            path: ${{ env.EXTENSION_NAME }}
+          extension-name: ${{ env.EXTENSION_NAME }}
+          artifact-name: ${{ env.EXTENSION_NAME }}
 
-      - name: Create tar
-        run: tar -czf $EXTENSION_NAME.tar.gz $EXTENSION_NAME
-
-      - name: Upload extension tar
-        uses: actions/upload-artifact@v4
+      # Release the extension using the release-extension action
+      # Will only create a GitHub release if merged to `main` and the semver
+      # version has been updated
+      - uses: ./.github/actions/release-extension
         with:
-          name: ${{ env.EXTENSION_NAME }}.tar.gz
-          path: ${{ env.EXTENSION_NAME }}.tar.gz
+          extension-name: ${{ env.EXTENSION_NAME }}

@@ -11,6 +11,11 @@
 			"package_file": "requirements.txt"
 		}
 	},
+	"environment": {
+		"python": {
+			"requires": ">=3.8, <4"
+		}
+	},
 	"packages": {},
 	"files": {
 		"app.py": {
@@ -52,5 +57,12 @@
 		"requirements.txt": {
 			"checksum": "a162a98758867a701ce693948ffdfa67"
 		}
+	},
+	"extension": {
+		"name": "publisher-command-center",
+		"title": "Publisher Command Center",
+		"description": "A dashboard for publishers to help manage and track their content",
+		"homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/publisher-command-center",
+		"version": "0.0.1"
 	}
 }

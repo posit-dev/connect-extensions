@@ -1,6 +1,6 @@
 {
   "R": {
-    "Version": "4.4.1",
+    "Version": "4.4.2",
     "Repositories": [
       {
         "Name": "CRAN",
@@ -66,8 +66,7 @@
       "URL": "http://www.rforge.net/PKI",
       "SystemRequirements": "OpenSSL library and headers (openssl-dev or similar)",
       "NeedsCompilation": "yes",
-      "Repository": "CRAN",
-      "Encoding": "UTF-8"
+      "Repository": "CRAN"
     },
     "R6": {
       "Package": "R6",
@@ -90,7 +89,8 @@
       "NeedsCompilation": "no",
       "Author": "Winston Chang [aut, cre]",
       "Maintainer": "Winston Chang <winston@stdout.org>",
-      "Repository": "CRAN"
+      "Repository": "RSPM",
+      "Encoding": "UTF-8"
     },
     "Rcpp": {
       "Package": "Rcpp",
@@ -118,7 +118,7 @@
       "RoxygenNote": "6.1.1",
       "Encoding": "UTF-8",
       "NeedsCompilation": "yes",
-      "Repository": "CRAN"
+      "Repository": "RSPM"
     },
     "askpass": {
       "Package": "askpass",
@@ -143,7 +143,7 @@
       "NeedsCompilation": "yes",
       "Author": "Jeroen Ooms [aut, cre] (<https://orcid.org/0000-0002-4035-0289>)",
       "Maintainer": "Jeroen Ooms <jeroen@berkeley.edu>",
-      "Repository": "CRAN"
+      "Repository": "RSPM"
     },
     "base64enc": {
       "Package": "base64enc",
@@ -194,7 +194,7 @@
       "VignetteBuilder": "knitr, rmarkdown",
       "RoxygenNote": "7.2.0",
       "NeedsCompilation": "yes",
-      "Repository": "CRAN"
+      "Repository": "RSPM"
     },
     "bit64": {
       "Package": "bit64",
@@ -218,7 +218,7 @@
       "ByteCompile": "yes",
       "URL": "https://github.com/truecluster/bit64",
       "Encoding": "UTF-8",
-      "Repository": "CRAN",
+      "Repository": "RSPM",
       "Repository/R-Forge/Project": "ff",
       "Repository/R-Forge/Revision": "177",
       "Repository/R-Forge/DateTimeStamp": "2018-08-17 17:45:18",
@@ -278,7 +278,7 @@
       "NeedsCompilation": "no",
       "Author": "Carson Sievert [aut, cre] (<https://orcid.org/0000-0002-4958-2844>), Joe Cheng [aut], Garrick Aden-Buie [aut] (<https://orcid.org/0000-0002-7111-0077>), Posit Software, PBC [cph, fnd], Bootstrap contributors [ctb] (Bootstrap library), Twitter, Inc [cph] (Bootstrap library), Javi Aguilar [ctb, cph] (Bootstrap colorpicker library), Thomas Park [ctb, cph] (Bootswatch library), PayPal [ctb, cph] (Bootstrap accessibility plugin)",
       "Maintainer": "Carson Sievert <carson@posit.co>",
-      "Repository": "CRAN"
+      "Repository": "RSPM"
     },
     "cachem": {
       "Package": "cachem",
@@ -352,7 +352,7 @@
       "NeedsCompilation": "yes",
       "Author": "Gábor Csárdi [aut, cre], Hadley Wickham [ctb], Kirill Müller [ctb], Salim Brüggemann [ctb] (<https://orcid.org/0000-0002-5329-5987>), Posit Software, PBC [cph, fnd]",
       "Maintainer": "Gábor Csárdi <csardi.gabor@gmail.com>",
-      "Repository": "CRAN"
+      "Repository": "RSPM"
     },
     "commonmark": {
       "Package": "commonmark",
@@ -483,7 +483,7 @@
       "NeedsCompilation": "no",
       "Author": "Davis Vaughan [aut, cre] (<https://orcid.org/0000-0003-4777-038X>), Jim Hester [aut] (<https://orcid.org/0000-0002-2739-7082>), Romain François [aut] (<https://orcid.org/0000-0002-2444-4226>), Benjamin Kietzman [ctb], Posit Software, PBC [cph, fnd]",
       "Maintainer": "Davis Vaughan <davis@posit.co>",
-      "Repository": "CRAN"
+      "Repository": "RSPM"
     },
     "crayon": {
       "Package": "crayon",
@@ -604,7 +604,8 @@
       ],
       "VignetteBuilder": "simplermarkdown",
       "NeedsCompilation": "yes",
-      "Repository": "CRAN"
+      "Repository": "RSPM",
+      "Encoding": "UTF-8"
     },
     "dplyr": {
       "Package": "dplyr",
@@ -701,7 +702,7 @@
       "NeedsCompilation": "no",
       "Author": "Hadley Wickham [aut, cre], Yihui Xie [aut] (<https://orcid.org/0000-0003-0645-5666>), Michael Lawrence [ctb], Thomas Kluyver [ctb], Jeroen Ooms [ctb], Barret Schloerke [ctb], Adam Ryczkowski [ctb], Hiroaki Yutani [ctb], Michel Lang [ctb], Karolis Koncevičius [ctb], Posit Software, PBC [cph, fnd]",
       "Maintainer": "Hadley Wickham <hadley@posit.co>",
-      "Repository": "CRAN"
+      "Repository": "RSPM"
     },
     "fansi": {
       "Package": "fansi",
@@ -901,7 +902,7 @@
       "NeedsCompilation": "yes",
       "Author": "Jim Hester [aut] (<https://orcid.org/0000-0002-2739-7082>), Jennifer Bryan [aut, cre] (<https://orcid.org/0000-0002-6983-2759>), Posit Software, PBC [cph, fnd]",
       "Maintainer": "Jennifer Bryan <jenny@posit.co>",
-      "Repository": "CRAN"
+      "Repository": "RSPM"
     },
     "highr": {
       "Package": "highr",
@@ -1139,7 +1140,7 @@
       "Encoding": "UTF-8",
       "NeedsCompilation": "yes",
       "Author": "Jeroen Ooms [aut, cre] (<https://orcid.org/0000-0002-4035-0289>), Duncan Temple Lang [ctb], Lloyd Hilaiel [cph] (author of bundled libyajl)",
-      "Repository": "CRAN"
+      "Repository": "RSPM"
     },
     "knitr": {
       "Package": "knitr",
@@ -1202,7 +1203,7 @@
       "NeedsCompilation": "no",
       "Author": "Yihui Xie [aut, cre] (<https://orcid.org/0000-0003-0645-5666>), Abhraneel Sarma [ctb], Adam Vogt [ctb], Alastair Andrew [ctb], Alex Zvoleff [ctb], Amar Al-Zubaidi [ctb], Andre Simon [ctb] (the CSS files under inst/themes/ were derived from the Highlight package http://www.andre-simon.de), Aron Atkins [ctb], Aaron Wolen [ctb], Ashley Manton [ctb], Atsushi Yasumoto [ctb] (<https://orcid.org/0000-0002-8335-495X>), Ben Baumer [ctb], Brian Diggs [ctb], Brian Zhang [ctb], Bulat Yapparov [ctb], Cassio Pereira [ctb], Christophe Dervieux [ctb], David Hall [ctb], David Hugh-Jones [ctb], David Robinson [ctb], Doug Hemken [ctb], Duncan Murdoch [ctb], Elio Campitelli [ctb], Ellis Hughes [ctb], Emily Riederer [ctb], Fabian Hirschmann [ctb], Fitch Simeon [ctb], Forest Fang [ctb], Frank E Harrell Jr [ctb] (the Sweavel package at inst/misc/Sweavel.sty), Garrick Aden-Buie [ctb], Gregoire Detrez [ctb], Hadley Wickham [ctb], Hao Zhu [ctb], Heewon Jeon [ctb], Henrik Bengtsson [ctb], Hiroaki Yutani [ctb], Ian Lyttle [ctb], Hodges Daniel [ctb], Jacob Bien [ctb], Jake Burkhead [ctb], James Manton [ctb], Jared Lander [ctb], Jason Punyon [ctb], Javier Luraschi [ctb], Jeff Arnold [ctb], Jenny Bryan [ctb], Jeremy Ashkenas [ctb, cph] (the CSS file at inst/misc/docco-classic.css), Jeremy Stephens [ctb], Jim Hester [ctb], Joe Cheng [ctb], Johannes Ranke [ctb], John Honaker [ctb], John Muschelli [ctb], Jonathan Keane [ctb], JJ Allaire [ctb], Johan Toloe [ctb], Jonathan Sidi [ctb], Joseph Larmarange [ctb], Julien Barnier [ctb], Kaiyin Zhong [ctb], Kamil Slowikowski [ctb], Karl Forner [ctb], Kevin K. Smith [ctb], Kirill Mueller [ctb], Kohske Takahashi [ctb], Lorenz Walthert [ctb], Lucas Gallindo [ctb], Marius Hofert [ctb], Martin Modrák [ctb], Michael Chirico [ctb], Michael Friendly [ctb], Michal Bojanowski [ctb], Michel Kuhlmann [ctb], Miller Patrick [ctb], Nacho Caballero [ctb], Nick Salkowski [ctb], Niels Richard Hansen [ctb], Noam Ross [ctb], Obada Mahdi [ctb], Pavel N. Krivitsky [ctb] (<https://orcid.org/0000-0002-9101-3362>), Pedro Faria [ctb], Qiang Li [ctb], Ramnath Vaidyanathan [ctb], Richard Cotton [ctb], Robert Krzyzanowski [ctb], Rodrigo Copetti [ctb], Romain Francois [ctb], Ruaridh Williamson [ctb], Sagiru Mati [ctb] (<https://orcid.org/0000-0003-1413-3974>), Scott Kostyshak [ctb], Sebastian Meyer [ctb], Sietse Brouwer [ctb], Simon de Bernard [ctb], Sylvain Rousseau [ctb], Taiyun Wei [ctb], Thibaut Assus [ctb], Thibaut Lamadon [ctb], Thomas Leeper [ctb], Tim Mastny [ctb], Tom Torsney-Weir [ctb], Trevor Davis [ctb], Viktoras Veitas [ctb], Weicheng Zhu [ctb], Wush Wu [ctb], Zachary Foster [ctb], Zhian N. Kamvar [ctb] (<https://orcid.org/0000-0003-1458-7108>), Posit Software, PBC [cph, fnd]",
       "Maintainer": "Yihui Xie <xie@yihui.name>",
-      "Repository": "CRAN"
+      "Repository": "RSPM"
     },
     "later": {
       "Package": "later",
@@ -1258,8 +1259,7 @@
       "NeedsCompilation": "yes",
       "Author": "Hadley Wickham [aut, cre], RStudio [cph]",
       "Maintainer": "Hadley Wickham <hadley@rstudio.com>",
-      "Repository": "CRAN",
-      "Encoding": "UTF-8"
+      "Repository": "CRAN"
     },
     "lifecycle": {
       "Package": "lifecycle",
@@ -1415,7 +1415,7 @@
       "NeedsCompilation": "yes",
       "Author": "Jeroen Ooms [aut, cre] (<https://orcid.org/0000-0002-4035-0289>), Oliver Keyes [ctb]",
       "Maintainer": "Jeroen Ooms <jeroen@berkeley.edu>",
-      "Repository": "CRAN"
+      "Repository": "RSPM"
     },
     "packrat": {
       "Package": "packrat",
@@ -1507,80 +1507,7 @@
       "NeedsCompilation": "no",
       "Author": "Kirill Müller [aut, cre] (<https://orcid.org/0000-0002-1416-3412>), Hadley Wickham [aut], RStudio [cph]",
       "Maintainer": "Kirill Müller <kirill@cynkra.com>",
-      "Repository": "CRAN"
-    },
-    "pins": {
-      "Package": "pins",
-      "Version": "1.4.0",
-      "Source": "Repository",
-      "Type": "Package",
-      "Title": "Pin, Discover, and Share Resources",
-      "Authors@R": "c( person(\"Julia\", \"Silge\", , \"julia.silge@posit.co\", role = c(\"cre\", \"aut\"), comment = c(ORCID = \"0000-0002-3671-836X\")), person(\"Hadley\", \"Wickham\", , \"hadley@posit.co\", role = \"aut\", comment = c(ORCID = \"0000-0003-4757-117X\")), person(\"Javier\", \"Luraschi\", , \"jluraschi@gmail.com\", role = \"aut\"), person(\"Posit Software, PBC\", role = c(\"cph\", \"fnd\")) )",
-      "Description": "Publish data sets, models, and other R objects, making it easy to share them across projects and with your colleagues. You can pin objects to a variety of \"boards\", including local folders (to share on a networked drive or with 'DropBox'), 'Posit Connect', 'AWS S3', and more.",
-      "License": "Apache License (>= 2)",
-      "URL": "https://pins.rstudio.com/, https://github.com/rstudio/pins-r",
-      "BugReports": "https://github.com/rstudio/pins-r/issues",
-      "Depends": [
-        "R (>= 3.6)"
-      ],
-      "Imports": [
-        "cli",
-        "digest",
-        "fs",
-        "generics",
-        "glue",
-        "httr",
-        "jsonlite",
-        "lifecycle",
-        "magrittr",
-        "purrr (>= 1.0.0)",
-        "rappdirs",
-        "rlang (>= 1.1.0)",
-        "tibble",
-        "whisker",
-        "withr (>= 2.4.3)",
-        "yaml"
-      ],
-      "Suggests": [
-        "archive",
-        "arrow",
-        "AzureStor",
-        "covr",
-        "data.table",
-        "datasets",
-        "filelock",
-        "gitcreds",
-        "googleCloudStorageR",
-        "googledrive",
-        "httr2",
-        "ids",
-        "knitr",
-        "Microsoft365R",
-        "mime",
-        "mockery",
-        "nanoparquet",
-        "openssl",
-        "paws.storage",
-        "qs",
-        "R.utils",
-        "rmarkdown",
-        "rsconnect",
-        "shiny",
-        "sodium",
-        "testthat (>= 3.1.7)",
-        "webfakes (>= 1.2.0)",
-        "xml2",
-        "zip"
-      ],
-      "VignetteBuilder": "knitr",
-      "Config/Needs/website": "tidyverse/tidytemplate",
-      "Config/testthat/edition": "3",
-      "Encoding": "UTF-8",
-      "RoxygenNote": "7.3.2",
-      "NeedsCompilation": "no",
-      "Author": "Julia Silge [cre, aut] (<https://orcid.org/0000-0002-3671-836X>), Hadley Wickham [aut] (<https://orcid.org/0000-0003-4757-117X>), Javier Luraschi [aut], Posit Software, PBC [cph, fnd]",
-      "Maintainer": "Julia Silge <julia.silge@posit.co>",
-      "Repository": "CRAN"
+      "Repository": "RSPM"
     },
     "pkgconfig": {
       "Package": "pkgconfig",
@@ -1824,7 +1751,7 @@
       "NeedsCompilation": "yes",
       "Author": "Lionel Henry [aut, cre], Hadley Wickham [aut], mikefc [cph] (Hash implementation based on Mike's xxhashlite), Yann Collet [cph] (Author of the embedded xxHash library), Posit, PBC [cph, fnd]",
       "Maintainer": "Lionel Henry <lionel@posit.co>",
-      "Repository": "CRAN"
+      "Repository": "RSPM"
     },
     "rmarkdown": {
       "Package": "rmarkdown",
@@ -1879,7 +1806,7 @@
       "SystemRequirements": "pandoc (>= 1.14) - http://pandoc.org",
       "NeedsCompilation": "no",
       "Author": "JJ Allaire [aut], Yihui Xie [aut, cre] (<https://orcid.org/0000-0003-0645-5666>), Christophe Dervieux [aut] (<https://orcid.org/0000-0003-4474-2498>), Jonathan McPherson [aut], Javier Luraschi [aut], Kevin Ushey [aut], Aron Atkins [aut], Hadley Wickham [aut], Joe Cheng [aut], Winston Chang [aut], Richard Iannone [aut] (<https://orcid.org/0000-0003-3925-190X>), Andrew Dunning [ctb] (<https://orcid.org/0000-0003-0464-5036>), Atsushi Yasumoto [ctb, cph] (<https://orcid.org/0000-0002-8335-495X>, Number sections Lua filter), Barret Schloerke [ctb], Carson Sievert [ctb] (<https://orcid.org/0000-0002-4958-2844>), Devon Ryan [ctb] (<https://orcid.org/0000-0002-8549-0971>), Frederik Aust [ctb] (<https://orcid.org/0000-0003-4900-788X>), Jeff Allen [ctb], JooYoung Seo [ctb] (<https://orcid.org/0000-0002-4064-6012>), Malcolm Barrett [ctb], Rob Hyndman [ctb], Romain Lesur [ctb], Roy Storey [ctb], Ruben Arslan [ctb], Sergio Oller [ctb], Posit Software, PBC [cph, fnd], jQuery UI contributors [ctb, cph] (jQuery UI library; authors listed in inst/rmd/h/jqueryui/AUTHORS.txt), Mark Otto [ctb] (Bootstrap library), Jacob Thornton [ctb] (Bootstrap library), Bootstrap contributors [ctb] (Bootstrap library), Twitter, Inc [cph] (Bootstrap library), Alexander Farkas [ctb, cph] (html5shiv library), Scott Jehl [ctb, cph] (Respond.js library), Ivan Sagalaev [ctb, cph] (highlight.js library), Greg Franko [ctb, cph] (tocify library), John MacFarlane [ctb, cph] (Pandoc templates), Google, Inc. [ctb, cph] (ioslides library), Dave Raggett [ctb] (slidy library), W3C [cph] (slidy library), Dave Gandy [ctb, cph] (Font-Awesome), Ben Sperry [ctb] (Ionicons), Drifty [cph] (Ionicons), Aidan Lister [ctb, cph] (jQuery StickyTabs), Benct Philip Jonsson [ctb, cph] (pagebreak Lua filter), Albert Krewinkel [ctb, cph] (pagebreak Lua filter)",
-      "Repository": "CRAN"
+      "Repository": "RSPM"
     },
     "rsconnect": {
       "Package": "rsconnect",
@@ -2067,40 +1994,6 @@
       "Maintainer": "Winston Chang <winston@posit.co>",
       "Repository": "CRAN"
     },
-    "shinyjs": {
-      "Package": "shinyjs",
-      "Version": "2.1.0",
-      "Source": "Repository",
-      "Title": "Easily Improve the User Experience of Your Shiny Apps in Seconds",
-      "Authors@R": "person(\"Dean\", \"Attali\",  email = \"daattali@gmail.com\", role = c(\"aut\", \"cre\"), comment= c(ORCID=\"0000-0002-5645-3493\"))",
-      "Description": "Perform common useful JavaScript operations in Shiny apps that will greatly improve your apps without having to know any JavaScript. Examples include: hiding an element, disabling an input, resetting an input back to its original value, delaying code execution by a few seconds, and many more useful functions for both the end user and the developer. 'shinyjs' can also be used to easily call your own custom JavaScript functions from R.",
-      "URL": "https://deanattali.com/shinyjs/",
-      "BugReports": "https://github.com/daattali/shinyjs/issues",
-      "Depends": [
-        "R (>= 3.1.0)"
-      ],
-      "Imports": [
-        "digest (>= 0.6.8)",
-        "jsonlite",
-        "shiny (>= 1.0.0)"
-      ],
-      "Suggests": [
-        "htmltools (>= 0.2.9)",
-        "knitr (>= 1.7)",
-        "rmarkdown",
-        "shinyAce",
-        "shinydisconnect",
-        "testthat (>= 0.9.1)"
-      ],
-      "License": "MIT + file LICENSE",
-      "VignetteBuilder": "knitr",
-      "RoxygenNote": "7.1.1",
-      "Encoding": "UTF-8",
-      "NeedsCompilation": "no",
-      "Author": "Dean Attali [aut, cre] (<https://orcid.org/0000-0002-5645-3493>)",
-      "Maintainer": "Dean Attali <daattali@gmail.com>",
-      "Repository": "CRAN"
-    },
     "sourcetools": {
       "Package": "sourcetools",
       "Version": "0.1.7-1",
@@ -2218,7 +2111,7 @@
       "NeedsCompilation": "yes",
       "Author": "Jeroen Ooms [aut, cre] (<https://orcid.org/0000-0002-4035-0289>), Gábor Csárdi [ctb]",
       "Maintainer": "Jeroen Ooms <jeroen@berkeley.edu>",
-      "Repository": "CRAN"
+      "Repository": "RSPM"
     },
     "tibble": {
       "Package": "tibble",
@@ -2405,7 +2298,7 @@
       "NeedsCompilation": "no",
       "Author": "Yihui Xie [aut, cre, cph] (<https://orcid.org/0000-0003-0645-5666>), Posit Software, PBC [cph, fnd], Christophe Dervieux [ctb] (<https://orcid.org/0000-0003-4474-2498>), Devon Ryan [ctb] (<https://orcid.org/0000-0002-8549-0971>), Ethan Heinzen [ctb], Fernando Cagua [ctb]",
       "Maintainer": "Yihui Xie <xie@yihui.name>",
-      "Repository": "CRAN"
+      "Repository": "RSPM"
     },
     "utf8": {
       "Package": "utf8",
@@ -2453,7 +2346,8 @@
       "URL": "https://www.rforge.net/uuid",
       "BugReports": "https://github.com/s-u/uuid",
       "NeedsCompilation": "yes",
-      "Repository": "CRAN"
+      "Repository": "RSPM",
+      "Encoding": "UTF-8"
     },
     "vctrs": {
       "Package": "vctrs",
@@ -2502,25 +2396,6 @@
       "Maintainer": "Davis Vaughan <davis@posit.co>",
       "Repository": "CRAN"
     },
-    "whisker": {
-      "Package": "whisker",
-      "Version": "0.4.1",
-      "Source": "Repository",
-      "Maintainer": "Edwin de Jonge <edwindjonge@gmail.com>",
-      "License": "GPL-3",
-      "Title": "{{mustache}} for R, Logicless Templating",
-      "Type": "Package",
-      "LazyLoad": "yes",
-      "Author": "Edwin de Jonge",
-      "Description": "Implements 'Mustache' logicless templating.",
-      "URL": "https://github.com/edwindj/whisker",
-      "Suggests": [
-        "markdown"
-      ],
-      "RoxygenNote": "6.1.1",
-      "NeedsCompilation": "no",
-      "Repository": "CRAN"
-    },
     "withr": {
       "Package": "withr",
       "Version": "3.0.0",
@@ -2559,7 +2434,7 @@
       "NeedsCompilation": "no",
       "Author": "Jim Hester [aut], Lionel Henry [aut, cre], Kirill Müller [aut], Kevin Ushey [aut], Hadley Wickham [aut], Winston Chang [aut], Jennifer Bryan [ctb], Richard Cotton [ctb], Posit Software, PBC [cph, fnd]",
       "Maintainer": "Lionel Henry <lionel@posit.co>",
-      "Repository": "CRAN"
+      "Repository": "RSPM"
     },
     "xfun": {
       "Package": "xfun",
@@ -2606,7 +2481,7 @@
       "NeedsCompilation": "yes",
       "Author": "Yihui Xie [aut, cre, cph] (<https://orcid.org/0000-0003-0645-5666>), Wush Wu [ctb], Daijiang Li [ctb], Xianying Tan [ctb], Salim Brüggemann [ctb] (<https://orcid.org/0000-0002-5329-5987>), Christophe Dervieux [ctb], Posit Software, PBC [cph, fnd]",
       "Maintainer": "Yihui Xie <xie@yihui.name>",
-      "Repository": "CRAN"
+      "Repository": "RSPM"
     },
     "xtable": {
       "Package": "xtable",
@@ -2635,8 +2510,7 @@
       "License": "GPL (>= 2)",
       "Repository": "CRAN",
       "NeedsCompilation": "no",
-      "Author": "David B. Dahl [aut], David Scott [aut, cre], Charles Roosen [aut], Arni Magnusson [aut], Jonathan Swinton [aut], Ajay Shah [ctb], Arne Henningsen [ctb], Benno Puetz [ctb], Bernhard Pfaff [ctb], Claudio Agostinelli [ctb], Claudius Loehnert [ctb], David Mitchell [ctb], David Whiting [ctb], Fernando da Rosa [ctb], Guido Gay [ctb], Guido Schulz [ctb], Ian Fellows [ctb], Jeff Laake [ctb], John Walker [ctb], Jun Yan [ctb], Liviu Andronic [ctb], Markus Loecher [ctb], Martin Gubri [ctb], Matthieu Stigler [ctb], Robert Castelo [ctb], Seth Falcon [ctb], Stefan Edwards [ctb], Sven Garbade [ctb], Uwe Ligges [ctb]",
-      "Encoding": "UTF-8"
+      "Author": "David B. Dahl [aut], David Scott [aut, cre], Charles Roosen [aut], Arni Magnusson [aut], Jonathan Swinton [aut], Ajay Shah [ctb], Arne Henningsen [ctb], Benno Puetz [ctb], Bernhard Pfaff [ctb], Claudio Agostinelli [ctb], Claudius Loehnert [ctb], David Mitchell [ctb], David Whiting [ctb], Fernando da Rosa [ctb], Guido Gay [ctb], Guido Schulz [ctb], Ian Fellows [ctb], Jeff Laake [ctb], John Walker [ctb], Jun Yan [ctb], Liviu Andronic [ctb], Markus Loecher [ctb], Martin Gubri [ctb], Matthieu Stigler [ctb], Robert Castelo [ctb], Seth Falcon [ctb], Stefan Edwards [ctb], Sven Garbade [ctb], Uwe Ligges [ctb]"
     },
     "yaml": {
       "Package": "yaml",
@@ -2655,7 +2529,7 @@
       "URL": "https://github.com/vubiostat/r-yaml/",
       "BugReports": "https://github.com/vubiostat/r-yaml/issues",
       "NeedsCompilation": "yes",
-      "Repository": "CRAN",
+      "Repository": "RSPM",
       "Encoding": "UTF-8"
     }
   }

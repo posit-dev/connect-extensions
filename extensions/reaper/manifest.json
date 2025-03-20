@@ -13,6 +13,11 @@
       "package_file": "requirements.txt"
     }
   },
+  "environment": {
+    "python": {
+      "requires": ">=3.8, <4"
+    }
+  },
   "files": {
     "requirements.txt": {
       "checksum": "969fde50a8798a04a638e60adbae9ba7"
@@ -23,5 +28,12 @@
     "connect-extension.toml": {
       "checksum": "c6e6af366dacce9c86f0a06901b931f3"
     }
+  },
+  "extension": {
+    "name": "reaper",
+    "title": "Reaper",
+    "description": "A view to a kill.",
+    "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/reaper",
+    "version": "0.0.1"
   }
 }
