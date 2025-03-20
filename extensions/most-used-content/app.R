@@ -23,20 +23,18 @@ ui <- page_fillable(
     layout_sidebar(
       sidebar = sidebar(
         title = "No Filters Yet",
-        open = FALSE,
+        open = TRUE,
+        width = 275,
+
+        dateRangeInput(
+          "date_range",
+          label = "Select Date Range",
+          start = today() - ddays(6),
+          end = today(),
+          max = today(),
+        ),
 
         actionButton("clear_cache", "Clear Cache", icon = icon("refresh"))
-      ),
-
-      tabsetPanel(
-        tabPanel(
-          "Plot of Daily Views",
-          plotlyOutput("daily_views_plot")
-        ),
-        tabPanel(
-          "Plot of Unique Daily Visitors",
-          plotlyOutput("unique_daily_visitor_plot")
-        )
       ),
 
       card(
@@ -65,7 +63,7 @@ server <- function(input, output, session) {
   # display on some servers.
   date_range <- reactive({
     list(
-      from_date = today() - ddays(6),
+      from_date = today() - days(6),
       to_date = today()
     )
   })
@@ -77,10 +75,10 @@ server <- function(input, output, session) {
   usage_data <- reactive({
     get_usage(
       client,
-      from = date_range()$from_date,
-      to = date_range()$to_date + hours(23) + minutes(59) + seconds(59)
+      from = as.POSIXct(input$date_range[1]),
+      to = as.POSIXct(input$date_range[2]) + hours(23) + minutes(59) + seconds(59)
     )
-  }) |> bindCache(date_range()$from_date, date_range()$to_date)
+  }) |> bindCache(input$date_range)
 
   # Compute basic usage stats
   content_usage_data <- reactive({
@@ -96,23 +94,9 @@ server <- function(input, output, session) {
       mutate(owner_username = map_chr(owner, "username")) |>
       select(title, content_guid = guid, owner_username) |>
       right_join(usage_summary, by = "content_guid") |>
-      arrange(desc(total_views))
-  }) |> bindCache(date_range()$from_date, date_range()$to_date)
-
-  # Compute daily usage numbers for plots
-  usage_by_date <- reactive({
-    all_dates <- seq.Date(date_range()$from_date, date_range()$to_date, by = "day")
-
-    usage_data() |>
-      mutate(date = date(timestamp)) |>
-      group_by(date) |>
-      summarize(
-        daily_views = n(),
-        unique_daily_visitors = n_distinct(user_guid, na.rm = TRUE)
-      ) |>
-      full_join(tibble(date = all_dates)) |>
-      mutate(across(c(unique_daily_visitors, daily_views), ~ replace_na(.x, 0)))
-  })
+      arrange(desc(total_views)) |>
+      select(-content_guid)
+  }) |> bindCache(input$date_range)
 
   # Render table
   output$content_usage_table <- renderDT({
@@ -124,7 +108,6 @@ server <- function(input, output, session) {
       ),
       colnames = c(
         "Content Title" = "title",
-        "Content GUID" = "content_guid",
         "Owner Username" = "owner_username",
         "Total Views" = "total_views",
         "Unique Logged-in Viewers" = "unique_viewers",
@@ -140,23 +123,6 @@ server <- function(input, output, session) {
       ) |>
       formatDate(columns = "Last Viewed At", method = "toLocaleString")
   })
-
-  output$daily_views_plot <- renderPlotly(
-    ggplotly(
-      ggplot(usage_by_date()) +
-        geom_col(aes(x = date, y = daily_views)) +
-        labs(x = "Date", y = "Daily Views")
-    )
-  )
-
-  output$unique_daily_visitor_plot <- renderPlotly(
-    ggplotly(
-      ggplot(usage_by_date()) +
-        geom_col(aes(x = date, y = unique_daily_visitors)) +
-        labs(x = "Date", y = "Unique Daily Visitors (Logged-in)")
-    )
-  )
-
 }
 
 shinyApp(ui, server)
