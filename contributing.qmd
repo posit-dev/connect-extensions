@@ -24,11 +24,11 @@ A file that has the name of your extension, the categories it falls into, and a 
 
 # Connect Gallery
 
-The Connect Gallery displays content that can be easily added to Posit Connect
-servers.
+The Connect Gallery displays apps, dashboards, and reports that can be easily
+added to Posit Connect servers.
 
-This section covers how to ready your content for the gallery, adding it, and
-updating it.
+This section covers how to ready your content for the gallery, add it, and
+release new updates.
 
 ## Additional Requirements
 
@@ -56,7 +56,7 @@ to the `manifest.json`:
 
 It is recommended to begin with `"version": "0.0.0"` to avoid triggering a
 release during development of your content. When you are ready to release to
-the Gallery check the [Adding content to the Connect Gallery](#adding-content-to-the-connect-gallery) section.
+the gallery check the [Adding content to the Connect Gallery](#adding-content-to-the-connect-gallery) section.
 
 ### Language version constraints
 
@@ -250,3 +250,12 @@ And after the pull request is merged:
 
 - Remove all associated releases for the content from the [GitHub Releases page](https://github.com/posit-dev/connect-extensions/releases).
 - Remove all associated tags for the content from the [GitHub Tags page](https://github.com/posit-dev/connect-extensions/tags).
+
+# Removing Content
+
+Removing content from the `extensions/` subdirectory that has already been
+added to the Connect Gallery requires that you follow instructions in the 
+above [Removing an entire piece of content](#removing-an-entire-piece-of-content)
+section.
+
+In addition references to the content in GitHub workflows will need to removed.
