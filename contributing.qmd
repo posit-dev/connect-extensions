@@ -35,8 +35,8 @@ release new updates.
 ### The `extension` section in `manifest.json`
 
 Content in the gallery requires some additional details in the `manifest.json`
-file to display in the gallery, install on Connect, and automatically
-release using automation in this repository.
+file to display, install on Connect, and automatically release using automation
+in this repository.
 
 Below is an example of the additional details that need to be manually added
 to the `manifest.json`:
@@ -116,6 +116,8 @@ filters: |
   ...
   my-content-name: extensions/my-content-name/**
 ```
+
+A good example is how `reaper` is setup.
 
 This will make any code changes to your content trigger a few things:
 
