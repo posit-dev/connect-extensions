@@ -61,6 +61,11 @@ jobs:
         with:
           extension-name: ${{ matrix.extension }}
 
+      - uses: ./.github/workflows/connect-integration-tests.yml
+        with:
+          extension-name: ${{ matrix.extension }}
+          secrets: inherit
+
       # Extensions are only released when this workflow triggers on `main`
       # otherwise, the release is skipped
       # See the action comments for more details

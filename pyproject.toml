@@ -1,0 +1,19 @@
+# Required for enabling Python use in the Connect integrations tests
+
+[project]
+name = "connect-extensions-tests"
+description = "Integration tests for Connect Extensions"
+version = "0.1.0"
+requires-python = ">=3.8"
+dependencies = [
+    "requests>=2.31.0,<3",
+    "pytest",
+    "posit-sdk",
+    "rsconnect-python"
+]
+
+[tool.setuptools]
+packages = ["integration"]
+
+[tool.pytest.ini_options]
+testpaths = ["integration/tests"]

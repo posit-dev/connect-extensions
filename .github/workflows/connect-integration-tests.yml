@@ -1,0 +1,77 @@
+name: Connect Integration Tests
+
+on:
+  workflow_call:
+    inputs:
+      extension-name:
+        description: 'The name of the extension'
+        required: true
+        type: string
+
+jobs:
+  setup-integration-test:
+    runs-on: ubuntu-latest
+    outputs:
+      versions: ${{ steps.versions.outputs.versions }}
+    steps:
+        - uses: actions/checkout@v4
+        - id: versions
+          working-directory: ./integration
+          # The `jq` command is "output compact, raw input, slurp, split on new lines, and remove the last element". This results in a JSON array of Connect versions (e.g., ["2025.01.0", "2024.12.0"]).
+          run: |
+            versions=$(make print-versions | jq -c -Rs 'split("\n") | .[:-1]')
+            echo "versions=$versions" >> "$GITHUB_OUTPUT"
+
+  connect-integration-test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10 # Max time to run the integration tests
+    needs: setup-integration-test
+    strategy:
+      fail-fast: false
+      matrix:
+        CONNECT_VERSION: ${{ fromJson(needs.setup-integration-test.outputs.versions) }}
+    steps:
+      - uses: actions/checkout@v4
+
+      # Here we download the packaged extension artifact created from the calling workflow
+      - uses: actions/download-artifact@v4
+        with:
+          name: ${{ inputs.extension-name }}.tar.gz
+          path: integration/bundles
+
+      - uses: docker/setup-buildx-action@v3
+
+      - name: Write Posit Connect license to disk
+        run: echo "$CONNECT_LICENSE" > ./integration/license.lic
+        env:
+          CONNECT_LICENSE: ${{ secrets.CONNECT_LICENSE }}
+
+      - name: Run integration tests
+        run: |
+          make -C ./integration ${{ matrix.CONNECT_VERSION }} \
+            EXTENSION_NAME=${{ inputs.extension-name }}
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: ${{ inputs.extension-name || matrix.CONNECT_VERSION }} - Integration Test Report
+          path: integration/reports/*.xml
+          retention-days: 7
+
+  integration-test-report:
+    needs: connect-integration-test
+    runs-on: ubuntu-latest
+    permissions:
+      checks: write
+      pull-requests: write
+    if: always()
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+      - uses: EnricoMi/publish-unit-test-result-action@v2
+        with:
+          check_name: integration-test-results
+          comment_mode: off
+          files: "artifacts/**/*.xml"
+          report_individual_runs: true
