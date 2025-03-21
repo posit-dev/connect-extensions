@@ -142,24 +142,8 @@ setting up the environment needed to build the content.
 #### Creating a custom workflow
 
 To faciliate control over how the content is being built we utilize custom
-GitHub Workflows, for example the [Publisher Command Center workflow](https://github.com/posit-dev/connect-extensions/blob/main/.github/workflows/publisher-command-center.yml).
-
-A few steps will be common across custom workflows using
-[composite GitHub Actions](https://docs.github.com/en/actions/sharing-automations/creating-actions/creating-a-composite-action)
-in this repository.
-
-1. Start with checking out the repository so actions can run with no issues
-   using `actions/checkout`
-2. Lint the extension with `./.github/actions/lint-extension`
-3. Upload the built extension using `actions/upload-artifact` specifying the
-   path of all the required files.
-4. Package the extension using `./.github/actions/package-extension`
-5. Release the extension using `./.github/actions/release-extension`
-    - Automatically handles releasing when merged to `main` and does a
-      dry run when run on a pull request.
-
-The custom steps will entirely depend on the individual content and what
-environment it needs to setup, and what it needs to run.
+GitHub Workflows. See the [Creating a custom workflow](docs/creating-a-custom-workflow.qmd)
+guide how to get started.
 
 #### Calling the custom workflow
 
@@ -167,12 +151,8 @@ Once the custom workflow is created we need to head back to the general
 [.github/workflows/extensions.yml](https://github.com/posit-dev/connect-extensions/blob/main/.github/workflows/extensions.yml)
 file.
 
-We can see how `publisher-command-center` is setup as an example.
-
-1. Add your content as an [output to the `complex-extension-changes` job](https://github.com/posit-dev/connect-extensions/blob/main/.github/workflows/extensions.yml#L78)
-2. Add a [filter for your content](https://github.com/posit-dev/connect-extensions/blob/main/.github/workflows/extensions.yml#L96) to trigger your workflow only when your content changes
-3. [Call your custom workflow as a job similar to `publisher-command-center`](https://github.com/posit-dev/connect-extensions/blob/main/.github/workflows/extensions.yml#L101)
-4. Finally, make sure the [`fetch-releases` job needs your workflow to complete prior to running](https://github.com/posit-dev/connect-extensions/blob/main/.github/workflows/extensions.yml#L115).
+It is recommended to see how `publisher-command-center` is setup as an example
+for how to use your new custom workflow.
 
 Once your custom workflow is setup, set the `version` in the `manifest.json`
 file to your initial release.
