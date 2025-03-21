@@ -20,9 +20,11 @@ class TestExtensionDeployment:
         """Test that an Extension can be deployed to Posit Connect."""
         # Get required environment variables
         extension_name = os.getenv("EXTENSION_NAME")
+        api_key = os.getenv('CONNECT_API_KEY')
 
         # Get the bundle path using the container mount specified in compose.yaml
-        bundle_path = Path("/connect-extensions/integration/bundles") / f"{extension_name}.tar.gz"
+        bundle_path = Path(
+            "/connect-extensions/integration/bundles") / f"{extension_name}.tar.gz"
 
         # Create bundle
         bundle = self.content.bundles.create(str(bundle_path))
@@ -42,32 +44,33 @@ class TestExtensionDeployment:
         # Get the content after deployment
         self.content = self.client.content.get(self.content["guid"])
 
-        # TODO will this work for every content type?
-        # TODO we discussed that all content MUST have fallback for success, so we *should* be able to only check for 200
         # Verify the app executed/rendered successfully by making a request to its dashboard URL (up to 30 seconds)
+        # Every content must have a successful fallback state even if it depends on external services, keys, etc.
         max_retries = 6
         retry_delay = 5
         start_time = time.time()
-        
+
         for attempt in range(max_retries):
             try:
-                response = requests.get(self.content["content_url"])
+                headers = {
+                    "Authorization": f"Key {api_key}"}
+                response = requests.get(
+                    self.content["content_url"], headers=headers)
                 elapsed = time.time() - start_time
-                
-                # 500+ errors mean the content isn't running
-                if response.status_code >= 500:
-                    if attempt == max_retries - 1:
-                        raise AssertionError(
-                            f"Content failed to start. Server error {response.status_code}: {response.text}"
-                        )
-                else:
-                    print(f"Content validated successfully after {elapsed:.1f}s with status={response.status_code}")
-                    break
-            except requests.RequestException as e:
-                elapsed = time.time() - start_time
-                print(f"Attempt {attempt + 1}/{max_retries} after {elapsed:.1f}s: {str(e)}")
+
+                if response.status_code == 200:
+                    print(
+                        f"Content validated successfully after {elapsed:.1f}s")
+                    return
+
+                # Sleep and try again unless this was the last attempt
                 if attempt == max_retries - 1:
                     raise AssertionError(
-                        f"Failed to access content after {max_retries} attempts ({elapsed:.1f}s): {e}"
+                        f"Content failed to start. Got status {response.status_code} but expected 200. Response: {response.text}"
                     )
+            except requests.RequestException as e:
+                elapsed = time.time() - start_time
+                raise AssertionError(
+                    f"Failed to access content after {elapsed:.1f}s: {e}")
+
             time.sleep(retry_delay)

@@ -31,6 +31,7 @@ services:
       - CONNECT_BOOTSTRAP_ENABLED=true
       - CONNECT_BOOTSTRAP_SECRETKEY=${CONNECT_BOOTSTRAP_SECRETKEY}
       - CONNECT_APPLICATIONS_PACKAGEAUDITINGENABLED=true
+      - CONNECT_API_KEY  # The API key generated from the Makefile test target
     networks:
       - test
     privileged: true
