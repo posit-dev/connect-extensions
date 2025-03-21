@@ -51,10 +51,11 @@ jobs:
           make -C ./integration ${{ matrix.CONNECT_VERSION }} \
             EXTENSION_NAME=${{ inputs.extension-name }}
 
+      # TODO make this dependent on Run integration tests executing
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: ${{ inputs.extension-name || matrix.CONNECT_VERSION }} - Integration Test Report
+          name: ${{ inputs.extension-name }} - ${{ matrix.CONNECT_VERSION }} - Integration Test Report
           path: integration/reports/*.xml
           retention-days: 7
 
@@ -69,6 +70,7 @@ jobs:
       - uses: actions/download-artifact@v4
         with:
           path: artifacts
+          pattern: "*Integration Test Report"
       - uses: EnricoMi/publish-unit-test-result-action@v2
         with:
           check_name: integration-test-results
