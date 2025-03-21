@@ -109,7 +109,7 @@ jobs:
     # publisher-command-center extension directory
     if: ${{ needs.complex-extension-changes.outputs.publisher-command-center == 'true' }}
     uses: ./.github/workflows/publisher-command-center.yml
-
+    secrets: inherit 
 
   # All extensions have been linted, packaged, and released, if necessary
   # Continuing to update the extension list with the latest release data 
