@@ -74,7 +74,7 @@ ui <- page_fillable(
       tabsetPanel(
         id = "content_visit_tables",
         tabPanel(
-          "Visits",
+          "Top Visitors",
           div(style = "text-align: left;", gt_output("aggregated_visits"))
         ),
         tabPanel(
@@ -143,8 +143,11 @@ server <- function(input, output, session) {
 
   users <- reactive({
     get_users(client) |>
-      mutate(full_name = paste(first_name, last_name)) |>
-      select(user_guid = guid, full_name, username, email)
+      mutate(
+        full_name = paste(first_name, last_name),
+        display_name = paste0(full_name, " (", username, ")")
+      ) |>
+      select(user_guid = guid, full_name, username, display_name, email)
   }) |> bindCache("static_key")
 
   firehose_usage_data <- reactive({
@@ -173,9 +176,9 @@ server <- function(input, output, session) {
 
       # Join to usernames
       left_join(users(), by = "user_guid") |>
-      replace_na(list(full_name = "[Anonymous]")) |>
+      replace_na(list(display_name = "[Anonymous]")) |>
       arrange(desc(timestamp)) |>
-      select(timestamp, full_name, username)
+      select(display_name, timestamp)
   })
 
   aggregated_visits_data <- reactive({
@@ -196,9 +199,9 @@ server <- function(input, output, session) {
     filtered_visits |>
       left_join(unfiltered_hits, by = "user_guid") |>
       left_join(users(), by = "user_guid") |>
-      replace_na(list(full_name = "[Anonymous]")) |>
+      replace_na(list(display_name = "[Anonymous]")) |>
       arrange(desc(n_visits)) |>
-      select(full_name, username, n_visits, n_hits)
+      select(display_name, n_visits, n_hits)
   })
 
   selected_content_info <- reactive({
@@ -222,10 +225,9 @@ server <- function(input, output, session) {
   output$aggregated_visits <- render_gt(
     gt(aggregated_visits_data()) |>
       cols_label(
-        n_visits = "Total Visits",
-        n_hits = "Number of Hits",
-        full_name = "Full Name",
-        username = "Username"
+        n_visits = "Visits (Merged)",
+        n_hits = "Individual Hits",
+        display_name = "Visitor"
       ) |>
       tab_options(table.align = "left")
   )
@@ -233,8 +235,7 @@ server <- function(input, output, session) {
     gt(all_visits_data()) |>
       cols_label(
         timestamp = "Time",
-        full_name = "Full Name",
-        username = "Username"
+        display_name = "Visitor"
       ) |>
       fmt_datetime(
         columns = c(timestamp),
@@ -263,7 +264,7 @@ server <- function(input, output, session) {
       icon_html <- bs_icon("envelope")  # Using bsicons
 
       HTML(glue::glue(
-        "<p>Owner: {owner$full_name} <a href='mailto:{owner$email}'>{icon_html}</a></p>"
+        "<p>Owner: {owner$display_name} <a href='mailto:{owner$email}'>{icon_html}</a></p>"
       ))
     }
   })
