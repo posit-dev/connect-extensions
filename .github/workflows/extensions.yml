@@ -100,6 +100,8 @@ jobs:
   # workflow
   publisher-command-center:
     needs: [complex-extension-changes]
+    # Only runs if the `complex-extension-changes` job detects changes in the
+    # publisher-command-center extension directory
     if: ${{ needs.complex-extension-changes.outputs.publisher-command-center == 'true' }}
     uses: ./.github/workflows/publisher-command-center.yml
 
@@ -112,6 +114,8 @@ jobs:
   # If no releases were triggered the output for releases will be `[]`
   fetch-releases:
     runs-on: ubuntu-latest
+    # Requires that the `simple-extensions` and all custom workflow jobs are
+    # completed before running this job
     needs: [simple-extensions, publisher-command-center]
     if: ${{ always() }}
     outputs:
