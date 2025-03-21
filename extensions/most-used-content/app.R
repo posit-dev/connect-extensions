@@ -8,7 +8,6 @@ library(lubridate)
 library(ggplot2)
 library(plotly)
 library(tidyr)
-library(svglite) # required by gtExtras
 
 shinyOptions(
   cache = cachem::cache_disk("./app_cache/cache/", max_age = 60 * 60 * 8)
@@ -87,7 +86,7 @@ server <- function(input, output, session) {
       count(content_guid, date = date(timestamp)) |>
       complete(date = all_dates, nesting(content_guid), fill = list(n = 0)) |>
       group_by(content_guid) |>
-      summarize(sparkline = list(n))
+      summarize(sparkline_data = paste(n, collapse = ", "))
 
     # Combine ----
 
@@ -100,41 +99,45 @@ server <- function(input, output, session) {
       select(-content_guid)
   }) |> bindCache(input$date_range)
 
-
+  sparkline_options <- nanoplot_options(
+    data_line_stroke_width = px(4),
+    data_line_stroke_color = "gray",
+    show_data_line = TRUE,
+    show_data_points = FALSE,
+    show_data_area = FALSE,
+  )
 
   # Render table
   output$content_usage_table <- render_gt({
     content_usage_data() |>
-      mutate(view_bar = total_views) |>
-      relocate(view_bar, .before = 1) |>
       gt() |>
       cols_label(
-        view_bar = "",
         title = "Content",
         owner_username = "Owner",
         total_views = "Visits",
         unique_viewers = "Unique Visitors",
         last_viewed_at = "Last Viewed",
-        sparkline = "Sparkline"
       ) |>
       fmt_datetime(
         columns = last_viewed_at,
         date_style = "iso"
       ) |>
-      gtExtras::gt_plt_bar(
-        view_bar,
-        "grey",
-        width = 30
+      cols_nanoplot(
+        columns = "sparkline_data",
+        plot_type = "line",
+        new_col_name = "sparkline",
+        new_col_label = "Daily Visits",
+        reference_line = 0
       ) |>
-      gtExtras::gt_plt_sparkline(
-        sparkline,
-        same_limit = TRUE,
-        palette = c("black", rep("transparent", 4)),
-        label = FALSE
+      cols_nanoplot(
+        columns = "total_views",
+        plot_type = "bar",
+        new_col_name = "view_bar",
+        new_col_label = "",
+        before = "title",
+        autohide = FALSE
       ) |>
-      cols_align(
-        align = "left", columns = c("sparkline")
-      ) |>
+      cols_width(view_bar ~ px(10)) |>
       tab_options(
         column_labels.font.weight = "bold"
       )
