@@ -1,11 +1,10 @@
 library(shiny)
 library(bslib)
-library(DT)
+library(gt)
 library(connectapi)
 library(dplyr)
 library(purrr)
 library(lubridate)
-library(tidyr)
 
 # cache data to disk with a refresh every 8h, table renders in ~7m when cache
 # is expired, deleted, or on initial deploy
@@ -31,9 +30,17 @@ as_content_list <- function(content_df, client) {
 # usage data if it does, then compiles content, job, and usage data together 
 # into a tibble, returning it.
 get_failed_job_data <- function(item, usage) {
-  failed_jobs <- get_jobs(item) |>
-        # filter out successful and running jobs
-        filter(exit_code != 0 & status != 0 & !(is.na(end_time)))
+  failed_jobs <- tryCatch( 
+    {
+      get_jobs(item) |>
+        # filter out successful and running jobs 
+        filter(exit_code != 0 & !(is.na(exit_code)) & status != 0 & !(is.na(end_time))) |>
+        # grab only the columns we use for cleaner dplyr pipeline
+        select(end_time, exit_code, tag)
+    }, error = function(e) {
+      print(paste("Error encountered with item: ", item))
+      NULL
+    })
   
   if (is.null(failed_jobs) || nrow(failed_jobs) == 0) {
     # content item does not have failed jobs
@@ -41,25 +48,20 @@ get_failed_job_data <- function(item, usage) {
   } else {
     last_visit <- usage %>%
       filter(content_guid == item$content$guid) %>%
-      slice_max(timestamp) %>%
+      slice_max(timestamp, with_ties = FALSE) %>% # prevent multiple rows 
       select(timestamp)
     if (nrow(last_visit) == 0) { # display date 0 for content without visits
       last_visit <- last_visit %>%
-        bind_rows(data.frame(timestamp = as.POSIXct(0)))
+        bind_rows(data.frame(timestamp = as.POSIXct(NA)))
     }
-    # return required information from https://github.com/posit-dev/connect/issues/30288
-    all_failed_jobs <- map_dfr(seq_len(nrow(failed_jobs)), ~
-                                 tibble(
-                                   "content_title" = item$content$title,
-                                   "content_guid" = item$content$guid,
-                                   "content_owner" = item$content$owner[[1]]$username,
-                                   "job_failed_at" = failed_jobs$end_time[.x],
-                                   "failed_job_type" = failed_jobs$tag[.x],
-                                   "failure_reason" = failed_jobs$exit_code[.x],
-                                   "last_deployed_time" = item$content$last_deployed_time,
-                                   "last_visited" = as.POSIXct(last_visit$timestamp)
-                                 )
-    )
+    all_failed_jobs <- failed_jobs %>% 
+      mutate(
+        content_title = item$content$title,
+        content_guid = item$content$guid,
+        content_owner = item$content$owner[[1]]$username,
+        last_deployed_time = item$content$last_deployed_time,
+        last_visited = as.POSIXct(last_visit$timestamp),
+        content_url = item$content$dashboard_url)
     all_failed_jobs
   }
 }
@@ -91,15 +93,18 @@ server <- function(input, output, session) {
     map_dfr(content_list(), ~ get_failed_job_data(.x, usage()))
   }) |> bindCache("static_key")
   
-  # output the datatable of failed jobs
-  output$jobs <- renderDT({
-    datatable(bad_content_df() |>
-                # map job type to something more readable
-                mutate(failed_job_type = case_when(
-                  failed_job_type %in% c("build_report", "build_site", "build_jupyter") ~ "Building",
-                  failed_job_type %in% c("packrat_restore", "python_restore") ~ "Restoring environment",
-                  failed_job_type == "configure_report" ~ "Configuring report",
-                  failed_job_type %in% c("run_app", 
+  # output the great table of failed jobs
+  output$jobs <- render_gt({
+    bad_content_df() %>%
+      rename(job_failed_at = end_time,
+            failed_job_type = tag,
+            failure_reason = exit_code) %>%
+            # map job type to something more readable
+              mutate(failed_job_type = case_when(
+                    failed_job_type %in% c("build_report", "build_site", "build_jupyter") ~ "Building",
+                    failed_job_type %in% c("packrat_restore", "python_restore") ~ "Restoring environment",
+                    failed_job_type == "configure_report" ~ "Configuring report",
+                    failed_job_type %in% c("run_app", 
                                          "run_api", 
                                          "run_tensorflow", 
                                          "run_python_api",
@@ -110,45 +115,49 @@ server <- function(input, output, session) {
                                          "run_fastapi_app",
                                          "run_voila_app",
                                          "run_pyshiny_app") ~ "Running",
-                  failed_job_type == "render_shiny" ~ "Rendering",
-                  failed_job_type == "ctrl_extraction" ~ "Extracting parameters",
-                  TRUE ~ failed_job_type)) |>
-                # map exit codes to something more readable 
-                mutate(failure_reason = case_when(
-                  failure_reason %in% c(1, 2, 134) ~ "failed to run / error during running",
-                  failure_reason == 137 ~ "out of memory",
-                  failure_reason %in% c(255, 15, 130) ~ "process terminated by server",
-                  failure_reason %in% c(13, 127) ~ "configuration / permissions error",
-                  # treat any unmapped exit_code integers as characters 
-                  TRUE ~ as.character(failure_reason))) |>
-                mutate(content_title = replace_na(content_title, "")),
-              rownames = FALSE, 
-              escape = FALSE,
-              options = list( # non-interactive table for this prototype
-                paging = FALSE,
-                searching = FALSE,
-                ordering = FALSE, 
-                info = FALSE, 
-                dom = "t" 
-              )
-    )
+                    failed_job_type == "render_shiny" ~ "Rendering",
+                    failed_job_type == "ctrl_extraction" ~ "Extracting parameters",
+                    TRUE ~ failed_job_type),
+                    # map exit codes to something more readable 
+                    failure_reason = case_when(
+                    failure_reason %in% c(1, 2, 134) ~ "failed to run / error during running",
+                    failure_reason == 137 ~ "out of memory",
+                    failure_reason %in% c(255, 15, 130) ~ "process terminated by server",
+                    failure_reason %in% c(13, 127) ~ "configuration / permissions error",
+                    # treat any unmapped exit_code integers as characters 
+                    TRUE ~ as.character(failure_reason))) %>%
+              group_by(content_guid) %>%
+              mutate(content_guid = paste0('<a href="', 
+                                            first(content_url), 
+                                            '">', 
+                                            first(content_title), 
+                                            '</a>')) %>%
+              select(-content_url, -content_title) %>%
+              gt() %>%
+              sub_missing(columns = everything(), missing_text = " ") %>%
+              cols_label(job_failed_at = "Date of Failure",
+                         failure_reason = "Reason for Failure",
+                         failed_job_type = "Job Type",
+                         content_owner = "Owner",
+                         last_deployed_time = "Last Deployed",
+                         last_visited = "Last Visited") %>% 
+              opt_interactive(use_page_size_select = TRUE,
+                              use_filters = TRUE)
   })
 }
 
 ui <- fluidPage(
   fluidRow(
     column(12, 
-           titlePanel("Content With Issues (table view)")
+           titlePanel("Content With Issues (interactive table)")
     )
   ),
-  
   fluidRow(
     column(12,
            titlePanel(tags$h6("All failed jobs on content deployed within 60d:")), 
-           DTOutput("jobs"),
+           gt_output("jobs"),
     )
   )
 )
-
 
 shinyApp(ui, server)
