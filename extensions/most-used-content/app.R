@@ -8,6 +8,7 @@ library(lubridate)
 library(ggplot2)
 library(plotly)
 library(tidyr)
+library(svglite) # required by gtExtras
 
 shinyOptions(
   cache = cachem::cache_disk("./app_cache/cache/", max_age = 60 * 60 * 8)
