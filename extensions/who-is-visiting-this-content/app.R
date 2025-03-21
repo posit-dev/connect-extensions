@@ -17,7 +17,7 @@ shinyOptions(
 
 source("get_usage.R")
 
-ui <- page_fillable(
+ui <- page_fluid(
   useShinyjs(),
   theme = bs_theme(version = 5),
 
@@ -65,21 +65,26 @@ ui <- page_fillable(
         fill = FALSE
       ),
 
-      card(
-        plotlyOutput("daily_visits_plot"),
-        height = "400px",
-        fill = FALSE
-      ),
-
-      tabsetPanel(
-        id = "content_visit_tables",
-        tabPanel(
-          "Top Visitors",
-          div(style = "text-align: left;", gt_output("aggregated_visits"))
+      layout_column_wrap(
+        width = "300px",
+        card(
+          plotlyOutput("daily_visits_plot"),
+          # min_height = "300px",
+          height = "350px",
+          max_width = "500px",
+          fill = FALSE
         ),
-        tabPanel(
-          "List of Visits",
-          tableOutput("all_visits")
+
+        navset_card_tab(
+          id = "content_visit_tables",
+          tabPanel(
+            "Top Visitors",
+            gt_output("aggregated_visits")
+          ),
+          tabPanel(
+            "List of Visits",
+            gt_output("all_visits")
+          )
         )
       )
     )
