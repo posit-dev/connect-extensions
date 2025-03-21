@@ -134,6 +134,9 @@ server <- function(input, output, session) {
       ) |>
       cols_align(
         align = "left", columns = c("sparkline")
+      ) |>
+      tab_options(
+        column_labels.font.weight = "bold"
       )
   })
 }
