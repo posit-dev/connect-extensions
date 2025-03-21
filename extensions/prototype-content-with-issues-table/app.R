@@ -30,21 +30,34 @@ as_content_list <- function(content_df, client) {
 # usage data if it does, then compiles content, job, and usage data together 
 # into a tibble, returning it.
 get_failed_job_data <- function(item, usage) {
-  failed_jobs <- tryCatch( 
+  jobs <- tryCatch(
     {
-      get_jobs(item) |>
-        # filter out successful and running jobs 
-        filter(exit_code != 0 & !(is.na(exit_code)) & status != 0 & !(is.na(end_time))) |>
-        # grab only the columns we use for cleaner dplyr pipeline
-        select(end_time, exit_code, tag)
+      get_jobs(item) 
     }, error = function(e) {
       print(paste("Error encountered with item: ", item))
       NULL
     })
-  
+  if (is.null(jobs) || nrow(jobs) == 0){
+    # content item does not have any jobs
+    failed_jobs <- NULL
+  } else {
+    # grab the latest job and all failing jobs
+    latest_job <- jobs %>%
+      slice_max(start_time, with_ties = FALSE)
+    failed_jobs <- jobs %>%
+      # filter out successful and running jobs 
+      filter(exit_code != 0 & !(is.na(exit_code)) & status != 0 & !(is.na(end_time))) |>
+      # grab only the columns we use for cleaner dplyr pipeline
+      select(end_time, exit_code, tag, key)
+    # check is the content is still failing
+    if (latest_job$key %in% failed_jobs$key) {
+      recovered = FALSE  
+    } 
+      recovered = TRUE
+    }
   if (is.null(failed_jobs) || nrow(failed_jobs) == 0) {
     # content item does not have failed jobs
-    return(NULL)
+    NULL
   } else {
     last_visit <- usage %>%
       filter(content_guid == item$content$guid) %>%
@@ -58,6 +71,7 @@ get_failed_job_data <- function(item, usage) {
       mutate(
         content_title = item$content$title,
         content_guid = item$content$guid,
+        content_recovered = recovered,
         content_owner = item$content$owner[[1]]$username,
         last_deployed_time = item$content$last_deployed_time,
         last_visited = as.POSIXct(last_visit$timestamp),
@@ -132,7 +146,10 @@ server <- function(input, output, session) {
                                             '">', 
                                             first(content_title), 
                                             '</a>')) %>%
-              select(-content_url, -content_title) %>%
+              mutate(content_guid = ifelse(!content_recovered,
+                paste(content_guid, " <span style='color: red;'>&#9888;</span>"),
+                content_guid)) %>%
+              select(-content_url, -content_title, -key, -content_recovered) %>%
               gt() %>%
               sub_missing(columns = everything(), missing_text = " ") %>%
               cols_label(job_failed_at = "Date of Failure",
