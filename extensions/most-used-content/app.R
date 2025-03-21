@@ -1,6 +1,6 @@
 library(shiny)
 library(bslib)
-library(DT)
+library(gt)
 library(connectapi)
 library(dplyr)
 library(purrr)
@@ -22,7 +22,7 @@ ui <- page_fillable(
     card_header("Most Used Content"),
     layout_sidebar(
       sidebar = sidebar(
-        title = "No Filters Yet",
+        title = "Controls",
         open = TRUE,
         width = 275,
 
@@ -38,9 +38,7 @@ ui <- page_fillable(
       ),
 
       card(
-        DTOutput(
-          "content_usage_table"
-        )
+        gt_output("content_usage_table")
       )
     )
   )
@@ -58,16 +56,6 @@ server <- function(input, output, session) {
   # Loading and processing data ----
   client <- connect()
 
-  # Default dates. "This week" is best "common sense" best represented by six
-  # days ago thru the end of today. Without these, content takes too long to
-  # display on some servers.
-  date_range <- reactive({
-    list(
-      from_date = today() - days(6),
-      to_date = today()
-    )
-  })
-
   content <- reactive({
     get_content(client)
   }) |> bindCache("static_key")
@@ -80,7 +68,7 @@ server <- function(input, output, session) {
     )
   }) |> bindCache(input$date_range)
 
-  # Compute basic usage stats
+  # Compute basic usage stats ----
   content_usage_data <- reactive({
     usage_summary <- usage_data() |>
       group_by(content_guid) |>
@@ -90,38 +78,62 @@ server <- function(input, output, session) {
         last_viewed_at = max(timestamp, na.rm = TRUE)
       )
 
+
+    # Add sparkline ----
+    all_dates <- seq.Date(input$date_range[1], input$date_range[2], by = "day")
+
+    daily_usage <- usage_data() |>
+      count(content_guid, date = date(timestamp)) |>
+      complete(date = all_dates, nesting(content_guid), fill = list(n = 0)) |>
+      group_by(content_guid) |>
+      summarize(sparkline = list(n))
+
+    # Combine ----
+
     content() |>
       mutate(owner_username = map_chr(owner, "username")) |>
       select(title, content_guid = guid, owner_username) |>
       right_join(usage_summary, by = "content_guid") |>
+      right_join(daily_usage, by = "content_guid") |>
       arrange(desc(total_views)) |>
       select(-content_guid)
   }) |> bindCache(input$date_range)
 
+
+
   # Render table
-  output$content_usage_table <- renderDT({
-    datatable(
-      content_usage_data(),
-      options = list(
-        order = list(list(4, "desc")),
-        paging = FALSE
-      ),
-      colnames = c(
-        "Content Title" = "title",
-        "Owner Username" = "owner_username",
-        "Total Views" = "total_views",
-        "Unique Logged-in Viewers" = "unique_viewers",
-        "Last Viewed At" = "last_viewed_at"
-      )
-    ) |>
-      formatStyle(
-        columns = "Content Title",
-        `white-space` = "nowrap",
-        `overflow` = "hidden",
-        `text-overflow` = "ellipsis",
-        `max-width` = "300px"
+  output$content_usage_table <- render_gt({
+    content_usage_data() |>
+      mutate(view_bar = total_views) |>
+      relocate(view_bar, .before = 1) |>
+      gt() |>
+      cols_label(
+        view_bar = "",
+        title = "Content",
+        owner_username = "Owner",
+        total_views = "Visits",
+        unique_viewers = "Unique Visitors",
+        last_viewed_at = "Last Viewed",
+        sparkline = "Sparkline"
       ) |>
-      formatDate(columns = "Last Viewed At", method = "toLocaleString")
+      fmt_datetime(
+        columns = last_viewed_at,
+        date_style = "iso"
+      ) |>
+      gtExtras::gt_plt_bar(
+        view_bar,
+        "grey",
+        width = 30
+      ) |>
+      gtExtras::gt_plt_sparkline(
+        sparkline,
+        same_limit = TRUE,
+        palette = c("black", rep("transparent", 4)),
+        label = FALSE
+      ) |>
+      cols_align(
+        align = "left", columns = c("sparkline")
+      )
   })
 }
 
