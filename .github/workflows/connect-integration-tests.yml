@@ -52,7 +52,7 @@ jobs:
         with:
           extension-name: ${{ matrix.extension }}
           connect-version: ${{ matrix.connect_version }}
-          license: ${{ secrets.CONNECT_LICENSE }}
+          connect-license: ${{ secrets.CONNECT_LICENSE }}
 
       - uses: actions/upload-artifact@v4
         if: ${{ always() && steps.test.outputs.test_status != '' }}
