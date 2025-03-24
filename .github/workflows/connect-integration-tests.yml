@@ -26,12 +26,12 @@ jobs:
       - id: versions
         working-directory: ./integration
         # The `jq` command is "output compact, raw input, slurp, split on new lines, and remove the last element". This results in a JSON array of Connect versions (e.g., ["2025.01.0", "2024.12.0"]).
-        run: |         
+        run: |
           versions=$(make print-versions | jq -c -Rs 'split("\n") | .[:-1]')
 
           # Show processed versions
           echo "Versions: $versions"
-          
+
           # Set output for next jobs
           echo "versions=$versions" >> "$GITHUB_OUTPUT"
 
@@ -55,7 +55,10 @@ jobs:
           connect-license: ${{ secrets.CONNECT_LICENSE }}
 
       - uses: actions/upload-artifact@v4
-        if: ${{ always() && steps.test.outputs.test_status != '' }}
+        if: |
+          always() && 
+          steps.test.outcome != 'cancelled' && 
+          steps.test.outcome != 'skipped'
         with:
           name: ${{ matrix.extension }}-${{ matrix.connect_version }}-test-report
           path: ${{ steps.test.outputs.reports_path }}/*.xml
@@ -69,16 +72,20 @@ jobs:
     permissions:
       checks: write
       pull-requests: write
+    # Only run if tests weren't skipped or cancelled
     if: |
       always() && 
-      !contains(needs.connect-integration-test.result, 'skipped')
+      !contains(needs.connect-integration-test.result, 'skipped') &&
+      !contains(needs.connect-integration-test.result, 'cancelled')
     steps:
       - uses: actions/download-artifact@v4
+        id: download
         with:
           path: artifacts
           pattern: "*Integration Test Report"
 
       - uses: EnricoMi/publish-unit-test-result-action@v2
+        if: ${{ steps.download.outputs.download-path != '' }}
         with:
           check_name: integration-test-results
           comment_mode: off
@@ -92,38 +99,83 @@ jobs:
     timeout-minutes: 1
     outputs:
       matrix: ${{ steps.collect.outputs.success_matrix }}
-    if: always()
+    # Only run if tests actually executed
+    if: |
+      !contains(needs.connect-integration-test.result, 'skipped') &&
+      !contains(needs.connect-integration-test.result, 'cancelled') &&
+      needs.connect-integration-test.result != ''
     steps:
       - id: collect
         run: |
+          # Validate inputs first
           all_versions='${{ needs.setup-integration-test.outputs.versions }}'
           extensions='${{ inputs.extensions }}'
           
-          # Track extensions that passed tests for all Connect versions
+          if [[ -z "$all_versions" || -z "$extensions" ]]; then
+            echo "❌ Missing required inputs"
+            exit 1
+          fi
+          
+          # Get matrix results and validate
+          matrix_results='${{ toJSON(needs.connect-integration-test.result) }}'
+          if [[ -z "$matrix_results" || "$matrix_results" == "{}" ]]; then
+            echo "❌ No matrix results found"
+            echo "success_matrix=[]" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+          
+          echo "🔍 Processing matrix results"
+          echo "Versions to check: $all_versions"
+          echo "Extensions to check: $extensions"
+          
+          # Track extensions that passed ALL version tests
           success_list=()
           
-          # For each extension
+          # Process each extension
           for ext in $(echo "$extensions" | jq -r '.[]'); do
             all_passed=true
+            echo "📦 Checking extension: $ext"
             
-            # Check each Connect version's test result for this extension
+            # Must pass ALL versions to be included
             for version in $(echo "$all_versions" | jq -r '.[]'); do
-              # Look for matrix job result for this extension+version combo
-              result="${{ needs.connect-integration-test.result }}"
+              echo "🔎 Checking version: $version"
+              
+              # Find specific matrix job result
+              result=$(echo "$matrix_results" | jq -r \
+                --arg ext "$ext" \
+                --arg ver "$version" \
+                '.jobs[] | 
+                select(.matrix.extension == $ext and .matrix.connect_version == $ver) | 
+                .result')
+              
+              echo "Result for $ext @ $version: $result"
+              
               if [[ "$result" != "success" ]]; then
                 all_passed=false
-                echo "Extension $ext failed tests for version $version"
+                echo "❌ Failed: $ext @ $version"
+              else
+                echo "✅ Passed: $ext @ $version"
               fi
             done
             
-            # Only add to success list if all versions passed
+            # Only add to success list if ALL versions passed
             if [[ "$all_passed" == "true" ]]; then
               success_list+=("$ext")
-              echo "Extension $ext passed ALL Connect version tests"
+              echo "🎉 SUCCESS: $ext passed all version tests"
+            else
+              echo "⚠️ FAILED: $ext failed one or more version tests"
             fi
           done
           
-          # Output as JSON array
+          # Create JSON array output
           success_matrix=$(jq -n --arg arr "$(IFS=,; echo "${success_list[*]}")" \
             '$arr | split(",")' -c)
-          echo "success_matrix=$success_matrix" >> $GITHUB_OUTPUT
+          
+          # Validate and set output
+          if [[ -z "$success_matrix" ]]; then
+            echo "⚠️ No extensions passed all tests"
+            echo "success_matrix=[]" >> $GITHUB_OUTPUT
+          else
+            echo "📊 Final success matrix: $success_matrix"
+            echo "success_matrix=$success_matrix" >> $GITHUB_OUTPUT
+          fi
