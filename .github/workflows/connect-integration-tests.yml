@@ -61,7 +61,7 @@ jobs:
           steps.test.outcome != 'skipped'
         with:
           name: ${{ matrix.extension }}-${{ matrix.connect_version }}-test-report
-          path: ${{ steps.test.outputs.reports_path }}/*.xml
+          path: integration/reports/*.xml
           retention-days: 7
 
   # Analyses the test result files and publishes the results on the GitHub Actions job summary page
@@ -99,11 +99,9 @@ jobs:
     timeout-minutes: 1
     outputs:
       matrix: ${{ steps.collect.outputs.success_matrix }}
-    # Only run if tests actually executed
     if: |
       !contains(needs.connect-integration-test.result, 'skipped') &&
-      !contains(needs.connect-integration-test.result, 'cancelled') &&
-      needs.connect-integration-test.result != ''
+      !contains(needs.connect-integration-test.result, 'cancelled')
     steps:
       - id: collect
         run: |
@@ -136,43 +134,41 @@ jobs:
             all_passed=true
             echo "📦 Checking extension: $ext"
             
-            # Must pass ALL versions to be included
+          # Process each extension
+          for ext in $(echo "$extensions" | jq -r '.[]'); do
+            all_passed=true
+            echo "📦 Checking extension: $ext"
+            
+            # Must pass ALL versions
             for version in $(echo "$all_versions" | jq -r '.[]'); do
-              echo "🔎 Checking version: $version"
+              # Get matrix result directly from needs context
+              matrix_id="${ext}_${version//./_}"  # Create safe ID from ext and version
+              result='${{ needs.connect-integration-test.result }}'
               
-              # Find specific matrix job result
-              result=$(echo "$matrix_results" | jq -r \
-                --arg ext "$ext" \
-                --arg ver "$version" \
-                '.jobs[] | 
-                select(.matrix.extension == $ext and .matrix.connect_version == $ver) | 
-                .result')
+              echo "🔎 $ext @ $version: $result"
               
-              echo "Result for $ext @ $version: $result"
-              
-              if [[ "$result" != "success" ]]; then
+              if [[ "$result" == "failure" ]]; then
                 all_passed=false
                 echo "❌ Failed: $ext @ $version"
-              else
+                break
+              else 
                 echo "✅ Passed: $ext @ $version"
               fi
             done
             
-            # Only add to success list if ALL versions passed
             if [[ "$all_passed" == "true" ]]; then
               success_list+=("$ext")
-              echo "🎉 SUCCESS: $ext passed all version tests"
+              echo "🎉 SUCCESS: $ext passed ALL versions"
             else
-              echo "⚠️ FAILED: $ext failed one or more version tests"
+              echo "⚠️ FAILED: $ext failed one or more versions"
             fi
           done
           
-          # Create JSON array output
+          # Format output
           success_matrix=$(jq -n --arg arr "$(IFS=,; echo "${success_list[*]}")" \
             '$arr | split(",")' -c)
           
-          # Validate and set output
-          if [[ -z "$success_matrix" ]]; then
+          if [[ -z "$success_matrix" || "$success_matrix" == "[]" ]]; then
             echo "⚠️ No extensions passed all tests"
             echo "success_matrix=[]" >> $GITHUB_OUTPUT
           else
