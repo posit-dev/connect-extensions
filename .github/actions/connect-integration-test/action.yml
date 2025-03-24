@@ -31,7 +31,7 @@ runs:
     - name: Write Connect license
       shell: bash
       run: |
-        echo "${{ inputs.license }}" > ./integration/license.lic
+        echo "${{ inputs.connect-license }}" > ./integration/license.lic
 
     # Here we download the packaged extension artifact created from the calling workflow
     - uses: actions/download-artifact@v4 

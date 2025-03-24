@@ -26,14 +26,11 @@ jobs:
       - id: versions
         working-directory: ./integration
         # The `jq` command is "output compact, raw input, slurp, split on new lines, and remove the last element". This results in a JSON array of Connect versions (e.g., ["2025.01.0", "2024.12.0"]).
-        run: |
-          # Show raw make output
-          echo "Debug: Raw versions from make:"
-          make print-versions
-          
-          # Show processed versions
+        run: |         
           versions=$(make print-versions | jq -c -Rs 'split("\n") | .[:-1]')
-          echo "Debug: Processed versions array: $versions"
+
+          # Show processed versions
+          echo "Versions: $versions"
           
           # Set output for next jobs
           echo "versions=$versions" >> "$GITHUB_OUTPUT"
@@ -116,7 +113,6 @@ jobs:
               if [[ "$result" != "success" ]]; then
                 all_passed=false
                 echo "Extension $ext failed tests for version $version"
-                break
               fi
             done
             
