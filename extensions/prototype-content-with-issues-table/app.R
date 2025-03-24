@@ -1,3 +1,4 @@
+library(shinyBS)
 library(shiny)
 library(bslib)
 library(gt)
@@ -5,14 +6,14 @@ library(connectapi)
 library(dplyr)
 library(purrr)
 library(lubridate)
+library(tidyr)
+library(shinyjs)
 
 # cache data to disk with a refresh every 8h, table renders in ~7m when cache
 # is expired, deleted, or on initial deploy
 shinyOptions(
   cache = cachem::cache_disk("./app_cache/cache/", max_age = 60 * 60 * 8)
 )
-
-source("get_usage.R")
 
 # Hacky function to get a list of Content class objects without making a request
 # for each item. These objects differ from the ones created by `content_item()`
@@ -26,20 +27,12 @@ as_content_list <- function(content_df, client) {
   })
 }
 
-# checks to see if a content item has failed jobs within the last 30d, grabs 
-# usage data if it does, then compiles content, job, and usage data together 
-# into a tibble, returning it.
-get_failed_job_data <- function(item, usage) {
-  jobs <- tryCatch(
-    {
-      get_jobs(item) 
-    }, error = function(e) {
-      print(paste("Error encountered with item: ", item))
-      NULL
-    })
+# filters content jobs down to failures and sets content_recovered depending on 
+# whether or not the latest job ended in error
+filter_jobs <- function(jobs) {
   if (is.null(jobs) || nrow(jobs) == 0){
     # content item does not have any jobs
-    failed_jobs <- NULL
+    NULL
   } else {
     # grab the latest job and all failing jobs
     latest_job <- jobs %>%
@@ -48,33 +41,35 @@ get_failed_job_data <- function(item, usage) {
       # filter out successful and running jobs 
       filter(exit_code != 0 & !(is.na(exit_code)) & status != 0 & !(is.na(end_time))) |>
       # grab only the columns we use for cleaner dplyr pipeline
-      select(end_time, exit_code, tag, key)
-    # check is the content is still failing
-    if (latest_job$key %in% failed_jobs$key) {
-      recovered = FALSE  
-    } 
-      recovered = TRUE
-    }
+      select(end_time, exit_code, tag, key) %>%
+      # check if the latest job is a failure
+      mutate(
+        content_recovered = ifelse(latest_job$key %in% failed_jobs$key, FALSE, TRUE)
+      )
+    failed_jobs
+  }
+}
+
+# checks to see if a content item has failed jobs within the last 30d, then 
+# compiles content and job data into a tibble, returning it.
+get_failed_job_data <- function(item) {
+  jobs <- tryCatch(
+    {
+      get_jobs(item) 
+    }, error = function(e) {
+      print(paste("Error encountered with item: ", item))
+      NULL
+    })
+  failed_jobs <- filter_jobs(jobs)
   if (is.null(failed_jobs) || nrow(failed_jobs) == 0) {
     # content item does not have failed jobs
     NULL
   } else {
-    last_visit <- usage %>%
-      filter(content_guid == item$content$guid) %>%
-      slice_max(timestamp, with_ties = FALSE) %>% # prevent multiple rows 
-      select(timestamp)
-    if (nrow(last_visit) == 0) { # display date 0 for content without visits
-      last_visit <- last_visit %>%
-        bind_rows(data.frame(timestamp = as.POSIXct(NA)))
-    }
     all_failed_jobs <- failed_jobs %>% 
       mutate(
         content_title = item$content$title,
         content_guid = item$content$guid,
-        content_recovered = recovered,
         content_owner = item$content$owner[[1]]$username,
-        last_deployed_time = item$content$last_deployed_time,
-        last_visited = as.POSIXct(last_visit$timestamp),
         content_url = item$content$dashboard_url)
     all_failed_jobs
   }
@@ -85,11 +80,11 @@ server <- function(input, output, session) {
   client <- connect()
   
   # TODO: use `v1/content/failed` when #30414 merges so we only list content we
-  # know has failed before, filter to deployed within last 60d for now
+  # know has failed before, filter to deployed within last year for now
   content_list <- reactive({
     content <- get_content(client, limit = inf)
     content <- content %>%
-      filter(last_deployed_time >= (Sys.time() - days(60)))
+      filter(last_deployed_time >= (Sys.time() - years(1)))
     as_content_list(content, client)
   }) |> bindCache("static_key")
   
@@ -101,15 +96,11 @@ server <- function(input, output, session) {
   }) |> bindCache("static_key")
   
   # cache failed jobs data, takes ~2m to build with content filtered to items 
-  # deployed within the last 60d
+  # deployed within the last year
   bad_content_df <- reactive({
-    req(content_list(), usage())
-    map_dfr(content_list(), ~ get_failed_job_data(.x, usage()))
-  }) |> bindCache("static_key")
-  
-  # output the great table of failed jobs
-  output$jobs <- render_gt({
-    bad_content_df() %>%
+    req(content_list()) 
+    bad_content <- map_dfr(content_list(), ~ get_failed_job_data(.x)) 
+    bad_content %>%
       rename(job_failed_at = end_time,
             failed_job_type = tag,
             failure_reason = exit_code) %>%
@@ -147,31 +138,171 @@ server <- function(input, output, session) {
                                             first(content_title), 
                                             '</a>')) %>%
               mutate(content_guid = ifelse(!content_recovered,
-                paste(content_guid, " <span style='color: red;'>&#9888;</span>"),
+                paste(content_guid, " <span style='color: red;'>⚠️</span>"),
                 content_guid)) %>%
-              select(-content_url, -content_title, -key, -content_recovered) %>%
-              gt() %>%
-              sub_missing(columns = everything(), missing_text = " ") %>%
-              cols_label(job_failed_at = "Date of Failure",
-                         failure_reason = "Reason for Failure",
-                         failed_job_type = "Job Type",
-                         content_owner = "Owner",
-                         last_deployed_time = "Last Deployed",
-                         last_visited = "Last Visited") %>% 
-              opt_interactive(use_page_size_select = TRUE,
-                              use_filters = TRUE)
+              select(-content_url, -content_title, -key)
+  }) |> bindCache("static_key")
+  
+  # show helpful information about what is and is not in failed jobs data
+  observeEvent(input$show_help, {
+    toggle("help_section")
+  })
+  
+  # output the great table of failed jobs
+  output$jobs <- render_gt({
+      bad_content_df() %>%
+        filter(if (input$currently_failing) content_recovered == FALSE else TRUE) %>%
+        filter(if (input$not_notified) failed_job_type != "Rendering" else TRUE) %>%
+        filter(if (!is.null(input$job_type)) failed_job_type %in% input$job_type else TRUE) %>%
+        filter(if (!is.null(input$failure_reason)) failure_reason %in% input$failure_reason else TRUE) %>%
+        gt() %>%
+          # highlight rows where the content item's latest job failed
+          tab_style(style = cell_fill(color = "salmon"),
+                    locations = cells_body(
+                    rows = which(!content_recovered))) %>%
+          sub_missing(columns = everything(), missing_text = " ") %>%
+          cols_label(job_failed_at = "Date of Failure",
+                     failure_reason = "Reason for Failure",
+                     failed_job_type = "Job Type",
+                     content_owner = "Owner") %>% 
+          cols_hide(content_recovered) %>%
+          opt_interactive(use_page_size_select = TRUE,
+                          use_filters = TRUE)
   })
 }
 
 ui <- fluidPage(
-  fluidRow(
-    column(12, 
-           titlePanel("Content With Issues (interactive table)")
-    )
+  useShinyjs(),
+  bsTooltip(id = "extract",
+            title = "Extracting parameters for Python notebooks.",
+            placement = "top",
+            trigger = "hover"),
+  bsTooltip(id = "render",
+            title = "Rendering Shiny and PyShiny applications.",
+            placement = "top",
+            trigger = "hover"),
+  bsTooltip(id = "build",
+            title = "Building a report, Python notebook, or site.",
+            placement = "top",
+            trigger = "hover"),
+  bsTooltip(id = "run",
+            title = paste("Running Shiny, PyShiny, Bokeh, Dash, Streamlit, ",
+                          "Gradio, or Voila applications, or Plumber, Flask ",
+                          "FastAPI, and Tensorflow model APIs."),
+            placement = "top",
+            trigger = "hover"),
+  bsTooltip(id = "configure",
+            title = "Configuration of a parameterized report.",
+            placement = "top",
+            trigger = "hover"),
+  bsTooltip(id = "restore",
+            title = "Python or R environment restore.",
+            placement = "top",
+            trigger = "hover"),
+  bsTooltip(id = "unpublished",
+            title = "Unpublished content does not have jobs history.",
+            placement = "top",
+            trigger = "hover"),
+  bsTooltip(id = "what_is_deploy",
+            title = paste("Deploy jobs initiated by push-button, CLI, Git, or ",
+                          "an automated deploy process are not included in ",
+                          "content jobs history."),
+            placement = "top",
+            trigger = "hover"),
+  bsTooltip(id = "what_is_bundle",
+            title = paste("Bundles are pieces of content that are typically ", 
+                          "activated after they are uploaded as part of a ",
+                          "push-button, CLI, Git, or automated deployment ",
+                          "process. Activating an old bundle on a content ",
+                          "item is considered a deployment."),
+            placement = "top",
+            trigger = "hover"),
+  tags$head(
+    # don't cut off long tooltips
+    tags$style(HTML(".tooltip-inner {
+                    text-align: left !important;
+                    max-width: 600px !important;
+                    }"))
   ),
   fluidRow(
     column(12,
-           titlePanel(tags$h6("All failed jobs on content deployed within 60d:")), 
+          actionButton("show_help", "What is included here?", class = "btn-info")),
+          tags$div(id = "help_section", 
+                   style = "display: none; padding: 20px; border: 2px solid; background-color: #f9f9f9; border-radius: 8px; margin-top: 10px;",
+          fluidRow(
+            column(4,
+                  p(strong("Types of content jobs in this table:")),
+                  tags$ul(
+                    tags$li(tags$span("Render", id = "render")),
+                    tags$li(tags$span("Runtime", id = "run")),
+                    tags$li(tags$span("Build", id = "build")),
+                    tags$li(tags$span("Environment restore", id = "restore")),
+                    tags$li(tags$span("Report configuration", id = "configure")),
+                    tags$li(tags$span("Parameter extraction", id = "extract")))
+                  ),
+            column(6,
+                  p(strong("Not included in this table:")),
+                  tags$ul(
+                    # temporary restriction to help with performance
+                    tags$li(tags$span("Content without a bundle activation in 1y", 
+                                      id = "what_is_bundle")),
+                    tags$li(tags$span("Failed deployment information", 
+                                      id = "what_is_deploy")),
+                    tags$li(tags$span("Unpublished content", 
+                                      id = "unpublished")),
+                    tags$li("Self-tests"))
+                  )
+            ),
+          fluidRow(
+            column(12,
+                   p(strong("Available filters:")),
+                   tags$ul(
+                     tags$li(strong("Unrecovered content:"), 
+                             " display items where the latest job ended in failure."),
+                     tags$li(strong("Owner not notified:"), 
+                             paste(" display failed runtime, report configuration, ",
+                             "environment restore, parameter extraction, and build ",
+                             "jobs where someone other than the content owner visited ",
+                             "the content during the failed job run period. We use ",
+                             "visit data here as a best estimate of who triggered the ",
+                             "job. Content owners are always emailed on render failure.")),
+                     tags$li(strong("Failure reason:"), " 
+                             display items that match the selected cause for failure."),
+                     tags$li(strong("Job type:"), " 
+                             display items that match the selected content job.")
+                   )
+            )),
+          ),
+    column(4, 
+          checkboxInput("currently_failing", "Unrecovered content"),
+          # TODO: further filtering by owner in visit data
+          checkboxInput("not_notified", "WIP: Owner not notified")
+           ),
+    column(4,
+           selectInput("job_type", "Job type", c("Running", 
+                                                  "Rendering", 
+                                                  "Extracting parameters", 
+                                                  "Building",
+                                                  "Restoring environment",
+                                                  "Configuring report"),
+                       multiple = TRUE,
+                       selected = NULL
+                       )
+           ),
+    column(4,
+           selectInput("failure_reason", "Failure reason", 
+                                        c("out of memory",
+                                          "process terminated by server",
+                                          "configuration / permissions error",
+                                          "failed to run / error during running"),
+                      multiple = TRUE,
+                      selected = FALSE
+                      )
+           )
+  ),
+  fluidRow(
+    column(12,
+           titlePanel(tags$h6("Matching failed jobs:")), 
            gt_output("jobs"),
     )
   )
