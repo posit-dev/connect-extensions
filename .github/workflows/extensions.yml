@@ -50,7 +50,7 @@ jobs:
     env:
       GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     outputs:
-      success_matrix: ${{ steps.set-matrix.outputs.success_matrix }}
+      successful_extensions: ${{ steps.collect-successes.outputs.successful_extensions }}
 
     steps:
       - uses: actions/checkout@v4
@@ -63,29 +63,40 @@ jobs:
         with:
           extension-name: ${{ matrix.extension }}
 
-      # Record which extensions have succeeded, to be used in the next jobs
-      - id: set-matrix
+      - name: Mark successful jobs
         if: success()
+        run: echo "${{ matrix.extension }}" >> success.txt
+
+      - name: Collect successful jobs
+        id: collect-successes
+        if: always()
         run: |
-          echo "success_matrix=$(echo '${{ matrix.extension }}' | jq -c -R '[.]')" >> "$GITHUB_OUTPUT"
+          if [ -f success.txt ]; then
+            SUCCESSFUL_EXTENSIONS=$(jq -R -s -c 'split("\n")[:-1]' success.txt)
+          else
+            SUCCESSFUL_EXTENSIONS="[]"
+          fi
+          
+          echo "Successful extensions: $SUCCESSFUL_EXTENSIONS"
+          echo "successful_extensions=$SUCCESSFUL_EXTENSIONS" >> "$GITHUB_OUTPUT"
 
   simple-extension-connect-integration-tests:
     needs: [simple-extension-changes, simple-extensions]
     uses: ./.github/workflows/connect-integration-tests.yml
+    with:
+      extensions: ${{ needs.simple-extensions.outputs.successful_extensions }}
     if: |
       needs.simple-extension-changes.outputs.changes != '[]' && 
       needs.simple-extension-changes.outputs.changes != '' && 
-      fromJSON(needs.simple-extensions.outputs.success_matrix)
+      fromJSON(needs.simple-extensions.outputs.successful_extensions) != '[]'
     strategy:
       # Do not fail fast so all extensions are processed
       fail-fast: false
       matrix:
         # Parse JSON containing names of all changed extensions that have succeeded through the workflow
         # e.g. ['reaper'] if the reaper extension has succeeded through the workflow
-        extension: ${{ fromJSON(needs.simple-extensions.outputs.success_matrix) }}
+        extension: ${{ fromJSON(needs.simple-extensions.outputs.successful_extensions) }}
     secrets: inherit
-    with:
-      extensions: ${{ needs.simple-extensions.outputs.success_matrix }}
 
   simple-extension-release:
     runs-on: ubuntu-latest
@@ -100,7 +111,7 @@ jobs:
       fail-fast: false
       matrix:
         # Only release extensions that passed ALL integration tests
-        extension: ${{ fromJSON(needs.simple-extension-connect-integration-tests.outputs.success_matrix) }}
+        extension: ${{ fromJSON(needs.simple-extension-connect-integration-tests.outputs.successful_extensions) }}
     # Extensions are only released when this workflow triggers on `main`
     # otherwise, the release is skipped
     # See the action comments for more details
