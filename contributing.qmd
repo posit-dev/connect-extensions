@@ -58,6 +58,17 @@ It is recommended to begin with `"version": "0.0.0"` to avoid triggering a
 release during development of your content. When you are ready to release to
 the gallery check the [Adding content to the Connect Gallery](#adding-content-to-the-connect-gallery) section.
 
+### README.md
+
+In the above extension section there is a `homepage` link that we provide in the
+Connect Gallery letting users see documentation related to the apps, dashboards,
+and reports available to install.
+
+Gallery content should include a `README.md` file in its directory so when the
+homepage is visited there is documentation to assist users. It should include
+a description of how the content can be used and any additional setup
+instructions.
+
 ### Language version constraints
 
 To ensure that content in the gallery is installable on as many Posit Connect
