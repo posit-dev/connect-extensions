@@ -37,6 +37,7 @@ PYTEST_ARGS ?= "-s"
 # TODO determine which Connect versions we want to include here, left two so we can test the workflow matrix
 # Versions
 CONNECT_VERSIONS := \
+	preview \
 	2025.02.0 \
 	2025.01.0 \
 
