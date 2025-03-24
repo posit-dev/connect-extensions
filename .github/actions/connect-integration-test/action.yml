@@ -1,0 +1,48 @@
+name: 'Run Connect Integration Test'
+description: 'Run integration test for a single extension'
+
+inputs:
+  extension-name:
+    description: 'Name of extension to test'
+    required: true
+  connect-version:
+    description: 'Connect version to test against'
+    required: true
+  connect-license:
+    description: 'Posit Connect license'
+    required: true
+
+outputs:
+  test_status:
+    description: 'Status of the integration test'
+    value: ${{ steps.run-test.outputs.status }}
+  reports_path:
+    description: 'Path to test reports'
+    value: ${{ steps.run-test.outputs.reports_path }}
+
+runs:
+  using: "composite"
+  steps:
+    - uses: actions/checkout@v4
+
+    # Setup Docker BuildX which is required for the integration tests
+    - uses: docker/setup-buildx-action@v3
+
+    - name: Write Connect license
+      shell: bash
+      run: |
+        echo "${{ inputs.license }}" > ./integration/license.lic
+
+    # Here we download the packaged extension artifact created from the calling workflow
+    - uses: actions/download-artifact@v4 
+      with:
+        name: ${{ inputs.extension-name }}.tar.gz
+        path: integration/bundles
+
+    # Run the test and capture the report path and status
+    - shell: bash
+      run: |
+        make -C ./integration ${{ inputs.connect-version }} \
+          EXTENSION_NAME=${{ inputs.extension-name }}
+        echo "reports_path=$(pwd)/integration/reports" >> $GITHUB_OUTPUT
+        echo "status=$?" >> $GITHUB_OUTPUT
