@@ -114,16 +114,27 @@ jobs:
             exit 1
           fi
           
-          # Get matrix results and validate
-          matrix_results='${{ toJSON(needs.connect-integration-test.result) }}'
+          # Get matrix results from job context
+          matrix_results='${{ toJSON(needs.connect-integration-test) }}'
+
           if [[ -z "$matrix_results" || "$matrix_results" == "{}" ]]; then
             echo "❌ No matrix results found"
             echo "success_matrix=[]" >> $GITHUB_OUTPUT
             exit 0
           fi
 
-          echo "Debug: Matrix results structure:"
+          echo "Debug: Full matrix context:"
           echo "$matrix_results" | jq '.'
+          
+          # Get job results for each matrix combination
+          job_results=$(echo "$matrix_results" | jq -r '.jobs[] | {
+            extension: .matrix.extension,
+            version: .matrix.connect_version,
+            result: .result
+          }')
+          
+          echo "Debug: Processed job results:"
+          echo "$job_results" | jq '.'
           
           echo "🔍 Processing matrix results"
           echo "Versions to check: $all_versions"
