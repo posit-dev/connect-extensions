@@ -121,6 +121,9 @@ jobs:
             echo "success_matrix=[]" >> $GITHUB_OUTPUT
             exit 0
           fi
+
+          echo "Debug: Matrix results structure:"
+          echo "$matrix_results" | jq '.'
           
           echo "🔍 Processing matrix results"
           echo "Versions to check: $all_versions"
@@ -134,22 +137,23 @@ jobs:
             all_passed=true
             echo "📦 Checking extension: $ext"
             
-          # Process each extension
-          for ext in $(echo "$extensions" | jq -r '.[]'); do
-            all_passed=true
-            echo "📦 Checking extension: $ext"
-            
             # Must pass ALL versions
             for version in $(echo "$all_versions" | jq -r '.[]'); do
-              # Get matrix result directly from needs context
-              matrix_id="${ext}_${version//./_}"  # Create safe ID from ext and version
-              result='${{ needs.connect-integration-test.result }}'
+              echo "🔎 Checking $ext @ $version"
               
-              echo "🔎 $ext @ $version: $result"
+              # Get specific matrix combination result
+              result=$(echo "$matrix_results" | jq -r \
+                --arg ext "$ext" \
+                --arg ver "$version" \
+                '.jobs[] | select(.matrix.extension == $ext and .matrix.connect_version == $ver) | .result')
               
-              if [[ "$result" == "failure" ]]; then
+              if [[ -z "$result" ]]; then
+                echo "❌ No result found for $ext @ $version"
                 all_passed=false
-                echo "❌ Failed: $ext @ $version"
+                break
+              elif [[ "$result" != "success" ]]; then
+                echo "❌ Failed: $ext @ $version ($result)"
+                all_passed=false
                 break
               else 
                 echo "✅ Passed: $ext @ $version"
