@@ -57,7 +57,7 @@ get_failed_job_data <- function(item) {
     {
       get_jobs(item) 
     }, error = function(e) {
-      print(paste("Error encountered with item: ", item))
+      print(paste("Error encountered with item: ", item, e$message))
       NULL
     })
   failed_jobs <- filter_jobs(jobs)
