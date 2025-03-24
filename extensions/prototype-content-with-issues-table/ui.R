@@ -88,11 +88,9 @@ ui <- fluidPage(
                              " display items where the latest job ended in failure."),
                      tags$li(strong("Owner not notified:"), 
                              paste(" display failed runtime, report configuration, ",
-                             "environment restore, parameter extraction, and build ",
-                             "jobs where someone other than the content owner visited ",
-                             "the content during the failed job run period. We use ",
-                             "visit data here as a best estimate of who triggered the ",
-                             "job. Content owners are always emailed on render failure.")),
+                             "environment restore and parameter extraction jobs. ",
+                             "Content owners are always emailed on Python ",
+                             "Quarto, and R report build or render failure.")),
                      tags$li(strong("Failure reason:"), " 
                              display items that match the selected cause for failure."),
                      tags$li(strong("Job type:"), " 
@@ -102,8 +100,7 @@ ui <- fluidPage(
           ),
     column(4, 
           checkboxInput("currently_failing", "Unrecovered content"),
-          # TODO: further filtering by owner in visit data
-          checkboxInput("not_notified", "WIP: Owner not notified")
+          checkboxInput("not_notified", "Owner not notified")
            ),
     column(4,
            selectInput("job_type", "Job type", c("Running", 
@@ -129,7 +126,7 @@ ui <- fluidPage(
   ),
   fluidRow(
     column(12,
-           titlePanel(tags$h6("Matching failed jobs:")), 
+           titlePanel("Failed content jobs:"), 
            gt_output("jobs"),
     )
   )

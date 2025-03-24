@@ -43,12 +43,12 @@ filter_jobs <- function(jobs) {
       # filter out successful and running jobs 
       filter(exit_code != 0 & !(is.na(exit_code)) & status != 0 & !(is.na(end_time))) |>
       # grab only the columns we use for cleaner dplyr pipeline
-      select(end_time, exit_code, tag, key) %>%
-      # check if the latest job is a failure
+      select(end_time, exit_code, tag, key) 
+    # set content_recovered depending on if latest_job was in failed_jobs 
+    failed_jobs %>%
       mutate(
         content_recovered = ifelse(latest_job$key %in% failed_jobs$key, FALSE, TRUE)
       )
-    failed_jobs
   }
 }
 
@@ -72,7 +72,8 @@ get_failed_job_data <- function(item) {
         content_title = item$content$title,
         content_guid = item$content$guid,
         content_owner = item$content$owner[[1]]$username,
-        content_url = item$content$dashboard_url)
+        content_url = item$content$dashboard_url
+        )
     all_failed_jobs
   }
 }
@@ -90,15 +91,7 @@ server <- function(input, output, session) {
     as_content_list(content, client)
   }) |> bindCache("static_key")
   
-  # cache last 30d of usage (Jobs.MaxCompleted is 30d), takes ~5m to build
-  # TODO: use when filtering to owner not notified
-  usage <- reactive({
-    from = (Sys.time() - days(30))
-    to = Sys.time()
-    get_usage(client, from, to) # ~100 pages of results
-  }) |> bindCache("static_key")
-  
-  # cache failed jobs data, takes ~2m to build with content filtered to items 
+  # cache failed jobs data, takes ~5m to build with content filtered to items 
   # deployed within the last year
   bad_content_df <- reactive({
     req(content_list()) 
@@ -155,7 +148,10 @@ server <- function(input, output, session) {
   output$jobs <- render_gt({
       bad_content_df() %>%
         filter(if (input$currently_failing) content_recovered == FALSE else TRUE) %>%
-        filter(if (input$not_notified) failed_job_type != "Rendering" else TRUE) %>%
+        filter(if (input$not_notified) failed_job_type %in% c("Running",
+                                                              "Configuring report",
+                                                              "Restoring environment",
+                                                              "Extracting parameters") else TRUE) %>%
         filter(if (!is.null(input$job_type)) failed_job_type %in% input$job_type else TRUE) %>%
         filter(if (!is.null(input$failure_reason)) failure_reason %in% input$failure_reason else TRUE) %>%
         gt() %>%
@@ -170,6 +166,7 @@ server <- function(input, output, session) {
                      content_owner = "Owner") %>% 
           cols_hide(content_recovered) %>%
           opt_interactive(use_page_size_select = TRUE,
+                          use_sorting = TRUE,
                           use_filters = TRUE)
   })
 }
