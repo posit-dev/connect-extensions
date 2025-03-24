@@ -3,10 +3,14 @@ name: Connect Integration Tests
 on:
   workflow_call:
     inputs:
-      extension-name:
-        description: 'The name of the extension'
+      extensions:
+        description: "JSON array of extension names to test"
         required: true
         type: string
+    outputs:
+      success_matrix:
+        description: "Extensions that passed all tests"
+        value: ${{ jobs.collect-results.outputs.matrix }}
     secrets:
       CONNECT_LICENSE:
         required: true
@@ -14,16 +18,17 @@ on:
 jobs:
   setup-integration-test:
     runs-on: ubuntu-latest
+    timeout-minutes: 1
     outputs:
       versions: ${{ steps.versions.outputs.versions }}
     steps:
-        - uses: actions/checkout@v4
-        - id: versions
-          working-directory: ./integration
-          # The `jq` command is "output compact, raw input, slurp, split on new lines, and remove the last element". This results in a JSON array of Connect versions (e.g., ["2025.01.0", "2024.12.0"]).
-          run: |
-            versions=$(make print-versions | jq -c -Rs 'split("\n") | .[:-1]')
-            echo "versions=$versions" >> "$GITHUB_OUTPUT"
+      - uses: actions/checkout@v4
+      - id: versions
+        working-directory: ./integration
+        # The `jq` command is "output compact, raw input, slurp, split on new lines, and remove the last element". This results in a JSON array of Connect versions (e.g., ["2025.01.0", "2024.12.0"]).
+        run: |
+          versions=$(make print-versions | jq -c -Rs 'split("\n") | .[:-1]')
+          echo "versions=$versions" >> "$GITHUB_OUTPUT"
 
   connect-integration-test:
     runs-on: ubuntu-latest
@@ -32,51 +37,88 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        CONNECT_VERSION: ${{ fromJson(needs.setup-integration-test.outputs.versions) }}
+        extension: ${{ fromJson(inputs.extensions) }}
+        connect_version: ${{ fromJson(needs.setup-integration-test.outputs.versions) }}
     steps:
-      - uses: actions/checkout@v4
-
-      # Here we download the packaged extension artifact created from the calling workflow
-      - uses: actions/download-artifact@v4
+      - uses: ./.github/actions/connect-integration-test
+        id: test
         with:
-          name: ${{ inputs.extension-name }}.tar.gz
-          path: integration/bundles
+          extension-name: ${{ matrix.extension }}
+          connect-version: ${{ matrix.connect_version }}
+          license: ${{ secrets.CONNECT_LICENSE }}
+        continue-on-error: true
 
-      - uses: docker/setup-buildx-action@v3
-
-      - name: Write Posit Connect license to disk
-        run: echo "$CONNECT_LICENSE" > ./integration/license.lic
-        env:
-          CONNECT_LICENSE: ${{ secrets.CONNECT_LICENSE }}
-
-      - name: Run integration tests
-        run: |
-          make -C ./integration ${{ matrix.CONNECT_VERSION }} \
-            EXTENSION_NAME=${{ inputs.extension-name }}
-
-      # TODO make this dependent on Run integration tests executing
       - uses: actions/upload-artifact@v4
-        if: always()
+        if: ${{ always() && steps.test.outputs.test_status != '' }}
         with:
-          name: ${{ inputs.extension-name }} - ${{ matrix.CONNECT_VERSION }} - Integration Test Report
-          path: integration/reports/*.xml
+          name: ${{ matrix.extension }}-${{ matrix.connect_version }}-test-report
+          path: ${{ steps.test.outputs.reports_path }}/*.xml
           retention-days: 7
 
+  # Analyses the test result files and publishes the results on the GitHub Actions job summary page
   integration-test-report:
     needs: connect-integration-test
     runs-on: ubuntu-latest
+    timeout-minutes: 1
     permissions:
       checks: write
       pull-requests: write
-    if: always()
+    if: |
+      always() && 
+      !contains(needs.connect-integration-test.result, 'skipped')
     steps:
       - uses: actions/download-artifact@v4
         with:
           path: artifacts
           pattern: "*Integration Test Report"
+
       - uses: EnricoMi/publish-unit-test-result-action@v2
         with:
           check_name: integration-test-results
           comment_mode: off
           files: "artifacts/**/*.xml"
           report_individual_runs: true
+
+  # Provides a matrix of extensions that passed all of the Connect integration tests
+  collect-results:
+    needs: [connect-integration-test, setup-integration-test]
+    runs-on: ubuntu-latest
+    timeout-minutes: 1
+    outputs:
+      matrix: ${{ steps.collect.outputs.success_matrix }}
+    if: always()
+    steps:
+      - id: collect
+        run: |
+          all_versions='${{ needs.setup-integration-test.outputs.versions }}'
+          extensions='${{ inputs.extensions }}'
+          
+          # Track extensions that passed tests for all Connect versions
+          success_list=()
+          
+          # For each extension
+          for ext in $(echo "$extensions" | jq -r '.[]'); do
+            all_passed=true
+            
+            # Check each Connect version's test result for this extension
+            for version in $(echo "$all_versions" | jq -r '.[]'); do
+              # Look for matrix job result for this extension+version combo
+              result="${{ needs.connect-integration-test.result }}"
+              if [[ "$result" != "success" ]]; then
+                all_passed=false
+                echo "Extension $ext failed tests for version $version"
+                break
+              fi
+            done
+            
+            # Only add to success list if all versions passed
+            if [[ "$all_passed" == "true" ]]; then
+              success_list+=("$ext")
+              echo "Extension $ext passed ALL Connect version tests"
+            fi
+          done
+          
+          # Output as JSON array
+          success_matrix=$(jq -n --arg arr "$(IFS=,; echo "${success_list[*]}")" \
+            '$arr | split(",")' -c)
+          echo "success_matrix=$success_matrix" >> $GITHUB_OUTPUT

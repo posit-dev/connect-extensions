@@ -64,11 +64,13 @@ jobs:
     uses: ./.github/workflows/connect-integration-tests.yml
     secrets: inherit
     with:
-      extension-name: publisher-command-center
+      extensions: '["publisher-command-center"]'  # JSON array format to match the workflow input schema
 
   release:
     runs-on: ubuntu-latest
     needs: [extension, connect-integration-tests]
+    # Only release if the extension passed ALL integration tests
+    if: needs.connect-integration-tests.outputs.success_matrix != '[]'
     # Release the extension using the release-extension action
     # Will only create a GitHub release if merged to `main` and the semver
     # version has been updated
