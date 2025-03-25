@@ -112,13 +112,13 @@ jobs:
           
           # Get matrix results from job context
           matrix_results='${{ toJSON(needs.connect-integration-test) }}'
-
+      
           if [[ -z "$matrix_results" || "$matrix_results" == "{}" ]]; then
             echo "❌ No matrix results found"
             echo "successful_extensions=[]" >> $GITHUB_OUTPUT
             exit 0
           fi
-
+      
           echo "Debug: Full matrix context:"
           echo "$matrix_results" | jq '.'
           
@@ -130,28 +130,44 @@ jobs:
             all_passed=true
             echo "📦 Checking extension: $ext"
             
-            # Must pass ALL versions
-            for version in $(echo "$all_versions" | jq -r '.[]'); do
-              echo "🔎 Checking $ext @ $version"
+            # Check if matrix results has jobs array (simple-extensions case)
+            # or just a single result (publisher-command-center case)
+            if echo "$matrix_results" | jq -e '.jobs' >/dev/null 2>&1; then
+              echo "Using matrix job results structure"
+              # Must pass ALL versions
+              for version in $(echo "$all_versions" | jq -r '.[]'); do
+                echo "🔎 Checking $ext @ $version"
+                
+                # Get specific matrix combination result
+                result=$(echo "$matrix_results" | jq -r \
+                  --arg ext "$ext" \
+                  --arg ver "$version" \
+                  '.jobs[] | select(.matrix.extension == $ext and .matrix.connect_version == $ver) | .result')
+                
+                if [[ -z "$result" ]]; then
+                  echo "❌ No result found for $ext @ $version"
+                  all_passed=false
+                  break
+                elif [[ "$result" != "success" ]]; then
+                  echo "❌ Failed: $ext @ $version ($result)"
+                  all_passed=false
+                  break
+                else 
+                  echo "✅ Passed: $ext @ $version"
+                fi
+              done
+            else
+              # Single result case (publisher-command-center)
+              echo "Using single job result structure"
+              result=$(echo "$matrix_results" | jq -r '.result')
               
-              # Get specific matrix combination result
-              result=$(echo "$matrix_results" | jq -r \
-                --arg ext "$ext" \
-                --arg ver "$version" \
-                '.jobs[] | select(.matrix.extension == $ext and .matrix.connect_version == $ver) | .result')
-              
-              if [[ -z "$result" ]]; then
-                echo "❌ No result found for $ext @ $version"
+              if [[ "$result" != "success" ]]; then
+                echo "❌ Failed: $ext (result: $result)"
                 all_passed=false
-                break
-              elif [[ "$result" != "success" ]]; then
-                echo "❌ Failed: $ext @ $version ($result)"
-                all_passed=false
-                break
-              else 
-                echo "✅ Passed: $ext @ $version"
+              else
+                echo "✅ Passed: $ext"
               fi
-            done
+            fi
             
             if [[ "$all_passed" == "true" ]]; then
               success_list+=("$ext")
@@ -171,3 +187,4 @@ jobs:
           else
             echo "📊 Final successful extensions: $successful_extensions"
             echo "successful_extensions=$successful_extensions" >> $GITHUB_OUTPUT
+          fi
