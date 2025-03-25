@@ -78,7 +78,7 @@ jobs:
         id: download
         with:
           path: artifacts
-          pattern: "*Integration Test Report"
+          pattern: "*-test-report"
 
       - uses: EnricoMi/publish-unit-test-result-action@v2
         if: ${{ steps.download.outputs.download-path != '' }}
