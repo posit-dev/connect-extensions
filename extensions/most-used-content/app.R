@@ -137,9 +137,15 @@ server <- function(input, output, session) {
         before = "title",
         autohide = FALSE
       ) |>
-      cols_width(view_bar ~ px(10)) |>
+      cols_width(view_bar ~ px(160)) |>
       tab_options(
         column_labels.font.weight = "bold"
+      ) |>
+      opt_interactive(
+        use_pagination = FALSE,
+        use_sorting = TRUE,
+        use_text_wrapping = FALSE,
+        use_highlight = TRUE
       )
   })
 }
