@@ -16,9 +16,10 @@ on:
         required: true
 
 jobs:
+  # Determine the Connect versions to test against
   setup-integration-test:
     runs-on: ubuntu-latest
-    timeout-minutes: 1
+    timeout-minutes: 5
     outputs:
       versions: ${{ steps.versions.outputs.versions }}
     steps:
@@ -31,11 +32,13 @@ jobs:
           echo "Versions: $versions"
           echo "versions=$versions" >> "$GITHUB_OUTPUT"
 
+  # Run the Connect integration tests for each extension against each Connect version
   connect-integration-test:
     runs-on: ubuntu-latest
-    timeout-minutes: 10 # Max time to run the integration tests
+    timeout-minutes: 15 # Max time to run the integration tests
     needs: setup-integration-test
     strategy:
+      # Do not fail fast so all extensions and Connect versions are processed
       fail-fast: false
       matrix:
         extension: ${{ fromJson(inputs.extensions) }}
@@ -56,7 +59,7 @@ jobs:
           steps.test.outcome != 'cancelled' && 
           steps.test.outcome != 'skipped'
         with:
-          name: run-${{ github.run_id }}-${{ matrix.extension }}-${{ matrix.connect_version }}-test-report
+          name: ${{ matrix.extension }}-${{ matrix.connect_version }}-test-report          
           path: integration/reports/*.xml
           retention-days: 7
 
@@ -64,7 +67,12 @@ jobs:
   integration-test-report:
     needs: connect-integration-test
     runs-on: ubuntu-latest
-    timeout-minutes: 1
+    timeout-minutes: 5
+    # Create a matrix so each extension gets its own test report
+    strategy:
+      fail-fast: false
+      matrix:
+        extension: ${{ fromJson(inputs.extensions) }}
     permissions:
       checks: write
       pull-requests: write
@@ -78,12 +86,12 @@ jobs:
         id: download
         with:
           path: artifacts
-          pattern: "run-${{ github.run_id }}-*-test-report"
+          pattern: "${{ matrix.extension }}-*-test-report" 
 
       - uses: EnricoMi/publish-unit-test-result-action@v2
         if: ${{ steps.download.outputs.download-path != '' }}
         with:
-          check_name: integration-test-results-${{ github.run_id }}
+          check_name: "Integration test results - ${{ matrix.extension }}"
           comment_mode: off
           files: "artifacts/**/*.xml"
           report_individual_runs: true
@@ -92,7 +100,7 @@ jobs:
   collect-results:
     needs: [connect-integration-test, setup-integration-test]
     runs-on: ubuntu-latest
-    timeout-minutes: 1
+    timeout-minutes: 5
     outputs:
       successful_extensions: ${{ steps.collect.outputs.successful_extensions }}
     if: |
