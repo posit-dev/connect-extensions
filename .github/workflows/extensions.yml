@@ -129,6 +129,8 @@ jobs:
     # otherwise, the release is skipped
     # See the action comments for more details
     steps:
+      - uses: actions/checkout@v4
+
       - uses: ./.github/actions/release-extension
         with:
           extension-name: ${{ matrix.extension }}
