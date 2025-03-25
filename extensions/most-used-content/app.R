@@ -1,6 +1,6 @@
 library(shiny)
 library(bslib)
-library(DT)
+library(gt)
 library(connectapi)
 library(dplyr)
 library(purrr)
@@ -22,27 +22,23 @@ ui <- page_fillable(
     card_header("Most Used Content"),
     layout_sidebar(
       sidebar = sidebar(
-        title = "No Filters Yet",
-        open = FALSE,
+        title = "Controls",
+        open = TRUE,
+        width = 275,
+
+        dateRangeInput(
+          "date_range",
+          label = "Select Date Range",
+          start = today() - ddays(6),
+          end = today(),
+          max = today(),
+        ),
 
         actionButton("clear_cache", "Clear Cache", icon = icon("refresh"))
       ),
 
-      tabsetPanel(
-        tabPanel(
-          "Plot of Daily Views",
-          plotlyOutput("daily_views_plot")
-        ),
-        tabPanel(
-          "Plot of Unique Daily Visitors",
-          plotlyOutput("unique_daily_visitor_plot")
-        )
-      ),
-
       card(
-        DTOutput(
-          "content_usage_table"
-        )
+        gt_output("content_usage_table")
       )
     )
   )
@@ -60,16 +56,6 @@ server <- function(input, output, session) {
   # Loading and processing data ----
   client <- connect()
 
-  # Default dates. "This week" is best "common sense" best represented by six
-  # days ago thru the end of today. Without these, content takes too long to
-  # display on some servers.
-  date_range <- reactive({
-    list(
-      from_date = today() - ddays(6),
-      to_date = today()
-    )
-  })
-
   content <- reactive({
     get_content(client)
   }) |> bindCache("static_key")
@@ -77,12 +63,12 @@ server <- function(input, output, session) {
   usage_data <- reactive({
     get_usage(
       client,
-      from = date_range()$from_date,
-      to = date_range()$to_date + hours(23) + minutes(59) + seconds(59)
+      from = as.POSIXct(input$date_range[1]),
+      to = as.POSIXct(input$date_range[2]) + hours(23) + minutes(59) + seconds(59)
     )
-  }) |> bindCache(date_range()$from_date, date_range()$to_date)
+  }) |> bindCache(input$date_range)
 
-  # Compute basic usage stats
+  # Compute basic usage stats ----
   content_usage_data <- reactive({
     usage_summary <- usage_data() |>
       group_by(content_guid) |>
@@ -92,71 +78,76 @@ server <- function(input, output, session) {
         last_viewed_at = max(timestamp, na.rm = TRUE)
       )
 
+
+    # Add sparkline ----
+    all_dates <- seq.Date(input$date_range[1], input$date_range[2], by = "day")
+
+    daily_usage <- usage_data() |>
+      count(content_guid, date = date(timestamp)) |>
+      complete(date = all_dates, nesting(content_guid), fill = list(n = 0)) |>
+      group_by(content_guid) |>
+      summarize(sparkline_data = paste(n, collapse = ", "))
+
+    # Combine ----
+
     content() |>
       mutate(owner_username = map_chr(owner, "username")) |>
       select(title, content_guid = guid, owner_username) |>
       right_join(usage_summary, by = "content_guid") |>
-      arrange(desc(total_views))
-  }) |> bindCache(date_range()$from_date, date_range()$to_date)
+      right_join(daily_usage, by = "content_guid") |>
+      arrange(desc(total_views)) |>
+      select(-content_guid)
+  }) |> bindCache(input$date_range)
 
-  # Compute daily usage numbers for plots
-  usage_by_date <- reactive({
-    all_dates <- seq.Date(date_range()$from_date, date_range()$to_date, by = "day")
-
-    usage_data() |>
-      mutate(date = date(timestamp)) |>
-      group_by(date) |>
-      summarize(
-        daily_views = n(),
-        unique_daily_visitors = n_distinct(user_guid, na.rm = TRUE)
-      ) |>
-      full_join(tibble(date = all_dates)) |>
-      mutate(across(c(unique_daily_visitors, daily_views), ~ replace_na(.x, 0)))
-  })
+  sparkline_options <- nanoplot_options(
+    data_line_stroke_width = px(4),
+    data_line_stroke_color = "gray",
+    show_data_line = TRUE,
+    show_data_points = FALSE,
+    show_data_area = FALSE,
+  )
 
   # Render table
-  output$content_usage_table <- renderDT({
-    datatable(
-      content_usage_data(),
-      options = list(
-        order = list(list(4, "desc")),
-        paging = FALSE
-      ),
-      colnames = c(
-        "Content Title" = "title",
-        "Content GUID" = "content_guid",
-        "Owner Username" = "owner_username",
-        "Total Views" = "total_views",
-        "Unique Logged-in Viewers" = "unique_viewers",
-        "Last Viewed At" = "last_viewed_at"
-      )
-    ) |>
-      formatStyle(
-        columns = "Content Title",
-        `white-space` = "nowrap",
-        `overflow` = "hidden",
-        `text-overflow` = "ellipsis",
-        `max-width` = "300px"
+  output$content_usage_table <- render_gt({
+    content_usage_data() |>
+      gt() |>
+      cols_label(
+        title = "Content",
+        owner_username = "Owner",
+        total_views = "Visits",
+        unique_viewers = "Unique Visitors",
+        last_viewed_at = "Last Viewed",
       ) |>
-      formatDate(columns = "Last Viewed At", method = "toLocaleString")
+      fmt_datetime(
+        columns = last_viewed_at,
+        date_style = "iso"
+      ) |>
+      cols_nanoplot(
+        columns = "sparkline_data",
+        plot_type = "line",
+        new_col_name = "sparkline",
+        new_col_label = "Daily Visits",
+        reference_line = 0
+      ) |>
+      cols_nanoplot(
+        columns = "total_views",
+        plot_type = "bar",
+        new_col_name = "view_bar",
+        new_col_label = "",
+        before = "title",
+        autohide = FALSE
+      ) |>
+      cols_width(view_bar ~ px(160)) |>
+      tab_options(
+        column_labels.font.weight = "bold"
+      ) |>
+      opt_interactive(
+        use_pagination = FALSE,
+        use_sorting = TRUE,
+        use_text_wrapping = FALSE,
+        use_highlight = TRUE
+      )
   })
-
-  output$daily_views_plot <- renderPlotly(
-    ggplotly(
-      ggplot(usage_by_date()) +
-        geom_col(aes(x = date, y = daily_views)) +
-        labs(x = "Date", y = "Daily Views")
-    )
-  )
-
-  output$unique_daily_visitor_plot <- renderPlotly(
-    ggplotly(
-      ggplot(usage_by_date()) +
-        geom_col(aes(x = date, y = unique_daily_visitors)) +
-        labs(x = "Date", y = "Unique Daily Visitors (Logged-in)")
-    )
-  )
-
 }
 
 shinyApp(ui, server)
