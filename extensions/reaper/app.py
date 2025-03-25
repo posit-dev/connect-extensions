@@ -1,4 +1,3 @@
-# TRIGGER WORKFLOW
 import concurrent.futures
 import os
 
