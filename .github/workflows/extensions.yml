@@ -65,37 +65,51 @@ jobs:
 
       - name: Mark successful jobs
         if: success()
-        run: echo "${{ matrix.extension }}" >> success.txt
+        run: echo "${{ matrix.extension }}" >> success-${{ matrix.extension }}.txt
 
-      - name: Collect successful jobs
-        id: collect-successes
-        if: always()
+      - uses: actions/upload-artifact@v4
+        if: success()
+        with:
+          name: extension-success-${{ matrix.extension }}
+          path: success-${{ matrix.extension }}.txt
+    
+  # Collect success results from all matrix simple-extensions jobs
+  collect-simple-extensions:
+    needs: simple-extensions
+    runs-on: ubuntu-latest
+    outputs:
+      successful_extensions: ${{ steps.collect.outputs.successful_extensions }}
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: extension-success-*
+          path: successes
+          merge-multiple: true
+
+      - id: collect
         run: |
-          if [ -f success.txt ]; then
-            SUCCESSFUL_EXTENSIONS=$(jq -R -s -c 'split("\n")[:-1]' success.txt)
-          else
-            SUCCESSFUL_EXTENSIONS="[]"
+          SUCCESS_LIST=()
+          if [ -d "successes" ]; then
+            for FILE in successes/success-*.txt; do
+              if [ -f "$FILE" ]; then
+                EXT=$(cat "$FILE")
+                SUCCESS_LIST+=("$EXT")
+                echo "Found successful extension: $EXT"
+              fi
+            done
           fi
           
+          SUCCESSFUL_EXTENSIONS=$(jq -n --arg arr "$(IFS=,; echo "${SUCCESS_LIST[*]}")" \
+            '$arr | split(",")' -c)
           echo "Successful extensions: $SUCCESSFUL_EXTENSIONS"
           echo "successful_extensions=$SUCCESSFUL_EXTENSIONS" >> "$GITHUB_OUTPUT"
 
   simple-extension-connect-integration-tests:
-    needs: [simple-extension-changes, simple-extensions]
+    needs: [simple-extension-changes, collect-simple-extensions]
     uses: ./.github/workflows/connect-integration-tests.yml
     with:
-      extensions: ${{ needs.simple-extensions.outputs.successful_extensions }}
-    if: |
-      needs.simple-extension-changes.outputs.changes != '[]' && 
-      needs.simple-extension-changes.outputs.changes != '' && 
-      fromJSON(needs.simple-extensions.outputs.successful_extensions) != '[]'
-    strategy:
-      # Do not fail fast so all extensions are processed
-      fail-fast: false
-      matrix:
-        # Parse JSON containing names of all changed extensions that have succeeded through the workflow
-        # e.g. ['reaper'] if the reaper extension has succeeded through the workflow
-        extension: ${{ fromJSON(needs.simple-extensions.outputs.successful_extensions) }}
+      extensions: ${{ needs.collect-simple-extensions.outputs.successful_extensions }}
+    if: fromJSON(needs.collect-simple-extensions.outputs.successful_extensions) != '[]'
     secrets: inherit
 
   simple-extension-release:
