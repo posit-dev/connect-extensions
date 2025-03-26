@@ -34,10 +34,10 @@ PYTEST_ARGS ?= "-s"
 	up-%
 
 
-# Versions
+# Versions starting with 2025.03.0 (first Connect version fully supporting extensions and version matching) and newer
 CONNECT_VERSIONS := \
-	preview \
-	# TODO continue adding Connect releases here starting with 2025.03.0 and newer
+	preview # The current dev version \
+	2025.03.0 \
 
 
 clean:

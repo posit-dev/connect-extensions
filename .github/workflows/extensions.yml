@@ -49,8 +49,6 @@ jobs:
     runs-on: ubuntu-latest
     env:
       GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-    outputs:
-      successful_extensions: ${{ steps.collect-successes.outputs.successful_extensions }}
 
     steps:
       - uses: actions/checkout@v4
@@ -115,15 +113,17 @@ jobs:
     if: fromJSON(needs.collect-simple-extensions.outputs.successful_extensions) != '[]'
     secrets: inherit
 
-  # Runs the release process for each extension that passed all tests and if the semver is updated.
+  # Runs the release process for each extension that was packaged, passed all tests, if the semver is updated, on main
   simple-extension-release:
     runs-on: ubuntu-latest
     needs: [simple-extension-connect-integration-tests]
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     strategy:
       # Do not fail fast so all extensions are processed
       fail-fast: false
       matrix:
-        # Only release extensions that passed ALL integration tests
+        # Ensure the matrix is set to only process extensions that passed ALL integration tests
         extension: ${{ fromJSON(needs.simple-extension-connect-integration-tests.outputs.successful_extensions) }}
     # Extensions are only released when this workflow triggers on `main`
     # otherwise, the release is skipped
