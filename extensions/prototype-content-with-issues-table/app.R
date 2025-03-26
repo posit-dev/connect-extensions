@@ -8,6 +8,8 @@ library(purrr)
 library(lubridate)
 library(tidyr)
 library(shinyjs)
+library(shinycssloaders)
+library(shinybusy)
 
 source("./ui.R")
 
@@ -29,13 +31,21 @@ as_content_list <- function(content_df, client) {
   })
 }
 
+# user email is not on the content item owner object so we request it
+# TODO: store user_guid = user_email list so we don't lookup the same user's 
+# email for each failing content item they own
+get_user_email <- function(client, guid) {
+  user_endpoint <- paste0("v1/users/", guid)
+  user <- client$GET(user_endpoint)
+  user$email
+}
+
 # filters content jobs down to failures and sets content_recovered depending on 
 # whether or not the latest job ended in error
 filter_jobs <- function(jobs) {
-  if (is.null(jobs) || nrow(jobs) == 0){
-    # content item does not have any jobs
-    NULL
-  } else {
+  if (is.null(jobs) || nrow(jobs) == 0) {
+    failed_jobs <- NULL
+    } else {
     # grab the latest job and all failing jobs
     latest_job <- jobs %>%
       slice_max(start_time, with_ties = FALSE)
@@ -45,16 +55,17 @@ filter_jobs <- function(jobs) {
       # grab only the columns we use for cleaner dplyr pipeline
       select(end_time, exit_code, tag, key) 
     # set content_recovered depending on if latest_job was in failed_jobs 
-    failed_jobs %>%
+    failed_jobs <- failed_jobs %>%
       mutate(
         content_recovered = ifelse(latest_job$key %in% failed_jobs$key, FALSE, TRUE)
       )
-  }
+    } 
+  failed_jobs
 }
 
 # checks to see if a content item has failed jobs within the last 30d, then 
 # compiles content and job data into a tibble, returning it.
-get_failed_job_data <- function(item) {
+get_failed_job_data <- function(item, client) {
   jobs <- tryCatch(
     {
       get_jobs(item) 
@@ -65,13 +76,18 @@ get_failed_job_data <- function(item) {
   failed_jobs <- filter_jobs(jobs)
   if (is.null(failed_jobs) || nrow(failed_jobs) == 0) {
     # content item does not have failed jobs
-    NULL
+    all_failed_jobs <- NULL
   } else {
+    owner_email <- get_user_email(client, item$content$owner_guid)
     all_failed_jobs <- failed_jobs %>% 
       mutate(
         content_title = item$content$title,
         content_guid = item$content$guid,
         content_owner = item$content$owner[[1]]$username,
+        log_url = paste0(item$content$dashboard_url,
+                        "logs?logKey=",
+                        failed_jobs$key),
+        owner_email = owner_email, 
         content_url = item$content$dashboard_url
         )
     all_failed_jobs
@@ -95,7 +111,7 @@ server <- function(input, output, session) {
   # deployed within the last year
   bad_content_df <- reactive({
     req(content_list()) 
-    bad_content <- map_dfr(content_list(), ~ get_failed_job_data(.x)) 
+    bad_content <- map_dfr(content_list(), ~ get_failed_job_data(.x, client)) 
     bad_content %>%
       rename(job_failed_at = end_time,
             failed_job_type = tag,
@@ -130,9 +146,24 @@ server <- function(input, output, session) {
               group_by(content_guid) %>%
               mutate(content_guid = paste0('<a href="', 
                                             first(content_url), 
-                                            '">', 
+                                            '" target="_blank">', 
                                             first(content_title), 
                                             '</a>')) %>%
+              mutate(owner_email = paste0('<span style="font-size: 32px;">',
+                                          "<a href='mailto:",
+                                          owner_email,
+                                          "?subject=Problem%20with%20",
+                                          content_title,
+                                          "&body=Please%20investigate:%0A",
+                                          log_url,
+                                          "'>",
+                                          "✉",
+                                          "</a></span>")) %>%
+              mutate(log_url = paste0('<a href="',
+                                     log_url,
+                                     '" target="_blank">',
+                                     "Go to logs",
+                                     '</a>')) %>%
               mutate(content_guid = ifelse(!content_recovered,
                 paste(content_guid, " <span style='color: red;'>⚠️</span>"),
                 content_guid)) %>%
@@ -141,7 +172,12 @@ server <- function(input, output, session) {
   
   # show helpful information about what is and is not in failed jobs data
   observeEvent(input$show_help, {
-    toggle("help_section")
+    showModal(modalDialog(
+      title = "Helpful info about this app",
+      easyClose = TRUE,
+      size = "m",
+      help_information)
+    )
   })
   
   # output the great table of failed jobs
@@ -155,6 +191,7 @@ server <- function(input, output, session) {
         filter(if (!is.null(input$job_type)) failed_job_type %in% input$job_type else TRUE) %>%
         filter(if (!is.null(input$failure_reason)) failure_reason %in% input$failure_reason else TRUE) %>%
         gt() %>%
+          fmt_markdown(columns = c(log_url, owner_email)) %>%
           # highlight rows where the content item's latest job failed
           tab_style(style = cell_fill(color = "salmon"),
                     locations = cells_body(
@@ -163,11 +200,13 @@ server <- function(input, output, session) {
           cols_label(job_failed_at = "Date of Failure",
                      failure_reason = "Reason for Failure",
                      failed_job_type = "Job Type",
-                     content_owner = "Owner") %>% 
+                     content_owner = "Owner",
+                     owner_email = "Email Owner",
+                     log_url = "Link to Logs") %>% 
           cols_hide(content_recovered) %>%
           opt_interactive(use_page_size_select = TRUE,
                           use_sorting = TRUE,
-                          use_filters = TRUE)
+                          use_search = TRUE)
   })
 }
 
