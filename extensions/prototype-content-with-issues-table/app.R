@@ -42,9 +42,9 @@ get_user_email <- function(client, guid) {
 
 # filters content jobs down to failures and sets content_recovered depending on 
 # whether or not the latest job ended in error
-filter_jobs <- function(jobs) {
-  if (is.null(jobs) || nrow(jobs) == 0) {
-    failed_jobs <- NULL
+filter_to_failed_jobs <- function(jobs) {
+  failed_jobs <- if (is.null(jobs) || nrow(jobs) == 0) {
+    NULL
     } else {
     # grab the latest job and all failing jobs
     latest_job <- jobs %>%
@@ -55,7 +55,7 @@ filter_jobs <- function(jobs) {
       # grab only the columns we use for cleaner dplyr pipeline
       select(end_time, exit_code, tag, key) 
     # set content_recovered depending on if latest_job was in failed_jobs 
-    failed_jobs <- failed_jobs %>%
+    failed_jobs %>%
       mutate(
         content_recovered = ifelse(latest_job$key %in% failed_jobs$key, FALSE, TRUE)
       )
@@ -73,33 +73,33 @@ get_failed_job_data <- function(item, client) {
       print(paste("Error encountered with item: ", item, e$message))
       NULL
     })
-  failed_jobs <- filter_jobs(jobs)
-  if (is.null(failed_jobs) || nrow(failed_jobs) == 0) {
+  failed_jobs <- filter_to_failed_jobs(jobs)
+  all_failed_jobs <- if (is.null(failed_jobs) || nrow(failed_jobs) == 0) {
     # content item does not have failed jobs
-    all_failed_jobs <- NULL
+    NULL
   } else {
     owner_email <- get_user_email(client, item$content$owner_guid)
-    all_failed_jobs <- failed_jobs %>% 
+    failed_jobs %>% 
       mutate(
         content_title = item$content$title,
         content_guid = item$content$guid,
         content_owner = item$content$owner[[1]]$username,
         log_url = paste0(item$content$dashboard_url,
-                        "logs?logKey=",
+                        "/logs?logKey=",
                         failed_jobs$key),
         owner_email = owner_email, 
         content_url = item$content$dashboard_url
         )
-    all_failed_jobs
   }
+  all_failed_jobs
 }
 
 server <- function(input, output, session) {
   # initialize Connect API client
   client <- connect()
   
-  # TODO: use `v1/content/failed` when #30414 merges so we only list content we
-  # know has failed before, filter to deployed within last year for now
+  # TODO: use `v1/content/failed` to get content items with failed last job 
+  # filter to deployed within last year for now
   content_list <- reactive({
     content <- get_content(client, limit = inf)
     content <- content %>%
@@ -153,7 +153,11 @@ server <- function(input, output, session) {
                                           "<a href='mailto:",
                                           owner_email,
                                           "?subject=Problem%20with%20",
-                                          content_title,
+                                          gsub("'", 
+                                              "%27", 
+                                              gsub('"',
+                                                  "%22",
+                                                  content_title)),
                                           "&body=Please%20investigate:%0A",
                                           log_url,
                                           "'>",
@@ -162,8 +166,8 @@ server <- function(input, output, session) {
               mutate(log_url = paste0('<a href="',
                                      log_url,
                                      '" target="_blank">',
-                                     "Go to logs",
-                                     '</a>')) %>%
+                                     '<span style="font-size: 32px;">🗒',
+                                     '</a></span>')) %>%
               mutate(content_guid = ifelse(!content_recovered,
                 paste(content_guid, " <span style='color: red;'>⚠️</span>"),
                 content_guid)) %>%
@@ -171,6 +175,7 @@ server <- function(input, output, session) {
   }) |> bindCache("static_key")
   
   # show helpful information about what is and is not in failed jobs data
+  # along with definitions of terms and descriptions of filter behavior
   observeEvent(input$show_help, {
     showModal(modalDialog(
       title = "Helpful info about this app",
@@ -179,8 +184,16 @@ server <- function(input, output, session) {
       help_information)
     )
   })
+ 
+  # populate owners filter with username from compiled failed jobs data 
+  observe({
+    updateSelectInput(session, 
+                      "owner_filter", 
+                      choices = unique(bad_content_df()$content_owner))
+  })
   
   # output the great table of failed jobs
+  # TODO: better reflect current applied filters
   output$jobs <- render_gt({
       bad_content_df() %>%
         filter(if (input$currently_failing) content_recovered == FALSE else TRUE) %>%
@@ -189,20 +202,17 @@ server <- function(input, output, session) {
                                                               "Restoring environment",
                                                               "Extracting parameters") else TRUE) %>%
         filter(if (!is.null(input$job_type)) failed_job_type %in% input$job_type else TRUE) %>%
+        filter(if (!is.null(input$owner_filter)) content_owner %in% input$owner_filter else TRUE) %>%
         filter(if (!is.null(input$failure_reason)) failure_reason %in% input$failure_reason else TRUE) %>%
         gt() %>%
           fmt_markdown(columns = c(log_url, owner_email)) %>%
-          # highlight rows where the content item's latest job failed
-          tab_style(style = cell_fill(color = "salmon"),
-                    locations = cells_body(
-                    rows = which(!content_recovered))) %>%
           sub_missing(columns = everything(), missing_text = " ") %>%
           cols_label(job_failed_at = "Date of Failure",
                      failure_reason = "Reason for Failure",
                      failed_job_type = "Job Type",
                      content_owner = "Owner",
                      owner_email = "Email Owner",
-                     log_url = "Link to Logs") %>% 
+                     log_url = "Open Logs") %>% 
           cols_hide(content_recovered) %>%
           opt_interactive(use_page_size_select = TRUE,
                           use_sorting = TRUE,

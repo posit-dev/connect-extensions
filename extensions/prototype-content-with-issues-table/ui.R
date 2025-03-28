@@ -1,9 +1,9 @@
 help_information <- tags$div(
                   p("This interactive table displays failed content jobs ",
-                    "grouped by content item. Job logs are accessible via ",
-                    "the", strong("Go to logs")," link, and selecting the email ",
-                    "icon (✉) will open a pre-populated message to the owner of ",
-                    "the content."), 
+                    "grouped by content item. Click the notepad (🗒) to open ",
+                    "job logs, and select the the email icon (✉) to send a ",
+                    "message to the content owner. Select the content title to ",
+                    "open its dashboard view."), 
                   p(strong("Types of content jobs in this table:")),
                   tags$ul(
                     tags$li(tags$span(strong("Render: "), 
@@ -44,15 +44,33 @@ help_information <- tags$div(
                                       "Connect server itself are not included in ",
                                       "content jobs history.")))
                     ),
-                   p(strong("Available filters:")),
+                  p(strong("Filtering and sorting")),
+                  p("Use the filters in the sidebar to display jobs matching ",
+                    "the chosen criteria. When selecting options within a filter ",
+                    "the failed jobs shown match any of the options chosen. For ",
+                    "example, filtering by a job type of", strong("Running"), "or", strong("Building"),
+                    "displays jobs of either the runtime or build type. When ",
+                    "filters are combined the jobs shown match all of the chosen ",
+                    "criteria across filters. For instance, selecting", strong("Broken content,"),
+                    strong("Email not generated,"), "and owners", strong("bob"), "and", strong("sally"),
+                    "will filter down to items owned by either user with a last ",
+                    "job that ended in failure", em("and"), "where an email was not generated."),
+                  p("Select a header within the table to sort the displayed ",
+                    "page by the chosen column in descending or ascending order. ",
+                    "Use the table-wide search, available filters, and customizable ",
+                    "page size to show only the data you're looking for in the ",
+                    "appropriate order."),
                    tags$ul(
                      tags$li(strong("Broken content:"), 
                              " display items where the latest job ended in failure."),
-                     tags$li(strong("Owner not notified:"), 
+                     tags$li(strong("Email not generated:"),
+                             # emails are not sent in OHE env, see:
+                             # https://github.com/posit-dev/connect/issues/19737
                              paste(" display failed runtime, report configuration, ",
                              "environment restore and parameter extraction jobs. ",
-                             "Content owners are always emailed on Python, ",
-                             "Quarto, and R report build or render failure.")),
+                             "A message containing failure details is sent to ",
+                             "owners and collaborators by default following a ",
+                             "Python, Quarto, or R report build or render failure.")),
                      tags$li(strong("Failure reason:"), " 
                              display items that match the selected cause for failure."),
                      tags$li(strong("Job type:"), " 
@@ -70,9 +88,9 @@ ui <- fluidPage(
                       label = tagList(icon("question-circle"), 
                                      "Help"), 
                       class = "btn-info"),
-          p(strong("Filter by: ")),
+          p(strong("Filters")),
           checkboxInput("currently_failing", "Broken content"),
-          checkboxInput("not_notified", "Owner not notified"),
+          checkboxInput("not_notified", "Email not generated"),
           selectInput("job_type", "Job Type", c("Running", 
                                                 "Rendering", 
                                                 "Extracting parameters", 
@@ -90,8 +108,13 @@ ui <- fluidPage(
                     multiple = TRUE,
                     selected = FALSE
                     ),
+          selectInput("owner_filter", 
+                      "Content Owner", 
+                      NULL, 
+                      multiple = TRUE,
+                      selected = FALSE
+                      ),
         ),
-    titlePanel(h4("Failed content jobs:")),
     gt_output("jobs"),
   )
 )
