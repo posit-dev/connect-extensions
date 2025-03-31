@@ -11,8 +11,7 @@ PROJECT_NAME := connect-extensions
 PYTHON ?= $(shell command -v python || command -v python3)
 UV ?= uv
 # uv defaults virtual environment to `$VIRTUAL_ENV` if set; otherwise .venv
-# Define virtual environment path relative to the integration directory
-VIRTUAL_ENV ?= $(shell pwd)/.venv
+VIRTUAL_ENV ?= .venv
 UV_LOCK := uv.lock
 
 # Docker settings
