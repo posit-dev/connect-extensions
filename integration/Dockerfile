@@ -9,5 +9,9 @@ COPY . /connect-extensions/integration
 
 # Run before other copies to cache dependencies
 WORKDIR /connect-extensions/integration
+
+# DEBUG
+RUN make debug-env
+
 RUN --mount=type=cache,mode=0755,target=/root/.cache/pip make docker-deps
 RUN --mount=type=cache,mode=0755,target=/root/.cache/pip make dev

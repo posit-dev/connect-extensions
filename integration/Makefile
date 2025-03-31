@@ -70,15 +70,52 @@ dev: ensure-uv  ## [py] Install dependencies for Connect integration tests
 
 
 $(VIRTUAL_ENV):  ## [py] Create virtualenv for Connect integration tests
-	$(UV) venv $(VIRTUAL_ENV)
+	@echo "Creating virtualenv at $(VIRTUAL_ENV)"
+	@# Check if we're in Docker and handle differently
+	@if [ -f "/.dockerenv" ]; then \
+			echo "Detected Docker environment: using system installation"; \
+			$(MAKE) debug-env
+			mkdir -p $(VIRTUAL_ENV)/bin; \
+			ln -sf $$(which python) $(VIRTUAL_ENV)/bin/python3; \
+			$(MAKE) debug-env
+	else \
+			echo "Using uv to create virtualenv"; \
+			$(UV) venv $(VIRTUAL_ENV); \
+	fi
+
+
+# Dbug Docker environment
+debug-env:
+	@echo "=== ENVIRONMENT DEBUG INFO ==="
+	@echo "Current directory: $$(pwd)"
+	@echo "Python executable: $$(which python)"
+	@echo "Python version: $$(python --version)"
+	@echo "UV executable: $$(which uv)"
+	@echo "UV version: $$(uv --version 2>&1)"
+	@echo "VIRTUAL_ENV: $(VIRTUAL_ENV)"
+	@echo "Does .venv exist? $$(test -d $(VIRTUAL_ENV) && echo 'YES' || echo 'NO')"
+	@echo "Directory permissions: $$(ls -ld .)"
+	@echo "Content of current dir: $$(ls -la)"
+	@echo "================================"
 
 
 ensure-uv:  ## [py] Ensure UV and virtualenv are available for Connect integration tests
+	@echo "=== DEBUG before UV install ==="
+	@$(MAKE) debug-env
+
 	@if ! command -v $(UV) >/dev/null; then \
 			$(PYTHON) -m ensurepip && $(PYTHON) -m pip install "uv >= 0.4.27"; \
 	fi
+
+	@echo "=== DEBUG before VENV creation ==="
+	@$(MAKE) debug-env
+
 	@# Install virtual environment (before calling `uv pip install ...`) including in Docker
 	@$(MAKE) $(VIRTUAL_ENV) 1>/dev/null
+
+	@echo "=== DEBUG after VENV creation ==="
+	@$(MAKE) debug-env
+
 	@# Be sure recent uv is installed
 	@$(UV) pip install "uv >= 0.4.27" --quiet
 
