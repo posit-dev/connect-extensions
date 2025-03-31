@@ -13,7 +13,7 @@ dependencies = [
 ]
 
 [tool.setuptools]
-packages = ["integration"]
+packages = ["tests"]
 
 [tool.pytest.ini_options]
-testpaths = ["integration/tests"]
+testpaths = ["tests"]

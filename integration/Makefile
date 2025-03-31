@@ -1,4 +1,19 @@
-include ../vars.mk
+# Shell settings
+SHELL := /bin/bash
+
+# Environment settings
+ENV ?= dev
+
+# Project settings
+PROJECT_NAME := connect-extensions
+
+# Python settings
+PYTHON ?= $(shell command -v python || command -v python3)
+UV ?= uv
+# uv defaults virtual environment to `$VIRTUAL_ENV` if set; otherwise .venv
+# Define virtual environment path relative to the integration directory
+VIRTUAL_ENV ?= $(shell pwd)/.venv
+UV_LOCK := uv.lock
 
 # Docker settings
 DOCKER_COMPOSE ?= docker compose
@@ -6,10 +21,12 @@ DOCKER_CONNECT_IMAGE ?= rstudio/rstudio-connect
 DOCKER_PROJECT_IMAGE_TAG ?= $(PROJECT_NAME):latest
 EXTENSION_NAME ?=
 
+# Docker image settings specifically for the preview version
+preview_DOCKER_CONNECT_IMAGE := rstudio/rstudio-connect-preview
+preview_DOCKER_CONNECT_IMAGE_TAG := dev-jammy-daily
 
 # Connect settings
 CONNECT_BOOTSTRAP_SECRETKEY ?= $(shell head -c 32 /dev/random | base64)
-
 
 # pytest settings
 PYTEST_ARGS ?= "-s"
@@ -36,8 +53,46 @@ PYTEST_ARGS ?= "-s"
 
 # Versions starting with 2025.03.0 (first Connect version fully supporting extensions and version matching) and newer
 CONNECT_VERSIONS := \
-	preview # The current dev version \
-	2025.03.0 \
+	preview \
+	2025.03.0
+
+
+# Compute the latest official release version (excludes preview)
+LATEST_VERSION := $(firstword $(filter-out preview,$(CONNECT_VERSIONS)))
+
+
+# Python dependencies for Connect integration tests
+$(UV_LOCK): dev
+	$(UV) lock
+
+
+dev: ensure-uv  ## [py] Install dependencies for Connect integration tests
+	$(UV) pip install --upgrade -e .
+
+
+$(VIRTUAL_ENV):  ## [py] Create virtualenv for Connect integration tests
+	$(UV) venv $(VIRTUAL_ENV)
+
+
+ensure-uv:  ## [py] Ensure UV and virtualenv are available for Connect integration tests
+	@if ! command -v $(UV) >/dev/null; then \
+			$(PYTHON) -m ensurepip && $(PYTHON) -m pip install "uv >= 0.4.27"; \
+	fi
+	@# Install virtual environment (before calling `uv pip install ...`) including in Docker
+	@$(MAKE) $(VIRTUAL_ENV) 1>/dev/null
+	@# Be sure recent uv is installed
+	@$(UV) pip install "uv >= 0.4.27" --quiet
+
+
+docker-deps: ensure-uv  ## [py] Install dependencies in Docker for Connect integration tests
+	@# Ensure lock file exists first (generate if missing)
+	@if [ ! -f "$(UV_LOCK)" ]; then \
+			$(UV) lock; \
+	fi
+	@# Sync dependencies using the lock file (original posit-sdk-py pattern)
+	$(UV) sync --frozen --no-install-project
+	@# Install the project itself in development mode
+	$(UV) pip install -e .
 
 
 clean:
@@ -51,7 +106,15 @@ $(CONNECT_VERSIONS): %:
 			echo "Error: EXTENSION_NAME is required. Usage: make <version> EXTENSION_NAME=<name>"; \
 			exit 1; \
 	fi
-	$(MAKE) EXTENSION_NAME=$(EXTENSION_NAME) down-$* up-$*
+	# Check if this is the preview version and use special settings
+	@if [ "$*" = "preview" ]; then \
+			$(MAKE) EXTENSION_NAME=$(EXTENSION_NAME) \
+			DOCKER_CONNECT_IMAGE=$(preview_DOCKER_CONNECT_IMAGE) \
+			DOCKER_CONNECT_IMAGE_TAG=$(preview_DOCKER_CONNECT_IMAGE_TAG) \
+			down-$* up-$*; \
+	else \
+			$(MAKE) EXTENSION_NAME=$(EXTENSION_NAME) down-$* up-$*; \
+	fi
 
 
 # Run test suite against all Connect versions.
@@ -61,37 +124,22 @@ all:
 			echo "Usage: make all EXTENSION_NAME=<name>"; \
 			exit 1; \
 	fi
-	$(MAKE) EXTENSION_NAME=$(EXTENSION_NAME) $(CONNECT_VERSIONS:%=%) preview
+	$(MAKE) EXTENSION_NAME=$(EXTENSION_NAME) $(CONNECT_VERSIONS:%=%)
 
 
-# Run test suite against latest Connect version.
+# Run test suite against latest official Connect release version.
 latest:
 	@if [ -z "$(EXTENSION_NAME)" ]; then \
 			echo "Error: EXTENSION_NAME is required."; \
 			echo "Usage: make latest EXTENSION_NAME=<name>"; \
 			exit 1; \
 	fi
-	$(MAKE) EXTENSION_NAME=$(EXTENSION_NAME) $(firstword $(CONNECT_VERSIONS))
-
-
-# Run test suite against preview Connect version.
-preview:
-		@if [ -z "$(EXTENSION_NAME)" ]; then \
-						echo "Error: EXTENSION_NAME is required."; \
-						echo "Usage: make preview EXTENSION_NAME=<name>"; \
-						exit 1; \
-		fi
-		$(MAKE) \
-		EXTENSION_NAME=$(EXTENSION_NAME) \
-		DOCKER_CONNECT_IMAGE=rstudio/rstudio-connect-preview \
-		DOCKER_CONNECT_IMAGE_TAG=dev-jammy-daily \
-		down-preview up-preview
-
+	@echo "Running tests with latest version: $(LATEST_VERSION)"
+	$(MAKE) $(LATEST_VERSION) EXTENSION_NAME=$(EXTENSION_NAME)
 
 # Build Dockerfile
-build:
-	make -C .. dev
-	docker build -t $(DOCKER_PROJECT_IMAGE_TAG) ..
+build: dev
+	docker build -t $(DOCKER_PROJECT_IMAGE_TAG) .
 
 
 # Tear down resources.

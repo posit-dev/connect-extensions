@@ -6,7 +6,7 @@ services:
     # Target is relative to the ./integration directory, not the project root
     # directory. The execution base directory is determined by the 'WORKDIR'
     # in the Dockerfile.
-    command: make -C ./integration test
+    command: make test
     environment:
         - CONNECT_BOOTSTRAP_SECRETKEY=${CONNECT_BOOTSTRAP_SECRETKEY}
         # Port 3939 is the default port for Connect
@@ -15,7 +15,7 @@ services:
         - EXTENSION_NAME=${EXTENSION_NAME}
         - PYTEST_ARGS=${PYTEST_ARGS}
     volumes:
-      - ..:/connect-extensions  # Mount the project root directory
+      - .:${PWD}:delegated,exclude=.venv  # Mount current directory but exclude .venv
       - ./rstudio-connect.gcfg:/etc/rstudio-connect/rstudio-connect.gcfg:ro
       - ./logs:/var/log/rstudio-connect
     depends_on:
