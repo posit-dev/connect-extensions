@@ -38,6 +38,13 @@ runs:
         name: ${{ inputs.extension-name }}.tar.gz
         path: integration/bundles
 
+    - uses: astral-sh/setup-uv@v3
+
+    - name: Install isolated Python with UV
+      shell: bash
+      working-directory: ./integration
+      run: uv python install
+
     # Run the test and capture the report path and status
     - shell: bash
       run: |

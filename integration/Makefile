@@ -85,14 +85,10 @@ ensure-uv:  ## [py] Ensure UV and virtualenv are available for Connect integrati
 
 
 docker-deps: ensure-uv  ## [py] Install dependencies in Docker for Connect integration tests
-	@# Ensure lock file exists first (generate if missing)
-	@if [ ! -f "$(UV_LOCK)" ]; then \
-			$(UV) lock; \
-	fi
-	@# Sync dependencies using the lock file (original posit-sdk-py pattern)
+	# Sync given the `uv.lock` file
+	# --frozen : assert that the lock file exists
+	# --no-install-project : do not install the project itself, but install its dependencies
 	$(UV) sync --frozen --no-install-project
-	@# Install the project itself in development mode
-	$(UV) pip install -e .
 
 
 clean:
