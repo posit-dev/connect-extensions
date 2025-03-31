@@ -39,6 +39,8 @@ runs:
         path: integration/bundles
 
     - uses: astral-sh/setup-uv@v3
+      with:
+        pyproject-file: "./integration/pyproject.toml"
 
     - name: Install isolated Python with UV
       shell: bash
