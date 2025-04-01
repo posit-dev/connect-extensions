@@ -24,7 +24,7 @@ EXTENSION_NAME ?=
 preview_DOCKER_CONNECT_IMAGE := rstudio/rstudio-connect-preview
 preview_DOCKER_CONNECT_IMAGE_TAG := dev-jammy-daily
 
-# Connect settings
+# Connect bootstrap secret key
 CONNECT_BOOTSTRAP_SECRETKEY ?= $(shell head -c 32 /dev/random | base64)
 
 # pytest settings
@@ -52,44 +52,56 @@ PYTEST_ARGS ?= "-s"
 
 # Versions starting with 2025.03.0 (first Connect version fully supporting extensions and version matching) and newer
 CONNECT_VERSIONS := \
-	preview \
+	connect-preview \
 	2025.03.0
 
 
-# Compute the latest official release version (excludes preview)
-LATEST_VERSION := $(firstword $(filter-out preview,$(CONNECT_VERSIONS)))
+# Compute the latest official release version (excludes connect-preview)
+LATEST_VERSION := $(firstword $(filter-out connect-preview,$(CONNECT_VERSIONS)))
 
 
-# Python dependencies for Connect integration tests
+# Ensure uv.lock file exists and dev dependencies are installed, beware circular references since it calls `dev`
 $(UV_LOCK): dev
 	$(UV) lock
 
 
-dev: ensure-uv  ## [py] Install dependencies for Connect integration tests
+# Install dependencies for Connect integration tests
+dev: ensure-uv
 	$(UV) pip install --upgrade -e .
 
 
-$(VIRTUAL_ENV):  ## [py] Create virtualenv for Connect integration tests
-	@echo "Creating virtualenv at $(VIRTUAL_ENV)"
-	@if [ -f "/.dockerenv" ]; then \
-		echo "Docker environment detected - creating venv"; \
-		rm -rf $(VIRTUAL_ENV); \
-		$(PYTHON) -m venv $(VIRTUAL_ENV); \
-		echo "Venv created - checking for python3"; \
-		if [ ! -f "$(VIRTUAL_ENV)/bin/python3" ]; then \
-				echo "Python3 not found in venv, creating symlink"; \
-				ln -sf $$(which python) $(VIRTUAL_ENV)/bin/python3; \
-		fi; \
-		echo "Setting exec permissions"; \
-		chmod +x $(VIRTUAL_ENV)/bin/*; \
-		echo "Venv contents:"; \
-		ls -la $(VIRTUAL_ENV)/bin/; \
-	else \
-		# Local environments use UV's venv creation
-		$(UV) venv $(VIRTUAL_ENV); \
+# Ensure uv.lock file exists
+ensure-lockfile:
+	@if [ ! -f "$(UV_LOCK)" ]; then \
+		echo "Lock file not found, creating it..."; \
+		$(UV) lock; \
 	fi
 
-# Debug Docker environment
+
+# Create virtualenv for Connect integration tests
+$(VIRTUAL_ENV):
+	@echo "Creating virtualenv at $(VIRTUAL_ENV)"
+	$(UV) venv $(VIRTUAL_ENV)
+	# @if [ -f "/.dockerenv" ]; then \
+	# 	echo "Docker environment detected - creating venv"; \
+	# 	rm -rf $(VIRTUAL_ENV); \
+	# 	$(PYTHON) -m venv $(VIRTUAL_ENV); \
+	# 	echo "Venv created - checking for python3"; \
+	# 	if [ ! -f "$(VIRTUAL_ENV)/bin/python3" ]; then \
+	# 		echo "Python3 not found in venv, creating symlink"; \
+	# 		ln -sf $$(which python) $(VIRTUAL_ENV)/bin/python3; \
+	# 	fi; \
+	# 	echo "Setting exec permissions"; \
+	# 	chmod +x $(VIRTUAL_ENV)/bin/*; \
+	# 	echo "Venv contents:"; \
+	# 	ls -la $(VIRTUAL_ENV)/bin/; \
+	# else \
+	# 	# Local environments use UV's venv creation
+	# 	$(UV) venv $(VIRTUAL_ENV); \
+	# fi
+
+
+# Output environment debug information
 debug-env:
 	@echo "=== ENVIRONMENT DEBUG INFO ==="; \
 	echo "Current directory: $$(pwd)"; \
@@ -99,21 +111,24 @@ debug-env:
 	echo "UV version: $$(uv --version 2>&1)"; \
 	echo "VIRTUAL_ENV: $(VIRTUAL_ENV)"; \
 	echo "Does .venv exist? $$(test -d $(VIRTUAL_ENV) && echo 'YES' || echo 'NO')"; \
+	echo "UV_LOCK: $(UV_LOCK)"; \
+	echo "Does uv.lock exist? $$(test -f $(UV_LOCK) && echo 'YES' || echo 'NO')"; \
 	echo "================================"
 
 
-ensure-uv:  ## [py] Ensure UV and virtualenv are available for Connect integration tests
+# Ensure UV and virtualenv are available for Connect integration tests
+ensure-uv:
 	@if ! command -v $(UV) >/dev/null; then \
-			$(PYTHON) -m ensurepip && $(PYTHON) -m pip install "uv >= 0.4.27"; \
+		$(PYTHON) -m ensurepip && $(PYTHON) -m pip install "uv >= 0.4.27"; \
 	fi
 	
-	@echo "=== DEBUG before VENV creation ==="
-	@$(MAKE) debug-env
+	echo "=== DEBUG before VENV creation ==="
+	$(MAKE) debug-env
 	
 	@# Always recreate venv in Docker
 	@if [ -f "/.dockerenv" ]; then \
-			echo "Docker detected - removing old venv"; \
-			rm -rf $(VIRTUAL_ENV); \
+		echo "Docker detected - removing old venv"; \
+		rm -rf $(VIRTUAL_ENV); \
 	fi
 	
 	@# Create/update virtual environment without redirection
@@ -122,15 +137,15 @@ ensure-uv:  ## [py] Ensure UV and virtualenv are available for Connect integrati
 	
 	@echo "=== Checking venv Python interpreter ==="
 	@if [ -f "$(VIRTUAL_ENV)/bin/python3" ]; then \
-			echo "Python3 interpreter exists at $(VIRTUAL_ENV)/bin/python3"; \
-			ls -la $(VIRTUAL_ENV)/bin/python3; \
+		echo "Python3 interpreter exists at $(VIRTUAL_ENV)/bin/python3"; \
+		ls -la $(VIRTUAL_ENV)/bin/python3; \
 	else \
-			echo "ERROR: Python3 interpreter NOT found at $(VIRTUAL_ENV)/bin/python3"; \
-			echo "Creating it manually"; \
-			mkdir -p $(VIRTUAL_ENV)/bin; \
-			ln -sf $$(which python) $(VIRTUAL_ENV)/bin/python3; \
-			chmod +x $(VIRTUAL_ENV)/bin/*; \
-			ls -la $(VIRTUAL_ENV)/bin/python3; \
+		echo "ERROR: Python3 interpreter NOT found at $(VIRTUAL_ENV)/bin/python3"; \
+		echo "Creating it manually"; \
+		mkdir -p $(VIRTUAL_ENV)/bin; \
+		ln -sf $$(which python) $(VIRTUAL_ENV)/bin/python3; \
+		chmod +x $(VIRTUAL_ENV)/bin/*; \
+		ls -la $(VIRTUAL_ENV)/bin/python3; \
 	fi
 	
 	@echo "=== DEBUG after VENV creation ==="
@@ -138,14 +153,17 @@ ensure-uv:  ## [py] Ensure UV and virtualenv are available for Connect integrati
 	
 	@# Only use system UV in Docker to avoid interpreter errors
 	@if [ -f "/.dockerenv" ]; then \
-			echo "Using system UV in Docker"; \
+		echo "Using system UV in Docker"; \
 	else \
-			echo "Installing UV in virtualenv"; \
-			$(UV) pip install "uv >= 0.4.27" --quiet; \
+		echo "Installing UV in virtualenv"; \
+		$(UV) pip install "uv >= 0.4.27" --quiet; \
 	fi
 
+# Install dependencies in Docker for Connect integration tests
+docker-deps: ensure-uv ensure-lockfile
+	@echo "=== DEBUG before uv sync ==="
+	@$(MAKE) debug-env
 
-docker-deps: ensure-uv  ## [py] Install dependencies in Docker for Connect integration tests
 	@if [ -f "/.dockerenv" ] && [ ! -x "$(VIRTUAL_ENV)/bin/python3" ]; then \
 		echo "Fixing Python interpreter permissions"; \
 		chmod +x $(VIRTUAL_ENV)/bin/python3; \
@@ -162,26 +180,26 @@ clean:
 # Run test suite for a specific Connect version.
 $(CONNECT_VERSIONS): %:
 	@if [ -z "$(EXTENSION_NAME)" ]; then \
-			echo "Error: EXTENSION_NAME is required. Usage: make <version> EXTENSION_NAME=<name>"; \
-			exit 1; \
+		echo "Error: EXTENSION_NAME is required. Usage: make <version> EXTENSION_NAME=<name>"; \
+		exit 1; \
 	fi
 	# Check if this is the preview version and use special settings
-	@if [ "$*" = "preview" ]; then \
-			$(MAKE) EXTENSION_NAME=$(EXTENSION_NAME) \
-			DOCKER_CONNECT_IMAGE=$(preview_DOCKER_CONNECT_IMAGE) \
-			DOCKER_CONNECT_IMAGE_TAG=$(preview_DOCKER_CONNECT_IMAGE_TAG) \
-			down-$* up-$*; \
+	@if [ "$*" = "connect-preview" ]; then \
+		$(MAKE) EXTENSION_NAME=$(EXTENSION_NAME) \
+		DOCKER_CONNECT_IMAGE=$(preview_DOCKER_CONNECT_IMAGE) \
+		DOCKER_CONNECT_IMAGE_TAG=$(preview_DOCKER_CONNECT_IMAGE_TAG) \
+		down-$* up-$*; \
 	else \
-			$(MAKE) EXTENSION_NAME=$(EXTENSION_NAME) down-$* up-$*; \
+		$(MAKE) EXTENSION_NAME=$(EXTENSION_NAME) down-$* up-$*; \
 	fi
 
 
 # Run test suite against all Connect versions.
 all:
 	@if [ -z "$(EXTENSION_NAME)" ]; then \
-			echo "Error: EXTENSION_NAME is required."; \
-			echo "Usage: make all EXTENSION_NAME=<name>"; \
-			exit 1; \
+		echo "Error: EXTENSION_NAME is required."; \
+		echo "Usage: make all EXTENSION_NAME=<name>"; \
+		exit 1; \
 	fi
 	$(MAKE) EXTENSION_NAME=$(EXTENSION_NAME) $(CONNECT_VERSIONS:%=%)
 
@@ -189,16 +207,32 @@ all:
 # Run test suite against latest official Connect release version.
 latest:
 	@if [ -z "$(EXTENSION_NAME)" ]; then \
-			echo "Error: EXTENSION_NAME is required."; \
-			echo "Usage: make latest EXTENSION_NAME=<name>"; \
-			exit 1; \
+		echo "Error: EXTENSION_NAME is required."; \
+		echo "Usage: make latest EXTENSION_NAME=<name>"; \
+		exit 1; \
 	fi
 	@echo "Running tests with latest version: $(LATEST_VERSION)"
 	$(MAKE) $(LATEST_VERSION) EXTENSION_NAME=$(EXTENSION_NAME)
 
+
+# Run test suite against preview Connect version.
+preview:
+	@if [ -z "$(EXTENSION_NAME)" ]; then \
+		echo "Error: EXTENSION_NAME is required."; \
+		echo "Usage: make preview EXTENSION_NAME=<name>"; \
+		exit 1; \
+	fi
+	@echo "Running tests with preview version"
+	$(MAKE) \
+	EXTENSION_NAME=$(EXTENSION_NAME) \
+	DOCKER_CONNECT_IMAGE=$(preview_DOCKER_CONNECT_IMAGE) \
+	DOCKER_CONNECT_IMAGE_TAG=$(preview_DOCKER_CONNECT_IMAGE_TAG) \
+	down-preview up-preview
+
+
 # Build Dockerfile
 build: dev
-	docker build -t $(DOCKER_PROJECT_IMAGE_TAG) .
+	BUILDKIT_PROGRESS=plain docker build -t $(DOCKER_PROJECT_IMAGE_TAG) .
 
 
 # Tear down resources.
@@ -246,6 +280,7 @@ help:
 	@echo "  latest           Run test suite for latest Connect version (requires EXTENSION_NAME)."
 	@echo "  preview          Run test suite for preview Connect version (requires EXTENSION_NAME)."
 	@echo "  <version>        Run test suite for specific version (requires EXTENSION_NAME)."
+	@echo "  build            Build the Docker image without running tests."
 	@echo "  up               Start Docker Compose for all Connect versions."
 	@echo "  down             Tear down Docker resources for all Connect versions."
 	@echo "  clean            Clean up the project directory."
@@ -260,7 +295,7 @@ help:
 	@echo
 	@echo "Examples:"
 	@echo "  # Run tests for specific version:"
-	@echo "  make -C ./integration 2025.02.0 \\"
+	@echo "  make -C ./integration 2025.03.0 \\"
 	@echo "    EXTENSION_NAME=publisher-command-center"
 	@echo
 	@echo "  # Run tests for latest version:"
@@ -275,7 +310,7 @@ help:
 	@echo "  PYTEST_ARGS              Arguments to pass to pytest. Default: \"-s\""
 
 
-# Run tests. This target is invoked by the Docker compose file.
+# Run tests. This target is invoked by the Docker compose file and run inside the tests container.
 test:
 	mkdir -p logs reports
 	set -o pipefail; \
