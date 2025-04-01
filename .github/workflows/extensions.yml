@@ -61,18 +61,6 @@ jobs:
         with:
           extension-name: ${{ matrix.extension }}
 
-      # Due to using a matrix only collect successful extensions for later use
-      - name: Mark successful jobs
-        if: success()
-        run: echo "${{ matrix.extension }}" >> success-${{ matrix.extension }}.txt
-
-      - uses: actions/upload-artifact@v4
-        if: success()
-        with:
-          name: extension-success-${{ matrix.extension }}
-          path: success-${{ matrix.extension }}.txt
-          retention-days: 1
-
   # Collect success results from the matrix simple-extensions jobs for later use
   collect-simple-extensions:
     needs: simple-extensions
@@ -82,19 +70,21 @@ jobs:
     steps:
       - uses: actions/download-artifact@v4
         with:
-          pattern: extension-success-*
-          path: successes
+          # Uses artifacts generated from package-extension which are only present if packaging was successful
+          pattern: "*.tar.gz"
+          path: packages
           merge-multiple: true
 
       - id: collect
         run: |
           SUCCESS_LIST=()
-          if [ -d "successes" ]; then
-            for FILE in successes/success-*.txt; do
+          if [ -d "packages" ]; then
+            for FILE in packages/*.tar.gz; do
               if [ -f "$FILE" ]; then
-                EXT=$(cat "$FILE")
+                # Extract extension name from filename (remove .tar.gz)
+                EXT=$(basename "$FILE" .tar.gz)
                 SUCCESS_LIST+=("$EXT")
-                echo "Found successful extension: $EXT"
+                echo "Found successful extension package: $EXT"
               fi
             done
           fi
@@ -103,6 +93,7 @@ jobs:
             '$arr | split(",")' -c)
           echo "Successful extensions: $SUCCESSFUL_EXTENSIONS"
           echo "successful_extensions=$SUCCESSFUL_EXTENSIONS" >> "$GITHUB_OUTPUT"
+  
 
   # Runs Connect integration tests for each extension that were successfully linted and packaged
   simple-extension-connect-integration-tests:
