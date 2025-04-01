@@ -38,7 +38,7 @@ runs:
         name: ${{ inputs.extension-name }}.tar.gz
         path: integration/bundles
 
-    - uses: astral-sh/setup-uv@v3
+    - uses: astral-sh/setup-uv@v5
       with:
         pyproject-file: "./integration/pyproject.toml"
 
