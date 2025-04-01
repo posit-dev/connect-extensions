@@ -71,59 +71,86 @@ dev: ensure-uv  ## [py] Install dependencies for Connect integration tests
 
 $(VIRTUAL_ENV):  ## [py] Create virtualenv for Connect integration tests
 	@echo "Creating virtualenv at $(VIRTUAL_ENV)"
-	@# Check if we're in Docker and handle differently
 	@if [ -f "/.dockerenv" ]; then \
-			echo "Detected Docker environment: using system installation"; \
-			$(MAKE) debug-env
-			mkdir -p $(VIRTUAL_ENV)/bin; \
-			ln -sf $$(which python) $(VIRTUAL_ENV)/bin/python3; \
-			$(MAKE) debug-env
+		echo "Docker environment detected - creating venv"; \
+		rm -rf $(VIRTUAL_ENV); \
+		$(PYTHON) -m venv $(VIRTUAL_ENV); \
+		echo "Venv created - checking for python3"; \
+		if [ ! -f "$(VIRTUAL_ENV)/bin/python3" ]; then \
+				echo "Python3 not found in venv, creating symlink"; \
+				ln -sf $$(which python) $(VIRTUAL_ENV)/bin/python3; \
+		fi; \
+		echo "Setting exec permissions"; \
+		chmod +x $(VIRTUAL_ENV)/bin/*; \
+		echo "Venv contents:"; \
+		ls -la $(VIRTUAL_ENV)/bin/; \
 	else \
-			echo "Using uv to create virtualenv"; \
-			$(UV) venv $(VIRTUAL_ENV); \
+		# Local environments use UV's venv creation
+		$(UV) venv $(VIRTUAL_ENV); \
 	fi
 
-
-# Dbug Docker environment
+# Debug Docker environment
 debug-env:
-	@echo "=== ENVIRONMENT DEBUG INFO ==="
-	@echo "Current directory: $$(pwd)"
-	@echo "Python executable: $$(which python)"
-	@echo "Python version: $$(python --version)"
-	@echo "UV executable: $$(which uv)"
-	@echo "UV version: $$(uv --version 2>&1)"
-	@echo "VIRTUAL_ENV: $(VIRTUAL_ENV)"
-	@echo "Does .venv exist? $$(test -d $(VIRTUAL_ENV) && echo 'YES' || echo 'NO')"
-	@echo "Directory permissions: $$(ls -ld .)"
-	@echo "Content of current dir: $$(ls -la)"
-	@echo "================================"
+	@echo "=== ENVIRONMENT DEBUG INFO ==="; \
+	echo "Current directory: $$(pwd)"; \
+	echo "Python executable: $$(which python)"; \
+	echo "Python version: $$(python --version)"; \
+	echo "UV executable: $$(which uv)"; \
+	echo "UV version: $$(uv --version 2>&1)"; \
+	echo "VIRTUAL_ENV: $(VIRTUAL_ENV)"; \
+	echo "Does .venv exist? $$(test -d $(VIRTUAL_ENV) && echo 'YES' || echo 'NO')"; \
+	echo "================================"
 
 
 ensure-uv:  ## [py] Ensure UV and virtualenv are available for Connect integration tests
-	@echo "=== DEBUG before UV install ==="
-	@$(MAKE) debug-env
-
 	@if ! command -v $(UV) >/dev/null; then \
 			$(PYTHON) -m ensurepip && $(PYTHON) -m pip install "uv >= 0.4.27"; \
 	fi
-
+	
 	@echo "=== DEBUG before VENV creation ==="
 	@$(MAKE) debug-env
-
-	@# Install virtual environment (before calling `uv pip install ...`) including in Docker
-	@$(MAKE) $(VIRTUAL_ENV) 1>/dev/null
-
+	
+	@# Always recreate venv in Docker
+	@if [ -f "/.dockerenv" ]; then \
+			echo "Docker detected - removing old venv"; \
+			rm -rf $(VIRTUAL_ENV); \
+	fi
+	
+	@# Create/update virtual environment without redirection
+	@echo "Creating virtual environment without redirection..."
+	@$(MAKE) $(VIRTUAL_ENV)
+	
+	@echo "=== Checking venv Python interpreter ==="
+	@if [ -f "$(VIRTUAL_ENV)/bin/python3" ]; then \
+			echo "Python3 interpreter exists at $(VIRTUAL_ENV)/bin/python3"; \
+			ls -la $(VIRTUAL_ENV)/bin/python3; \
+	else \
+			echo "ERROR: Python3 interpreter NOT found at $(VIRTUAL_ENV)/bin/python3"; \
+			echo "Creating it manually"; \
+			mkdir -p $(VIRTUAL_ENV)/bin; \
+			ln -sf $$(which python) $(VIRTUAL_ENV)/bin/python3; \
+			chmod +x $(VIRTUAL_ENV)/bin/*; \
+			ls -la $(VIRTUAL_ENV)/bin/python3; \
+	fi
+	
 	@echo "=== DEBUG after VENV creation ==="
 	@$(MAKE) debug-env
-
-	@# Be sure recent uv is installed
-	@$(UV) pip install "uv >= 0.4.27" --quiet
+	
+	@# Only use system UV in Docker to avoid interpreter errors
+	@if [ -f "/.dockerenv" ]; then \
+			echo "Using system UV in Docker"; \
+	else \
+			echo "Installing UV in virtualenv"; \
+			$(UV) pip install "uv >= 0.4.27" --quiet; \
+	fi
 
 
 docker-deps: ensure-uv  ## [py] Install dependencies in Docker for Connect integration tests
+	@if [ -f "/.dockerenv" ] && [ ! -x "$(VIRTUAL_ENV)/bin/python3" ]; then \
+		echo "Fixing Python interpreter permissions"; \
+		chmod +x $(VIRTUAL_ENV)/bin/python3; \
+	fi
 	# Sync given the `uv.lock` file
-	# --frozen : assert that the lock file exists
-	# --no-install-project : do not install the project itself, but install its dependencies
 	$(UV) sync --frozen --no-install-project
 
 
