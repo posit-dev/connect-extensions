@@ -50,7 +50,9 @@ PYTEST_ARGS ?= "-s"
 	up-%
 
 
-# Versions starting with 2025.03.0 (first Connect version fully supporting extensions and version matching) and newer
+# All versions starting with 2025.03.0 (first Connect version fully supporting extensions, version matching) and newer
+# Note connect-preview is the same version in the `preview` target. It is included here as part of the full list of all 
+# possible versions to test against in CI or when using the `all` target.
 CONNECT_VERSIONS := \
 	connect-preview \
 	2025.03.0
@@ -82,23 +84,6 @@ ensure-lockfile:
 $(VIRTUAL_ENV):
 	@echo "Creating virtualenv at $(VIRTUAL_ENV)"
 	$(UV) venv $(VIRTUAL_ENV)
-	# @if [ -f "/.dockerenv" ]; then \
-	# 	echo "Docker environment detected - creating venv"; \
-	# 	rm -rf $(VIRTUAL_ENV); \
-	# 	$(PYTHON) -m venv $(VIRTUAL_ENV); \
-	# 	echo "Venv created - checking for python3"; \
-	# 	if [ ! -f "$(VIRTUAL_ENV)/bin/python3" ]; then \
-	# 		echo "Python3 not found in venv, creating symlink"; \
-	# 		ln -sf $$(which python) $(VIRTUAL_ENV)/bin/python3; \
-	# 	fi; \
-	# 	echo "Setting exec permissions"; \
-	# 	chmod +x $(VIRTUAL_ENV)/bin/*; \
-	# 	echo "Venv contents:"; \
-	# 	ls -la $(VIRTUAL_ENV)/bin/; \
-	# else \
-	# 	# Local environments use UV's venv creation
-	# 	$(UV) venv $(VIRTUAL_ENV); \
-	# fi
 
 
 # Output environment debug information
@@ -125,13 +110,6 @@ ensure-uv:
 	echo "=== DEBUG before VENV creation ==="
 	$(MAKE) debug-env
 	
-	@# Always recreate venv in Docker
-	@if [ -f "/.dockerenv" ]; then \
-		echo "Docker detected - removing old venv"; \
-		rm -rf $(VIRTUAL_ENV); \
-	fi
-	
-	@# Create/update virtual environment without redirection
 	@echo "Creating virtual environment without redirection..."
 	@$(MAKE) $(VIRTUAL_ENV)
 	
@@ -151,23 +129,15 @@ ensure-uv:
 	@echo "=== DEBUG after VENV creation ==="
 	@$(MAKE) debug-env
 	
-	@# Only use system UV in Docker to avoid interpreter errors
-	@if [ -f "/.dockerenv" ]; then \
-		echo "Using system UV in Docker"; \
-	else \
-		echo "Installing UV in virtualenv"; \
-		$(UV) pip install "uv >= 0.4.27" --quiet; \
-	fi
+	echo "Installing UV in virtualenv"; \
+	$(UV) pip install "uv >= 0.4.27" --quiet; \
+
 
 # Install dependencies in Docker for Connect integration tests
 docker-deps: ensure-uv ensure-lockfile
 	@echo "=== DEBUG before uv sync ==="
 	@$(MAKE) debug-env
 
-	@if [ -f "/.dockerenv" ] && [ ! -x "$(VIRTUAL_ENV)/bin/python3" ]; then \
-		echo "Fixing Python interpreter permissions"; \
-		chmod +x $(VIRTUAL_ENV)/bin/python3; \
-	fi
 	# Sync given the `uv.lock` file
 	$(UV) sync --frozen --no-install-project
 
@@ -279,7 +249,7 @@ help:
 	@echo "  all              Run test suite for all Connect versions (requires EXTENSION_NAME)."
 	@echo "  latest           Run test suite for latest Connect version (requires EXTENSION_NAME)."
 	@echo "  preview          Run test suite for preview Connect version (requires EXTENSION_NAME)."
-	@echo "  <version>        Run test suite for specific version (requires EXTENSION_NAME)."
+	@echo "  <version>        Run test suite for specific Connect version (requires EXTENSION_NAME)."
 	@echo "  build            Build the Docker image without running tests."
 	@echo "  up               Start Docker Compose for all Connect versions."
 	@echo "  down             Tear down Docker resources for all Connect versions."
@@ -291,7 +261,7 @@ help:
 	@echo "  EXTENSION_NAME   Name of the extension directory (e.g., publisher-command-center)"
 	@echo
 	@echo "Common Usage:"
-	@echo "  make -C ./integration <target> EXTENSION_NAME=<name>"
+	@echo "  make <target> EXTENSION_NAME=<name>"
 	@echo
 	@echo "Examples:"
 	@echo "  # Run tests for specific version:"
