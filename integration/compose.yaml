@@ -15,7 +15,8 @@ services:
         - EXTENSION_NAME=${EXTENSION_NAME}
         - PYTEST_ARGS=${PYTEST_ARGS}
     volumes:
-      - .:${PWD}:delegated,exclude=.venv  # Mount current directory but exclude .venv
+      - .:/connect-extensions/integration
+      - ./empty:/connect-extensions/integration/.venv  # Ignore local venv to ensure use of the one in the container
       - ./rstudio-connect.gcfg:/etc/rstudio-connect/rstudio-connect.gcfg:ro
       - ./logs:/var/log/rstudio-connect
     depends_on:
