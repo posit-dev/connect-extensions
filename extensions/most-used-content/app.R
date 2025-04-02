@@ -43,6 +43,7 @@ ui <- page_fillable(
         title = "Controls",
         open = TRUE,
         width = 275,
+
         dateRangeInput(
           "date_range",
           label = "Select Date Range",
@@ -50,6 +51,16 @@ ui <- page_fillable(
           end = today(),
           max = today()
         ),
+
+        sliderInput(
+          "visit_merge_window",
+          label = "Visit Merge Window (sec)",
+          min = 0,
+          max = 600,
+          value = 1,
+          step = 0.5
+        ),
+
         actionButton("clear_cache", "Clear Cache", icon = icon("refresh"))
       ),
       card(
@@ -81,8 +92,20 @@ server <- function(input, output, session) {
     )
   }) |> bindCache(input$date_range)
 
+  usage_data_filtered <- reactive({
+    usage_data() |>
+      group_by(content_guid, user_guid) |>
+
+      # Compute time diffs and filter out hits within the session
+      mutate(time_diff = seconds(timestamp - lag(timestamp, 1))) |>
+      replace_na(list(time_diff = seconds(Inf))) |>
+      filter(time_diff > input$visit_merge_window) |>
+      ungroup() |>
+      select(-time_diff)
+  })
+
   content_usage_data <- reactive({
-    usage_summary <- usage_data() |>
+    usage_summary <- usage_data_filtered() |>
       group_by(content_guid) |>
       summarize(
         total_views = n(),
@@ -93,7 +116,7 @@ server <- function(input, output, session) {
 
     # Prepare sparkline data as a list column of numeric vectors.
     all_dates <- seq.Date(input$date_range[1], input$date_range[2], by = "day")
-    daily_usage <- usage_data() |>
+    daily_usage <- usage_data_filtered() |>
       count(content_guid, date = date(timestamp)) |>
       complete(date = all_dates, nesting(content_guid), fill = list(n = 0)) |>
       group_by(content_guid) |>
@@ -108,7 +131,8 @@ server <- function(input, output, session) {
       # mutate(views_bar = total_views) |>
       # select(title, owner_username, total_views, views_bar, sparkline, unique_viewers, last_viewed_at)
       select(title, owner_username, total_views, sparkline, unique_viewers, last_viewed_at)
-  }) |> bindCache(input$date_range)
+  })
+  # |> bindCache(input$date_range)
 
   output$content_usage_table <- renderReactable({
     data <- content_usage_data()
@@ -124,15 +148,16 @@ server <- function(input, output, session) {
 
         title = colDef(name = "Content", defaultSortOrder = "asc"),
 
-        owner_username = colDef(name = "Owner", defaultSortOrder = "asc", minWidth = 80),
+        owner_username = colDef(name = "Owner", defaultSortOrder = "asc", minWidth = 75),
 
         total_views = colDef(
           name = "Visits",
           align = "left",
-          minWidth = 70,
+          minWidth = 75,
+          maxWidth = 150,
           cell = function(value) {
             max_val <- max(data$total_views, na.rm = TRUE)
-            bar_chart(value, max_val, fill = "#3fc1c9", background = "#e1e1e1")
+            bar_chart(value, max_val, fill = "#7494b1", background = "#e1e1e1")
           }
         ),
 
@@ -140,9 +165,10 @@ server <- function(input, output, session) {
           name = "",
           align = "center",
           width = 90,
+          sortable = FALSE,
           cell = function(value) {
             # Use sparkline::spk_chr() to generate the sparkline HTML.
-            sparkline::sparkline(value, type = "bar", barColor = "gray", disableTooltips = TRUE, barWidth = 8)
+            sparkline::sparkline(value, type = "bar", barColor = "#7494b1", disableTooltips = TRUE, barWidth = 8)
           }
         ),
 
@@ -150,6 +176,7 @@ server <- function(input, output, session) {
           name = "Unique Visitors",
           align = "left",
           minWidth = 70,
+          maxWidth = 120,
           cell = function(value) {
             max_val <- max(data$total_views, na.rm = TRUE)
             format(value, width = nchar(max_val), justify = "right")
