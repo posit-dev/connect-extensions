@@ -1,0 +1,23 @@
+.bar-cell {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  gap: 5%; /* creates internal spacing */
+}
+
+.number {
+  font-family: "Fira Mono", Consolas, Monaco, monospace;
+  white-space: pre;
+  font-size: 0.84375rem;
+  flex: 0 0 20%; /* label gets 30% of the width */
+  text-align: right;
+}
+
+.bar-chart {
+  flex: 0 0 60%; /* bar-chart always gets 70% of the width */
+  height: 0.875rem;
+}
+
+.bar {
+  height: 100%;
+}

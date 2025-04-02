@@ -7,6 +7,7 @@ library(purrr)
 library(lubridate)
 library(tidyr)
 library(sparkline)
+library(htmltools)
 
 shinyOptions(
   cache = cachem::cache_disk("./app_cache/cache/", max_age = 60 * 60 * 8)
@@ -14,7 +15,24 @@ shinyOptions(
 
 source("get_usage.R")
 
+# bar <- div(
+#   class = "bar-chart",
+#   style = list(marginRight = "0.375rem"),
+#   div(class = "bar", style = list(width = width, backgroundColor = "#3fc1c9"))
+# )
+# div(class = "bar-cell", span(class = "number", value), bar)
+
+bar_chart <- function(value, width = "100%", height = "1rem", fill = "#00bfc4", background = NULL) {
+  bar <- div(class = "bar", style = list(background = fill, width = width))
+  chart <- div(class = "bar-chart", style = list(background = background), bar)
+  label <- span(class = "number", value)
+  div(class = "bar-cell", label, chart)
+}
+
 ui <- page_fillable(
+  tags$head(
+    tags$link(rel = "stylesheet", type = "text/css", href = "styles.css")
+  ),
   theme = bs_theme(version = 5),
   card(
     card_header("Most Used Content"),
@@ -85,8 +103,9 @@ server <- function(input, output, session) {
       right_join(usage_summary, by = "content_guid") |>
       right_join(daily_usage, by = "content_guid") |>
       arrange(desc(total_views)) |>
-      mutate(view_bar = total_views) |>
-      select(view_bar, title, owner_username, total_views, unique_viewers, sparkline, last_viewed_at)
+      # mutate(views_bar = total_views) |>
+      # select(title, owner_username, total_views, views_bar, sparkline, unique_viewers, last_viewed_at)
+      select(title, owner_username, total_views, sparkline, unique_viewers, last_viewed_at)
   }) |> bindCache(input$date_range)
 
   output$content_usage_table <- renderReactable({
@@ -99,25 +118,39 @@ server <- function(input, output, session) {
       highlight = TRUE,
       filterable = TRUE,
       columns = list(
-        view_bar = colDef(
-          name = "",
-          cell = function(value) {
-            max_val <- max(data$total_views, na.rm = TRUE)
-            pct <- round(100 * value / max_val)
-            sprintf("
-              <div style='background: #e0e0e0; width: 100%%; height: 1em; border-radius: 4px;'>
-                <div style='background: #1f77b4; width: %d%%; height: 100%%; border-radius: 4px;'></div>
-              </div>", pct
-            )
-          },
-          align = "center",
-          html = TRUE,
-          width = 80
-        ),
+
+        # views_bar = colDef(
+        #   name = "",
+        #   cell = function(value) {
+        #     max_val <- max(data$total_views, na.rm = TRUE)
+        #     pct <- round(100 * value / max_val)
+        #     sprintf("
+        #       <div style='background: #e0e0e0; width: 100%%; height: 1em;'>
+        #         <div style='background: #1f77b4; width: %d%%; height: 100%%;'></div>
+        #       </div>", pct
+        #     )
+        #   },
+        #   align = "center",
+        #   html = TRUE,
+        #   width = 80
+        # ),
+
         title = colDef(name = "Content", defaultSortOrder = "asc"),
+
         owner_username = colDef(name = "Owner", defaultSortOrder = "asc", minWidth = 80),
-        total_views = colDef(name = "Visits", align = "right", minWidth = 50),
+
+        total_views = colDef(
+          name = "Visits",
+          align = "left",
+          minWidth = 75,
+          cell = function(value) {
+            width <- paste0(value * 100 / max(data$total_views, na.rm = TRUE), "%")
+            bar_chart(value, width = width, fill = "#3fc1c9", background = "#e1e1e1")
+          }
+        ),
+
         unique_viewers = colDef(name = "Unique Visitors", align = "right", minWidth = 50),
+
         last_viewed_at = colDef(
           name = "Last Viewed",
           align = "right",
@@ -125,8 +158,9 @@ server <- function(input, output, session) {
             format(as.POSIXct(value), "%Y-%m-%d %H:%M:%S")
           }
         ),
+
         sparkline = colDef(
-          name = "Sparkline",
+          name = "",
           align = "center",
           width = 90,
           cell = function(value) {
@@ -134,6 +168,7 @@ server <- function(input, output, session) {
             sparkline::sparkline(value, type = "bar", barColor = "gray", disableTooltips = TRUE, barWidth = 8)
           }
         )
+
       )
     )
   })
