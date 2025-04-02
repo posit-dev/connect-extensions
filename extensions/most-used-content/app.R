@@ -22,7 +22,9 @@ source("get_usage.R")
 # )
 # div(class = "bar-cell", span(class = "number", value), bar)
 
-bar_chart <- function(value, width = "100%", height = "1rem", fill = "#00bfc4", background = NULL) {
+bar_chart <- function(value, max_val, height = "1rem", fill = "#00bfc4", background = NULL) {
+  width <- paste0(value * 100 / max_val, "%")
+  value <- format(value, width = nchar(max_val), justify = "right")
   bar <- div(class = "bar", style = list(background = fill, width = width))
   chart <- div(class = "bar-chart", style = list(background = background), bar)
   label <- span(class = "number", value)
@@ -116,24 +118,9 @@ server <- function(input, output, session) {
       pagination = FALSE,
       sortable = TRUE,
       highlight = TRUE,
-      filterable = TRUE,
+      # filterable = TRUE,
+      class = "content-tbl",
       columns = list(
-
-        # views_bar = colDef(
-        #   name = "",
-        #   cell = function(value) {
-        #     max_val <- max(data$total_views, na.rm = TRUE)
-        #     pct <- round(100 * value / max_val)
-        #     sprintf("
-        #       <div style='background: #e0e0e0; width: 100%%; height: 1em;'>
-        #         <div style='background: #1f77b4; width: %d%%; height: 100%%;'></div>
-        #       </div>", pct
-        #     )
-        #   },
-        #   align = "center",
-        #   html = TRUE,
-        #   width = 80
-        # ),
 
         title = colDef(name = "Content", defaultSortOrder = "asc"),
 
@@ -142,20 +129,10 @@ server <- function(input, output, session) {
         total_views = colDef(
           name = "Visits",
           align = "left",
-          minWidth = 75,
+          minWidth = 70,
           cell = function(value) {
-            width <- paste0(value * 100 / max(data$total_views, na.rm = TRUE), "%")
-            bar_chart(value, width = width, fill = "#3fc1c9", background = "#e1e1e1")
-          }
-        ),
-
-        unique_viewers = colDef(name = "Unique Visitors", align = "right", minWidth = 50),
-
-        last_viewed_at = colDef(
-          name = "Last Viewed",
-          align = "right",
-          cell = function(value) {
-            format(as.POSIXct(value), "%Y-%m-%d %H:%M:%S")
+            max_val <- max(data$total_views, na.rm = TRUE)
+            bar_chart(value, max_val, fill = "#3fc1c9", background = "#e1e1e1")
           }
         ),
 
@@ -167,7 +144,29 @@ server <- function(input, output, session) {
             # Use sparkline::spk_chr() to generate the sparkline HTML.
             sparkline::sparkline(value, type = "bar", barColor = "gray", disableTooltips = TRUE, barWidth = 8)
           }
+        ),
+
+        unique_viewers = colDef(
+          name = "Unique Visitors",
+          align = "left",
+          minWidth = 70,
+          cell = function(value) {
+            max_val <- max(data$total_views, na.rm = TRUE)
+            format(value, width = nchar(max_val), justify = "right")
+          },
+          class = "number"
+        ),
+
+        last_viewed_at = colDef(
+          name = "Last Viewed",
+          align = "right",
+          width = 150,
+          cell = function(value) {
+            format(as.POSIXct(value), "%Y-%m-%d %H:%M:%S")
+          }
         )
+
+
 
       )
     )
