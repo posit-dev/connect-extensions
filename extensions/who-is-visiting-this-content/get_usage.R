@@ -18,7 +18,7 @@ usage_dtype <- tibble::tibble(
 # `connectapi`.
 get_usage_firehose <- function(client, from = NULL, to = NULL) {
   usage_raw <- client$GET(
-    connectapi:::unversioned_url("instrumentation", "content", "hits"),
+    connectapi:::v1_url("instrumentation", "content", "hits"),
     query = list(
       from = from,
       to = to
