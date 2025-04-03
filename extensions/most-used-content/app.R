@@ -240,7 +240,7 @@ server <- function(input, output, session) {
           sortable = FALSE,
           cell = function(value) {
             # Use sparkline::spk_chr() to generate the sparkline HTML.
-            sparkline::sparkline(value, type = "bar", barColor = "#7494b1", disableTooltips = TRUE, barWidth = 8)
+            sparkline::sparkline(value, type = "bar", barColor = "#7494b1", disableTooltips = TRUE, barWidth = 8, chartRangeMin = TRUE)
           }
         ),
 
