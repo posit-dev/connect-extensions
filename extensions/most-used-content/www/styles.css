@@ -53,3 +53,10 @@
 .bar {
   height: 100%;
 }
+
+
+/* Shiny app styles */
+
+.selectize-dropdown-content{
+  max-height: 50vh !important;
+}
