@@ -39,7 +39,7 @@ ui <- page_sidebar(
   title = "Most Used Content",
   sidebar = sidebar(
     # title = "Controls",
-    open = TRUE,
+    open = "desktop",
     width = 275,
 
     dateRangeInput(
