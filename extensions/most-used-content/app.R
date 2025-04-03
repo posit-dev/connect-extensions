@@ -31,79 +31,73 @@ bar_chart <- function(value, max_val, height = "1rem", fill = "#00bfc4", backgro
   div(class = "bar-cell", label, chart)
 }
 
-ui <- page_fillable(
+ui <- page_sidebar(
   tags$head(
     tags$link(rel = "stylesheet", type = "text/css", href = "styles.css")
   ),
   theme = bs_theme(version = 5),
-  card(
-    card_header("Most Used Content"),
-    layout_sidebar(
-      sidebar = sidebar(
-        # title = "Controls",
-        open = TRUE,
-        width = 275,
+  title = "Most Used Content",
+  sidebar = sidebar(
+    # title = "Controls",
+    open = TRUE,
+    width = 275,
 
-        dateRangeInput(
-          "date_range",
-          label = "Select Date Range",
-          start = today() - ddays(6),
-          end = today(),
-          max = today()
-        ),
+    dateRangeInput(
+      "date_range",
+      label = "Select Date Range",
+      start = today() - ddays(6),
+      end = today(),
+      max = today()
+    ),
 
-        selectizeInput(
-          "app_mode_filter",
-          label = "Filter by Content Type",
-          options = list(placeholder = "All Content Types"),
-          choices = list(
-            "Python Bokeh" = "python-bokeh",
-            "Python Dash" = "python-dash",
-            "Python FastAPI" = "python-fastapi",
-            "Python Flask API" = "python-api",
-            "Python Gradio" = "python-gradio",
-            "Python Jupyter Notebook" = "jupyter-static",
-            "Python Jupyter Voila" = "jupyter-voila",
-            "Python Shiny" = "python-shiny",
-            "Python Streamlit" = "python-streamlit",
-            "Quarto" = "quarto-static",
-            "Quarto (Interactive)" = "quarto-shiny",
-            "R Markdown" = "rmd-static",
-            "R Markdown (Interactive)" = "rmd-shiny",
-            "R Plumber API" = "api",
-            "R Shiny" = "shiny",
-            "Static HTML" = "static",
-            "Tensorflow Model" = "tensorflow-saved-model",
-            "Unknown" = "unknown"
-          ),
-          multiple = TRUE
-        ),
-
-        sliderInput(
-          "visit_merge_window",
-          label = "Visit Merge Window (sec)",
-          min = 0,
-          max = 180,
-          value = 0,
-          step = 1
-        ),
-
-        downloadButton(
-          "export_raw_visits",
-          label = "Export Raw Visits"
-        ),
-        downloadButton(
-          "export_visit_totals",
-          label = "Export Visit Totals"
-        ),
-        actionButton("clear_cache", "Clear Cache", icon = icon("refresh"))
+    selectizeInput(
+      "app_mode_filter",
+      label = "Filter by Content Type",
+      options = list(placeholder = "All Content Types"),
+      choices = list(
+        "Python Bokeh" = "python-bokeh",
+        "Python Dash" = "python-dash",
+        "Python FastAPI" = "python-fastapi",
+        "Python Flask API" = "python-api",
+        "Python Gradio" = "python-gradio",
+        "Python Jupyter Notebook" = "jupyter-static",
+        "Python Jupyter Voila" = "jupyter-voila",
+        "Python Shiny" = "python-shiny",
+        "Python Streamlit" = "python-streamlit",
+        "Quarto" = "quarto-static",
+        "Quarto (Interactive)" = "quarto-shiny",
+        "R Markdown" = "rmd-static",
+        "R Markdown (Interactive)" = "rmd-shiny",
+        "R Plumber API" = "api",
+        "R Shiny" = "shiny",
+        "Static HTML" = "static",
+        "Tensorflow Model" = "tensorflow-saved-model",
+        "Unknown" = "unknown"
       ),
-      textOutput("summary_text"),
-      card(
-        reactableOutput("content_usage_table")
-      )
-    )
-  )
+      multiple = TRUE
+    ),
+
+    sliderInput(
+      "visit_merge_window",
+      label = "Visit Merge Window (sec)",
+      min = 0,
+      max = 180,
+      value = 0,
+      step = 1
+    ),
+
+    downloadButton(
+      "export_raw_visits",
+      label = "Export Raw Visits"
+    ),
+    downloadButton(
+      "export_visit_totals",
+      label = "Export Visit Totals"
+    ),
+    actionButton("clear_cache", "Clear Cache", icon = icon("refresh"))
+  ),
+  textOutput("summary_text"),
+  reactableOutput("content_usage_table")
 )
 
 server <- function(input, output, session) {
