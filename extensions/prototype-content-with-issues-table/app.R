@@ -43,8 +43,8 @@ get_user_email <- function(client, guid) {
 # filters content jobs down to failures and sets content_recovered depending on 
 # whether or not the latest job ended in error
 filter_to_failed_jobs <- function(jobs) {
-  failed_jobs <- if (is.null(jobs) || nrow(jobs) == 0) {
-    NULL
+  failed_jobs <- if (nrow(jobs) == 0) {
+    data.frame() 
     } else {
     # grab the latest job and all failing jobs
     latest_job <- jobs %>%
@@ -71,12 +71,12 @@ get_failed_job_data <- function(item, client) {
       get_jobs(item) 
     }, error = function(e) {
       print(paste("Error encountered with item: ", item, e$message))
-      NULL
+      data.frame() 
     })
   failed_jobs <- filter_to_failed_jobs(jobs)
-  all_failed_jobs <- if (is.null(failed_jobs) || nrow(failed_jobs) == 0) {
+  all_failed_jobs <- if (nrow(failed_jobs) == 0) {
     # content item does not have failed jobs
-    NULL
+    data.frame() 
   } else {
     owner_email <- get_user_email(client, item$content$owner_guid)
     failed_jobs %>% 
