@@ -169,8 +169,10 @@ server <- function(input, output, session) {
     content() |>
       mutate(owner_username = map_chr(owner, "username")) |>
       select(title, content_guid = guid, owner_username) |>
+      replace_na(list(title = "[Untitled]")) |>
       right_join(usage_summary, by = "content_guid") |>
       right_join(daily_usage, by = "content_guid") |>
+      replace_na(list(title = "[Unavailable]")) |>
       arrange(desc(total_views)) |>
       select(content_guid, title, owner_username, total_views, sparkline, unique_viewers, last_viewed_at)
   })
@@ -205,9 +207,20 @@ server <- function(input, output, session) {
 
       columns = list(
 
-        title = colDef(name = "Content", defaultSortOrder = "asc"),
+        title = colDef(
+          name = "Content",
+          defaultSortOrder = "asc",
+          filterable = TRUE,
+          style = function(value) {
+            switch(value,
+              "[Untitled]" = list(fontStyle = "italic"),
+              "[Unavailable]" = list(fontStyle = "italic", color = "#808080"),
+              NULL
+            )
+          }
+        ),
 
-        owner_username = colDef(name = "Owner", defaultSortOrder = "asc", minWidth = 75),
+        owner_username = colDef(name = "Owner", defaultSortOrder = "asc", minWidth = 75, filterable = TRUE),
 
         total_views = colDef(
           name = "Visits",
@@ -221,13 +234,19 @@ server <- function(input, output, session) {
         ),
 
         sparkline = colDef(
-          name = "",
-          align = "center",
+          name = "By Day",
+          align = "left",
           width = 90,
           sortable = FALSE,
           cell = function(value) {
-            # Use sparkline::spk_chr() to generate the sparkline HTML.
-            sparkline::sparkline(value, type = "bar", barColor = "#7494b1", disableTooltips = TRUE, barWidth = 8, chartRangeMin = TRUE)
+            sparkline::sparkline(
+              value,
+              type = "bar",
+              barColor = "#7494b1",
+              disableTooltips = TRUE,
+              barWidth = 8,
+              chartRangeMin = TRUE
+            )
           }
         ),
 
