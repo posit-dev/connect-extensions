@@ -15,12 +15,15 @@ shinyOptions(
 
 source("get_usage.R")
 
-# bar <- div(
-#   class = "bar-chart",
-#   style = list(marginRight = "0.375rem"),
-#   div(class = "bar", style = list(width = width, backgroundColor = "#3fc1c9"))
-# )
-# div(class = "bar-cell", span(class = "number", value), bar)
+app_mode_groups <- list(
+  "API" = c("api", "python-fastapi", "python-api", "tensorflow-saved-model"),
+  "Application" = c("shiny", "python-shiny", "python-dash", "python-gradio", "python-streamlit", "python-bokeh"),
+  "Jupyter" = c("jupyter-static", "jupyter-voila"),
+  "Quarto" = c("quarto-shiny", "quarto-static"),
+  "R Markdown" = c("rmd-shiny", "rmd-static"),
+  "Pin" = c("pin"),
+  "Other" = c("unknown")
+)
 
 bar_chart <- function(value, max_val, height = "1rem", fill = "#00bfc4", background = NULL) {
   width <- paste0(value * 100 / max_val, "%")
@@ -55,24 +58,13 @@ ui <- page_sidebar(
       label = "Filter by Content Type",
       options = list(placeholder = "All Content Types"),
       choices = list(
-        "Python Bokeh" = "python-bokeh",
-        "Python Dash" = "python-dash",
-        "Python FastAPI" = "python-fastapi",
-        "Python Flask API" = "python-api",
-        "Python Gradio" = "python-gradio",
-        "Python Jupyter Notebook" = "jupyter-static",
-        "Python Jupyter Voila" = "jupyter-voila",
-        "Python Shiny" = "python-shiny",
-        "Python Streamlit" = "python-streamlit",
-        "Quarto" = "quarto-static",
-        "Quarto (Interactive)" = "quarto-shiny",
-        "R Markdown" = "rmd-static",
-        "R Markdown (Interactive)" = "rmd-shiny",
-        "R Plumber API" = "api",
-        "R Shiny" = "shiny",
-        "Static HTML" = "static",
-        "Tensorflow Model" = "tensorflow-saved-model",
-        "Unknown" = "unknown"
+        "API",
+        "Application",
+        "Jupyter",
+        "Quarto",
+        "R Markdown",
+        "Pin",
+        "Other"
       ),
       multiple = TRUE
     ),
@@ -128,8 +120,9 @@ server <- function(input, output, session) {
     if (length(input$app_mode_filter ) == 0) {
       usage_data_raw()
     } else {
+      app_modes <- unlist(app_mode_groups[input$app_mode_filter])
       filter_guids <- content() |>
-        filter(app_mode %in% input$app_mode_filter) |>
+        filter(app_mode %in% app_modes) |>
         pull(guid)
       usage_data_raw() |>
         filter(content_guid %in% filter_guids)
