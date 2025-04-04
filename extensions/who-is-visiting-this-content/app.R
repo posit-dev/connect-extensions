@@ -178,7 +178,7 @@ server <- function(input, output, session) {
 
   # Compute data
   all_visits_data <- reactive({
-    selected_content_usage() |>
+    all_visits <- selected_content_usage() |>
 
       # Compute time diffs and filter out hits within the session
       group_by(user_guid) |>
@@ -192,6 +192,17 @@ server <- function(input, output, session) {
       replace_na(list(display_name = "[Anonymous]")) |>
       arrange(desc(timestamp)) |>
       select(user_guid, display_name, timestamp)
+
+    # Conditionally filter by selection from other table
+    filter_selection <- getReactableState("aggregated_visits", "selected")
+    if (isTruthy(filter_selection)) {
+      filter_guid <- aggregated_visits_data()[filter_selection, ] |>
+        pull(user_guid)
+      all_visits |>
+        filter(if (is.na(filter_guid)) is.na(user_guid) else user_guid == filter_guid)
+    } else {
+      all_visits
+    }
   })
 
   aggregated_visits_data <- reactive({
@@ -225,17 +236,7 @@ server <- function(input, output, session) {
   daily_hit_data <- reactive({
     all_dates <- seq.Date(date_range()$from_date, date_range()$to_date, by = "day")
 
-    filter_selection <- getReactableState("aggregated_visits", "selected")
-    filtered_visits <- if (isTruthy(filter_selection)) {
-      filter_guid <- aggregated_visits_data()[filter_selection, ] |>
-        pull(user_guid)
-      all_visits_data() |>
-        filter(if (is.na(filter_guid)) is.na(user_guid) else user_guid == filter_guid)
-    } else {
-      all_visits_data()
-    }
-
-    filtered_visits |>
+    all_visits_data() |>
       mutate(date = date(timestamp)) |>
       group_by(date) |>
       summarize(daily_visits = n(), .groups = "drop") |>
