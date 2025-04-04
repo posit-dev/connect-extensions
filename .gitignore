@@ -8,5 +8,20 @@ __pycache__/
 *.py[cod]
 *$py.class
 
-# license files should not be commited to this repository
+# license files should not be committed to this repository
 *.lic
+
+# Test output directories
+**/logs/
+**/reports/
+
+# Storage for local test artifacts
+integration/bundles/
+
+# UV files and directories
+.uv/
+uv.lock
+
+# Package info
+*.egg-info/
+.installed.cfg
