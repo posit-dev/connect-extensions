@@ -119,15 +119,6 @@ server <- function(input, output, session) {
   # Loading and processing data ----
   client <- connect()
 
-  # For demo purposes, if this server has content published with the vanity URL
-  # `/who-is-visiting-this-content/`, use that GUID as default.
-  default_guid <- get_vanity_urls(client) |>
-    filter(path == "/who-is-visiting-this-content/") |>
-    pull(content_guid)
-  if (length(default_guid) == 1) {
-    updateTextInput(session, "content_guid", value = default_guid)
-  }
-
   # Default dates. "This week" is best "common sense" best represented by six
   # days ago thru the end of today. Without these, content takes too long to
   # display on some servers.
@@ -162,6 +153,17 @@ server <- function(input, output, session) {
       to = date_range()$to_date + hours(23) + minutes(59) + seconds(59)
     )
   }) |> bindCache(date_range()$from_date, date_range()$to_date)
+
+  # For demo purposes, this content pre-populates itself with the most popular guid.
+  observe({
+    default_guid <- firehose_usage_data() |>
+        count(content_guid) |>
+        slice_max(n) |>
+        pull(content_guid)
+    if (length(default_guid) == 1 && nchar(input$content_guid) == 0) {
+      updateTextInput(session, "content_guid", value = default_guid)
+    }
+  })
 
   selected_content_usage <- reactive({
     firehose_usage_data() |>
