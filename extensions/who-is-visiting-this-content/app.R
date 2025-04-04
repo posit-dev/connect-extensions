@@ -58,11 +58,6 @@ ui <- page_fluid(
 
       uiOutput("filter_message"),
 
-      card(
-        textOutput("summary_message"),
-        fill = FALSE
-      ),
-
       layout_column_wrap(
         width = "300px",
         card(
@@ -276,11 +271,27 @@ server <- function(input, output, session) {
 
   output$filter_message <- renderUI({
     # req(getReactableState("aggregated_visits", "selected"))
+    hits <- all_visits_data()
+    glue(
+      "{nrow(hits)} visits between ",
+      "{date_range()$from_date} and {date_range()$to_date}."
+    )
     if (isTruthy(getReactableState("aggregated_visits", "selected"))) {
       user <- aggregated_visits_data()[getReactableState("aggregated_visits", "selected"), "display_name", drop = TRUE]
-      div(actionLink("clear_selection", glue::glue("Showing only visits by {user}"), icon = icon("times")))
+      div(
+        glue(
+          "{nrow(hits)} visits from {user} between ",
+          "{date_range()$from_date} and {date_range()$to_date}."
+        ),
+        actionLink("clear_selection", glue::glue("Clear filter"), icon = icon("times"))
+      )
     } else {
-      div("Showing visits from all users.")
+      div(
+        glue(
+          "{nrow(hits)} total visits between ",
+          "{date_range()$from_date} and {date_range()$to_date}."
+        )
+      )
     }
   })
 
@@ -308,15 +319,6 @@ server <- function(input, output, session) {
         "<p>Owner: {owner$display_name} <a href='mailto:{owner$email}'>{icon_html}</a></p>"
       ))
     }
-  })
-
-  summary_message <- reactive({
-    content_title <- selected_content_info()$title
-    hits <- all_visits_data()
-    glue(
-      "{nrow(hits)} visits between ",
-      "{date_range()$from_date} and {date_range()$to_date}."
-    )
   })
 
 
