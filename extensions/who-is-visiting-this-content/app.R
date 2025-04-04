@@ -58,11 +58,8 @@ ui <- page_fluid(
 
       uiOutput("filter_message"),
 
-      layout_columns(
-        card(
-          textOutput("summary_message"),
-          fill = FALSE
-        ),
+      card(
+        textOutput("summary_message"),
         fill = FALSE
       ),
 
