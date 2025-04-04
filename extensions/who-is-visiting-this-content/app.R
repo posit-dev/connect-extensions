@@ -6,7 +6,7 @@ library(dplyr)
 library(glue)
 library(lubridate)
 library(tidyr)
-library(gt)
+library(reactable)
 library(bsicons)
 library(ggplot2)
 library(plotly)
@@ -65,6 +65,12 @@ ui <- page_fluid(
         fill = FALSE
       ),
 
+      uiOutput("filter_message"),
+      # conditionalPanel(
+      #   condition = "input.selectedRow != null",
+      #   textOutput("filter_message")
+      # ),
+
       layout_column_wrap(
         width = "300px",
         card(
@@ -79,11 +85,11 @@ ui <- page_fluid(
           id = "content_visit_tables",
           tabPanel(
             "Top Visitors",
-            gt_output("aggregated_visits")
+            reactableOutput("aggregated_visits")
           ),
           tabPanel(
             "List of Visits",
-            gt_output("all_visits")
+            reactableOutput("all_visits")
           )
         )
       )
@@ -185,7 +191,7 @@ server <- function(input, output, session) {
       left_join(users(), by = "user_guid") |>
       replace_na(list(display_name = "[Anonymous]")) |>
       arrange(desc(timestamp)) |>
-      select(display_name, timestamp)
+      select(user_guid, display_name, timestamp)
   })
 
   aggregated_visits_data <- reactive({
@@ -208,7 +214,7 @@ server <- function(input, output, session) {
       left_join(users(), by = "user_guid") |>
       replace_na(list(display_name = "[Anonymous]")) |>
       arrange(desc(n_visits)) |>
-      select(display_name, n_visits, n_hits)
+      select(user_guid, display_name, n_visits)
   })
 
   selected_content_info <- reactive({
@@ -219,40 +225,68 @@ server <- function(input, output, session) {
   daily_hit_data <- reactive({
     all_dates <- seq.Date(date_range()$from_date, date_range()$to_date, by = "day")
 
-    all_visits_data() |>
+    filter_selection <- getReactableState("aggregated_visits", "selected")
+    filtered_visits <- if (isTruthy(filter_selection)) {
+      filter_guid <- aggregated_visits_data()[filter_selection, ] |>
+        pull(user_guid)
+      all_visits_data() |>
+        filter(if (is.na(filter_guid)) is.na(user_guid) else user_guid == filter_guid)
+    } else {
+      all_visits_data()
+    }
+
+    filtered_visits |>
       mutate(date = date(timestamp)) |>
       group_by(date) |>
       summarize(daily_visits = n(), .groups = "drop") |>
       tidyr::complete(date = all_dates, fill = list(daily_visits = 0))
   })
 
-  # Output tables ----
+  # Render tabular output ----
 
   output$summary_message <- renderText(summary_message())
-  output$aggregated_visits <- render_gt(
-    gt(aggregated_visits_data()) |>
-      cols_label(
-        n_visits = "Visits (Merged)",
-        n_hits = "Individual Hits",
-        display_name = "Visitor"
-      ) |>
-      tab_options(table.align = "left")
-  )
-  output$all_visits <- render_gt(
-    gt(all_visits_data()) |>
-      cols_label(
-        timestamp = "Time",
-        display_name = "Visitor"
-      ) |>
-      fmt_datetime(
-        columns = c(timestamp),
-        date_style = "iso",
-        time_style = "h_m_s_p"
-      ) |>
-      tab_options(table.align = "left")
-  )
+  output$aggregated_visits <- renderReactable({
+    reactable(
+      aggregated_visits_data(),
+      selection = "single",
+      onClick = "select",
+      columns = list(
+        user_guid = colDef(show = FALSE),
+        display_name = colDef(name = "Visitor"),
+        n_visits = colDef(name = "Visits")
+      )
+    )
+  })
+
+  output$all_visits <- renderReactable({
+    reactable(
+      all_visits_data(),
+      columns = list(
+        user_guid = colDef(show = FALSE),
+        timestamp = colDef(
+          name = "Time",
+          format = colFormat(datetime = TRUE, time = TRUE)
+        ),
+        display_name = colDef(name = "Visitor")
+      )
+    )
+  })
 
   # Render content metadata and other text ----
+
+  output$filter_message <- renderUI({
+    req(getReactableState("aggregated_visits", "selected"))
+    user <- aggregated_visits_data()[getReactableState("aggregated_visits", "selected"), "display_name", drop = TRUE]
+
+    div(
+      style = "margin-bottom: 1em;",
+      actionLink("clear_selection", glue::glue("Only showing visits by {user}"), icon = icon("times"))
+    )
+  })
+
+  observeEvent(input$clear_selection, {
+    updateReactable("aggregated_visits", selected = NA)
+  })
 
   output$content_title <- renderUI({
     req(selected_content_info())
