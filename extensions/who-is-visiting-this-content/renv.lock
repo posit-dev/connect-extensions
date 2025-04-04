@@ -519,7 +519,7 @@
     },
     "connectapi": {
       "Package": "connectapi",
-      "Version": "0.7.0",
+      "Version": "0.6.0",
       "Source": "Repository",
       "Type": "Package",
       "Title": "Utilities for Interacting with the 'Posit Connect' Server API",
@@ -542,8 +542,7 @@
         "rlang (>= 0.4.2)",
         "tibble",
         "uuid",
-        "vctrs (>= 0.3.0)",
-        "base64enc"
+        "vctrs (>= 0.3.0)"
       ],
       "Suggests": [
         "covr",

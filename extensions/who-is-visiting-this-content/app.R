@@ -51,25 +51,20 @@ ui <- page_fluid(
         actionButton("clear_cache", "Clear Cache", icon = icon("refresh"))
       ),
 
-      uiOutput("content_title"),
+      layout_columns(
+        uiOutput("content_title"),
+        div(style = "margin-left: auto;", uiOutput("owner_info"))
+      ),
+
+      uiOutput("filter_message"),
 
       layout_columns(
         card(
           textOutput("summary_message"),
           fill = FALSE
         ),
-        card(
-          uiOutput("owner_info"),
-          fill = FALSE
-        ),
         fill = FALSE
       ),
-
-      uiOutput("filter_message"),
-      # conditionalPanel(
-      #   condition = "input.selectedRow != null",
-      #   textOutput("filter_message")
-      # ),
 
       layout_column_wrap(
         width = "300px",
@@ -251,10 +246,15 @@ server <- function(input, output, session) {
       aggregated_visits_data(),
       selection = "single",
       onClick = "select",
+      defaultSorted = "n_visits",
       columns = list(
         user_guid = colDef(show = FALSE),
         display_name = colDef(name = "Visitor"),
-        n_visits = colDef(name = "Visits")
+        n_visits = colDef(
+          name = "Visits",
+          defaultSortOrder = "desc",
+          maxWidth = 75
+        )
       )
     )
   })
@@ -262,11 +262,13 @@ server <- function(input, output, session) {
   output$all_visits <- renderReactable({
     reactable(
       all_visits_data(),
+      defaultSorted = "timestamp",
       columns = list(
         user_guid = colDef(show = FALSE),
         timestamp = colDef(
           name = "Time",
-          format = colFormat(datetime = TRUE, time = TRUE)
+          format = colFormat(datetime = TRUE, time = TRUE),
+          defaultSortOrder = "desc"
         ),
         display_name = colDef(name = "Visitor")
       )
@@ -276,13 +278,13 @@ server <- function(input, output, session) {
   # Render content metadata and other text ----
 
   output$filter_message <- renderUI({
-    req(getReactableState("aggregated_visits", "selected"))
-    user <- aggregated_visits_data()[getReactableState("aggregated_visits", "selected"), "display_name", drop = TRUE]
-
-    div(
-      style = "margin-bottom: 1em;",
-      actionLink("clear_selection", glue::glue("Only showing visits by {user}"), icon = icon("times"))
-    )
+    # req(getReactableState("aggregated_visits", "selected"))
+    if (isTruthy(getReactableState("aggregated_visits", "selected"))) {
+      user <- aggregated_visits_data()[getReactableState("aggregated_visits", "selected"), "display_name", drop = TRUE]
+      div(actionLink("clear_selection", glue::glue("Showing only visits by {user}"), icon = icon("times")))
+    } else {
+      div("Showing visits from all users.")
+    }
   })
 
   observeEvent(input$clear_selection, {
