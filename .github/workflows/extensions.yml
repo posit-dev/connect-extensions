@@ -61,6 +61,18 @@ jobs:
         with:
           extension-name: ${{ matrix.extension }}
 
+      # Uploading an artifact to reflect extensions that were successfully linted and packaged.
+      # Using artifacts to avoid explicit output names for each simple extensions, requiring
+      # less file changes when adding simple extensions to this workflow.
+      # https://github.com/orgs/community/discussions/17245
+      - name: Mark successful jobs
+        run: echo "${{ matrix.extension }}" >> ${{ matrix.extension }}.packaged.successfully
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.extension }}.packaged.successfully
+          path: ${{ matrix.extension }}.packaged.successfully
+
   # Collect success results from the matrix simple-extensions jobs for later use
   collect-simple-extensions:
     needs: simple-extensions
@@ -71,7 +83,7 @@ jobs:
       - uses: actions/download-artifact@v4
         with:
           # Uses artifacts generated from package-extension which are only present if packaging was successful
-          pattern: "*.tar.gz"
+          pattern: "*.packaged.successfully"
           path: packages
           merge-multiple: true
 
@@ -79,10 +91,10 @@ jobs:
         run: |
           SUCCESS_LIST=()
           if [ -d "packages" ]; then
-            for FILE in packages/*.tar.gz; do
+            for FILE in packages/*.packaged.successfully; do
               if [ -f "$FILE" ]; then
-                # Extract extension name from filename (remove .tar.gz)
-                EXT=$(basename "$FILE" .tar.gz)
+                # Extract extension name from filename (remove .packaged.successfully)
+                EXT=$(basename "$FILE" .packaged.successfully)
                 SUCCESS_LIST+=("$EXT")
                 echo "Found successful extension package: $EXT"
               fi
