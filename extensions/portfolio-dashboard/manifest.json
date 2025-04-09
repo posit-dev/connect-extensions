@@ -6,6 +6,11 @@
     "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/portfolio-dashboard",
     "version": "0.0.1"
   },
+  "environment": {
+    "r": {
+      "requires": ">=4.2"
+    }
+  },
   "version": 1,
   "locale": "en_US",
   "platform": "4.3.1",
