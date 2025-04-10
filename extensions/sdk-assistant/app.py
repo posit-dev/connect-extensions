@@ -6,7 +6,7 @@ import urllib.parse
 import chatlas
 import faicons
 
-from shiny import App, Inputs, reactive, render, session, ui
+from shiny import App, Inputs, reactive, render, ui
 
 app_ui = ui.page_fillable(
     ui.h1(
@@ -30,9 +30,7 @@ app_ui = ui.page_fillable(
             font-size: medium;
             vertical-align: middle;
         }
-        .sdk_suggested_prompt {
-            cursor: pointer;
-            border-radius: 0.5em;
+        .suggestion {
             display: list-item;
         }
         .external-link {
@@ -44,31 +42,6 @@ app_ui = ui.page_fillable(
             top: 15px;
             height: 25px;
         }
-        """
-    ),
-    ui.tags.script(
-        """
-        $(() => {
-            $("body").click(function(e) {
-                if (!$(e.target).hasClass("sdk_suggested_prompt")) {
-                    return;
-                }
-                window.Shiny.setInputValue("new_sdk_prompt", $(e.target).text());
-            });
-        })
-        window.Shiny.addCustomMessageHandler("submit-chat", function(message) {
-            const enterEvent = new KeyboardEvent('keydown', {
-                key: 'Enter',
-                code: 'Enter',
-                keyCode: 13,
-                which: 13,
-            });
-
-            // Dispatch the 'Enter' event on the input element
-            console.log("Dispatching Enter event", message);
-            document.querySelector("#" + message['id'] + " textarea#chat_user_input").dispatchEvent(enterEvent);
-        });
-
         """
     ),
     fillable_mobile=True,
@@ -89,12 +62,6 @@ def server(input: Inputs):  # noqa: A002
     chat.system_prompt = prompt.read_text()
 
     chat_ui = ui.Chat("chat")
-
-    async def submit_chat(new_value: str):
-        chat_ui.update_user_input(value=new_value)
-
-        local_session = session.require_active_session(None)
-        await local_session.send_custom_message("submit-chat", {"id": "chat"})
 
     @render.text
     @reactive.event(chat_ui.messages)
@@ -130,7 +97,7 @@ def server(input: Inputs):  # noqa: A002
 
         with tempfile.TemporaryDirectory() as tmpdirname:
             export_path = pathlib.Path(tmpdirname) / "chat_export.md"
-            chat.export(export_path, include="all", include_system_prompt=False)
+            chat.export(export_path, content="all", include_system_prompt=False)
 
             exported_content = export_path.read_text()
 
@@ -204,14 +171,10 @@ client = Client()
         )
 
     @reactive.effect
-    @reactive.event(input.new_sdk_prompt)
-    async def _():
-        await submit_chat(input.new_sdk_prompt())
-
-    @reactive.effect
     async def _init_chat_on_load():
-        await submit_chat(
-            "What are the pieces of Posit connect and how do they fit together?"
+        chat_ui.update_user_input(
+            value="What are the pieces of Posit connect and how do they fit together?",
+            submit=True,
         )
 
         # Remove the effect after the first run
