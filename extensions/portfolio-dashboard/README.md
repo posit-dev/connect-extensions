@@ -13,6 +13,4 @@ A shiny application makes it easy to transform your analysis into an interactive
 
 ## Requirements
 
-* R version 3.4 or higher
-
-<!-- NOTE: this file is generated -->
+* R version 4.4 or higher
