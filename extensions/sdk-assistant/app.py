@@ -83,6 +83,22 @@ def server(input: Inputs):  # noqa: A002
             ans = ans + "0"
         return ans
 
+    @reactive.effect
+    @reactive.event(input.info_link)
+    async def _():
+        modal = ui.modal(
+            ui.h1("Information"),
+            ui.h3("Model"),
+            ui.pre(
+                f"Model: {aws_model}\nRegion: {aws_region}",
+            ),
+            ui.h3("System prompt"),
+            ui.pre(chat.system_prompt),
+            easy_close=True,
+            size="xl",
+        )
+        ui.modal_show(modal)
+
     @render.ui
     def new_gh_issue():
         messages = chat_ui.messages()
@@ -179,22 +195,6 @@ client = Client()
 
         # Remove the effect after the first run
         _init_chat_on_load.destroy()
-
-    @reactive.effect
-    @reactive.event(input.info_link)
-    async def _():
-        modal = ui.modal(
-            ui.h1("Information"),
-            ui.h3("Model"),
-            ui.pre(
-                f"Model: {aws_model}\nRegion: {aws_region}",
-            ),
-            ui.h3("System prompt"),
-            ui.pre(chat.system_prompt),
-            easy_close=True,
-            size="xl",
-        )
-        ui.modal_show(modal)
 
 
 app = App(
