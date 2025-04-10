@@ -17,7 +17,7 @@ on:
 
 jobs:
   # Determine the Connect versions to test against
-  setup-integration-test:
+  setup-test:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     outputs:
@@ -35,16 +35,16 @@ jobs:
           echo "versions=$versions" >> "$GITHUB_OUTPUT"
 
   # Run the Connect integration tests for each extension against each Connect version
-  connect-integration-test:
+  test:
     runs-on: ubuntu-latest
     timeout-minutes: 15 # Max time to run the integration tests
-    needs: setup-integration-test
+    needs: setup-test
     strategy:
       # Do not fail fast so all extensions and Connect versions are processed
       fail-fast: false
       matrix:
         extension: ${{ fromJson(inputs.extensions) }}
-        connect_version: ${{ fromJson(needs.setup-integration-test.outputs.versions) }}
+        connect_version: ${{ fromJson(needs.setup-test.outputs.versions) }}
     steps:
       - uses: actions/checkout@v4
 
@@ -55,6 +55,7 @@ jobs:
           connect-version: ${{ matrix.connect_version }}
           connect-license: ${{ secrets.CONNECT_LICENSE }}
 
+      # Upload the test report XML files as artifacts for use by downstream jobs
       - uses: actions/upload-artifact@v4
         if: |
           always() && 
@@ -66,8 +67,8 @@ jobs:
           retention-days: 7
 
   # Analyses the test result files and publishes the results on the GitHub Actions job summary page
-  integration-test-report:
-    needs: connect-integration-test
+  test-report:
+    needs: test
     runs-on: ubuntu-latest
     timeout-minutes: 5
     # Create a matrix so each extension gets its own test report
@@ -81,8 +82,8 @@ jobs:
     # Only run if tests weren't skipped or cancelled
     if: |
       always() && 
-      !contains(needs.connect-integration-test.result, 'skipped') &&
-      !contains(needs.connect-integration-test.result, 'cancelled')
+      !contains(needs.test.result, 'skipped') &&
+      !contains(needs.test.result, 'cancelled')
     steps:
       - uses: actions/download-artifact@v4
         id: download
@@ -100,7 +101,7 @@ jobs:
 
   # Using the XML test reports provide a matrix of extensions that passed all of the Connect integration tests
   collect-results:
-    needs: [connect-integration-test, setup-integration-test]
+    needs: [test, setup-test]
     runs-on: ubuntu-latest
     timeout-minutes: 5
     outputs:
@@ -116,7 +117,7 @@ jobs:
       - id: collect
         run: |
           # Validate inputs first
-          all_versions='${{ needs.setup-integration-test.outputs.versions }}'
+          all_versions='${{ needs.setup-test.outputs.versions }}'
           extensions='${{ inputs.extensions }}'
 
           if [[ -z "$all_versions" || -z "$extensions" ]]; then
