@@ -72,6 +72,7 @@ jobs:
         with:
           name: ${{ matrix.extension }}.packaged.successfully
           path: ${{ matrix.extension }}.packaged.successfully
+          retention-days: 1
 
   # Collect success results from the matrix simple-extensions jobs for later use
   collect-simple-extensions:
