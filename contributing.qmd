@@ -136,7 +136,8 @@ This will make any code changes to your content trigger a few things:
   gallery
 - package: creating a TAR file of the content's directory to test in pull
   requests and to be released
-- release: When the `version` in the `manifest.json` is incrased and merged to
+- test: checking that the content will publish to Connect
+- release: When the `version` in the `manifest.json` is increased and merged to
   `main`, releases the content to users of Posit Connect
 
 Lastly set the `version` in the `manifest.json` file to your initial release.

@@ -74,9 +74,23 @@ jobs:
           extension-name: ${{ env.EXTENSION_NAME }}
           artifact-name: ${{ env.EXTENSION_NAME }}
 
-      # Release the extension using the release-extension action
-      # Will only create a GitHub release if merged to `main` and the semver
-      # version has been updated
+  connect-integration-tests:
+    needs: extension
+    uses: ./.github/workflows/connect-integration-tests.yml
+    secrets: inherit
+    with:
+      extensions: '["publisher-command-center"]'  # JSON array format to match the workflow input schema
+
+  release:
+    runs-on: ubuntu-latest
+    needs: [extension, connect-integration-tests]
+    # Release the extension using the release-extension action
+    # Will only create a GitHub release if merged to `main` and the semver
+    # version has been updated
+    steps:
+      # Checkout the repository so the rest of the actions can run with no issue
+      - uses: actions/checkout@v4
+
       - uses: ./.github/actions/release-extension
         with:
           extension-name: ${{ env.EXTENSION_NAME }}
