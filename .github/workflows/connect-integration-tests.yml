@@ -66,39 +66,6 @@ jobs:
           path: integration/reports/*.xml
           retention-days: 7
 
-  # Analyses the test result files and publishes the results on the GitHub Actions job summary page
-  test-report:
-    needs: test
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    # Create a matrix so each extension gets its own test report
-    strategy:
-      fail-fast: false
-      matrix:
-        extension: ${{ fromJson(inputs.extensions) }}
-    permissions:
-      checks: write
-      pull-requests: write
-    # Only run if tests weren't skipped or cancelled
-    if: |
-      always() && 
-      !contains(needs.test.result, 'skipped') &&
-      !contains(needs.test.result, 'cancelled')
-    steps:
-      - uses: actions/download-artifact@v4
-        id: download
-        with:
-          path: artifacts
-          pattern: "${{ matrix.extension }}-*-test-report"
-
-      - uses: EnricoMi/publish-unit-test-result-action@v2
-        if: ${{ steps.download.outputs.download-path != '' }}
-        with:
-          check_name: "Integration test results - ${{ matrix.extension }}"
-          comment_mode: off
-          files: "artifacts/**/*.xml"
-          report_individual_runs: true
-
   # Using the XML test reports provide a matrix of extensions that passed all of the Connect integration tests
   collect-results:
     needs: [test, setup-test]
