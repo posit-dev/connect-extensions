@@ -34,7 +34,7 @@ jobs:
             portfolio-dashboard: extensions/portfolio-dashboard/**
 
   # Runs for each extension that has changed from `simple-extension-changes`
-  # Lints, packages, and releases the extension if the semver is updated.
+  # Lints and packages in preparation for tests and and release.
   simple-extensions:
     needs: [simple-extension-changes]
     # Will only run if there are changes in the simple extensions
@@ -62,9 +62,80 @@ jobs:
         with:
           extension-name: ${{ matrix.extension }}
 
-      # Extensions are only released when this workflow triggers on `main`
-      # otherwise, the release is skipped
-      # See the action comments for more details
+      # Uploading an artifact to reflect extensions that were successfully linted and packaged.
+      # Using artifacts to avoid explicit output names for each simple extensions, requiring
+      # less file changes when adding simple extensions to this workflow.
+      # https://github.com/orgs/community/discussions/17245
+      - name: Mark successful jobs
+        run: echo "${{ matrix.extension }}" >> ${{ matrix.extension }}.packaged.successfully
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.extension }}.packaged.successfully
+          path: ${{ matrix.extension }}.packaged.successfully
+
+  # Collect success results from the matrix simple-extensions jobs for later use
+  collect-simple-extensions:
+    needs: simple-extensions
+    runs-on: ubuntu-latest
+    outputs:
+      successful_extensions: ${{ steps.collect.outputs.successful_extensions }}
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          # Uses artifacts generated from package-extension which are only present if packaging was successful
+          pattern: "*.packaged.successfully"
+          path: packages
+          merge-multiple: true
+
+      - id: collect
+        run: |
+          SUCCESS_LIST=()
+          if [ -d "packages" ]; then
+            for FILE in packages/*.packaged.successfully; do
+              if [ -f "$FILE" ]; then
+                # Extract extension name from filename (remove .packaged.successfully)
+                EXT=$(basename "$FILE" .packaged.successfully)
+                SUCCESS_LIST+=("$EXT")
+                echo "Found successful extension package: $EXT"
+              fi
+            done
+          fi
+
+          SUCCESSFUL_EXTENSIONS=$(jq -n --arg arr "$(IFS=,; echo "${SUCCESS_LIST[*]}")" \
+            '$arr | split(",")' -c)
+          echo "Successful extensions: $SUCCESSFUL_EXTENSIONS"
+          echo "successful_extensions=$SUCCESSFUL_EXTENSIONS" >> "$GITHUB_OUTPUT"
+  
+
+  # Runs Connect integration tests for each extension that were successfully linted and packaged
+  simple-extension-connect-integration-tests:
+    needs: [collect-simple-extensions]
+    uses: ./.github/workflows/connect-integration-tests.yml
+    with:
+      extensions: ${{ needs.collect-simple-extensions.outputs.successful_extensions }}
+    if: fromJSON(needs.collect-simple-extensions.outputs.successful_extensions) != '[]'
+    secrets: inherit
+
+  # Runs the release process for each extension that was packaged, passed all tests, if the semver is updated, on main
+  simple-extension-release:
+    runs-on: ubuntu-latest
+    needs: [simple-extension-connect-integration-tests]
+    if: always()
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    strategy:
+      # Do not fail fast so all extensions are processed
+      fail-fast: false
+      matrix:
+        # Ensure the matrix is set to only process extensions that passed ALL integration tests
+        extension: ${{ fromJSON(needs.simple-extension-connect-integration-tests.outputs.successful_extensions) }}
+    # Extensions are only released when this workflow triggers on `main`
+    # otherwise, the release is skipped
+    # See the action comments for more details
+    steps:
+      - uses: actions/checkout@v4
+
       - uses: ./.github/actions/release-extension
         with:
           extension-name: ${{ matrix.extension }}
@@ -105,10 +176,10 @@ jobs:
     # publisher-command-center extension directory
     if: ${{ needs.complex-extension-changes.outputs.publisher-command-center == 'true' }}
     uses: ./.github/workflows/publisher-command-center.yml
-
+    secrets: inherit
 
   # All extensions have been linted, packaged, and released, if necessary
-  # Continuing to update the extension list with the latest release data 
+  # Continuing to update the extension list with the latest release data
 
   # Gathers all release data from GitHub releases triggered by this workflow
   # For use in the `update-extension-list` job
@@ -117,7 +188,7 @@ jobs:
     runs-on: ubuntu-latest
     # Requires that the `simple-extensions` and all custom workflow jobs are
     # completed before running this job
-    needs: [simple-extensions, publisher-command-center]
+    needs: [simple-extension-release, publisher-command-center]
     if: ${{ always() }}
     outputs:
       releases: ${{ steps.fetch-releases.outputs.releases }}

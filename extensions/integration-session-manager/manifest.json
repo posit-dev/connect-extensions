@@ -13,6 +13,11 @@
       "package_file": "requirements.txt"
     }
   },
+  "environment": {
+		"python": {
+			"requires": ">=3.8, <4"
+		}
+	},
   "files": {
     "requirements.txt": {
       "checksum": "ad96c76e9e6206cb681729471b4498cd"
