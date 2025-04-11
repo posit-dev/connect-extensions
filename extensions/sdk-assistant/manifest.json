@@ -9,19 +9,25 @@
     "version": "3.12.7",
     "package_manager": {
       "name": "pip",
-      "version": "24.3.1",
+      "version": "25.0.1",
       "package_file": "requirements.txt"
     }
   },
   "files": {
     "requirements.txt": {
-      "checksum": "f5f6e6c263f93a4c1c8e6f040af97a52"
+      "checksum": "31f19ff2394253c464d65b5a590cc6f6"
     },
     "_prompt.xml": {
-      "checksum": "11b53de6fe16486696042838d0a64f86"
+      "checksum": "a650dd564e1613b20e170953f0cc5c2a"
     },
     "app.py": {
-      "checksum": "0780643a8b9af200326f582a6f8b8be4"
+      "checksum": "4f0d50d6b540f03b73311e0dac0cfe9f"
+    },
+    "readme_access_granted.png": {
+      "checksum": "7c995c651d8346bfd2616c7e93331520"
+    },
+    "sdk-assistant.gif": {
+      "checksum": "cd81de01a9df80afe635cb48eb4f0880"
     },
     "www/new_gh_issue.svg": {
       "checksum": "0e700e135c5062d209ea19fb20725ea3"
