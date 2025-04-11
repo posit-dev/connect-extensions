@@ -120,7 +120,13 @@ jobs:
   simple-extension-release:
     runs-on: ubuntu-latest
     needs: [simple-extension-connect-integration-tests]
-    if: always()
+    # Only run if connect integration tests actually ran and produced valid output
+    if: ${{ 
+      always() && 
+      needs.simple-extension-connect-integration-tests.result != 'skipped' && 
+      needs.simple-extension-connect-integration-tests.result != 'canceled' &&
+      needs.simple-extension-connect-integration-tests.outputs.successful_extensions != '[]'
+      }}
     env:
       GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     strategy:
