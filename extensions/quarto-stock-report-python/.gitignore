@@ -1,0 +1,9 @@
+/.quarto/
+*.csv
+index.html
+index_files
+index.ipynb
+/env/
+.output_metadata.json
+/email-preview/
+/index.quarto_ipynb

@@ -1,0 +1,8 @@
+---
+title: Quarto Stock Report using Python
+categories:
+    - python 
+    - quarto 
+---
+
+This stock report is generated using Quarto and  Python. It is an example of how you might automate regular updates using a data source. The report also generates a custom email, sharing the results directly to stakeholders.
