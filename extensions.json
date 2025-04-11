@@ -1,6 +1,24 @@
 {
   "extensions": [
     {
+      "name": "portfolio-dashboard",
+      "title": "Portfolio Dashboard",
+      "description": "A shiny application makes it easy to transform your analysis into an interactive dashboard using R so users can ask and answer questions in real-time, without having to touch any code.",
+      "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/portfolio-dashboard",
+      "latestVersion": {
+        "version": "0.0.1",
+        "released": "2025-04-11T21:32:23Z",
+        "url": "https://github.com/posit-dev/connect-extensions/releases/download/portfolio-dashboard%40v0.0.1/portfolio-dashboard.tar.gz"
+      },
+      "versions": [
+        {
+          "version": "0.0.1",
+          "released": "2025-04-11T21:32:23Z",
+          "url": "https://github.com/posit-dev/connect-extensions/releases/download/portfolio-dashboard%40v0.0.1/portfolio-dashboard.tar.gz"
+        }
+      ]
+    },
+    {
       "name": "publisher-command-center",
       "title": "Publisher Command Center",
       "description": "A dashboard for publishers to help manage and track their content",
