@@ -6,6 +6,10 @@ library(dplyr)
 library(glue)
 library(lubridate)
 library(tidyr)
+library(reactable)
+library(bsicons)
+library(ggplot2)
+library(plotly)
 
 shinyOptions(
   cache = cachem::cache_disk("./app_cache/cache/", max_age = 60 * 60 * 8)
@@ -13,16 +17,21 @@ shinyOptions(
 
 source("get_usage.R")
 
-ui <- page_fillable(
+ui <- page_fluid(
   useShinyjs(),
   theme = bs_theme(version = 5),
 
   card(
-    card_header("Who is Visiting This Content?"),
+    card_header("Content Detail"),
     layout_sidebar(
       sidebar = sidebar(
-        title = "Filters",
+        title = "Dev Controls",
         open = TRUE,
+
+        textInput(
+          "content_guid",
+          "Content GUID"
+        ),
 
         sliderInput(
           "visit_lag_cutoff_slider",
@@ -42,27 +51,33 @@ ui <- page_fillable(
         actionButton("clear_cache", "Clear Cache", icon = icon("refresh"))
       ),
 
-      textInput(
-        "content_guid",
-        "Content GUID"
+      layout_columns(
+        uiOutput("content_title"),
+        div(style = "margin-left: auto;", uiOutput("owner_info"))
       ),
 
-      h4(
-        id = "guid_input_msg",
-        "Please enter a content GUID"
-      ),
+      uiOutput("filter_message"),
 
-      textOutput("summary_message"),
-
-      tabsetPanel(
-        id = "content_visit_tables",
-        tabPanel(
-          "List of Visits",
-          tableOutput("all_visits")
+      layout_column_wrap(
+        width = "300px",
+        card(
+          plotlyOutput("daily_visits_plot"),
+          # min_height = "300px",
+          height = "350px",
+          max_width = "500px",
+          fill = FALSE
         ),
-        tabPanel(
-          "Aggregated Visits",
-          tableOutput("aggregated_visits")
+
+        navset_card_tab(
+          id = "content_visit_tables",
+          tabPanel(
+            "Top Visitors",
+            reactableOutput("aggregated_visits")
+          ),
+          tabPanel(
+            "List of Visits",
+            reactableOutput("all_visits")
+          )
         )
       )
     )
@@ -76,16 +91,6 @@ server <- function(input, output, session) {
     print("Cache cleared!")
     cache$reset()  # Clears all cached data
     session$reload()  # Reload the app to ensure fresh data
-  })
-
-  observe({
-    if (nchar(input$content_guid) == 0) {
-      show("guid_input_msg")
-      hide("content_visit_tables")
-    } else {
-      hide("guid_input_msg")
-      show("content_visit_tables")
-    }
   })
 
   # Sync slider and text input ----
@@ -125,13 +130,16 @@ server <- function(input, output, session) {
     get_content(client)
   }) |> bindCache("static_key")
 
-  user_names <- reactive({
+  users <- reactive({
     get_users(client) |>
-      mutate(full_name = paste(first_name, last_name)) |>
-      select(user_guid = guid, full_name, username)
+      mutate(
+        full_name = paste(first_name, last_name),
+        display_name = paste0(full_name, " (", username, ")")
+      ) |>
+      select(user_guid = guid, full_name, username, display_name, email)
   }) |> bindCache("static_key")
 
-  usage_data <- reactive({
+  firehose_usage_data <- reactive({
     get_usage(
       client,
       from = date_range()$from_date,
@@ -139,10 +147,25 @@ server <- function(input, output, session) {
     )
   }) |> bindCache(date_range()$from_date, date_range()$to_date)
 
+  # For demo purposes, this content pre-populates itself with the most popular guid.
+  observe({
+    default_guid <- firehose_usage_data() |>
+        count(content_guid) |>
+        slice_max(n) |>
+        pull(content_guid)
+    if (length(default_guid) == 1 && nchar(input$content_guid) == 0) {
+      updateTextInput(session, "content_guid", value = default_guid)
+    }
+  })
+
+  selected_content_usage <- reactive({
+    firehose_usage_data() |>
+      filter(content_guid == input$content_guid)
+  })
+
   # Compute data
   all_visits_data <- reactive({
-    usage_data() |>
-      filter(content_guid == input$content_guid) |>
+    all_visits <- selected_content_usage() |>
 
       # Compute time diffs and filter out hits within the session
       group_by(user_guid) |>
@@ -152,20 +175,29 @@ server <- function(input, output, session) {
       ungroup() |>
 
       # Join to usernames
-      left_join(user_names(), by = "user_guid") |>
-      replace_na(list(full_name = "[Anonymous]")) |>
+      left_join(users(), by = "user_guid") |>
+      replace_na(list(display_name = "[Anonymous]")) |>
       arrange(desc(timestamp)) |>
-      select(timestamp, full_name, username)
+      select(user_guid, display_name, timestamp)
+
+    # Conditionally filter by selection from other table
+    filter_selection <- getReactableState("aggregated_visits", "selected")
+    if (isTruthy(filter_selection)) {
+      filter_guid <- aggregated_visits_data()[filter_selection, ] |>
+        pull(user_guid)
+      all_visits |>
+        filter(if (is.na(filter_guid)) is.na(user_guid) else user_guid == filter_guid)
+    } else {
+      all_visits
+    }
   })
 
   aggregated_visits_data <- reactive({
-    unfiltered_hits <- usage_data() |>
-      filter(content_guid == input$content_guid) |>
+    unfiltered_hits <- selected_content_usage() |>
       group_by(user_guid) |>
       summarize(n_hits = n())
 
-    filtered_visits <- usage_data() |>
-      filter(content_guid == input$content_guid) |>
+    filtered_visits <- selected_content_usage() |>
       group_by(user_guid) |>
 
       # Compute time diffs and filter out hits within the session
@@ -177,38 +209,129 @@ server <- function(input, output, session) {
 
     filtered_visits |>
       left_join(unfiltered_hits, by = "user_guid") |>
-      left_join(user_names(), by = "user_guid") |>
-      replace_na(list(full_name = "[Anonymous]")) |>
+      left_join(users(), by = "user_guid") |>
+      replace_na(list(display_name = "[Anonymous]")) |>
       arrange(desc(n_visits)) |>
-      select(n_visits, n_hits, full_name, username)
+      select(user_guid, display_name, n_visits)
   })
 
-  summary_message <- reactive({
-    content_title <- content() |>
-      filter(guid == input$content_guid) |>
-      pull(title)
-    hits <- all_visits_data()
-    glue(
-      "Content '{content_title}' had {nrow(hits)} visits between ",
-      "{min(hits$timestamp)} and {max(hits$timestamp)}."
+  selected_content_info <- reactive({
+    filter(content(), guid == input$content_guid)
+  })
+
+  # Create day by day hit data for plot
+  daily_hit_data <- reactive({
+    all_dates <- seq.Date(date_range()$from_date, date_range()$to_date, by = "day")
+
+    all_visits_data() |>
+      mutate(date = date(timestamp)) |>
+      group_by(date) |>
+      summarize(daily_visits = n(), .groups = "drop") |>
+      tidyr::complete(date = all_dates, fill = list(daily_visits = 0))
+  })
+
+  # Render tabular output ----
+
+  output$summary_message <- renderText(summary_message())
+  output$aggregated_visits <- renderReactable({
+    reactable(
+      aggregated_visits_data(),
+      selection = "single",
+      onClick = "select",
+      defaultSorted = "n_visits",
+      columns = list(
+        user_guid = colDef(show = FALSE),
+        display_name = colDef(name = "Visitor"),
+        n_visits = colDef(
+          name = "Visits",
+          defaultSortOrder = "desc",
+          maxWidth = 75
+        )
+      )
     )
   })
 
-  output$summary_message <- renderText(summary_message())
-  output$all_visits <- renderTable(
-    all_visits_data() |>
-      transmute(timestamp = format(timestamp, "%Y-%m-%d %H:%M:%S"), full_name, username) |>
-      rename("Time" = timestamp, "Full Name" = full_name, "Username" = username)
-  )
-  output$aggregated_visits <- renderTable(
-    aggregated_visits_data() |>
-      rename(
-        "Total Visits" = n_visits,
-        "Number of Hits" = n_hits,
-        "Full Name" = full_name,
-        "Username" = username
+  output$all_visits <- renderReactable({
+    reactable(
+      all_visits_data(),
+      defaultSorted = "timestamp",
+      columns = list(
+        user_guid = colDef(show = FALSE),
+        timestamp = colDef(
+          name = "Time",
+          format = colFormat(datetime = TRUE, time = TRUE),
+          defaultSortOrder = "desc"
+        ),
+        display_name = colDef(name = "Visitor")
       )
-  )
+    )
+  })
+
+  # Render content metadata and other text ----
+
+  output$filter_message <- renderUI({
+    # req(getReactableState("aggregated_visits", "selected"))
+    hits <- all_visits_data()
+    glue(
+      "{nrow(hits)} visits between ",
+      "{date_range()$from_date} and {date_range()$to_date}."
+    )
+    if (isTruthy(getReactableState("aggregated_visits", "selected"))) {
+      user <- aggregated_visits_data()[getReactableState("aggregated_visits", "selected"), "display_name", drop = TRUE]
+      div(
+        glue(
+          "{nrow(hits)} visits from {user} between ",
+          "{date_range()$from_date} and {date_range()$to_date}."
+        ),
+        actionLink("clear_selection", glue::glue("Clear filter"), icon = icon("times"))
+      )
+    } else {
+      div(
+        glue(
+          "{nrow(hits)} total visits between ",
+          "{date_range()$from_date} and {date_range()$to_date}."
+        )
+      )
+    }
+  })
+
+  observeEvent(input$clear_selection, {
+    updateReactable("aggregated_visits", selected = NA)
+  })
+
+  output$content_title <- renderUI({
+    req(selected_content_info())
+    title_text <- selected_content_info()$title
+    open_url <- selected_content_info()$dashboard_url
+    icon_html <- bs_icon("arrow-up-right-square")
+    HTML(glue::glue(
+      "<h3>{title_text} <a href='{open_url}' target='_blank'>{icon_html}</a></h3>"
+    ))
+  })
+
+  output$owner_info <- renderUI({
+    req(selected_content_info())
+    if (nrow(selected_content_info()) == 1) {
+      owner <- filter(users(), user_guid == selected_content_info()$owner[[1]]$guid)
+      icon_html <- bs_icon("envelope")  # Using bsicons
+
+      HTML(glue::glue(
+        "<p>Owner: {owner$display_name} <a href='mailto:{owner$email}'>{icon_html}</a></p>"
+      ))
+    }
+  })
+
+
+  # Output plot ----
+
+  output$daily_visits_plot <- renderPlotly({
+    p <- ggplot(
+      daily_hit_data(),
+      aes(x = date, y = daily_visits, text = paste("Date:", date, "<br>Visits:", daily_visits))) +
+      geom_bar(stat = "identity") +
+      labs(title = "Visits per Day", y = "Visits", x = "Date")
+    ggplotly(p, tooltip = "text")
+  })
 }
 
 shinyApp(ui, server)
