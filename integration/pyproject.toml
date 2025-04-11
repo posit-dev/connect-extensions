@@ -17,3 +17,6 @@ packages = ["tests"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+
+[tool.uv]
+# Configuration for uv without pinning to a specific version to silence warnings in our GitHub workflows
