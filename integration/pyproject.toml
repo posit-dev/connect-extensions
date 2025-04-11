@@ -19,4 +19,4 @@ packages = ["tests"]
 testpaths = ["tests"]
 
 [tool.uv]
-# Configuration for uv without pinning to a specific version to silence warnings in our GitHub workflows
+required-version = "0.6.14"
