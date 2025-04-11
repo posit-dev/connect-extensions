@@ -1,0 +1,137 @@
+---
+title: Stock Report
+date: today
+date-format: long
+published-title: produced
+jupyter: python3
+format: email
+attachments:
+  - data.csv
+email-preview: true
+---
+
+## Report for TSLA
+
+```{python}
+#| echo: true
+
+import pandas as pd
+import yfinance as yf
+import datetime
+
+tsla = yf.Ticker("TSLA")
+hist = tsla.history("5y")
+
+hist['Change'] = hist['Close'] - hist['Open']
+
+latest = hist.last_valid_index()
+days_90 = latest - pd.to_timedelta("90d")
+
+prices_1d  = hist[latest:]
+prices_90d = hist[days_90:]
+prices_rolling = hist.asfreq('D').rolling(window=52*7, min_periods=1)
+
+data=[
+    [
+        prices_1d['High'].values[0],
+        prices_1d['Low'].values[0],
+        prices_1d['Volume'].values[0].round(),
+    ],
+    [
+        prices_rolling.max()[latest:]['High'].values[0],
+        prices_rolling.min()[latest:]['Low'].values[0],
+        prices_rolling.mean()[latest:]['Volume'].values[0].round(),
+    ]
+]
+
+df = pd.DataFrame(
+    data,
+    columns=['High', 'Low', 'Avg Volume'],
+    index=['Most Recent Trading Day', '52-Week'])
+df
+```
+
+### Price History
+
+```{python}
+#| echo: false
+#| label: fig-history
+#| fig-cap: "TSLA price history"
+
+_ = hist['Close'].plot(grid=True)
+```
+
+## Raw Data
+
+```{python}
+#| echo: false
+
+hist
+```
+
+## Legacy Information
+
+This report also produces a CSV file containing recent price data, which may
+be used in other analysis.
+
+```{python}
+#| echo: false
+#| include: false
+
+prices_90d.to_csv("data.csv")
+```
+
+[Link to CSV](data.csv)
+
+## Email
+
+This report also produces an email that is sent to key stakeholders with summary
+information. 
+
+::: {.email}
+
+::: {.subject}
+```{python}
+#| echo: false
+#| output: asis
+
+closes = prices_90d['Close']
+change = closes[-2] - closes[-1]
+abschange = abs(change)
+updown = "up"
+if change < 0:
+    updown = "down"
+print(f"TSLA is {updown} today by ${abschange:.2f}")
+```
+:::
+
+Hello Team,
+
+```{python}
+#| echo: false
+#| output: asis
+
+print(f"Here are the latest stock prices for **TSLA** as of {datetime.date.today()}:")
+```
+
+```{python}
+#| echo: false
+
+prices_90d.head(5)[['Open', 'Close', 'Change', 'Volume']]
+```
+
+The historical trend is shown below:
+
+```{python}
+#| echo: false
+
+_ = prices_90d['Close'].plot(grid=True)
+```
+
+Let me know if you have any questions.
+
+Best,
+
+Team Lead
+
+:::
