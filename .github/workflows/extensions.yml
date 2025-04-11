@@ -31,6 +31,7 @@ jobs:
           filters: |
             reaper: extensions/reaper/**
             integration-session-manager: extensions/integration-session-manager/**
+            portfolio-dashboard: extensions/portfolio-dashboard/**
 
   # Runs for each extension that has changed from `simple-extension-changes`
   # Lints and packages in preparation for tests and and release.
