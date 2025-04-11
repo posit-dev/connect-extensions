@@ -197,25 +197,29 @@ Connect Gallery.
 ### Checking if your extension will release
 
 If you would like to check if merging a pull request will trigger a new release
-you can do that by looking at the logs for the GitHub Actions.
-
-Click on the "Checks" tab for a Pull Request and look at the Extension Workflow
-run.
-
-Click on the Job related to the content being updated and view the logs for the
-`/./.github/actions/release-extension` action.
+you can do that by looking in the GitHub Actions summary. Click on the "Checks" 
+tab for a Pull Request and then click on the Extension Workflow run and the 
+summary will be displayed below the workflow graph.
 
 It will either say:
 
-> The manifest version is '1.1.0' and the released version is '1.0.0'
->
-> 🚀 Will release! The manifest version is greater than the released version.
+::: {.border}
+The manifest version is '1.1.0' and the released version is '1.0.0'  
+🚀 Will release! The manifest version is greater than the released version.
+:::
 
 or:
 
-> The manifest version is '1.0.0' and the released version is '1.0.0'
->
->😴 Holding back from release: The manifest version is not greater than the released version.
+::: {.border}
+The manifest version is '1.0.0' and the released version is '1.0.0'  
+😴 Holding back from release: The manifest version is not greater than the released version.
+:::
+
+or:
+
+::: {.border}
+⚠️ Version 0.0.0 is reserved and will never be released.
+:::
 
 ## Manually testing content
 

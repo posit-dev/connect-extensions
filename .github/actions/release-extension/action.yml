@@ -41,14 +41,34 @@ runs:
     - name: Check if manifest has newer version
       id: should_release
       run: |
-        echo "The manifest version is '$MANIFEST_VERSION' and the released version is '$LATEST_VERSION'"
-        HIGHER_VERSION=$(semver "$MANIFEST_VERSION" "$LATEST_VERSION" | tail -n 1)
-          if [ "$MANIFEST_VERSION" = "$HIGHER_VERSION" ] && [ "$MANIFEST_VERSION" != "$LATEST_VERSION" ]; then
-          echo "🚀 Will release! The manifest version is greater than the released version."
-          echo "should_release=true" >> "$GITHUB_OUTPUT"
-        else
-          echo "😴 Holding back from release: The manifest version is not greater than the released version."
+        # Add the extension name to the summary header for clarity
+        echo "# Extension: ${{ inputs.extension-name }}" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        
+        if [ "$MANIFEST_VERSION" = "0.0.0" ]; then
+          MESSAGE="⚠️ Version 0.0.0 is reserved and will never be released."
+          echo "$MESSAGE"
+          echo "$MESSAGE" >> $GITHUB_STEP_SUMMARY
           echo "should_release=false" >> "$GITHUB_OUTPUT"
+        else
+          # Normal version comparison logic
+          VERSION_INFO="The manifest version is '$MANIFEST_VERSION' and the released version is '$LATEST_VERSION'"
+          echo "$VERSION_INFO"
+          echo "$VERSION_INFO" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          HIGHER_VERSION=$(semver "$MANIFEST_VERSION" "$LATEST_VERSION" | tail -n 1)
+          if [ "$MANIFEST_VERSION" = "$HIGHER_VERSION" ] && [ "$MANIFEST_VERSION" != "$LATEST_VERSION" ]; then
+            MESSAGE="🚀 Will release! The manifest version is greater than the released version."
+            echo "$MESSAGE"
+            echo "$MESSAGE" >> $GITHUB_STEP_SUMMARY
+            echo "should_release=true" >> "$GITHUB_OUTPUT"
+          else
+            MESSAGE="😴 Holding back from release: The manifest version is not greater than the released version."
+            echo "$MESSAGE"
+            echo "$MESSAGE" >> $GITHUB_STEP_SUMMARY
+            echo "should_release=false" >> "$GITHUB_OUTPUT"
+          fi
         fi
       shell: bash
 
