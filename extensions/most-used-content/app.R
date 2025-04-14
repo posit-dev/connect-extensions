@@ -159,7 +159,6 @@ server <- function(input, output, session) {
       summarize(
         total_views = n(),
         unique_viewers = n_distinct(user_guid, na.rm = TRUE),
-        last_viewed_at = max(timestamp, na.rm = TRUE),
         .groups = "drop"
       )
 
@@ -179,7 +178,7 @@ server <- function(input, output, session) {
       right_join(daily_usage, by = "content_guid") |>
       replace_na(list(title = "[Unavailable]")) |>
       arrange(desc(total_views)) |>
-      select(title, content_guid, owner_username, total_views, sparkline, unique_viewers, last_viewed_at)
+      select(title, content_guid, owner_username, total_views, sparkline, unique_viewers)
   })
 
   output$summary_text <- renderText(
@@ -212,13 +211,7 @@ server <- function(input, output, session) {
       ),
 
       content_guid = colDef(name = "GUID", cell = function(value) {
-        htmltools::div(
-          style = list(
-            whiteSpace = "normal",
-            wordBreak = "break-all"
-          ),
-          value
-        )
+        div(style = list(whiteSpace = "normal", wordBreak = "break-all"), value)
       }),
 
       owner_username = colDef(name = "Owner", defaultSortOrder = "asc", minWidth = 75, filterable = TRUE),
@@ -261,15 +254,6 @@ server <- function(input, output, session) {
           format(value, width = nchar(max_val), justify = "right")
         },
         class = "number"
-      ),
-
-      last_viewed_at = colDef(
-        name = "Last Viewed",
-        align = "right",
-        width = 150,
-        cell = function(value) {
-          format(as.POSIXct(value), "%Y-%m-%d %H:%M:%S")
-        }
       )
     )
 
