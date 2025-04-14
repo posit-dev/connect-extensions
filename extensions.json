@@ -37,6 +37,24 @@
       ]
     },
     {
+      "name": "quarto-document",
+      "title": "Quarto Document",
+      "description": "This Quarto example shows how a basic document can present diagrams and interactivity.",
+      "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/quarto-document",
+      "latestVersion": {
+        "version": "1.0.0",
+        "released": "2025-04-14T20:05:36Z",
+        "url": "https://github.com/posit-dev/connect-extensions/releases/download/quarto-document%40v1.0.0/quarto-document.tar.gz"
+      },
+      "versions": [
+        {
+          "version": "1.0.0",
+          "released": "2025-04-14T20:05:36Z",
+          "url": "https://github.com/posit-dev/connect-extensions/releases/download/quarto-document%40v1.0.0/quarto-document.tar.gz"
+        }
+      ]
+    },
+    {
       "name": "quarto-stock-report-python",
       "title": "Quarto Stock Report using Python",
       "description": "An example of how you might automate regular updates using a data source",
