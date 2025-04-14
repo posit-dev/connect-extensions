@@ -45,12 +45,22 @@ ui <- page_sidebar(
     open = "desktop",
     width = 275,
 
-    dateRangeInput(
-      "date_range",
-      label = "Select Date Range",
-      start = today() - ddays(6),
-      end = today(),
-      max = today()
+    selectInput(
+      "date_range_choice",
+      label = "Date Range",
+      choices = c("1 Week", "30 Days", "90 Days", "Custom"),
+      selected = "1 Week"
+    ),
+
+    conditionalPanel(
+      condition = "input.date_range_choice === 'Custom'",
+      dateRangeInput(
+        "date_range",
+        label = NULL,
+        start = today() - ddays(6),
+        end = today(),
+        max = today()
+      )
     ),
 
     selectizeInput(
@@ -111,13 +121,21 @@ server <- function(input, output, session) {
     get_content(client)
   }) |> bindCache("static_key")
 
+  date_range <- reactive({
+    switch(input$date_range_choice,
+            "1 Week" = c(today() - ddays(6), today()),
+            "30 Days" = c(today() - ddays(29), today()),
+            "90 Days" = c(today() - ddays(89), today()),
+            "Custom" = input$date_range)
+  })
+
   usage_data_raw <- reactive({
     get_usage(
       client,
-      from = as.POSIXct(input$date_range[1]),
-      to = as.POSIXct(input$date_range[2]) + hours(23) + minutes(59) + seconds(59)
+      from = as.POSIXct(date_range()[1]),
+      to = as.POSIXct(date_range()[2]) + hours(23) + minutes(59) + seconds(59)
     )
-  }) |> bindCache(input$date_range)
+  }) |> bindCache(date_range())
 
   # Apply client-side data filters (app mode)
   usage_data_filtered <- reactive({
@@ -163,7 +181,7 @@ server <- function(input, output, session) {
       )
 
     # Prepare sparkline data as a list column of numeric vectors.
-    all_dates <- seq.Date(input$date_range[1], input$date_range[2], by = "day")
+    all_dates <- seq.Date(date_range()[1], date_range()[2], by = "day")
     daily_usage <- usage_data_visits() |>
       count(content_guid, date = date(timestamp)) |>
       complete(date = all_dates, nesting(content_guid), fill = list(n = 0)) |>
