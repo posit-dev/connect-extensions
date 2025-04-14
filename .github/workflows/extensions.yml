@@ -32,6 +32,7 @@ jobs:
             reaper: extensions/reaper/**
             integration-session-manager: extensions/integration-session-manager/**
             portfolio-dashboard: extensions/portfolio-dashboard/**
+            quarto-document: extensions/quarto-document/**
 
   # Runs for each extension that has changed from `simple-extension-changes`
   # Lints and packages in preparation for tests and and release.
@@ -107,7 +108,7 @@ jobs:
             '$arr | split(",")' -c)
           echo "Successful extensions: $SUCCESSFUL_EXTENSIONS"
           echo "successful_extensions=$SUCCESSFUL_EXTENSIONS" >> "$GITHUB_OUTPUT"
-  
+
 
   # Runs Connect integration tests for each extension that were successfully linted and packaged
   simple-extension-connect-integration-tests:
@@ -123,9 +124,9 @@ jobs:
     runs-on: ubuntu-latest
     needs: [simple-extension-connect-integration-tests]
     # Only run if connect integration tests actually ran and produced valid output
-    if: ${{ 
-      always() && 
-      needs.simple-extension-connect-integration-tests.result != 'skipped' && 
+    if: ${{
+      always() &&
+      needs.simple-extension-connect-integration-tests.result != 'skipped' &&
       needs.simple-extension-connect-integration-tests.result != 'canceled' &&
       needs.simple-extension-connect-integration-tests.outputs.successful_extensions != '[]'
       }}
