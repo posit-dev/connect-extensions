@@ -83,8 +83,7 @@ Here is an example of what needs to be included in a `manifest.json`:
     "r": {
       "requires": ">=4.2, <5"
     }
-  },
-  ...
+  }
 }
 ```
 
