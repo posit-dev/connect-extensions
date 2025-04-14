@@ -22,7 +22,7 @@ A file that has the name of your extension, the categories it falls into, and a 
 {{< include _template/connect-extension.qmd >}}
 ```
 
-# Connect Gallery
+## Connect Gallery
 
 The Connect Gallery displays apps, dashboards, and reports that can be easily
 added to Posit Connect servers.
@@ -155,7 +155,7 @@ setting up the environment needed to build the content.
 
 #### Creating a custom workflow
 
-To faciliate control over how the content is being built we utilize custom
+To facilitate control over how the content is being built we utilize custom
 GitHub Workflows. See the [Creating a custom workflow](docs/creating-a-custom-workflow.qmd)
 guide how to get started.
 
@@ -269,7 +269,7 @@ And after the pull request is merged:
 - Remove all associated releases for the content from the [GitHub Releases page](https://github.com/posit-dev/connect-extensions/releases).
 - Remove all associated tags for the content from the [GitHub Tags page](https://github.com/posit-dev/connect-extensions/tags).
 
-# Removing Content
+## Removing Content
 
 Removing content from the `extensions/` subdirectory that has already been
 added to the Connect Gallery requires that you follow instructions in the 
