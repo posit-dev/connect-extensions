@@ -17,3 +17,6 @@ packages = ["tests"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+
+[tool.uv]
+required-version = "0.6.14"
