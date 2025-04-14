@@ -9,7 +9,7 @@
     "title": "Quarto Stock Report using Python",
     "description": "An example of how you might automate regular updates using a data source",
     "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/quarto-stock-report-python",
-    "version": "0.0.0"
+    "version": "1.0.0"
   },
   "environment": {
     "python": {
