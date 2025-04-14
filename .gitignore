@@ -1,7 +1,17 @@
-/.quarto/
-_site/
+# RStudio
 .Rproj.user
+**/renv/
 
+# Quarto
+.quarto/
+_site/
+index.quarto_ipynb
+**/libs/
+README.html
+extensions/*/connect-extension_files
+
+# Mac
+.DS_Store
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
