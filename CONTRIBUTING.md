@@ -1,26 +1,15 @@
----
-title: Contributing
----
+# Contributing
 
 Add your extension in the `extensions/` subdirectory.
 
-To help you get started, call `make create-extension DIR=my_extension_name` to create a new extension directory with the necessary files. Note, you will need to manually create your `manifest.json` file.
+To help you get started, call `make create-extension DIR=my_extension_name` to
+create a new extension directory. Note, you will need to manually create your
+`manifest.json` file.
 
-<br />
+## `manifest.json`
 
-## Required files
-
-### `manifest.json`
-
-Use `rsconnect` or `rsconnect-python` to generate a manifest, which is required as part of the extension bundle
-
-### `connect-extension.qmd`
-
-A file that has the name of your extension, the categories it falls into, and a brief description
-
-```{filename="connect-extension.qmd"}
-{{< include _template/connect-extension.qmd >}}
-```
+Use `rsconnect` or `rsconnect-python` to generate a manifest, which is required
+as part of the extension bundle.
 
 ## Connect Gallery
 
@@ -41,7 +30,9 @@ in this repository.
 Below is an example of the additional details that need to be manually added
 to the `manifest.json`:
 
-```json {filename="manifest.json"} 
+```json
+// manifest.json
+
 {
   ...
   "extension": {
@@ -80,7 +71,9 @@ language(s) it utilizes.
 
 Here is an example of what needs to be included in a `manifest.json`:
 
-```json {filename="manifest.json"}
+```json
+// manifest.json
+
 {
   ...
   "environment": {
@@ -90,8 +83,7 @@ Here is an example of what needs to be included in a `manifest.json`:
     "r": {
       "requires": ">=4.2, <5"
     }
-  },
-  ...
+  }
 }
 ```
 
@@ -110,14 +102,13 @@ To add content to the Connect Gallery, follow the steps below:
 "Simple content" refers to content that can be bundled into a TAR file without
 any additional steps. Most content will fall into this category.
 
-::: {.callout-note}
-If you can run
-```bash
-tar -czf my-extension-name.tar.gz ./extensions/my-extension-name
-```
-and the resulting TAR file can be published by uploading the bundle to Posit
-Connect, then it is piece of simple content.
-:::
+> [!NOTE]
+> If you can run
+> ```bash
+> tar -czf my-extension-name.tar.gz ./extensions/my-extension-name
+> ```
+> and the resulting TAR file can be published by uploading the bundle to Posit
+> Connect, then it is piece of simple content.
 
 To add simple content look for the [`simple-extension-changes` section in the `.github/workflows/extensions.yml`](https://github.com/posit-dev/connect-extensions/blob/main/.github/workflows/extensions.yml#L31)
 file and add a new filter:
@@ -156,7 +147,7 @@ setting up the environment needed to build the content.
 #### Creating a custom workflow
 
 To facilitate control over how the content is being built we utilize custom
-GitHub Workflows. See the [Creating a custom workflow](docs/creating-a-custom-workflow.qmd)
+GitHub Workflows. See the [Creating a custom workflow](docs/creating-a-custom-workflow.md)
 guide how to get started.
 
 #### Calling the custom workflow
@@ -180,7 +171,9 @@ To update already released content in the Connect Gallery simply increment the
 `version` field in the `extension` section of the `manifest.json` file and open
 a pull request with the changes.
 
-```json {filename="manifest.json"}
+```json
+// manifest.json
+
 {
   ...
   "extension": {
@@ -201,25 +194,16 @@ you can do that by looking in the GitHub Actions summary. Click on the "Checks"
 tab for a Pull Request and then click on the Extension Workflow run and the 
 summary will be displayed below the workflow graph.
 
-It will either say:
+It will say one of the following based on the `version` in the
+`manifest.json` and the last released version:
 
-::: {.border}
-The manifest version is '1.1.0' and the released version is '1.0.0'  
-🚀 Will release! The manifest version is greater than the released version.
-:::
+> The manifest version is '1.1.0' and the released version is '1.0.0'  
+> 🚀 Will release! The manifest version is greater than the released version.
 
-or:
+> The manifest version is '1.0.0' and the released version is '1.0.0'  
+> 😴 Holding back from release: The manifest version is not greater than the released version.
 
-::: {.border}
-The manifest version is '1.0.0' and the released version is '1.0.0'  
-😴 Holding back from release: The manifest version is not greater than the released version.
-:::
-
-or:
-
-::: {.border}
-⚠️ Version 0.0.0 is reserved and will never be released.
-:::
+> ⚠️ Version 0.0.0 is reserved and will never be released.
 
 ## Manually testing content
 
