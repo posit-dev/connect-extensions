@@ -16,5 +16,3 @@ stakeholders.
 
 * Quarto version 1.4 or higher
 * Python version 3.9 or higher
-
-<!-- NOTE: this file is generated -->
