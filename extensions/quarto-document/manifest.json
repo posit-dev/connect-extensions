@@ -1,0 +1,33 @@
+{
+  "version": 1,
+  "locale": "en_US",
+  "platform": "4.4.1",
+  "metadata": {
+    "appmode": "quarto-static",
+    "primary_rmd": "index.qmd",
+    "primary_html": null,
+    "content_category": null,
+    "has_parameters": false
+  },
+  "quarto": {
+    "version": "1.7.13",
+    "engines": ["markdown"]
+  },
+  "packages": null,
+  "files": {
+    "_quarto.yml": {
+      "checksum": "e498dcc5956dba39a6df10ac9568fcb9"
+    },
+    "index.qmd": {
+      "checksum": "52f82c15783f37b2de073e22e1b5a648"
+    }
+  },
+  "users": null,
+  "extension": {
+    "name": "quarto-document",
+    "title": "Quarto Document",
+    "description": "This Quarto example shows how a basic document can present diagrams and interactivity.",
+    "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/quarto-document",
+    "version": "1.0.0"
+  }
+}
