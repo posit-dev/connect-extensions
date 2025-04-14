@@ -78,6 +78,11 @@ ui <- page_sidebar(
       step = 1
     ),
 
+    checkboxInput(
+      "show_guid",
+      label = "Show GUID"
+    ),
+
     downloadButton(
       "export_raw_visits",
       label = "Export Raw Visits"
@@ -174,7 +179,7 @@ server <- function(input, output, session) {
       right_join(daily_usage, by = "content_guid") |>
       replace_na(list(title = "[Unavailable]")) |>
       arrange(desc(total_views)) |>
-      select(content_guid, title, owner_username, total_views, sparkline, unique_viewers, last_viewed_at)
+      select(title, content_guid, owner_username, total_views, sparkline, unique_viewers, last_viewed_at)
   })
 
   output$summary_text <- renderText(
@@ -187,7 +192,87 @@ server <- function(input, output, session) {
   # Main content table ----
   output$content_usage_table <- renderReactable({
     data <- content_usage_data() |>
-      select(-content_guid)
+      (\(x) if (input$show_guid) x else select(x, -content_guid))()
+
+    # We define columns separately so that we can dynamically hide and show the
+    # content GUID (reactable expects colDefs to be present in data).
+    colDefs <- list(
+
+      title = colDef(
+        name = "Content",
+        defaultSortOrder = "asc",
+        filterable = TRUE,
+        style = function(value) {
+          switch(value,
+            "[Untitled]" = list(fontStyle = "italic"),
+            "[Unavailable]" = list(fontStyle = "italic", color = "#808080"),
+            NULL
+          )
+        }
+      ),
+
+      content_guid = colDef(name = "GUID", cell = function(value) {
+        htmltools::div(
+          style = list(
+            whiteSpace = "normal",
+            wordBreak = "break-all"
+          ),
+          value
+        )
+      }),
+
+      owner_username = colDef(name = "Owner", defaultSortOrder = "asc", minWidth = 75, filterable = TRUE),
+
+      total_views = colDef(
+        name = "Visits",
+        align = "left",
+        minWidth = 75,
+        maxWidth = 150,
+        cell = function(value) {
+          max_val <- max(data$total_views, na.rm = TRUE)
+          bar_chart(value, max_val, fill = "#7494b1", background = "#e1e1e1")
+        }
+      ),
+
+      sparkline = colDef(
+        name = "By Day",
+        align = "left",
+        width = 90,
+        sortable = FALSE,
+        cell = function(value) {
+          sparkline::sparkline(
+            value,
+            type = "bar",
+            barColor = "#7494b1",
+            disableTooltips = TRUE,
+            barWidth = 8,
+            chartRangeMin = TRUE
+          )
+        }
+      ),
+
+      unique_viewers = colDef(
+        name = "Unique Visitors",
+        align = "left",
+        minWidth = 70,
+        maxWidth = 120,
+        cell = function(value) {
+          max_val <- max(data$total_views, na.rm = TRUE)
+          format(value, width = nchar(max_val), justify = "right")
+        },
+        class = "number"
+      ),
+
+      last_viewed_at = colDef(
+        name = "Last Viewed",
+        align = "right",
+        width = 150,
+        cell = function(value) {
+          format(as.POSIXct(value), "%Y-%m-%d %H:%M:%S")
+        }
+      )
+    )
+
     reactable(
       data,
       defaultSortOrder = "desc",
@@ -205,72 +290,7 @@ server <- function(input, output, session) {
         }
       }"),
 
-      columns = list(
-
-        title = colDef(
-          name = "Content",
-          defaultSortOrder = "asc",
-          filterable = TRUE,
-          style = function(value) {
-            switch(value,
-              "[Untitled]" = list(fontStyle = "italic"),
-              "[Unavailable]" = list(fontStyle = "italic", color = "#808080"),
-              NULL
-            )
-          }
-        ),
-
-        owner_username = colDef(name = "Owner", defaultSortOrder = "asc", minWidth = 75, filterable = TRUE),
-
-        total_views = colDef(
-          name = "Visits",
-          align = "left",
-          minWidth = 75,
-          maxWidth = 150,
-          cell = function(value) {
-            max_val <- max(data$total_views, na.rm = TRUE)
-            bar_chart(value, max_val, fill = "#7494b1", background = "#e1e1e1")
-          }
-        ),
-
-        sparkline = colDef(
-          name = "By Day",
-          align = "left",
-          width = 90,
-          sortable = FALSE,
-          cell = function(value) {
-            sparkline::sparkline(
-              value,
-              type = "bar",
-              barColor = "#7494b1",
-              disableTooltips = TRUE,
-              barWidth = 8,
-              chartRangeMin = TRUE
-            )
-          }
-        ),
-
-        unique_viewers = colDef(
-          name = "Unique Visitors",
-          align = "left",
-          minWidth = 70,
-          maxWidth = 120,
-          cell = function(value) {
-            max_val <- max(data$total_views, na.rm = TRUE)
-            format(value, width = nchar(max_val), justify = "right")
-          },
-          class = "number"
-        ),
-
-        last_viewed_at = colDef(
-          name = "Last Viewed",
-          align = "right",
-          width = 150,
-          cell = function(value) {
-            format(as.POSIXct(value), "%Y-%m-%d %H:%M:%S")
-          }
-        )
-      )
+      columns = colDefs[names(colDefs) %in% names(data)]
     )
   })
 
