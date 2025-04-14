@@ -1,6 +1,4 @@
----
-title: Creating a custom workflow
----
+# Creating a custom workflow
 
 Most custom workflows will have common steps. They utilize handy
 [composite GitHub Actions](https://docs.github.com/en/actions/sharing-automations/creating-actions/creating-a-composite-action)
@@ -18,7 +16,9 @@ Replace the `EXTENSION_NAME` variable with your content's name, and add the
 custom build steps needed for your content. The custom steps will entirely
 depend on your content and what environment it needs to setup.
 
-```yaml {filename=".github/workflows/my-custom-content.yml"}
+```yaml
+# ./github/workflows/my-custom-content.yml
+
 name: My Custom Content
 
 # Re-usable workflows use the `workflow_call` trigger
