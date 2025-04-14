@@ -1,4 +1,4 @@
-# Connect Extension
+# Connect Extensions
 
 Home for connect extensions
 

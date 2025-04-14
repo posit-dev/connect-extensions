@@ -195,7 +195,7 @@ you can do that by looking in the GitHub Actions summary. Click on the "Checks"
 tab for a Pull Request and then click on the Extension Workflow run and the 
 summary will be displayed below the workflow graph.
 
-It will either say one of the follow based on the `version` in the
+It will say one of the following based on the `version` in the
 `manifest.json` and the last released version:
 
 > The manifest version is '1.1.0' and the released version is '1.0.0'  
