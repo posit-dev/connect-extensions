@@ -155,7 +155,7 @@ setting up the environment needed to build the content.
 
 #### Creating a custom workflow
 
-To faciliate control over how the content is being built we utilize custom
+To facilitate control over how the content is being built we utilize custom
 GitHub Workflows. See the [Creating a custom workflow](docs/creating-a-custom-workflow.qmd)
 guide how to get started.
 
