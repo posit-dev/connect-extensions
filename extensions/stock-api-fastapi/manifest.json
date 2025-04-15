@@ -1,0 +1,42 @@
+{
+  "version": 1,
+  "locale": "en_US.UTF-8",
+  "metadata": {
+    "appmode": "python-fastapi",
+    "entrypoint": "main"
+  },
+  "extension": {
+    "name": "stock-api-fastapi",
+    "title": "FastAPI Stock Pricing Service",
+    "description": "APIs are a great way for software engineering teams to use your models without translating them into different languages",
+    "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/stock-api-fastapi",
+    "version": "0.0.0"
+  },
+  "environment": {
+    "python": {
+      "requires": ">=3.11, <4"
+    }
+  },
+  "python": {
+    "version": "3.11.7",
+    "package_manager": {
+      "name": "pip",
+      "version": "24.2",
+      "package_file": "requirements.txt"
+    }
+  },
+  "files": {
+    "requirements.txt": {
+      "checksum": "9b9389b1c871e9fe179877c446861cd9"
+    },
+    "README.md": {
+      "checksum": "a33766bf7a7ff5fe0b4c9fc5fe583468"
+    },
+    "main.py": {
+      "checksum": "7618d24f4c382163cdd224930e9b24c1"
+    },
+    "prices.csv": {
+      "checksum": "e0bc27e3dd358c360863807e09079985"
+    }
+  }
+}
