@@ -2,6 +2,11 @@
   "version": 1,
   "locale": "en_US",
   "platform": "4.4.1",
+  "environment": {
+    "r": {
+      "requires": ">=4.4, <5"
+    }
+  },
   "metadata": {
     "appmode": "shiny",
     "primary_rmd": null,
