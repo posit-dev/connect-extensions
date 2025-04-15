@@ -4,6 +4,7 @@ from pathlib import Path
 from urllib.parse import urlparse
 from posit import connect
 import requests
+import pprint
 
 # Configuration constants - could be moved to environment variables
 MAX_RETRIES = 6
@@ -55,9 +56,12 @@ class TestExtensionDeployment:
         deploy_time = time.time() - deploy_start
         print(f"Bundle deployment completed after {deploy_time:.1f}s")
 
+        # Format the task object so we can use it in our assertion messages for debugging
+        task_pp = pprint.pformat(task, indent=2)
+        
         # Verify deployment succeeded
-        assert task.is_finished is True, "Deployment task didn't finish"
-        assert task.error_code == 0, f"Deployment failed with code {task.error_code}: {task.error_message}"
+        assert task.is_finished is True, f"Deployment task didn't finish\nTask: {task_pp}"
+        assert task.error_code == 0, f"Deployment failed with code {task.error_code}\nTask:{task_pp}"
         
         # Refresh content after deployment
         self.content = self.client.content.get(self.content["guid"])
