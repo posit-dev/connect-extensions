@@ -348,11 +348,8 @@ server <- function(input, output, session) {
 
   # Observe table click
   observeEvent(input$row_click, {
-    showModal(modalDialog(
-      title = paste("Content details", input$row_click),
-      "Shiny UI goes here",
-      easyClose = TRUE
-    ))
+    # Display metrics for individual content; not yet implemented.
+    invisible(NULL)
   })
 }
 
