@@ -1,6 +1,0 @@
----
-title: Extensions
-listing:
-    categories: true
-    contents: "extensions/**/connect-extension.qmd"
----

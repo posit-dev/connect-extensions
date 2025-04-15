@@ -57,6 +57,7 @@ _swagger_prompt.md:
 swagger: ensure-uv FORCE ## [py] Update the Swagger file
 	uv run uv_update_swagger.py
 
+# --server https://pub.demo.posit.team/ \
 deploy: ensure-uv FORCE  ## [py] Deploy the assistant
 	uv run --python 3.12 \
 		--with "rsconnect-python >= 1.21.0" \

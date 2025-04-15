@@ -21,8 +21,23 @@ ui <- page_fillable(
     card_header("Who is Visiting This Content?"),
     layout_sidebar(
       sidebar = sidebar(
-        title = "No Filters Yet",
-        open = FALSE,
+        title = "Filters",
+        open = TRUE,
+
+        sliderInput(
+          "visit_lag_cutoff_slider",
+          label = "Visit Merge Window (sec)",
+          min = 0,
+          max = 600,
+          value = 1,
+          step = 0.5
+        ),
+
+        textInput(
+          "visit_lag_cutoff_text",
+          label = "Visit Merge Window (sec)",
+          value = 1
+        ),
 
         actionButton("clear_cache", "Clear Cache", icon = icon("refresh"))
       ),
@@ -73,6 +88,22 @@ server <- function(input, output, session) {
     }
   })
 
+  # Sync slider and text input ----
+
+  observeEvent(input$visit_lag_cutoff_slider, {
+    updateTextInput(session, "visit_lag_cutoff_text", value = input$visit_lag_cutoff_slider)
+  })
+
+  observeEvent(input$visit_lag_cutoff_text, {
+    new_value <- suppressWarnings(as.numeric(input$visit_lag_cutoff_text))
+
+    if (!is.na(new_value) && new_value >= 0 && new_value <= 600) {
+      updateSliderInput(session, "visit_lag_cutoff_slider", value = new_value)
+    } else {
+      updateTextInput(session, "visit_lag_cutoff_text", value = input$visit_lag_cutoff_slider)
+    }
+  })
+
   # Loading and processing data ----
   client <- connect()
 
@@ -112,22 +143,45 @@ server <- function(input, output, session) {
   all_visits_data <- reactive({
     usage_data() |>
       filter(content_guid == input$content_guid) |>
+
+      # Compute time diffs and filter out hits within the session
+      group_by(user_guid) |>
+      mutate(time_diff = seconds(timestamp - lag(timestamp, 1))) |>
+      replace_na(list(time_diff = seconds(Inf))) |>
+      filter(time_diff > input$visit_lag_cutoff_slider) |>
+      ungroup() |>
+
+      # Join to usernames
       left_join(user_names(), by = "user_guid") |>
       replace_na(list(full_name = "[Anonymous]")) |>
       arrange(desc(timestamp)) |>
       select(timestamp, full_name, username)
-  }) |> bindCache(date_range()$from_date, date_range()$to_date, input$content_guid)
+  })
 
   aggregated_visits_data <- reactive({
-    usage_data() |>
+    unfiltered_hits <- usage_data() |>
       filter(content_guid == input$content_guid) |>
       group_by(user_guid) |>
-      summarize(n_visits = n()) |>
+      summarize(n_hits = n())
+
+    filtered_visits <- usage_data() |>
+      filter(content_guid == input$content_guid) |>
+      group_by(user_guid) |>
+
+      # Compute time diffs and filter out hits within the session
+      mutate(time_diff = seconds(timestamp - lag(timestamp, 1))) |>
+      replace_na(list(time_diff = seconds(Inf))) |>
+      filter(time_diff > input$visit_lag_cutoff_slider) |>
+
+      summarize(n_visits = n())
+
+    filtered_visits |>
+      left_join(unfiltered_hits, by = "user_guid") |>
       left_join(user_names(), by = "user_guid") |>
       replace_na(list(full_name = "[Anonymous]")) |>
       arrange(desc(n_visits)) |>
-      select(n_visits, full_name, username)
-  }) |> bindCache(date_range()$from_date, date_range()$to_date, input$content_guid)
+      select(n_visits, n_hits, full_name, username)
+  })
 
   summary_message <- reactive({
     content_title <- content() |>
@@ -135,11 +189,10 @@ server <- function(input, output, session) {
       pull(title)
     hits <- all_visits_data()
     glue(
-      "Content '{content_title}' had {nrow(hits)} between ",
+      "Content '{content_title}' had {nrow(hits)} visits between ",
       "{min(hits$timestamp)} and {max(hits$timestamp)}."
     )
   })
-
 
   output$summary_message <- renderText(summary_message())
   output$all_visits <- renderTable(
@@ -149,7 +202,12 @@ server <- function(input, output, session) {
   )
   output$aggregated_visits <- renderTable(
     aggregated_visits_data() |>
-      rename("Total Visits" = n_visits, "Full Name" = full_name, "Username" = username)
+      rename(
+        "Total Visits" = n_visits,
+        "Number of Hits" = n_hits,
+        "Full Name" = full_name,
+        "Username" = username
+      )
   )
 }
 

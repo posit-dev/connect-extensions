@@ -1,5 +1,0 @@
----
-title: connect extensions
----
-
-qu'est-ce que c'est?

@@ -1,12 +1,35 @@
-name: Publisher Commander Center Extension
+# Creating a custom workflow
 
+Most custom workflows will have common steps. They utilize handy
+[composite GitHub Actions](https://docs.github.com/en/actions/sharing-automations/creating-actions/creating-a-composite-action)
+in the repository.
+
+A good place to start is looking at examples of custom workflows already in the
+repository like the [Publisher Command Center workflow](https://github.com/posit-dev/connect-extensions/blob/main/.github/workflows/publisher-command-center.yml).
+
+## Custom Workflow Template
+
+Use the template below to get started. It contains inline comments to explain
+each section.
+
+Replace the `EXTENSION_NAME` variable with your content's name, and add the
+custom build steps needed for your content. The custom steps will entirely
+depend on your content and what environment it needs to setup.
+
+```yaml
+# ./github/workflows/my-custom-content.yml
+
+name: My Custom Content
+
+# Re-usable workflows use the `workflow_call` trigger
+# https://docs.github.com/en/actions/sharing-automations/reusing-workflows#creating-a-reusable-workflow
 on:
   workflow_call:
 
 # Setup the environment with the extension name for easy re-use
-# Also need the GH_TOKEN for the release-extension action to be able to use gh
+# Also set the GH_TOKEN for the release-extension action to be able to use gh
 env:
-  EXTENSION_NAME: publisher-command-center
+  EXTENSION_NAME: my-content-name
   GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
 jobs:
@@ -25,16 +48,9 @@ jobs:
         with:
           extension-name: ${{ env.EXTENSION_NAME }}
 
-      # Publisher Command Center needs to setup node, install dependencies, and
-      # build to make the files needed for the extension
-      - uses: actions/setup-node@v4
-        with:
-          node-version: "lts/*"
-          cache: "npm"
-          cache-dependency-path: extensions/${{ env.EXTENSION_NAME }}/package-lock.json
-
-      - run: npm ci
-      - run: npm run build
+      # ---
+      # Add Custom Build Steps Here
+      # ---
 
       # Now that the extension is built we need to upload an artifact to pass
       # to the package-extension action that contains the files we want to be
@@ -45,15 +61,14 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: ${{ env.EXTENSION_NAME }}
+          # Replace the below with the files your content needs
           path: |
             extensions/${{ env.EXTENSION_NAME }}/dist/
             extensions/${{ env.EXTENSION_NAME }}/requirements.txt
             extensions/${{ env.EXTENSION_NAME }}/app.py
             extensions/${{ env.EXTENSION_NAME }}/manifest.json
-            extensions/${{ env.EXTENSION_NAME }}/connect-extension.toml
 
-      # Package up the extension into a TAR using the generalized
-      # package-extension action
+      # Package up the extension into a TAR using the package-extension action
       - uses: ./.github/actions/package-extension
         with:
           extension-name: ${{ env.EXTENSION_NAME }}
@@ -79,3 +94,4 @@ jobs:
       - uses: ./.github/actions/release-extension
         with:
           extension-name: ${{ env.EXTENSION_NAME }}
+```
