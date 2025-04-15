@@ -8,6 +8,7 @@ library(lubridate)
 library(tidyr)
 library(sparkline)
 library(htmltools)
+library(bsicons)
 
 shinyOptions(
   cache = cachem::cache_disk("./app_cache/cache/", max_age = 60 * 60 * 8)
@@ -190,13 +191,13 @@ server <- function(input, output, session) {
 
     content() |>
       mutate(owner_username = map_chr(owner, "username")) |>
-      select(title, content_guid = guid, owner_username) |>
+      select(title, content_guid = guid, owner_username, dashboard_url) |>
       replace_na(list(title = "[Untitled]")) |>
       right_join(usage_summary, by = "content_guid") |>
       right_join(daily_usage, by = "content_guid") |>
-      replace_na(list(title = "[Unavailable]")) |>
+      replace_na(list(title = "[Deleted]")) |>
       arrange(desc(total_views)) |>
-      select(title, content_guid, owner_username, total_views, sparkline, unique_viewers)
+      select(title, dashboard_url, content_guid, owner_username, total_views, sparkline, unique_viewers)
   })
 
   output$summary_text <- renderText(
@@ -206,74 +207,20 @@ server <- function(input, output, session) {
     )
   )
 
-  # Main content table ----
+  content_link <- renderUI({
+    req(selected_content_info())
+    title_text <- selected_content_info()$title
+    open_url <- selected_content_info()$dashboard_url
+    icon_html <- bs_icon("arrow-up-right-square")
+    HTML(glue::glue(
+      "<h3>{title_text} <a href='{open_url}' target='_blank'>{icon_html}</a></h3>"
+    ))
+  })
+
+  # Render main content table ----
+
   output$content_usage_table <- renderReactable({
-    data <- content_usage_data() |>
-      (\(x) if (input$show_guid) x else select(x, -content_guid))()
-
-    # We define columns separately so that we can dynamically hide and show the
-    # content GUID (reactable expects colDefs to be present in data).
-    colDefs <- list(
-
-      title = colDef(
-        name = "Content",
-        defaultSortOrder = "asc",
-        filterable = TRUE,
-        style = function(value) {
-          switch(value,
-            "[Untitled]" = list(fontStyle = "italic"),
-            "[Unavailable]" = list(fontStyle = "italic", color = "#808080"),
-            NULL
-          )
-        }
-      ),
-
-      content_guid = colDef(name = "GUID", cell = function(value) {
-        div(style = list(whiteSpace = "normal", wordBreak = "break-all"), value)
-      }),
-
-      owner_username = colDef(name = "Owner", defaultSortOrder = "asc", minWidth = 75, filterable = TRUE),
-
-      total_views = colDef(
-        name = "Visits",
-        align = "left",
-        minWidth = 75,
-        maxWidth = 150,
-        cell = function(value) {
-          max_val <- max(data$total_views, na.rm = TRUE)
-          bar_chart(value, max_val, fill = "#7494b1", background = "#e1e1e1")
-        }
-      ),
-
-      sparkline = colDef(
-        name = "By Day",
-        align = "left",
-        width = 90,
-        sortable = FALSE,
-        cell = function(value) {
-          sparkline::sparkline(
-            value,
-            type = "bar",
-            barColor = "#7494b1",
-            disableTooltips = TRUE,
-            barWidth = 8,
-            chartRangeMin = TRUE
-          )
-        }
-      ),
-
-      unique_viewers = colDef(
-        name = "Unique Visitors",
-        align = "left",
-        minWidth = 70,
-        maxWidth = 120,
-        cell = function(value) {
-          max_val <- max(data$total_views, na.rm = TRUE)
-          format(value, width = nchar(max_val), justify = "right")
-        },
-        class = "number"
-      )
-    )
+    data <- content_usage_data()
 
     reactable(
       data,
@@ -292,7 +239,88 @@ server <- function(input, output, session) {
         }
       }"),
 
-      columns = colDefs[names(colDefs) %in% names(data)]
+      columns = list(
+        title = colDef(
+          name = "Content",
+          defaultSortOrder = "asc",
+          filterable = TRUE,
+          style = function(value) {
+            switch(value,
+              "[Untitled]" = list(fontStyle = "italic"),
+              "[Deleted]" = list(fontStyle = "italic", color = "#808080"),
+              NULL
+            )
+          }
+        ),
+
+        dashboard_url = colDef(
+          name = "",
+          width = 32,
+          sortable = FALSE,
+          cell = function(url) {
+            if (is.na(url) || url == "") return("")
+            HTML(as.character(tags$div(
+              onclick = "event.stopPropagation()",
+              tags$a(
+                href = url,
+                target = "_blank",
+                bs_icon("arrow-up-right-square")
+              )
+            )))
+          },
+          html = TRUE
+        ),
+
+        content_guid = colDef(
+          name = "GUID",
+          show = input$show_guid,
+          cell = function(value) {
+            div(style = list(whiteSpace = "normal", wordBreak = "break-all"), value)
+          }
+        ),
+
+        owner_username = colDef(name = "Owner", defaultSortOrder = "asc", minWidth = 75, filterable = TRUE),
+
+        total_views = colDef(
+          name = "Visits",
+          align = "left",
+          minWidth = 75,
+          maxWidth = 150,
+          cell = function(value) {
+            max_val <- max(data$total_views, na.rm = TRUE)
+            bar_chart(value, max_val, fill = "#7494b1", background = "#e1e1e1")
+          }
+        ),
+
+        sparkline = colDef(
+          name = "By Day",
+          align = "left",
+          width = 90,
+          sortable = FALSE,
+          cell = function(value) {
+            sparkline::sparkline(
+              value,
+              type = "bar",
+              barColor = "#7494b1",
+              disableTooltips = TRUE,
+              barWidth = 8,
+              chartRangeMin = TRUE
+            )
+          }
+        ),
+
+        unique_viewers = colDef(
+          name = "Unique Visitors",
+          align = "left",
+          minWidth = 70,
+          maxWidth = 135,
+          cell = function(value) {
+            max_val <- max(data$total_views, na.rm = TRUE)
+            format(value, width = nchar(max_val), justify = "right")
+          },
+          class = "number"
+        )
+      )
     )
   })
 
