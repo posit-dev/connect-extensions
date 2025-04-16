@@ -314,7 +314,7 @@ server <- function(input, output, session) {
       left_join(users(), by = "user_guid") |>
       replace_na(list(display_name = "[Anonymous]")) |>
       arrange(desc(n_visits)) |>
-      select(user_guid, display_name, n_visits)
+      select(user_guid, display_name, email, n_visits)
   })
 
   selected_content_info <- reactive({
@@ -343,6 +343,23 @@ server <- function(input, output, session) {
       columns = list(
         user_guid = colDef(show = FALSE),
         display_name = colDef(name = "Visitor"),
+        email = colDef(
+          name = "",
+          width = 32,
+          sortable = FALSE,
+          cell = function(url) {
+            if (is.na(url) || url == "") return("")
+            HTML(as.character(tags$div(
+              onclick = "event.stopPropagation()",
+              tags$a(
+                href = glue("mailto:{url}"),
+                target = "_blank",
+                bs_icon("envelope")
+              )
+            )))
+          },
+          html = TRUE
+        ),
         n_visits = colDef(
           name = "Visits",
           defaultSortOrder = "desc",
