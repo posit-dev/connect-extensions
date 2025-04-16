@@ -40,6 +40,7 @@ to the `manifest.json`:
     "title": "My Content Name",
     "description": "A lovely, detailed description of the content.",
     "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/my-content-name",
+    "tags": [],
     "version": "0.0.0"
   }
 }
@@ -48,6 +49,27 @@ to the `manifest.json`:
 It is recommended to begin with `"version": "0.0.0"` to avoid triggering a
 release during development of your content. When you are ready to release to
 the gallery check the [Adding content to the Connect Gallery](#adding-content-to-the-connect-gallery) section.
+
+#### Tags
+
+The `tags` array in the `extension` section of the `manifest.json` is optional,
+but it helps users filter content in the Gallery. A good start is to include the
+languages and tools used:
+
+```json
+// manifest.json
+
+{
+  ...
+  "extension": {
+    "tags": ["python", "quarto"],
+    ...
+  }
+}
+```
+
+Available tags are listed in the [extensions.json](./extensions.json) and the
+automations in the repository will check that any included tags are valid.
 
 ### README.md
 
