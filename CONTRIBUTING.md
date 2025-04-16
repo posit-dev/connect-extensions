@@ -68,8 +68,17 @@ languages and tools used:
 }
 ```
 
-Available tags are listed in the [extensions.json](./extensions.json) and the
+Available tags are listed in the [`extensions.json`](./extensions.json) and the
 automations in the repository will check that any included tags are valid.
+
+##### Adding a new tag to the gallery
+
+If you want to include a tag on content that is not already in the
+[`extensions.json`](./extensions.json) file, it can be added.
+
+Pull requests can add new tags, but ensure that the tag follows the patterns
+of other tags and is not a duplicate. New tags should be added sparingly and
+reviewed carefully.
 
 ### README.md
 
