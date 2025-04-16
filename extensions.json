@@ -78,11 +78,16 @@
       "description": "A view to a kill.",
       "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/reaper",
       "latestVersion": {
-        "version": "0.0.1",
-        "released": "2025-03-19T22:59:58Z",
-        "url": "https://github.com/posit-dev/connect-extensions/releases/download/reaper%40v0.0.1/reaper.tar.gz"
+        "version": "0.0.2",
+        "released": "2025-04-16T22:32:48Z",
+        "url": "https://github.com/posit-dev/connect-extensions/releases/download/reaper%40v0.0.2/reaper.tar.gz"
       },
       "versions": [
+        {
+          "version": "0.0.2",
+          "released": "2025-04-16T22:32:48Z",
+          "url": "https://github.com/posit-dev/connect-extensions/releases/download/reaper%40v0.0.2/reaper.tar.gz"
+        },
         {
           "version": "0.0.1",
           "released": "2025-03-19T22:59:58Z",
