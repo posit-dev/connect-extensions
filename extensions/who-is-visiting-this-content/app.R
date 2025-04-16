@@ -51,6 +51,24 @@ ui <- function(request) {
             title = "Controls",
             open = TRUE,
 
+            selectInput(
+              "date_range_choice",
+              label = "Date Range",
+              choices = c("1 Week", "30 Days", "90 Days", "Custom"),
+              selected = "1 Week"
+            ),
+
+            conditionalPanel(
+              condition = "input.date_range_choice === 'Custom'",
+              dateRangeInput(
+                "date_range",
+                label = NULL,
+                start = today() - ddays(6),
+                end = today(),
+                max = today()
+              )
+            ),
+
             sliderInput(
               "visit_lag_cutoff_slider",
               label = "Visit Merge Window (sec)",
@@ -209,14 +227,12 @@ server <- function(input, output, session) {
   # Loading and processing data ----
   client <- connect()
 
-  # Default dates. "This week" is best "common sense" best represented by six
-  # days ago thru the end of today. Without these, content takes too long to
-  # display on some servers.
   date_range <- reactive({
-    list(
-      from_date = today() - ddays(6),
-      to_date = today()
-    )
+    switch(input$date_range_choice,
+            "1 Week" = c(today() - ddays(6), today()),
+            "30 Days" = c(today() - ddays(29), today()),
+            "90 Days" = c(today() - ddays(89), today()),
+            "Custom" = input$date_range)
   })
 
   content <- reactive({
@@ -239,10 +255,10 @@ server <- function(input, output, session) {
   firehose_usage_data <- reactive({
     get_usage(
       client,
-      from = date_range()$from_date,
-      to = date_range()$to_date + hours(23) + minutes(59) + seconds(59)
+      from = as.POSIXct(date_range()[1]),
+      to = as.POSIXct(date_range()[2]) + hours(23) + minutes(59) + seconds(59)
     )
-  }) |> bindCache(date_range()$from_date, date_range()$to_date)
+  }) |> bindCache(date_range())
 
   selected_content_usage <- reactive({
     firehose_usage_data() |>
@@ -307,7 +323,7 @@ server <- function(input, output, session) {
 
   # Create day by day hit data for plot
   daily_hit_data <- reactive({
-    all_dates <- seq.Date(date_range()$from_date, date_range()$to_date, by = "day")
+    all_dates <- seq.Date(date_range()[1], date_range()[2], by = "day")
 
     all_visits_data() |>
       mutate(date = date(timestamp)) |>
@@ -359,14 +375,14 @@ server <- function(input, output, session) {
     hits <- all_visits_data()
     glue(
       "{nrow(hits)} visits between ",
-      "{date_range()$from_date} and {date_range()$to_date}."
+      "{date_range()[1]} and {date_range()[2]}."
     )
     if (isTruthy(getReactableState("aggregated_visits", "selected"))) {
       user <- aggregated_visits_data()[getReactableState("aggregated_visits", "selected"), "display_name", drop = TRUE]
       div(
         glue(
           "{nrow(hits)} visits from {user} between ",
-          "{date_range()$from_date} and {date_range()$to_date}."
+          "{date_range()[1]} and {date_range()[2]}."
         ),
         actionLink("clear_selection", glue::glue("Clear filter"), icon = icon("times"))
       )
@@ -374,7 +390,7 @@ server <- function(input, output, session) {
       div(
         glue(
           "{nrow(hits)} total visits between ",
-          "{date_range()$from_date} and {date_range()$to_date}."
+          "{date_range()[1]} and {date_range()[2]}."
         )
       )
     }
