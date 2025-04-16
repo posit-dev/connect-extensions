@@ -35,6 +35,29 @@ runs:
         ' ./extensions/${{ inputs.extension-name }}/manifest.json
       shell: bash
 
+    # Ensures that the manifest.json has only valid tags
+    - name: Check tags
+      run: |
+        # Read in valid tags from extensions.json
+        VALID_TAGS=$(jq -c '.tags' ./extensions.json)
+        
+        # Read in tags from the extension's manifest.json
+        EXTENSION_TAGS=$(jq -c '.extension.tags // []' ./extensions/${{ inputs.extension-name }}/manifest.json)
+        
+        # Check if any extension tag is not in the valid tags list
+        INVALID_TAGS=$(jq -n -c --argjson global "$VALID_TAGS" --argjson extension "$EXTENSION_TAGS" '
+          $extension | map(. as $tag | if ($global | index($tag) | not) then $tag else empty end)
+        ')
+        
+        # Check if there are any invalid tags
+        if [ "$INVALID_TAGS" != "[]" ]; then
+          echo "Error: The following tags in manifest.json are not defined in extensions.json:"
+          echo "$INVALID_TAGS"
+          echo "Please add these tags to the 'tags' array in extensions.json or remove them from the manifest."
+          exit 1
+        fi
+      shell: bash
+       
     - uses: actions/setup-node@v4
 
     - run: npm install -g semver
