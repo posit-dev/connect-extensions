@@ -43,8 +43,11 @@ ui <- function(request) {
       style = "display:none;",
       card(
         card_header(
-          actionButton("clear_guid", "Back", icon("arrow-left"), class = "btn btn-sm"),
-          span("Content Detail")
+          tags$div(
+            style = "display: flex; align-items: center; gap: 0.5rem;",
+            actionButton("clear_guid", "Back", icon("arrow-left"), class = "btn btn-sm"),
+            span("Content Detail")
+          )
         ),
         layout_sidebar(
           sidebar = sidebar(
@@ -353,7 +356,6 @@ server <- function(input, output, session) {
               onclick = "event.stopPropagation()",
               tags$a(
                 href = glue("mailto:{url}"),
-                target = "_blank",
                 bs_icon("envelope")
               )
             )))
