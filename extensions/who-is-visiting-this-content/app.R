@@ -15,76 +15,167 @@ shinyOptions(
   cache = cachem::cache_disk("./app_cache/cache/", max_age = 60 * 60 * 8)
 )
 
+extract_guid <- function(raw) {
+  guid_pattern <- "[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}"
+  match <- regmatches(raw, regexpr(guid_pattern, raw))
+  if (length(match) == 1) {
+    match
+  } else {
+    raw
+  }
+}
+
 source("get_usage.R")
 
-ui <- page_fluid(
-  useShinyjs(),
-  theme = bs_theme(version = 5),
+ui <- function(request) {
+  page_fluid(
+    useShinyjs(),
+    theme = bs_theme(version = 5),
 
-  card(
-    card_header("Content Detail"),
-    layout_sidebar(
-      sidebar = sidebar(
-        title = "Dev Controls",
-        open = TRUE,
+    div(
+      id = "guid_input_panel",
+      textInput("guid_field", "Paste in a content GUID or URL"),
+      actionButton("submit_guid", "Go", icon("arrow-right"))
+    ),
 
-        textInput(
-          "content_guid",
-          "Content GUID"
+    div(
+      id = "dashboard_panel",
+      style = "display:none;",
+      card(
+        card_header(
+          actionButton("clear_guid", "Back", icon("arrow-left"), class = "btn btn-sm"),
+          span("Content Detail")
         ),
+        layout_sidebar(
+          sidebar = sidebar(
+            title = "Controls",
+            open = TRUE,
 
-        sliderInput(
-          "visit_lag_cutoff_slider",
-          label = "Visit Merge Window (sec)",
-          min = 0,
-          max = 600,
-          value = 1,
-          step = 0.5
-        ),
+            sliderInput(
+              "visit_lag_cutoff_slider",
+              label = "Visit Merge Window (sec)",
+              min = 0,
+              max = 180,
+              value = 1,
+              step = 0.5
+            ),
 
-        textInput(
-          "visit_lag_cutoff_text",
-          label = "Visit Merge Window (sec)",
-          value = 1
-        ),
+            textInput(
+              "visit_lag_cutoff_text",
+              label = NULL,
+              value = 1
+            ),
 
-        actionButton("clear_cache", "Clear Cache", icon = icon("refresh"))
-      ),
-
-      layout_columns(
-        uiOutput("content_title"),
-        div(style = "margin-left: auto;", uiOutput("owner_info"))
-      ),
-
-      uiOutput("filter_message"),
-
-      layout_column_wrap(
-        width = "300px",
-        card(
-          plotlyOutput("daily_visits_plot"),
-          # min_height = "300px",
-          height = "350px",
-          max_width = "500px",
-          fill = FALSE
-        ),
-
-        navset_card_tab(
-          id = "content_visit_tables",
-          tabPanel(
-            "Top Visitors",
-            reactableOutput("aggregated_visits")
+            actionButton("clear_cache", "Clear Cache", icon = icon("refresh"))
           ),
-          tabPanel(
-            "List of Visits",
-            reactableOutput("all_visits")
+
+          layout_columns(
+            uiOutput("content_title"),
+            div(style = "margin-left: auto;", uiOutput("owner_info"))
+          ),
+
+          uiOutput("filter_message"),
+
+          layout_column_wrap(
+            width = "300px",
+            card(
+              plotlyOutput("daily_visits_plot"),
+              # min_height = "300px",
+              height = "350px",
+              max_width = "500px",
+              fill = FALSE
+            ),
+
+            navset_card_tab(
+              id = "content_visit_tables",
+              tabPanel(
+                "Top Visitors",
+                reactableOutput("aggregated_visits")
+              ),
+              tabPanel(
+                "List of Visits",
+                reactableOutput("all_visits")
+              )
+            )
           )
         )
       )
-    )
+    ),
+    tags$script(HTML("
+      document.addEventListener('DOMContentLoaded', function() {
+        const input = document.getElementById('guid_field');
+        if (input) {
+          input.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') {
+              e.preventDefault();
+              document.getElementById('submit_guid').click();
+            }
+          });
+        }
+      });
+    "))
   )
-)
+}
 
 server <- function(input, output, session) {
+  observe({
+    setBookmarkExclude(setdiff(names(input), "guid_field"))
+  })
+  onBookmarked(function(url) {
+    message("Bookmark complete. URL: ", url)
+    updateQueryString(url)
+  })
+  onRestore(function(state) {
+    guid <- extract_guid(input$guid_field)
+    if (guid %in% content()$guid) {
+      resolved_guid(guid)
+    } else {
+      resolved_guid(NULL)
+    }
+  })
+
+  # Handle GUID input ----
+
+  resolved_guid <- reactiveVal()
+
+
+  observeEvent(input$submit_guid, {
+    raw_guid <- input$guid_field
+    guid <- extract_guid(raw_guid)
+
+    if (guid %in% content()$guid) {
+      freezeReactiveValue(input, "guid_field")
+      updateTextInput(session, "guid_field", value = guid)
+      resolved_guid(guid)
+    } else {
+      resolved_guid(NULL)
+    }
+  })
+
+  # Update the bookmark when a valid GUID is input
+  observeEvent(input$guid_field, {
+    req(!is.null(input$guid_field), input$guid_field %in% content()$guid)
+    session$doBookmark()
+  }, ignoreInit = TRUE)
+
+  observe({
+    shinyjs::toggle(id = "guid_input_panel", condition = is.null(resolved_guid()))
+    shinyjs::toggle(id = "dashboard_panel", condition = !is.null(resolved_guid()))
+  })
+
+  # Back button logic ----
+
+  observeEvent(input$clear_guid, {
+    resolved_guid(NULL)    # Hide dashboard
+    updateTextInput(session, "guid_field", value = "")
+
+    updateSliderInput(session, "visit_lag_cutoff_slider", value = 1)
+    updateTextInput(session, "visit_lag_cutoff_text", value = "1")
+    updateReactable("aggregated_visits", selected = NA)
+
+    updateQueryString("?", mode = "replace")
+  })
+
   # Cache invalidation button ----
   cache <- cachem::cache_disk("./app_cache/cache/")
   observeEvent(input$clear_cache, {
@@ -96,16 +187,22 @@ server <- function(input, output, session) {
   # Sync slider and text input ----
 
   observeEvent(input$visit_lag_cutoff_slider, {
-    updateTextInput(session, "visit_lag_cutoff_text", value = input$visit_lag_cutoff_slider)
+    if (input$visit_lag_cutoff_slider != input$visit_lag_cutoff_text) {
+      updateTextInput(session, "visit_lag_cutoff_text", value = input$visit_lag_cutoff_slider)
+    }
   })
 
   observeEvent(input$visit_lag_cutoff_text, {
     new_value <- suppressWarnings(as.numeric(input$visit_lag_cutoff_text))
 
     if (!is.na(new_value) && new_value >= 0 && new_value <= 600) {
-      updateSliderInput(session, "visit_lag_cutoff_slider", value = new_value)
+      if (new_value != input$visit_lag_cutoff_slider) {
+        updateSliderInput(session, "visit_lag_cutoff_slider", value = new_value)
+      }
     } else {
-      updateTextInput(session, "visit_lag_cutoff_text", value = input$visit_lag_cutoff_slider)
+      if (input$visit_lag_cutoff_text != input$visit_lag_cutoff_slider) {
+        updateTextInput(session, "visit_lag_cutoff_text", value = input$visit_lag_cutoff_slider)
+      }
     }
   })
 
@@ -147,20 +244,9 @@ server <- function(input, output, session) {
     )
   }) |> bindCache(date_range()$from_date, date_range()$to_date)
 
-  # For demo purposes, this content pre-populates itself with the most popular guid.
-  observe({
-    default_guid <- firehose_usage_data() |>
-        count(content_guid) |>
-        slice_max(n) |>
-        pull(content_guid)
-    if (length(default_guid) == 1 && nchar(input$content_guid) == 0) {
-      updateTextInput(session, "content_guid", value = default_guid)
-    }
-  })
-
   selected_content_usage <- reactive({
     firehose_usage_data() |>
-      filter(content_guid == input$content_guid)
+      filter(content_guid == input$guid_field)
   })
 
   # Compute data
@@ -216,7 +302,7 @@ server <- function(input, output, session) {
   })
 
   selected_content_info <- reactive({
-    filter(content(), guid == input$content_guid)
+    filter(content(), guid == input$guid_field)
   })
 
   # Create day by day hit data for plot
@@ -232,7 +318,6 @@ server <- function(input, output, session) {
 
   # Render tabular output ----
 
-  output$summary_message <- renderText(summary_message())
   output$aggregated_visits <- renderReactable({
     reactable(
       aggregated_visits_data(),
@@ -334,4 +419,5 @@ server <- function(input, output, session) {
   })
 }
 
+enableBookmarking("url")
 shinyApp(ui, server)
