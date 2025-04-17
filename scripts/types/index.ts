@@ -5,6 +5,7 @@ export interface ExtensionManifest {
     description: string;
     homepage: string;
     version: string;
+    tags?: string[];
   };
 }
 
@@ -21,4 +22,5 @@ export interface Extension {
   homepage: string;
   latestVersion: ExtensionVersion;
   versions: ExtensionVersion[];
+  tags: string[];
 }
