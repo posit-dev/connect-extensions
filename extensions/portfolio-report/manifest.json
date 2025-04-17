@@ -3,12 +3,12 @@
     "name": "portfolio-report",
     "title": "Portfolio Report",
     "description": "A R Markdown document giving stakeholders the ability to customize a report's assumptions and create their own version",
-    "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/portfolio-dashboard",
+    "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/portfolio-report",
     "version": "0.0.1"
   },
   "environment": {
     "r": {
-      "requires": ">=3.4"
+      "requires": ">=4.0"
     }
   },
   "version": 1,
@@ -2602,10 +2602,10 @@
       "checksum": "c53d40b7cb86f46547627c11d28ac5f0"
     },
     "README.md": {
-      "checksum": "216b946b68f65627442d8b2e95f324a4"
+      "checksum": "ce131ca6dbaa2670e6e166bbe4903a90"
     },
-    "thumbnail.jpg": {
-      "checksum": "b728da3278160a95d011e1ed1ae4cc37"
+    "returns.rds": {
+      "checksum": "6a5404de2cea271b60c2b4479ab7832c"
     }
   },
   "users": null

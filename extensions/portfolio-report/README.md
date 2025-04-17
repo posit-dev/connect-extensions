@@ -14,4 +14,4 @@ This R Markdown document includes parameters, making it easier for stakeholders 
 
 ## Requirements
 
-* R version 3.4 or higher
+* R version 4.0 or higher
