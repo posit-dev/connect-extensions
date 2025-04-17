@@ -1,6 +1,7 @@
 # RStudio
 .Rproj.user
 **/renv/
+.Rprofile
 
 # Quarto
 .quarto/

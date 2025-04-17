@@ -13,4 +13,4 @@ An API allows you to turn your models into production services that other tools 
 ## Requirements
 
 * Posit Connect license allows API publishing
-* R version 3.2 or higher
+* R version 4.2.3 or higher
