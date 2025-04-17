@@ -8,6 +8,7 @@ library(lubridate)
 library(tidyr)
 library(reactable)
 library(bsicons)
+library(bslib)
 library(ggplot2)
 library(plotly)
 
@@ -66,7 +67,7 @@ ui <- function(request) {
               dateRangeInput(
                 "date_range",
                 label = NULL,
-                start = today() - ddays(6),
+                start = today() - days(6),
                 end = today(),
                 max = today()
               )
@@ -98,7 +99,7 @@ ui <- function(request) {
           uiOutput("filter_message"),
 
           layout_column_wrap(
-            width = "300px",
+            width = "400px",
             card(
               plotlyOutput("daily_visits_plot"),
               # min_height = "300px",
@@ -110,7 +111,13 @@ ui <- function(request) {
             navset_card_tab(
               id = "content_visit_tables",
               tabPanel(
-                "Top Visitors",
+                title = tagList(
+                  "Top Visitors",
+                  tooltip(
+                    bs_icon("question-circle-fill", class = "ms-2"),
+                    "Click a row to show only that user's visits."
+                  )
+                ),
                 reactableOutput("aggregated_visits")
               ),
               tabPanel(
@@ -232,9 +239,9 @@ server <- function(input, output, session) {
 
   date_range <- reactive({
     switch(input$date_range_choice,
-            "1 Week" = c(today() - ddays(6), today()),
-            "30 Days" = c(today() - ddays(29), today()),
-            "90 Days" = c(today() - ddays(89), today()),
+            "1 Week" = c(today() - days(6), today()),
+            "30 Days" = c(today() - days(29), today()),
+            "90 Days" = c(today() - days(89), today()),
             "Custom" = input$date_range)
   })
 

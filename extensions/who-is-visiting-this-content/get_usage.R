@@ -14,6 +14,11 @@ usage_dtype <- tibble::tibble(
   "data" = NA_list_
 )
 
+to_iso8601 <- function(x) {
+  strftime(x, "%Y-%m-%dT%H:%M:%S%z") |>
+    sub("([+-]\\d{2})(\\d{2})$", "\\1:\\2", x = _)
+}
+
 # A rough implementation of how a new firehose usage function would work in
 # `connectapi`.
 get_usage_firehose <- function(client, from = NULL, to = NULL) {
@@ -45,16 +50,22 @@ get_usage_legacy <- function(client, from = NULL, to = NULL) {
 }
 
 get_usage <- function(client, from = NULL, to = NULL) {
-  from <- format(from, "%Y-%m-%dT%H:%M:%SZ")
-  to <- format(to, "%Y-%m-%dT%H:%M:%SZ")
+  if (is.Date(from)) {
+    from <- as.POSIXct(paste(from, "00:00:00"), tz = "")
+  }
+  if (is.Date(to)) {
+    to <- as.POSIXct(paste(to, "23:59:59"), tz = "")
+  }
+  from_timestamp <- to_iso8601(from)
+  to_timestamp <- to_iso8601(to)
   tryCatch(
     {
       print("Trying firehose usage endpoint.")
-      get_usage_firehose(client, from, to)
+      get_usage_firehose(client, from_timestamp, to_timestamp)
     },
     error = function(e) {
       print("Could not use firehose endpoint; trying legacy usage endpoints.")
-      get_usage_legacy(client, from, to)
+      get_usage_legacy(client, from_timestamp, to_timestamp)
     }
   )
 }
