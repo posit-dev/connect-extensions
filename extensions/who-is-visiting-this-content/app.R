@@ -235,7 +235,9 @@ server <- function(input, output, session) {
   })
 
   # Loading and processing data ----
-  client <- connect()
+  print(paste("Session token:", session$request$HTTP_POSIT_CONNECT_USER_SESSION_TOKEN))
+  client <- connect(token = session$request$HTTP_POSIT_CONNECT_USER_SESSION_TOKEN)
+  authed_user_guid <- client$me()$guid
 
   date_range <- reactive({
     switch(input$date_range_choice,
@@ -251,7 +253,7 @@ server <- function(input, output, session) {
     # request to `v1/content/{GUID}`. If this were a prod, standalone dashboard,
     # might be better to call that endpoint.
     get_content(client)
-  }) |> bindCache("static_key")
+  }) |> bindCache(authed_user_guid, "static_key")
 
   users <- reactive({
     get_users(client) |>
@@ -260,15 +262,15 @@ server <- function(input, output, session) {
         display_name = paste0(full_name, " (", username, ")")
       ) |>
       select(user_guid = guid, full_name, username, display_name, email)
-  }) |> bindCache("static_key")
+  }) |> bindCache(authed_user_guid, "static_key")
 
   firehose_usage_data <- reactive({
     get_usage(
       client,
-      from = as.POSIXct(date_range()[1]),
-      to = as.POSIXct(date_range()[2]) + hours(23) + minutes(59) + seconds(59)
+      from = date_range()[1],
+      to = date_range()[2]
     )
-  }) |> bindCache(date_range())
+  }) |> bindCache(authed_user_guid, date_range())
 
   selected_content_usage <- reactive({
     firehose_usage_data() |>
@@ -294,11 +296,13 @@ server <- function(input, output, session) {
 
     # Conditionally filter by selection from other table
     filter_selection <- getReactableState("aggregated_visits", "selected")
+    print(filter_selection)
     if (isTruthy(filter_selection)) {
-      filter_guid <- aggregated_visits_data()[filter_selection, ] |>
+      filter_guids <- aggregated_visits_data()[filter_selection, ] |>
         pull(user_guid)
+      print(filter_guids)
       all_visits |>
-        filter(if (is.na(filter_guid)) is.na(user_guid) else user_guid == filter_guid)
+        filter(if (length(filter_guids) == 0) TRUE else user_guid %in% filter_guids)
     } else {
       all_visits
     }
@@ -347,7 +351,7 @@ server <- function(input, output, session) {
   output$aggregated_visits <- renderReactable({
     reactable(
       aggregated_visits_data(),
-      selection = "single",
+      selection = "multiple",
       onClick = "select",
       defaultSorted = "n_visits",
       columns = list(
@@ -404,10 +408,11 @@ server <- function(input, output, session) {
       "{date_range()[1]} and {date_range()[2]}."
     )
     if (isTruthy(getReactableState("aggregated_visits", "selected"))) {
-      user <- aggregated_visits_data()[getReactableState("aggregated_visits", "selected"), "display_name", drop = TRUE]
+      users <- aggregated_visits_data()[getReactableState("aggregated_visits", "selected"), "display_name", drop = TRUE]
+      user_string <- if (length(users) == 1) users else "selected users"
       div(
         glue(
-          "{nrow(hits)} visits from {user} between ",
+          "{nrow(hits)} visits from {user_string} between ",
           "{date_range()[1]} and {date_range()[2]}."
         ),
         actionLink("clear_selection", glue::glue("Clear filter"), icon = icon("times"))
@@ -449,7 +454,7 @@ server <- function(input, output, session) {
   })
 
 
-  # Output plot ----
+  # Output plots ----
 
   output$daily_visits_plot <- renderPlotly({
     p <- ggplot(

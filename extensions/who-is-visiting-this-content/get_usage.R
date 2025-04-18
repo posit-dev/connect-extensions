@@ -1,4 +1,5 @@
 library(connectapi)
+library(pins)
 
 # This file contains functions that ultimately will more likely be part of
 # connectapi. As such, I'm not using dplyr or pipes here.
@@ -49,6 +50,21 @@ get_usage_legacy <- function(client, from = NULL, to = NULL) {
   bind_rows(shiny_usage_cols, static_usage_cols)
 }
 
+get_usage_pin <- function(client, from, to) {
+  print(paste("Connect client is authenticated:", client$me()$username))
+  allowed_guids <- get_content(client)$guid
+  print(paste("Length of `allowed_guids`:", length(allowed_guids)))
+  board <- pins::board_connect()
+  PIN_NAME <- paste0(board$account, "/", "connect_metrics_usage_last_91_days")
+  usage <- pin_read(board, PIN_NAME)
+  usage |>
+    filter(
+      content_guid %in% allowed_guids,
+      timestamp >= from,
+      timestamp <= to
+    )
+}
+
 get_usage <- function(client, from = NULL, to = NULL) {
   if (is.Date(from)) {
     from <- as.POSIXct(paste(from, "00:00:00"), tz = "")
@@ -64,8 +80,9 @@ get_usage <- function(client, from = NULL, to = NULL) {
       get_usage_firehose(client, from_timestamp, to_timestamp)
     },
     error = function(e) {
-      print("Could not use firehose endpoint; trying legacy usage endpoints.")
-      get_usage_legacy(client, from_timestamp, to_timestamp)
+      print("Could not use firehose endpoint; trying to fetch cached data from pin.")
+      # get_usage_legacy(client, from_timestamp, to_timestamp)
+      get_usage_pin(client, from, to)
     }
   )
 }
