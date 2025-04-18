@@ -315,7 +315,7 @@ server <- function(input, output, session) {
     all_guids_reactable <- aggregated_visits_reactable_data()$user_guid
     selected_indices <- which(all_guids_reactable %in% input$selected_users)
     updateReactable("aggregated_visits", selected = selected_indices)
-  })
+  }, ignoreNULL = FALSE)
 
   # Update action button depending on selection
   observe({
