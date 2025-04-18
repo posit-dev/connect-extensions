@@ -66,6 +66,7 @@ get_usage_pin <- function(client, from, to) {
 }
 
 get_usage <- function(client, from = NULL, to = NULL) {
+  # Allow us to pass in either dates or specific timestamps.
   if (is.Date(from)) {
     from <- as.POSIXct(paste(from, "00:00:00"), tz = "")
   }

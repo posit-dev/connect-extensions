@@ -65,7 +65,7 @@ ui <- function(request) {
             conditionalPanel(
               condition = "input.date_range_choice === 'Custom'",
               dateRangeInput(
-                "date_range",
+                "date_range_custom",
                 label = NULL,
                 start = today() - days(6),
                 end = today(),
@@ -117,7 +117,8 @@ ui <- function(request) {
             uiOutput("filter_message"),
             actionButton(
               "email_selected",
-              label = tagList(
+              label = div(
+                style = "white-space: nowrap;",
                 bs_icon("envelope"),
                 "Email Selected Users"
               ),
@@ -150,7 +151,7 @@ ui <- function(request) {
                 title = tagList(
                   "Top Visitors",
                   tooltip(
-                    bs_icon("question-circle-fill", class = "ms-2"),
+                    bs_icon("info-circle-fill", class = "ms-2"),
                     "Click a row to show only that user's visits."
                   )
                 ),
@@ -188,6 +189,8 @@ ui <- function(request) {
 }
 
 server <- function(input, output, session) {
+  # Bookmarking ----
+
   observe({
     setBookmarkExclude(setdiff(names(input), "guid_field"))
   })
@@ -207,7 +210,6 @@ server <- function(input, output, session) {
   # Handle GUID input ----
 
   resolved_guid <- reactiveVal()
-
 
   observeEvent(input$submit_guid, {
     raw_guid <- input$guid_field
@@ -243,10 +245,12 @@ server <- function(input, output, session) {
     updateTextInput(session, "visit_lag_cutoff_text", value = "1")
     updateReactable("aggregated_visits", selected = NA)
 
+    # TODO: Investigate why this does not work correctly on Connect.
     updateQueryString("?", mode = "replace")
   })
 
   # Cache invalidation button ----
+
   cache <- cachem::cache_disk("./app_cache/cache/")
   observeEvent(input$clear_cache, {
     print("Cache cleared!")
@@ -254,7 +258,7 @@ server <- function(input, output, session) {
     session$reload()  # Reload the app to ensure fresh data
   })
 
-  # Sync slider and text input ----
+  # Visit Merge Window: sync slider and text input ----
 
   observeEvent(input$visit_lag_cutoff_slider, {
     if (input$visit_lag_cutoff_slider != input$visit_lag_cutoff_text) {
@@ -276,7 +280,7 @@ server <- function(input, output, session) {
     }
   })
 
-  # Handle user filter ----
+  # User filter behaviors ----
 
   # Set choices initially
   observe({
@@ -289,25 +293,31 @@ server <- function(input, output, session) {
     )
   })
 
+  # Selection syncing behavior is made more complex because the reactable data needs
+  # to be sorted differently from data for the sidebar and plots for them to be
+  # in the same order.
+
   # Sync table to sidebar
   observe({
-    sel <- getReactableState("aggregated_visits", "selected")
+    selected_guids_reactable <- aggregated_visits_reactable_data()[getReactableState("aggregated_visits", "selected"), "user_guid", drop = TRUE]
+    # Get indices of selected reactable GUIDs from the main table
+    all_guids <- aggregated_visits_data()$"user_guid"
+    selected_guids <- all_guids[which(all_guids %in% selected_guids_reactable)]
     updateSelectizeInput(
       session,
       "selected_users",
-      selected = aggregated_visits_data()[sel, "user_guid", drop = TRUE]
+      selected = selected_guids
     )
   })
 
   # Sync sidebar to table
   observeEvent(input$selected_users, {
-    all_guids <- aggregated_visits_data()$user_guid
-    sel_indices <- which(all_guids %in% input$selected_users)
-    updateReactable("aggregated_visits", selected = sel_indices)
+    all_guids_reactable <- aggregated_visits_reactable_data()$user_guid
+    selected_indices <- which(all_guids_reactable %in% input$selected_users)
+    updateReactable("aggregated_visits", selected = selected_indices)
   })
 
   # Update action button depending on selection
-
   observe({
     sel <- input$selected_users
     updateActionButton(
@@ -316,25 +326,24 @@ server <- function(input, output, session) {
     )
   })
 
-  # Loading and processing data ----
+  # Load and processing data ----
 
-  print(paste("Session token:", session$request$HTTP_POSIT_CONNECT_USER_SESSION_TOKEN))
   client <- connect(token = session$request$HTTP_POSIT_CONNECT_USER_SESSION_TOKEN)
   authed_user_guid <- client$me()$guid
 
   date_range <- reactive({
     switch(input$date_range_choice,
-            "1 Week" = c(today() - days(6), today()),
-            "30 Days" = c(today() - days(29), today()),
-            "90 Days" = c(today() - days(89), today()),
-            "Custom" = input$date_range)
+            "1 Week" = list(from = today() - days(6), to = today()),
+            "30 Days" = list(from = today() - days(29), to = today()),
+            "90 Days" = list(from = today() - days(89), to = today()),
+            "Custom" = list(from = input$date_range_custom[1], to = input$date_range_custom[2])
+    )
   })
 
   content <- reactive({
     # Grab the entire content data frame here and filter it using the pasted-in
     # GUID to obtain content title and other metadata, rather than making a
-    # request to `v1/content/{GUID}`. If this were a prod, standalone dashboard,
-    # might be better to call that endpoint.
+    # request to `v1/content/{GUID}`.
     get_content(client)
   }) |> bindCache(authed_user_guid, "static_key")
 
@@ -350,8 +359,8 @@ server <- function(input, output, session) {
   firehose_usage_data <- reactive({
     get_usage(
       client,
-      from = date_range()[1],
-      to = date_range()[2]
+      from = date_range()$from,
+      to = date_range()$to
     )
   }) |> bindCache(authed_user_guid, date_range())
 
@@ -360,7 +369,6 @@ server <- function(input, output, session) {
       filter(content_guid == input$guid_field)
   })
 
-  # Compute data
   all_visits_data <- reactive({
     all_visits <- selected_content_usage() |>
 
@@ -377,9 +385,9 @@ server <- function(input, output, session) {
       arrange(desc(timestamp)) |>
       select(user_guid, display_name, timestamp)
 
-    # Conditionally filter by selection from other table
+    # If any users are selected for filtering, filter by their GUIDs
     if (length(input$selected_users) > 0) {
-      all_visits <- all_visits %>% filter(user_guid %in% input$selected_users)
+      all_visits <- filter(all_visits, user_guid %in% input$selected_users)
     }
     all_visits
   })
@@ -411,13 +419,18 @@ server <- function(input, output, session) {
     filter(content(), guid == input$guid_field)
   })
 
-  # Render tabular output ----
+  # Render output tables ----
+
+  # FIXME: This is required because the sort order handling of the reactable and
+  # other elements (the timeline plot, selection in the sidebar) differs.
+  aggregated_visits_reactable_data <- reactive({
+    aggregated_visits_data() |>
+      arrange(desc(n_visits), desc(display_name))
+  })
 
   output$aggregated_visits <- renderReactable({
-    data <- aggregated_visits_data() |>
-      arrange(desc(n_visits), desc(display_name))
     reactable(
-      data,
+      aggregated_visits_reactable_data(),
       selection = "multiple",
       onClick = "select",
       defaultSorted = "n_visits",
@@ -470,19 +483,20 @@ server <- function(input, output, session) {
   # Render content metadata and other text ----
 
   output$filter_message <- renderUI({
-    # req(getReactableState("aggregated_visits", "selected"))
     hits <- all_visits_data()
     glue(
       "{nrow(hits)} visits between ",
-      "{date_range()[1]} and {date_range()[2]}."
+      "{date_range()$from} and {date_range()$to}."
     )
-    if (isTruthy(getReactableState("aggregated_visits", "selected"))) {
-      users <- aggregated_visits_data()[getReactableState("aggregated_visits", "selected"), "display_name", drop = TRUE]
+    if (length(input$selected_users) > 0) {
+      users <- aggregated_visits_data() |>
+        filter(user_guid %in% input$selected_users) |>
+        pull(display_name)
       user_string <- if (length(users) == 1) users else "selected users"
       div(
         glue(
           "{nrow(hits)} visits from {user_string} between ",
-          "{date_range()[1]} and {date_range()[2]}."
+          "{date_range()$from} and {date_range()$to}."
         ),
         actionLink("clear_selection", glue::glue("Clear filter"), icon = icon("times"))
       )
@@ -490,14 +504,18 @@ server <- function(input, output, session) {
       div(
         glue(
           "{nrow(hits)} total visits between ",
-          "{date_range()[1]} and {date_range()[2]}."
+          "{date_range()$from} and {date_range()$to}."
         )
       )
     }
   })
 
   observeEvent(input$clear_selection, {
-    updateReactable("aggregated_visits", selected = NA)
+    updateSelectizeInput(
+      session,
+      "selected_users",
+      selected = NA
+    )
   })
 
   output$content_title <- renderText({
@@ -510,7 +528,7 @@ server <- function(input, output, session) {
     url <- selected_content_info()$dashboard_url
     tags$a(
       href = url,
-      class = "btn btn-sm btn-outline-secondary",  # or "btn-light" for neutral
+      class = "btn btn-sm btn-outline-secondary",
       target = "_blank",
       div(
         style = "white-space: nowrap;",
@@ -533,15 +551,13 @@ server <- function(input, output, session) {
       filter(user_guid == selected_content_info()$owner[[1]]$guid) |>
       pull(email)
     subject <- glue::glue("\"{selected_content_info()$title}\" on Posit Connect")
-    print(subject)
     mailto <- glue::glue(
       "mailto:{owner_email}",
       "?subject={URLencode(subject, reserved = TRUE)}"
     )
-    print(mailto)
     tags$a(
       href = mailto,
-      class = "btn btn-sm btn-outline-secondary",  # or "btn-light" for neutral
+      class = "btn btn-sm btn-outline-secondary",
       target = "_blank",
       div(
         style = "white-space: nowrap;",
@@ -573,7 +589,7 @@ server <- function(input, output, session) {
 
   # Create day by day hit data for plot
   daily_hit_data <- reactive({
-    all_dates <- seq.Date(date_range()[1], date_range()[2], by = "day")
+    all_dates <- seq.Date(date_range()$from, date_range()$to, by = "day")
 
     all_visits_data() |>
       mutate(date = date(timestamp)) |>
@@ -587,7 +603,7 @@ server <- function(input, output, session) {
       daily_hit_data(),
       aes(x = date, y = daily_visits, text = paste("Date:", date, "<br>Visits:", daily_visits))
     ) +
-      geom_bar(stat = "identity") +
+      geom_bar(stat = "identity", fill = "#447099") +
       labs(y = "Visits", x = "Date") +
       theme_minimal()
     ggplotly(p, tooltip = "text")
@@ -599,13 +615,13 @@ server <- function(input, output, session) {
     data <- all_visits_data() |>
       mutate(display_name = factor(display_name, levels = rev(visit_order)))
 
-    from <- as.POSIXct(paste(date_range()[1], "00:00:00"), tz = "")
-    to <- as.POSIXct(paste(date_range()[2], "23:59:59"), tz = "")
+    from <- as.POSIXct(paste(date_range()$from, "00:00:00"), tz = "")
+    to <- as.POSIXct(paste(date_range()$to, "23:59:59"), tz = "")
     p <- ggplot(
       data,
       aes(x = timestamp, y = display_name, text = paste("Timestamp:", timestamp))
     ) +
-      geom_point() +
+      geom_point(color = "#447099") +
       # Plotly output does not yet support `position = "top"`, but it should be
       # supported in the next release.
       # https://github.com/plotly/plotly.R/issues/808
