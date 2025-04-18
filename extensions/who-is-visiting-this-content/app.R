@@ -100,16 +100,38 @@ ui <- function(request) {
 
           layout_column_wrap(
             width = "400px",
-            card(
-              plotlyOutput("daily_visits_plot"),
-              # min_height = "300px",
-              height = "350px",
-              max_width = "500px",
-              fill = FALSE
+            navset_card_tab(
+              tabPanel(
+                "Daily Visits",
+                div(
+                  style = "height: 400px",
+                  plotlyOutput("daily_visits_plot", height = "100%", width = "100%")
+                )
+              ),
+              tabPanel(
+                "Visit Timeline",
+                div(
+                  style = "overflow-y: auto;",
+                  uiOutput("visit_timeline_ui")  # Still dynamic
+                )
+              ),
+              tabPanel(
+                "Plot Draft 1",
+                div(
+                  style = "height: 400px",
+                  plotlyOutput("plot_draft_1", height = "100%", width = "100%")
+                )
+              ),
+              tabPanel(
+                "Plot Draft 2",
+                div(
+                  style = "height: 400px",
+                  plotlyOutput("plot_draft_2", height = "100%", width = "100%")
+                )
+              )
             ),
 
             navset_card_tab(
-              id = "content_visit_tables",
               tabPanel(
                 title = tagList(
                   "Top Visitors",
@@ -335,17 +357,6 @@ server <- function(input, output, session) {
     filter(content(), guid == input$guid_field)
   })
 
-  # Create day by day hit data for plot
-  daily_hit_data <- reactive({
-    all_dates <- seq.Date(date_range()[1], date_range()[2], by = "day")
-
-    all_visits_data() |>
-      mutate(date = date(timestamp)) |>
-      group_by(date) |>
-      summarize(daily_visits = n(), .groups = "drop") |>
-      tidyr::complete(date = all_dates, fill = list(daily_visits = 0))
-  })
-
   # Render tabular output ----
 
   output$aggregated_visits <- renderReactable({
@@ -456,12 +467,94 @@ server <- function(input, output, session) {
 
   # Output plots ----
 
+  # Create day by day hit data for plot
+  daily_hit_data <- reactive({
+    all_dates <- seq.Date(date_range()[1], date_range()[2], by = "day")
+
+    all_visits_data() |>
+      mutate(date = date(timestamp)) |>
+      group_by(date) |>
+      summarize(daily_visits = n(), .groups = "drop") |>
+      tidyr::complete(date = all_dates, fill = list(daily_visits = 0))
+  })
+
   output$daily_visits_plot <- renderPlotly({
     p <- ggplot(
       daily_hit_data(),
-      aes(x = date, y = daily_visits, text = paste("Date:", date, "<br>Visits:", daily_visits))) +
+      aes(x = date, y = daily_visits, text = paste("Date:", date, "<br>Visits:", daily_visits))
+    ) +
       geom_bar(stat = "identity") +
-      labs(title = "Visits per Day", y = "Visits", x = "Date")
+      labs(y = "Visits", x = "Date") +
+      theme_minimal()
+    ggplotly(p, tooltip = "text")
+  })
+
+  output$visit_timeline_plot <- renderPlotly({
+
+    visit_order <- aggregated_visits_data()$display_name
+    data <- all_visits_data() |>
+      mutate(display_name = factor(display_name, levels = rev(visit_order)))
+
+    from <- as.POSIXct(paste(date_range()[1], "00:00:00"), tz = "")
+    to <- as.POSIXct(paste(date_range()[2], "23:59:59"), tz = "")
+    p <- ggplot(
+      data,
+      aes(x = timestamp, y = display_name, text = paste("Timestamp:", timestamp))
+    ) +
+      geom_point() +
+      # Plotly output does not yet support `position = "top"`, but it should be
+      # supported in the next release.
+      # https://github.com/plotly/plotly.R/issues/808
+      scale_x_datetime(position = "top", limits = c(from, to)) +
+      theme_minimal() +
+      theme(axis.title.y = element_blank(), axis.ticks.y = element_blank())
+    ggplotly(p, tooltip = "text")
+  })
+
+  output$visit_timeline_ui <- renderUI({
+    n_users <- length(unique(all_visits_data()$display_name))
+    row_height <- 20  # visual pitch per user
+    label_buffer <- 50  # additional padding for y-axis labels
+    toolbar_buffer <- 80  # plotly toolbar & margins
+
+    height_px <- n_users * row_height +
+                label_buffer + toolbar_buffer
+
+    plotlyOutput("visit_timeline_plot", height = paste0(height_px, "px"))
+  })
+
+  output$plot_draft_1 <- renderPlotly({
+    p <- ggplot(
+      all_visits_data(),
+      aes(x = timestamp, y = display_name, label = display_name)
+    ) +
+      geom_point() +
+      # geom_line() +
+      theme_minimal() +
+      theme(axis.title.y = element_blank(), axis.ticks.y = element_blank())
+  })
+
+  output$plot_draft_2 <- renderPlotly({
+    data <- all_visits_data() |>
+      mutate(hour = lubridate::floor_date(timestamp, unit = "hour"))
+
+    p <- ggplot(data, aes(x = hour, color = display_name, text = display_name)) +
+      geom_dotplot(
+        binwidth = 3600,           # 1 hour in seconds
+        method = "histodot",
+        stackdir = "up",
+        stackgroups = TRUE,
+        dotsize = 0.5
+      ) +
+      labs(x = "Hour", y = NULL) +
+      theme_minimal() +
+      theme(
+        legend.position = "none",
+        axis.title.y = element_blank(),
+        axis.text.y = element_blank(),
+        axis.ticks.y = element_blank()
+      )
+
     ggplotly(p, tooltip = "text")
   })
 }
