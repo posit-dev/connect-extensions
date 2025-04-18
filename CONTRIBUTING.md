@@ -41,6 +41,7 @@ to the `manifest.json`:
     "description": "A lovely, detailed description of the content.",
     "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/my-content-name",
     "tags": [],
+    "minimumConnectVersion": "2025.04.0",
     "version": "0.0.0"
   }
 }
@@ -79,6 +80,18 @@ If you want to include a tag on content that is not already in the
 Pull requests can add new tags, but ensure that the tag follows the patterns
 of other tags and is not a duplicate. New tags should be added sparingly and
 reviewed carefully.
+
+#### Minimum Connect Version
+
+The `minimumConnectVersion` field in the `extension` section of the
+`manifest.json` is required to specify the minimum version of Posit Connect
+that the content can be installed and used on.
+
+Each time you release a version of your content the `minimumConnectVersion`
+is recorded for that specific release.
+
+A good Connect Version to start with is `"2025.04.0"` since it is the
+release that introduced the Connect Gallery.
 
 ### README.md
 
