@@ -227,6 +227,9 @@ a pull request with the changes.
 }
 ```
 
+If the new version of content requires a new minimum Connect version, then
+update the `minimumConnectVersion` as well.
+
 When that pull request is merged, GitHub Workflows will automatically create a
 new GitHub Release for the content changed, update the content list, and update
 Connect Gallery.
