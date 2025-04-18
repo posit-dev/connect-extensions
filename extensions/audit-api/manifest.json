@@ -1440,6 +1440,7 @@
     "title": "Audit Log API",
     "description": "An API Publisher can call for audit logs.",
     "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/audit-api",
+    "minimumConnectVersion": "2025.04.0",
     "version": "0.0.0"
   }
 }

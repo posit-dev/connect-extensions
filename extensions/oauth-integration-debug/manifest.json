@@ -32,6 +32,7 @@
     "title": "Connect OAuth Integration Debugger",
     "description": "Allows Connect content viewers to debug user session tokens and credential exchange.",
     "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/oauth-integration-debug",
+    "minimumConnectVersion": "2025.04.0",
     "version": "0.0.0"
   }
 }

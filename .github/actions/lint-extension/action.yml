@@ -30,6 +30,7 @@ runs:
           elif (.extension.title | type) != "string" then error("Missing extension.title")
           elif (.extension.description | type) != "string" then error("Missing extension.description")
           elif (.extension.homepage | type) != "string" then error("Missing extension.homepage")
+          elif (.extension.minimumConnectVersion | type) != "string" then error("Missing extension.minimumConnectVersion")
           elif (.extension.version | type) != "string" then error("Missing extension.version")
           else . end
         ' ./extensions/${{ inputs.extension-name }}/manifest.json

@@ -7,6 +7,7 @@
     "title": "Portfolio Dashboard",
     "description": "A shiny application makes it easy to transform your analysis into an interactive dashboard using R so users can ask and answer questions in real-time, without having to touch any code.",
     "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/portfolio-dashboard",
+    "minimumConnectVersion": "2025.04.0",
     "version": "0.0.1"
   },
   "environment": {
