@@ -115,15 +115,7 @@ ui <- function(request) {
           div(
             style = "display: flex; justify-content: space-between; align-items: center;",
             uiOutput("filter_message"),
-            actionButton(
-              "email_selected",
-              label = div(
-                style = "white-space: nowrap;",
-                bs_icon("envelope"),
-                "Email Selected Users"
-              ),
-              class = "btn btn-sm", disabled = TRUE,
-            )
+            uiOutput("email_selected_button")
           ),
 
           layout_column_wrap(
@@ -316,15 +308,6 @@ server <- function(input, output, session) {
     selected_indices <- which(all_guids_reactable %in% input$selected_users)
     updateReactable("aggregated_visits", selected = selected_indices)
   }, ignoreNULL = FALSE)
-
-  # Update action button depending on selection
-  observe({
-    sel <- input$selected_users
-    updateActionButton(
-      session, "email_selected",
-      disabled = is.null(sel) || length(sel) == 0
-    )
-  })
 
   # Load and processing data ----
 
@@ -568,21 +551,28 @@ server <- function(input, output, session) {
   })
 
   # Email button
-  observeEvent(input$email_selected, {
-    selected_guids <- input$selected_users
+  output$email_selected_button <- renderUI({
+    req(selected_content_info())
     emails <- users() |>
-      filter(user_guid %in% selected_guids) |>
+      filter(user_guid %in% input$selected_users) |>
       pull(email) |>
       na.omit()
 
-    if (length(emails) > 0) {
-      subject <- glue::glue("\"{selected_content_info()$title}\" on Posit Connect")
-      mailto <- glue::glue(
-        "mailto:{paste(emails, collapse = ',')}",
-        "?subject={URLencode(subject, reserved = TRUE)}"
-      )
-      browseURL(mailto)
-    }
+    disabled <- if (length(emails) == 0) "disabled" else NULL
+
+    subject <- glue::glue("\"{selected_content_info()$title}\" on Posit Connect")
+    mailto <- glue::glue(
+      "mailto:{paste(emails, collapse = ',')}",
+      "?subject={URLencode(subject, reserved = TRUE)}"
+    )
+
+    tags$button(
+      type = "button",
+      class = "btn btn-sm btn-outline-secondary",
+      disabled = disabled,
+      onclick = if (is.null(disabled)) sprintf("window.location.href='%s'", mailto) else NULL,
+      tagList(bs_icon("envelope"), "Email Selected Users")
+    )
   })
 
   # Output plots ----
