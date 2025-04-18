@@ -73,60 +73,74 @@ ui <- function(request) {
               )
             ),
 
+            selectizeInput(
+              "selected_users",
+              label = "Filter Users",
+              choices = NULL,  # set dynamically in server
+              multiple = TRUE
+            ),
+
             sliderInput(
               "visit_lag_cutoff_slider",
               label = "Visit Merge Window (sec)",
               min = 0,
               max = 180,
-              value = 1,
+              value = 0,
               step = 0.5
             ),
 
             textInput(
               "visit_lag_cutoff_text",
               label = NULL,
-              value = 1
+              value = 0
             ),
 
             actionButton("clear_cache", "Clear Cache", icon = icon("refresh"))
           ),
 
-          layout_columns(
-            uiOutput("content_title"),
-            div(style = "margin-left: auto;", uiOutput("owner_info"))
+          div(
+            style = "display: flex; justify-content: space-between; gap: 1rem; align-items: center;",
+            div(
+              style = "display: inline-flex; gap: 0.5rem; align-items: center;",
+              h3(textOutput("content_title")),
+              uiOutput("dashboard_link")
+            ),
+            div(
+              style = "display: flex; gap: 0.5rem; align-items: center;",
+              textOutput("owner_info"),
+              uiOutput("email_owner_link")
+            )
           ),
 
-          uiOutput("filter_message"),
+          div(
+            style = "display: flex; justify-content: space-between; align-items: center;",
+            uiOutput("filter_message"),
+            actionButton(
+              "email_selected",
+              label = tagList(
+                bs_icon("envelope"),
+                "Email Selected Users"
+              ),
+              class = "btn btn-sm", disabled = TRUE,
+            )
+          ),
 
           layout_column_wrap(
             width = "400px",
+            heights_equal = "row",
             navset_card_tab(
               tabPanel(
                 "Daily Visits",
                 div(
-                  style = "height: 400px",
+                  style = "height: 300px",
                   plotlyOutput("daily_visits_plot", height = "100%", width = "100%")
                 )
               ),
               tabPanel(
                 "Visit Timeline",
                 div(
-                  style = "overflow-y: auto;",
-                  uiOutput("visit_timeline_ui")  # Still dynamic
-                )
-              ),
-              tabPanel(
-                "Plot Draft 1",
-                div(
-                  style = "height: 400px",
-                  plotlyOutput("plot_draft_1", height = "100%", width = "100%")
-                )
-              ),
-              tabPanel(
-                "Plot Draft 2",
-                div(
-                  style = "height: 400px",
-                  plotlyOutput("plot_draft_2", height = "100%", width = "100%")
+                  style = "height: 400px;",
+                  uiOutput("visit_timeline_ui")
                 )
               )
             ),
@@ -163,6 +177,12 @@ ui <- function(request) {
           });
         }
       });
+    ")),
+    tags$style(HTML("
+      #selected_users + .selectize-control .selectize-input {
+        max-height: 150px;
+        overflow-y: auto;
+      }
     "))
   )
 }
@@ -256,7 +276,48 @@ server <- function(input, output, session) {
     }
   })
 
+  # Handle user filter ----
+
+  # Set choices initially
+  observe({
+    data <- aggregated_visits_data()
+    updateSelectizeInput(
+      session,
+      "selected_users",
+      choices = setNames(data$user_guid, data$display_name),
+      server = TRUE
+    )
+  })
+
+  # Sync table to sidebar
+  observe({
+    sel <- getReactableState("aggregated_visits", "selected")
+    updateSelectizeInput(
+      session,
+      "selected_users",
+      selected = aggregated_visits_data()[sel, "user_guid", drop = TRUE]
+    )
+  })
+
+  # Sync sidebar to table
+  observeEvent(input$selected_users, {
+    all_guids <- aggregated_visits_data()$user_guid
+    sel_indices <- which(all_guids %in% input$selected_users)
+    updateReactable("aggregated_visits", selected = sel_indices)
+  })
+
+  # Update action button depending on selection
+
+  observe({
+    sel <- input$selected_users
+    updateActionButton(
+      session, "email_selected",
+      disabled = is.null(sel) || length(sel) == 0
+    )
+  })
+
   # Loading and processing data ----
+
   print(paste("Session token:", session$request$HTTP_POSIT_CONNECT_USER_SESSION_TOKEN))
   client <- connect(token = session$request$HTTP_POSIT_CONNECT_USER_SESSION_TOKEN)
   authed_user_guid <- client$me()$guid
@@ -317,17 +378,10 @@ server <- function(input, output, session) {
       select(user_guid, display_name, timestamp)
 
     # Conditionally filter by selection from other table
-    filter_selection <- getReactableState("aggregated_visits", "selected")
-    print(filter_selection)
-    if (isTruthy(filter_selection)) {
-      filter_guids <- aggregated_visits_data()[filter_selection, ] |>
-        pull(user_guid)
-      print(filter_guids)
-      all_visits |>
-        filter(if (length(filter_guids) == 0) TRUE else user_guid %in% filter_guids)
-    } else {
-      all_visits
+    if (length(input$selected_users) > 0) {
+      all_visits <- all_visits %>% filter(user_guid %in% input$selected_users)
     }
+    all_visits
   })
 
   aggregated_visits_data <- reactive({
@@ -349,7 +403,7 @@ server <- function(input, output, session) {
       left_join(unfiltered_hits, by = "user_guid") |>
       left_join(users(), by = "user_guid") |>
       replace_na(list(display_name = "[Anonymous]")) |>
-      arrange(desc(n_visits)) |>
+      arrange(desc(n_visits), display_name) |>
       select(user_guid, display_name, email, n_visits)
   })
 
@@ -360,8 +414,10 @@ server <- function(input, output, session) {
   # Render tabular output ----
 
   output$aggregated_visits <- renderReactable({
+    data <- aggregated_visits_data() |>
+      arrange(desc(n_visits), desc(display_name))
     reactable(
-      aggregated_visits_data(),
+      data,
       selection = "multiple",
       onClick = "select",
       defaultSorted = "n_visits",
@@ -374,10 +430,12 @@ server <- function(input, output, session) {
           sortable = FALSE,
           cell = function(url) {
             if (is.na(url) || url == "") return("")
+            subject <- glue::glue("\"{selected_content_info()$title}\" on Posit Connect")
+            mailto <- glue::glue("mailto:{url}?subject={URLencode(subject, reserved = TRUE)}")
             HTML(as.character(tags$div(
               onclick = "event.stopPropagation()",
               tags$a(
-                href = glue("mailto:{url}"),
+                href = mailto,
                 bs_icon("envelope")
               )
             )))
@@ -442,28 +500,74 @@ server <- function(input, output, session) {
     updateReactable("aggregated_visits", selected = NA)
   })
 
-  output$content_title <- renderUI({
+  output$content_title <- renderText({
     req(selected_content_info())
-    title_text <- selected_content_info()$title
-    open_url <- selected_content_info()$dashboard_url
-    icon_html <- bs_icon("arrow-up-right-square")
-    HTML(glue::glue(
-      "<h3>{title_text} <a href='{open_url}' target='_blank'>{icon_html}</a></h3>"
-    ))
+    selected_content_info()$title
   })
 
-  output$owner_info <- renderUI({
+  output$dashboard_link <- renderUI({
+    req(selected_content_info())
+    url <- selected_content_info()$dashboard_url
+    tags$a(
+      href = url,
+      class = "btn btn-sm btn-outline-secondary",  # or "btn-light" for neutral
+      target = "_blank",
+      div(
+        style = "white-space: nowrap;",
+        bs_icon("arrow-up-right-square"),
+        "Open"
+      )
+    )
+  })
+
+  output$owner_info <- renderText({
     req(selected_content_info())
     if (nrow(selected_content_info()) == 1) {
       owner <- filter(users(), user_guid == selected_content_info()$owner[[1]]$guid)
-      icon_html <- bs_icon("envelope")  # Using bsicons
-
-      HTML(glue::glue(
-        "<p>Owner: {owner$display_name} <a href='mailto:{owner$email}'>{icon_html}</a></p>"
-      ))
+      glue::glue("Owner: {owner$display_name}")
     }
   })
 
+  output$email_owner_link <- renderUI({
+    owner_email <- users() |>
+      filter(user_guid == selected_content_info()$owner[[1]]$guid) |>
+      pull(email)
+    subject <- glue::glue("\"{selected_content_info()$title}\" on Posit Connect")
+    print(subject)
+    mailto <- glue::glue(
+      "mailto:{owner_email}",
+      "?subject={URLencode(subject, reserved = TRUE)}"
+    )
+    print(mailto)
+    tags$a(
+      href = mailto,
+      class = "btn btn-sm btn-outline-secondary",  # or "btn-light" for neutral
+      target = "_blank",
+      div(
+        style = "white-space: nowrap;",
+        bs_icon("envelope"),
+        "Email"
+      )
+    )
+  })
+
+  # Email button
+  observeEvent(input$email_selected, {
+    selected_guids <- input$selected_users
+    emails <- users() |>
+      filter(user_guid %in% selected_guids) |>
+      pull(email) |>
+      na.omit()
+
+    if (length(emails) > 0) {
+      subject <- glue::glue("\"{selected_content_info()$title}\" on Posit Connect")
+      mailto <- glue::glue(
+        "mailto:{paste(emails, collapse = ',')}",
+        "?subject={URLencode(subject, reserved = TRUE)}"
+      )
+      browseURL(mailto)
+    }
+  })
 
   # Output plots ----
 
@@ -521,41 +625,6 @@ server <- function(input, output, session) {
                 label_buffer + toolbar_buffer
 
     plotlyOutput("visit_timeline_plot", height = paste0(height_px, "px"))
-  })
-
-  output$plot_draft_1 <- renderPlotly({
-    p <- ggplot(
-      all_visits_data(),
-      aes(x = timestamp, y = display_name, label = display_name)
-    ) +
-      geom_point() +
-      # geom_line() +
-      theme_minimal() +
-      theme(axis.title.y = element_blank(), axis.ticks.y = element_blank())
-  })
-
-  output$plot_draft_2 <- renderPlotly({
-    data <- all_visits_data() |>
-      mutate(hour = lubridate::floor_date(timestamp, unit = "hour"))
-
-    p <- ggplot(data, aes(x = hour, color = display_name, text = display_name)) +
-      geom_dotplot(
-        binwidth = 3600,           # 1 hour in seconds
-        method = "histodot",
-        stackdir = "up",
-        stackgroups = TRUE,
-        dotsize = 0.5
-      ) +
-      labs(x = "Hour", y = NULL) +
-      theme_minimal() +
-      theme(
-        legend.position = "none",
-        axis.title.y = element_blank(),
-        axis.text.y = element_blank(),
-        axis.ticks.y = element_blank()
-      )
-
-    ggplotly(p, tooltip = "text")
   })
 }
 
