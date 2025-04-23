@@ -116,11 +116,12 @@ server <- function(input, output, session) {
     session$reload()
   })
 
-  client <- connect()
+  client <- connect(token = session$request$HTTP_POSIT_CONNECT_USER_SESSION_TOKEN)
+  authed_user_guid <- client$me()$guid
 
   content <- reactive({
     get_content(client)
-  }) |> bindCache("static_key")
+  }) |> bindCache(authed_user_guid, "static_key")
 
   date_range <- reactive({
     switch(input$date_range_choice,
@@ -133,10 +134,10 @@ server <- function(input, output, session) {
   usage_data_raw <- reactive({
     get_usage(
       client,
-      from = as.POSIXct(date_range()[1]),
-      to = as.POSIXct(date_range()[2]) + hours(23) + minutes(59) + seconds(59)
+      from = date_range()[1],
+      to = date_range()[2]
     )
-  }) |> bindCache(date_range())
+  }) |> bindCache(authed_user_guid, date_range())
 
   # Apply client-side data filters (app mode)
   usage_data_filtered <- reactive({
