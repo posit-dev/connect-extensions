@@ -22,7 +22,7 @@ extract_guid <- function(raw) {
   if (length(match) == 1) {
     match
   } else {
-    raw
+    ""
   }
 }
 
