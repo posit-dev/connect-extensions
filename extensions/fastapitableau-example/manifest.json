@@ -1,0 +1,49 @@
+{
+  "version": 1,
+  "locale": "en_US.UTF-8",
+  "metadata": {
+    "appmode": "python-fastapi",
+    "entrypoint": "app"
+  },
+  "extension": {
+    "name": "fastapitableau-example",
+    "title": "Tableau Python Extension",
+    "description": "fastapitableau is a Python package that enables Python developers to build FastAPI APIs that function as Tableau Analytics Extensions",
+    "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/fastapitableau-example",
+    "minimumConnectVersion": "2025.04.0",
+    "version": "1.0.0"
+  },
+  "environment": {
+    "python": {
+      "requires": ">=3.9, <4"
+    }
+  },
+  "python": {
+    "version": "3.11.3",
+    "package_manager": {
+      "name": "pip",
+      "version": "25.0.1",
+      "package_file": "requirements.txt"
+    }
+  },
+  "files": {
+    "requirements.txt": {
+      "checksum": "6a5a141024c9d4ec0a2313e25185e0b2"
+    },
+    "README.md": {
+      "checksum": "6afae511be3a94f9f867276fc3786854"
+    },
+    "app.py": {
+      "checksum": "9c935f4dc153c31b8991ddc8d18ffd7d"
+    },
+    "clean-orders.csv": {
+      "checksum": "f576968ff5b8a02ccc975f45c079d80a"
+    },
+    "model.joblib": {
+      "checksum": "ef047b888ba3b6225f0d55f57b63d466"
+    },
+    "train.py": {
+      "checksum": "c77af4b24184b1e702424c24573444d7"
+    }
+  }
+}
