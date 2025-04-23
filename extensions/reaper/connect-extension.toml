@@ -1,4 +1,0 @@
-name = "reaper"
-title = "reaper"
-description = "a view to a kill."
-access_type = "logged_in"

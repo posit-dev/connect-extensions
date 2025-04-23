@@ -13,6 +13,11 @@
       "package_file": "requirements.txt"
     }
   },
+  "environment": {
+    "python": {
+      "requires": ">=3.8, <4"
+    }
+  },
   "files": {
     "requirements.txt": {
       "checksum": "ad96c76e9e6206cb681729471b4498cd"
@@ -35,6 +40,7 @@
     "title": "Connect OAuth Integration Session Manager",
     "description": "Allows Connect admins to view and manage OAuth integration sessions.",
     "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/integration-session-manager",
+    "minimumConnectVersion": "2025.04.0",
     "version": "0.0.0"
   }
 }

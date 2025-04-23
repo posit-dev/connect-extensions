@@ -31,17 +31,26 @@ function sortExtensionVersions(extension: Extension) {
 }
 
 class ExtensionList {
-  constructor(public extensions: Extension[]) {
+  constructor(public tags: string[], public extensions: Extension[]) {
+    this.tags = tags;
     this.extensions = extensions;
   }
 
   static fromFile(path: string) {
-    const extensions = JSON.parse(fs.readFileSync(path, "utf8")).extensions;
-    return new ExtensionList(extensions);
+    const file = JSON.parse(fs.readFileSync(path, "utf8"));
+    return new ExtensionList(file.tags, file.extensions);
   }
 
   public addRelease(manifest: ExtensionManifest, githubRelease) {
-    const { name, title, description, homepage, version } = manifest.extension;
+    const {
+      name,
+      title,
+      description,
+      homepage,
+      version,
+      tags,
+      minimumConnectVersion,
+    } = manifest.extension;
     const { assets, published_at } = githubRelease;
 
     const { browser_download_url } = assets.find(
@@ -52,13 +61,14 @@ class ExtensionList {
       version,
       released: published_at,
       url: browser_download_url,
+      minimumConnectVersion: minimumConnectVersion,
     };
 
     if (this.getExtension(name)) {
-      this.updateExtensionDetails(name, title, description, homepage);
+      this.updateExtensionDetails(name, title, description, homepage, tags);
       this.addExtensionVersion(name, newVersion);
     } else {
-      this.addNewExtension(name, title, description, homepage, newVersion);
+      this.addNewExtension(name, title, description, homepage, newVersion, tags);
     }
   }
 
@@ -70,13 +80,15 @@ class ExtensionList {
     name: string,
     title: string,
     description: string,
-    homepage: string
+    homepage: string,
+    tags: string[] = []
   ) {
     this.updateExtension(name, {
       ...this.getExtension(name),
       title,
       description,
       homepage,
+      tags,
     });
   }
 
@@ -109,7 +121,8 @@ class ExtensionList {
     title: string,
     description: string,
     homepage: string,
-    initialVersion: ExtensionVersion
+    initialVersion: ExtensionVersion,
+    tags: string[] = []
   ) {
     if (this.getExtension(name) !== undefined) {
       throw new Error(`Extension ${name} already exists in the list`);
@@ -121,6 +134,7 @@ class ExtensionList {
       homepage,
       latestVersion: initialVersion,
       versions: [initialVersion],
+      tags,
     });
     this.sortExtensions();
   }
@@ -134,7 +148,11 @@ class ExtensionList {
   }
 
   public stringify() {
-    return JSON.stringify({ extensions: this.extensions }, null, 2);
+    const output = {
+      tags: this.tags,
+      extensions: this.extensions
+    }
+    return JSON.stringify(output, null, 2);
   }
 
   private sortExtensions() {

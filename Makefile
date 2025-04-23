@@ -7,14 +7,6 @@ SHELL := /bin/bash
 .PHONY: FORCE
 FORCE:
 
-# Quarto
-docs: FORCE ## [docs] Generate documentation
-	@echo "📖 Generating documentation"
-	quarto render
-docs-preview: FORCE ## [docs] Watch documentation
-	@echo "📖 Watching documentation"
-	quarto preview
-
 # Creating extensions
 DIR:=
 create-extension:  ## [ext] Create extension folder
@@ -36,9 +28,6 @@ create-extension:  ## [ext] Create extension folder
 	@echo "🔧 Creating directory: extensions/$(DIR)"
 	@mkdir -p "extensions/$(DIR)"
 
-	@echo "📝 Copying template files: $(ls -m _template)"
-	@cp -r _template/* extensions/$(DIR)
-
 	@echo ""
 	@echo "⏳ Remaining Tasks:"
 	@echo "- [ ] Copy in app files"
@@ -49,8 +38,6 @@ create-extension:  ## [ext] Create extension folder
 # 	@echo "🧳 Building python package"
 # 	@[ -d dist ] && rm -r dist || true
 # 	uv build
-
-
 
 help: FORCE  ## Show help messages for make targets
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; { \

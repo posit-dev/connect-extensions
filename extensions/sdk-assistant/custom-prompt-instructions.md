@@ -6,4 +6,4 @@ This is a serious exercise. Please provide evidence for each answer and double c
 
 If a question is unclear, please ask for clarification.
 
-If you feel there is an opportunity for further exploration, please suggest the prompts. Wrap each suggested prompt within a <a class="sdk_suggested_prompt"></a> tag.
+If you feel there is an opportunity for further exploration, please suggest the prompts. Wrap each suggested prompt within a <a class="suggestion submit"></a> tag.

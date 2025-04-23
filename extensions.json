@@ -1,5 +1,26 @@
 {
+  "tags": [],
   "extensions": [
+    {
+      "name": "portfolio-dashboard",
+      "title": "Portfolio Dashboard",
+      "description": "A shiny application makes it easy to transform your analysis into an interactive dashboard using R so users can ask and answer questions in real-time, without having to touch any code.",
+      "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/portfolio-dashboard",
+      "latestVersion": {
+        "version": "0.0.1",
+        "released": "2025-04-11T21:32:23Z",
+        "url": "https://github.com/posit-dev/connect-extensions/releases/download/portfolio-dashboard%40v0.0.1/portfolio-dashboard.tar.gz",
+        "minimumConnectVersion": "2025.04.0"
+      },
+      "versions": [
+        {
+          "version": "0.0.1",
+          "released": "2025-04-11T21:32:23Z",
+          "url": "https://github.com/posit-dev/connect-extensions/releases/download/portfolio-dashboard%40v0.0.1/portfolio-dashboard.tar.gz",
+          "minimumConnectVersion": "2025.04.0"
+        }
+      ]
+    },
     {
       "name": "publisher-command-center",
       "title": "Publisher Command Center",
@@ -8,13 +29,55 @@
       "latestVersion": {
         "version": "0.0.1",
         "released": "2025-03-19T23:00:09Z",
-        "url": "https://github.com/posit-dev/connect-extensions/releases/download/publisher-command-center%40v0.0.1/publisher-command-center.tar.gz"
+        "url": "https://github.com/posit-dev/connect-extensions/releases/download/publisher-command-center%40v0.0.1/publisher-command-center.tar.gz",
+        "minimumConnectVersion": "2025.04.0"
       },
       "versions": [
         {
           "version": "0.0.1",
           "released": "2025-03-19T23:00:09Z",
-          "url": "https://github.com/posit-dev/connect-extensions/releases/download/publisher-command-center%40v0.0.1/publisher-command-center.tar.gz"
+          "url": "https://github.com/posit-dev/connect-extensions/releases/download/publisher-command-center%40v0.0.1/publisher-command-center.tar.gz",
+          "minimumConnectVersion": "2025.04.0"
+        }
+      ]
+    },
+    {
+      "name": "quarto-document",
+      "title": "Quarto Document",
+      "description": "This Quarto example shows how a basic document can present diagrams and interactivity.",
+      "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/quarto-document",
+      "latestVersion": {
+        "version": "1.0.0",
+        "released": "2025-04-14T20:05:36Z",
+        "url": "https://github.com/posit-dev/connect-extensions/releases/download/quarto-document%40v1.0.0/quarto-document.tar.gz",
+        "minimumConnectVersion": "2025.04.0"
+      },
+      "versions": [
+        {
+          "version": "1.0.0",
+          "released": "2025-04-14T20:05:36Z",
+          "url": "https://github.com/posit-dev/connect-extensions/releases/download/quarto-document%40v1.0.0/quarto-document.tar.gz",
+          "minimumConnectVersion": "2025.04.0"
+        }
+      ]
+    },
+    {
+      "name": "quarto-stock-report-python",
+      "title": "Quarto Stock Report using Python",
+      "description": "An example of how you might automate regular updates using a data source",
+      "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/quarto-stock-report-python",
+      "latestVersion": {
+        "version": "1.0.0",
+        "released": "2025-04-14T18:38:38Z",
+        "url": "https://github.com/posit-dev/connect-extensions/releases/download/quarto-stock-report-python%40v1.0.0/quarto-stock-report-python.tar.gz",
+        "minimumConnectVersion": "2025.04.0"
+      },
+      "versions": [
+        {
+          "version": "1.0.0",
+          "released": "2025-04-14T18:38:38Z",
+          "url": "https://github.com/posit-dev/connect-extensions/releases/download/quarto-stock-report-python%40v1.0.0/quarto-stock-report-python.tar.gz",
+          "minimumConnectVersion": "2025.04.0"
         }
       ]
     },
@@ -24,15 +87,23 @@
       "description": "A view to a kill.",
       "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/reaper",
       "latestVersion": {
-        "version": "0.0.1",
-        "released": "2025-03-19T22:59:58Z",
-        "url": "https://github.com/posit-dev/connect-extensions/releases/download/reaper%40v0.0.1/reaper.tar.gz"
+        "version": "0.0.2",
+        "released": "2025-04-16T22:32:48Z",
+        "url": "https://github.com/posit-dev/connect-extensions/releases/download/reaper%40v0.0.2/reaper.tar.gz",
+        "minimumConnectVersion": "2025.04.0"
       },
       "versions": [
         {
+          "version": "0.0.2",
+          "released": "2025-04-16T22:32:48Z",
+          "url": "https://github.com/posit-dev/connect-extensions/releases/download/reaper%40v0.0.2/reaper.tar.gz",
+          "minimumConnectVersion": "2025.04.0"
+        },
+        {
           "version": "0.0.1",
           "released": "2025-03-19T22:59:58Z",
-          "url": "https://github.com/posit-dev/connect-extensions/releases/download/reaper%40v0.0.1/reaper.tar.gz"
+          "url": "https://github.com/posit-dev/connect-extensions/releases/download/reaper%40v0.0.1/reaper.tar.gz",
+          "minimumConnectVersion": "2025.04.0"
         }
       ]
     }

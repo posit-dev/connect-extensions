@@ -1,0 +1,152 @@
+name: Connect Integration Tests
+
+on:
+  workflow_call:
+    inputs:
+      extensions:
+        description: "JSON array of extension names to test"
+        required: true
+        type: string
+    outputs:
+      successful_extensions:
+        description: "JSON array of extension names that have passed all tests"
+        value: ${{ jobs.collect-results.outputs.successful_extensions }}
+    secrets:
+      CONNECT_LICENSE:
+        required: true
+
+jobs:
+  # Determine the Connect versions to test against
+  setup-test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      versions: ${{ steps.versions.outputs.versions }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - id: versions
+        working-directory: ./integration
+        # The `jq` command is "output compact, raw input, slurp, split on new lines, and remove the last (empty) element"
+        # This results in a JSON array of Connect versions (e.g., ["2025.01.0", "2024.12.0"])
+        run: |
+          versions=$(make print-versions | jq -c -Rs 'split("\n") | .[:-1]')
+          echo "Versions: $versions"
+          echo "versions=$versions" >> "$GITHUB_OUTPUT"
+
+  # Run the Connect integration tests for each extension against each Connect version
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15 # Max time to run the integration tests
+    needs: setup-test
+    strategy:
+      # Do not fail fast so all extensions and Connect versions are processed
+      fail-fast: false
+      matrix:
+        extension: ${{ fromJson(inputs.extensions) }}
+        connect_version: ${{ fromJson(needs.setup-test.outputs.versions) }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: ./.github/actions/connect-integration-test
+        id: test
+        with:
+          extension-name: ${{ matrix.extension }}
+          connect-version: ${{ matrix.connect_version }}
+          connect-license: ${{ secrets.CONNECT_LICENSE }}
+
+      # Upload the test report XML files as artifacts for use by downstream jobs
+      - uses: actions/upload-artifact@v4
+        if: |
+          always() && 
+          steps.test.outcome != 'cancelled' && 
+          steps.test.outcome != 'skipped'
+        with:
+          name: ${{ matrix.extension }}-${{ matrix.connect_version }}-test-report
+          path: integration/reports/*.xml
+          retention-days: 7
+
+  # Using the XML test reports provide a matrix of extensions that passed all of the Connect integration tests
+  collect-results:
+    needs: [test, setup-test]
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      successful_extensions: ${{ steps.collect.outputs.successful_extensions }}
+    if: always()
+    steps:
+      - uses: actions/download-artifact@v4
+        id: download
+        with:
+          path: artifacts
+          pattern: "*-test-report"
+          
+      - id: collect
+        run: |
+          # Validate inputs first
+          all_versions='${{ needs.setup-test.outputs.versions }}'
+          extensions='${{ inputs.extensions }}'
+
+          if [[ -z "$all_versions" || -z "$extensions" ]]; then
+            echo "❌ Missing required inputs"
+            exit 1
+          fi
+          
+          # Debug info
+          echo "::group::Debug Inputs"
+          echo "Extensions to check: $extensions"
+          echo "Connect versions: $all_versions"
+          echo "::endgroup::"
+          
+          # Track extensions that passed ALL version tests
+          success_list=()
+          
+          for ext in $(echo "$extensions" | jq -r '.[]'); do
+            all_passed=true
+            echo "📦 Checking extension: $ext"
+            
+            for version in $(echo "$all_versions" | jq -r '.[]'); do
+              echo "🔎 Checking $ext @ $version"
+              report_dir="artifacts/${ext}-${version}-test-report"
+              
+              if [ ! -d "$report_dir" ]; then
+                echo "❌ No test report for $ext @ $version"
+                all_passed=false
+                break
+              fi
+              
+              # Use grep to check for failures/errors using XML test report attributes
+              failures=$(grep -o 'failures="[0-9]*"' "$report_dir"/*.xml | sed 's/failures="//g' | sed 's/"//g' | awk '{sum+=$1} END {print sum}' || echo "0")
+              errors=$(grep -o 'errors="[0-9]*"' "$report_dir"/*.xml | sed 's/errors="//g' | sed 's/"//g' | awk '{sum+=$1} END {print sum}' || echo "0")
+              
+              if [ "$failures" -gt 0 ] || [ "$errors" -gt 0 ]; then
+                echo "❌ Found $failures failures, $errors errors in test suite attributes"
+                # Extract and show some error details for debugging
+                echo "::group::Error details"
+                grep -r -A1 "<failure" "$report_dir" | head -10
+                grep -r -A1 "<error" "$report_dir" | head -10
+                echo "::endgroup::"
+                all_passed=false
+                break
+              else
+                echo "✅ Passed: $ext @ $version"
+              fi
+            done
+            
+            if [ "$all_passed" = "true" ]; then
+              success_list+=("$ext")
+              echo "🎉 SUCCESS: $ext passed ALL versions"
+            else
+              echo "⚠️ FAILED: $ext failed one or more versions"
+            fi
+          done
+          
+          # Format output and ensure we always have a valid JSON array
+          if [ ${#success_list[@]} -eq 0 ]; then
+            successful_extensions="[]"
+          else
+            successful_extensions=$(jq -n --arg arr "$(IFS=,; echo "${success_list[*]}")" \
+              '$arr | split(",") | map(select(length > 0))' -c)
+          fi
+
+          echo "successful_extensions=$successful_extensions" >> $GITHUB_OUTPUT
