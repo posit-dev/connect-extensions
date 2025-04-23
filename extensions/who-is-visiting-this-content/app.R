@@ -80,6 +80,8 @@ ui <- function(request) {
               multiple = TRUE
             ),
 
+            uiOutput("email_selected_button"),
+
             sliderInput(
               "visit_lag_cutoff_slider",
               label = "Visit Merge Window (sec)",
@@ -114,8 +116,7 @@ ui <- function(request) {
 
           div(
             style = "display: flex; justify-content: space-between; align-items: center;",
-            uiOutput("filter_message"),
-            uiOutput("email_selected_button")
+            uiOutput("filter_message")
           ),
 
           layout_column_wrap(
@@ -432,7 +433,7 @@ server <- function(input, output, session) {
               onclick = "event.stopPropagation()",
               tags$a(
                 href = mailto,
-                bs_icon("envelope")
+                icon("envelope")
               )
             )))
           },
@@ -515,7 +516,7 @@ server <- function(input, output, session) {
       target = "_blank",
       div(
         style = "white-space: nowrap;",
-        bs_icon("arrow-up-right-square"),
+        icon("arrow-up-right-from-square"),
         "Open"
       )
     )
@@ -544,7 +545,7 @@ server <- function(input, output, session) {
       target = "_blank",
       div(
         style = "white-space: nowrap;",
-        bs_icon("envelope"),
+        icon("envelope"),
         "Email"
       )
     )
@@ -571,7 +572,7 @@ server <- function(input, output, session) {
       class = "btn btn-sm btn-outline-secondary",
       disabled = disabled,
       onclick = if (is.null(disabled)) sprintf("window.location.href='%s'", mailto) else NULL,
-      tagList(bs_icon("envelope"), "Email Selected Users")
+      tagList(icon("envelope"), "Email Selected Users")
     )
   })
 
