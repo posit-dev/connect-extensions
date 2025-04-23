@@ -23,25 +23,18 @@
   text-transform: uppercase;
 }
 
-.header:hover {
-  background-color: #eee;
-}
-
-
 /* Bar chart styles */
 
 .bar-cell {
   display: flex;
   align-items: center;
   width: 100%;
-  /* gap: 5%; */
 }
 
 .number {
   font-family: "Fira Mono", Consolas, Monaco, monospace;
   white-space: pre;
   font-size: 0.84375rem;
-  /* text-align: right; */
 }
 
 .bar-chart {
