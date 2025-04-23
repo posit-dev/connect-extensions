@@ -40,6 +40,8 @@ to the `manifest.json`:
     "title": "My Content Name",
     "description": "A lovely, detailed description of the content.",
     "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/my-content-name",
+    "tags": [],
+    "minimumConnectVersion": "2025.04.0",
     "version": "0.0.0"
   }
 }
@@ -48,6 +50,48 @@ to the `manifest.json`:
 It is recommended to begin with `"version": "0.0.0"` to avoid triggering a
 release during development of your content. When you are ready to release to
 the gallery check the [Adding content to the Connect Gallery](#adding-content-to-the-connect-gallery) section.
+
+#### Tags
+
+The `tags` array in the `extension` section of the `manifest.json` is optional,
+but it helps users filter content in the Gallery. A good start is to include the
+languages and tools used:
+
+```json
+// manifest.json
+
+{
+  ...
+  "extension": {
+    "tags": ["python", "quarto"],
+    ...
+  }
+}
+```
+
+Available tags are listed in the [`extensions.json`](./extensions.json) and the
+automations in the repository will check that any included tags are valid.
+
+##### Adding a new tag to the gallery
+
+If you want to include a tag on content that is not already in the
+[`extensions.json`](./extensions.json) file, it can be added.
+
+Pull requests can add new tags, but ensure that the tag follows the patterns
+of other tags and is not a duplicate. New tags should be added sparingly and
+reviewed carefully.
+
+#### Minimum Connect Version
+
+The `minimumConnectVersion` field in the `extension` section of the
+`manifest.json` is required to specify the minimum version of Posit Connect
+that the content can be installed and used on.
+
+Each time you release a version of your content the `minimumConnectVersion`
+is recorded for that specific release.
+
+A good Connect Version to start with is `"2025.04.0"` since it is the
+release that introduced the Connect Gallery.
 
 ### README.md
 
@@ -182,6 +226,9 @@ a pull request with the changes.
   }
 }
 ```
+
+If the new version of content requires a new minimum Connect version, then
+update the `minimumConnectVersion` as well.
 
 When that pull request is merged, GitHub Workflows will automatically create a
 new GitHub Release for the content changed, update the content list, and update
