@@ -1,7 +1,7 @@
 {
   "version": 1,
   "locale": "en_US",
-  "platform": "4.4.3",
+  "platform": "4.4.0",
   "metadata": {
     "appmode": "api",
     "primary_rmd": null,
@@ -19,7 +19,7 @@
   },
   "environment": {
     "r": {
-      "requires": ">=4.4.3, <5"
+      "requires": ">=4.4.0, <5"
     }
   },
   "packages": {
@@ -47,14 +47,7 @@
         "Maintainer": "Winston Chang <winston@posit.co>",
         "Repository": "CRAN",
         "Date/Publication": "2025-02-15 00:50:02 UTC",
-        "Built": "R 4.4.1; ; 2025-02-15 00:56:23 UTC; unix",
-        "RemoteType": "standard",
-        "RemoteRef": "R6",
-        "RemotePkgRef": "R6",
-        "RemoteRepos": "https://cloud.r-project.org",
-        "RemoteReposName": "CRAN",
-        "RemotePkgPlatform": "aarch64-apple-darwin20",
-        "RemoteSha": "2.6.1"
+        "Built": "R 4.4.1; ; 2025-02-15 00:56:23 UTC; unix"
       }
     },
     "Rcpp": {
@@ -91,7 +84,7 @@
       "description": {
         "Package": "cli",
         "Title": "Helpers for Developing Command Line Interfaces",
-        "Version": "3.6.5",
+        "Version": "3.6.4",
         "Authors@R": "c(\n    person(\"Gábor\", \"Csárdi\", , \"gabor@posit.co\", role = c(\"aut\", \"cre\")),\n    person(\"Hadley\", \"Wickham\", role = \"ctb\"),\n    person(\"Kirill\", \"Müller\", role = \"ctb\"),\n    person(\"Salim\", \"Brüggemann\", , \"salim-b@pm.me\", role = \"ctb\",\n           comment = c(ORCID = \"0000-0002-5329-5987\")),\n    person(\"Posit Software, PBC\", role = c(\"cph\", \"fnd\"))\n  )",
         "Description": "A suite of tools to build attractive command line interfaces\n    ('CLIs'), from semantic elements: headings, lists, alerts, paragraphs,\n    etc. Supports custom themes via a 'CSS'-like language. It also\n    contains a number of lower level 'CLI' elements: rules, boxes, trees,\n    and 'Unicode' symbols with 'ASCII' alternatives. It support ANSI\n    colors and text styles as well.",
         "License": "MIT + file LICENSE",
@@ -105,19 +98,13 @@
         "Encoding": "UTF-8",
         "RoxygenNote": "7.3.2",
         "NeedsCompilation": "yes",
-        "Packaged": "2025-04-22 12:00:18 UTC; gaborcsardi",
+        "Packaged": "2025-02-11 21:14:07 UTC; gaborcsardi",
         "Author": "Gábor Csárdi [aut, cre],\n  Hadley Wickham [ctb],\n  Kirill Müller [ctb],\n  Salim Brüggemann [ctb] (<https://orcid.org/0000-0002-5329-5987>),\n  Posit Software, PBC [cph, fnd]",
         "Maintainer": "Gábor Csárdi <gabor@posit.co>",
         "Repository": "CRAN",
-        "Date/Publication": "2025-04-23 13:50:02 UTC",
-        "Built": "R 4.4.3; aarch64-apple-darwin20; 2025-04-23 15:03:16 UTC; unix",
-        "RemoteType": "standard",
-        "RemoteRef": "cli",
-        "RemotePkgRef": "cli",
-        "RemoteRepos": "https://cloud.r-project.org",
-        "RemoteReposName": "CRAN",
-        "RemotePkgPlatform": "source",
-        "RemoteSha": "3.6.5"
+        "Date/Publication": "2025-02-13 05:20:02 UTC",
+        "Built": "R 4.4.1; aarch64-apple-darwin20; 2025-02-13 11:53:43 UTC; unix",
+        "Archs": "cli.so.dSYM"
       }
     },
     "crayon": {
@@ -319,14 +306,7 @@
         "Repository": "CRAN",
         "Date/Publication": "2024-09-30 22:30:01 UTC",
         "Built": "R 4.4.1; aarch64-apple-darwin20; 2025-02-01 04:45:00 UTC; unix",
-        "Archs": "glue.so.dSYM",
-        "RemoteType": "standard",
-        "RemoteRef": "glue",
-        "RemotePkgRef": "glue",
-        "RemoteRepos": "https://cloud.r-project.org",
-        "RemoteReposName": "CRAN",
-        "RemotePkgPlatform": "aarch64-apple-darwin20",
-        "RemoteSha": "1.8.0"
+        "Archs": "glue.so.dSYM"
       }
     },
     "httpuv": {
@@ -384,14 +364,7 @@
         "Repository": "CRAN",
         "Date/Publication": "2025-03-27 06:40:02 UTC",
         "Built": "R 4.4.1; aarch64-apple-darwin20; 2025-03-27 07:20:42 UTC; unix",
-        "Archs": "jsonlite.so.dSYM",
-        "RemoteType": "standard",
-        "RemoteRef": "jsonlite",
-        "RemotePkgRef": "jsonlite",
-        "RemoteRepos": "https://cloud.r-project.org",
-        "RemoteReposName": "CRAN",
-        "RemotePkgPlatform": "aarch64-apple-darwin20",
-        "RemoteSha": "2.0.0"
+        "Archs": "jsonlite.so.dSYM"
       }
     },
     "later": {
@@ -449,14 +422,7 @@
         "Maintainer": "Lionel Henry <lionel@posit.co>",
         "Repository": "CRAN",
         "Date/Publication": "2023-11-07 10:10:10 UTC",
-        "Built": "R 4.4.1; ; 2025-02-01 04:52:04 UTC; unix",
-        "RemoteType": "standard",
-        "RemoteRef": "lifecycle",
-        "RemotePkgRef": "lifecycle",
-        "RemoteRepos": "https://cloud.r-project.org",
-        "RemoteReposName": "CRAN",
-        "RemotePkgPlatform": "aarch64-apple-darwin20",
-        "RemoteSha": "1.0.4"
+        "Built": "R 4.4.1; ; 2025-02-01 04:52:04 UTC; unix"
       }
     },
     "magrittr": {
@@ -486,14 +452,7 @@
         "Repository": "CRAN",
         "Date/Publication": "2022-03-30 07:30:09 UTC",
         "Built": "R 4.4.1; aarch64-apple-darwin20; 2025-01-25 22:02:35 UTC; unix",
-        "Archs": "magrittr.so.dSYM",
-        "RemoteType": "standard",
-        "RemoteRef": "magrittr",
-        "RemotePkgRef": "magrittr",
-        "RemoteRepos": "https://cloud.r-project.org",
-        "RemoteReposName": "CRAN",
-        "RemotePkgPlatform": "aarch64-apple-darwin20",
-        "RemoteSha": "2.0.3"
+        "Archs": "magrittr.so.dSYM"
       }
     },
     "mime": {
@@ -672,14 +631,7 @@
         "Repository": "CRAN",
         "Date/Publication": "2025-04-11 08:40:10 UTC",
         "Built": "R 4.4.1; aarch64-apple-darwin20; 2025-04-11 09:29:09 UTC; unix",
-        "Archs": "rlang.so.dSYM",
-        "RemoteType": "standard",
-        "RemoteRef": "rlang",
-        "RemotePkgRef": "rlang",
-        "RemoteRepos": "https://cloud.r-project.org",
-        "RemoteReposName": "CRAN",
-        "RemotePkgPlatform": "aarch64-apple-darwin20",
-        "RemoteSha": "1.1.6"
+        "Archs": "rlang.so.dSYM"
       }
     },
     "sodium": {
@@ -736,14 +688,7 @@
         "License_is_FOSS": "yes",
         "Repository": "CRAN",
         "Date/Publication": "2025-03-27 13:10:02 UTC",
-        "Built": "R 4.4.1; aarch64-apple-darwin20; 2025-03-27 14:34:31 UTC; unix",
-        "RemoteType": "standard",
-        "RemoteRef": "stringi",
-        "RemotePkgRef": "stringi",
-        "RemoteRepos": "https://cloud.r-project.org",
-        "RemoteReposName": "CRAN",
-        "RemotePkgPlatform": "aarch64-apple-darwin20",
-        "RemoteSha": "1.8.7"
+        "Built": "R 4.4.1; aarch64-apple-darwin20; 2025-03-27 14:34:31 UTC; unix"
       }
     },
     "swagger": {
@@ -892,14 +837,7 @@
         "Repository": "CRAN",
         "Date/Publication": "2023-12-01 23:50:02 UTC",
         "Built": "R 4.4.0; aarch64-apple-darwin20; 2024-04-06 02:48:37 UTC; unix",
-        "Archs": "vctrs.so.dSYM",
-        "RemoteType": "standard",
-        "RemoteRef": "vctrs",
-        "RemotePkgRef": "vctrs",
-        "RemoteRepos": "https://cloud.r-project.org",
-        "RemoteReposName": "CRAN",
-        "RemotePkgPlatform": "aarch64-apple-darwin20",
-        "RemoteSha": "0.6.5"
+        "Archs": "vctrs.so.dSYM"
       }
     },
     "webutils": {
@@ -957,21 +895,11 @@
         "Maintainer": "Lionel Henry <lionel@posit.co>",
         "Repository": "CRAN",
         "Date/Publication": "2024-10-28 13:30:02 UTC",
-        "Built": "R 4.4.1; ; 2025-02-01 04:46:13 UTC; unix",
-        "RemoteType": "standard",
-        "RemoteRef": "withr",
-        "RemotePkgRef": "withr",
-        "RemoteRepos": "https://cloud.r-project.org",
-        "RemoteReposName": "CRAN",
-        "RemotePkgPlatform": "aarch64-apple-darwin20",
-        "RemoteSha": "3.0.2"
+        "Built": "R 4.4.1; ; 2025-02-01 04:46:13 UTC; unix"
       }
     }
   },
   "files": {
-    ".Rprofile": {
-      "checksum": "bf2831c21a9009ebdf45b84363a461a3"
-    },
     "plumber.R": {
       "checksum": "3b235770b15e5597e06468d503046fc5"
     },
