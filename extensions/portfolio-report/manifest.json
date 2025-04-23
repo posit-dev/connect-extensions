@@ -14,7 +14,8 @@
     "title": "Portfolio Report",
     "description": "A R Markdown document giving stakeholders the ability to customize a report's assumptions and create their own version",
     "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/portfolio-report",
-    "version": "0.0.1"
+    "version": "0.0.1",
+    "minimumConnectVersion": "2025.04.0"
   },
   "environment": {
     "r": {
