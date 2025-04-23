@@ -10,8 +10,8 @@ PROJECT_NAME := connect-extensions
 # Python settings
 PYTHON ?= $(shell command -v python || command -v python3)
 UV ?= uv
-# Read UV version from pyproject.toml
-UV_VERSION ?= $(shell grep -Po '(?<=required-version = ")[^"]+' pyproject.toml 2>/dev/null || echo "0.6.14")
+# Read UV version from pyproject.toml with more portable command
+UV_VERSION ?= $(shell grep 'required-version' pyproject.toml 2>/dev/null | sed -E 's/.*required-version = "([^"]+)".*/\1/' || echo "0.6.14")
 # uv defaults virtual environment to `$VIRTUAL_ENV` if set; otherwise .venv
 VIRTUAL_ENV ?= .venv
 UV_LOCK := uv.lock
