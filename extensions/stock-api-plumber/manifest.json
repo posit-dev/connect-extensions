@@ -14,7 +14,8 @@
     "title": "Stock Pricing Service with Plumber API",
     "description": "APIs are a great way for software engineering teams to use your models without translating them into different languages",
     "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/stock-api-plumber",
-    "version": "1.0.0"
+    "version": "1.0.0",
+    "minimumConnectVersion": "2025.04.0"
   },
   "environment": {
     "r": {
