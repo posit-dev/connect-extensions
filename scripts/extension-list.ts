@@ -42,7 +42,15 @@ class ExtensionList {
   }
 
   public addRelease(manifest: ExtensionManifest, githubRelease) {
-    const { name, title, description, homepage, version, tags } = manifest.extension;
+    const {
+      name,
+      title,
+      description,
+      homepage,
+      version,
+      tags,
+      minimumConnectVersion,
+    } = manifest.extension;
     const { assets, published_at } = githubRelease;
 
     const { browser_download_url } = assets.find(
@@ -53,6 +61,7 @@ class ExtensionList {
       version,
       released: published_at,
       url: browser_download_url,
+      minimumConnectVersion: minimumConnectVersion,
     };
 
     if (this.getExtension(name)) {

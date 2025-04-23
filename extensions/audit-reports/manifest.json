@@ -45,6 +45,7 @@
     "title": "Audit Reports",
     "description": "A quarto site of audit reports.",
     "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/audit-reports",
+    "minimumConnectVersion": "2025.04.0",
     "version": "0.0.0"
   }
 }
