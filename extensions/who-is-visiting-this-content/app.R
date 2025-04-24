@@ -94,51 +94,17 @@ ui <- function(request) {
         value = 0
       ),
 
+      uiOutput("conditional_filter_controls"),
+
 
       # id = "multi_content_controls",
       # title = "Content Table",
-      selectizeInput(
-        "app_mode_filter",
-        label = "Filter by Content Type",
-        options = list(placeholder = "All Content Types"),
-        choices = list(
-          "API",
-          "Application",
-          "Jupyter",
-          "Quarto",
-          "R Markdown",
-          "Pin",
-          "Other"
-        ),
-        multiple = TRUE
-      ),
-
-      checkboxInput(
-        "show_guid",
-        label = "Show GUID"
-      ),
-
-      downloadButton(
-        "export_raw_visits",
-        class = "mb-2",
-        label = "Export Raw Visits"
-      ),
-      downloadButton(
-        "export_visit_totals",
-        class = "mb-2",
-        label = "Export Visit Totals"
-      ),
 
 
       # id = "single_content_controls", style = "display: none;",
       # title = "Content Detail Controls",
-      selectizeInput(
-        "selected_users",
-        label = "Filter Users",
-        choices = NULL,  # set dynamically in server
-        multiple = TRUE
-      ),
-      uiOutput("email_selected_button"),
+
+      # uiOutput("email_selected_button"),
 
 
       actionButton("clear_cache", "Clear Cache", icon = icon("refresh"))
@@ -708,6 +674,82 @@ server <- function(input, output, session) {
     )
   })
 
+  output$conditional_filter_controls <- renderUI({
+    # Content Table
+    content_table_filters <- tagList(
+      selectizeInput(
+        "app_mode_filter",
+        label = "Filter by Content Type",
+        options = list(placeholder = "All Content Types"),
+        choices = list(
+          "API",
+          "Application",
+          "Jupyter",
+          "Quarto",
+          "R Markdown",
+          "Pin",
+          "Other"
+        ),
+        multiple = TRUE
+      ),
+      checkboxInput(
+        "show_guid",
+        label = "Show GUID"
+      ),
+      downloadButton(
+        "export_raw_visits",
+        class = "mb-2",
+        label = "Export Raw Visits"
+      ),
+      downloadButton(
+        "export_visit_totals",
+        class = "mb-2",
+        label = "Export Visit Totals"
+      )
+    )
+
+    content_detail_filters <- tagList(
+      selectizeInput(
+        "selected_users",
+        label = "Filter Users",
+        choices = NULL,  # set dynamically in server
+        multiple = TRUE
+      ),
+      renderUI({
+        req(selected_content_info())
+        emails <- users() |>
+          filter(user_guid %in% input$selected_users) |>
+          pull(email) |>
+          na.omit()
+
+        disabled <- if (length(emails) == 0) "disabled" else NULL
+
+        subject <- glue::glue("\"{selected_content_info()$title}\" on Posit Connect")
+        mailto <- glue::glue(
+          "mailto:{paste(emails, collapse = ',')}",
+          "?subject={URLencode(subject, reserved = TRUE)}"
+        )
+
+        tags$button(
+          type = "button",
+          class = "btn btn-sm btn-outline-secondary",
+          disabled = disabled,
+          onclick = if (is.null(disabled)) sprintf("window.location.href='%s'", mailto) else NULL,
+          tagList(icon("envelope"), "Email Selected Users")
+        )
+
+      # Email button
+      })
+    )
+
+    if (is.null(selected_guid())) {
+      content_table_filters
+    } else {
+      content_detail_filters
+    }
+
+  })
+
   # Render content metadata and other text ----
 
   output$filter_message <- renderUI({
@@ -792,31 +834,6 @@ server <- function(input, output, session) {
         icon("envelope"),
         "Email"
       )
-    )
-  })
-
-  # Email button
-  output$email_selected_button <- renderUI({
-    req(selected_content_info())
-    emails <- users() |>
-      filter(user_guid %in% input$selected_users) |>
-      pull(email) |>
-      na.omit()
-
-    disabled <- if (length(emails) == 0) "disabled" else NULL
-
-    subject <- glue::glue("\"{selected_content_info()$title}\" on Posit Connect")
-    mailto <- glue::glue(
-      "mailto:{paste(emails, collapse = ',')}",
-      "?subject={URLencode(subject, reserved = TRUE)}"
-    )
-
-    tags$button(
-      type = "button",
-      class = "btn btn-sm btn-outline-secondary",
-      disabled = disabled,
-      onclick = if (is.null(disabled)) sprintf("window.location.href='%s'", mailto) else NULL,
-      tagList(icon("envelope"), "Email Selected Users")
     )
   })
 
