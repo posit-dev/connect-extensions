@@ -35,6 +35,7 @@ jobs:
             portfolio-dashboard: extensions/portfolio-dashboard/**
             quarto-document: extensions/quarto-document/**
             stock-api-flask: extensions/stock-api-flask/**
+            landing-page: extensions/landing-page/**
             stock-api-fastapi: extensions/stock-api-fastapi/**
 
   # Runs for each extension that has changed from `simple-extension-changes`
