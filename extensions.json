@@ -23,6 +23,27 @@
       "tags": []
     },
     {
+      "name": "fastapitableau-example",
+      "title": "Tableau Python Extension",
+      "description": "fastapitableau is a Python package that enables Python developers to build FastAPI APIs that function as Tableau Analytics Extensions. These extensions can be leveraged from Tableau workbooks to allow real time requests from Tableau to Python. This extension builds on top of Tableau's example Superstore dataset.",
+      "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/fastapitableau-example",
+      "latestVersion": {
+        "version": "1.0.0",
+        "released": "2025-04-24T19:38:18Z",
+        "url": "https://github.com/posit-dev/connect-extensions/releases/download/fastapitableau-example%40v1.0.0/fastapitableau-example.tar.gz",
+        "minimumConnectVersion": "2025.04.0"
+      },
+      "versions": [
+        {
+          "version": "1.0.0",
+          "released": "2025-04-24T19:38:18Z",
+          "url": "https://github.com/posit-dev/connect-extensions/releases/download/fastapitableau-example%40v1.0.0/fastapitableau-example.tar.gz",
+          "minimumConnectVersion": "2025.04.0"
+        }
+      ],
+      "tags": []
+    },
+    {
       "name": "landing-page",
       "title": "Static HTML landing page",
       "description": "A simple static HTML web page that can be served from Connect",
