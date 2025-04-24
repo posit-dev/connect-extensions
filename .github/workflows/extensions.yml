@@ -34,6 +34,11 @@ jobs:
             quarto-stock-report-python: extensions/quarto-stock-report-python/**
             portfolio-dashboard: extensions/portfolio-dashboard/**
             quarto-document: extensions/quarto-document/**
+            stock-api-flask: extensions/stock-api-flask/**
+            landing-page: extensions/landing-page/**
+            stock-api-fastapi: extensions/stock-api-fastapi/**
+            connectwidgets-example: extensions/connectwidgets-example/**
+            fastapitableau-example: extensions/fastapitableau-example/**
 
   # Runs for each extension that has changed from `simple-extension-changes`
   # Lints and packages in preparation for tests and and release.

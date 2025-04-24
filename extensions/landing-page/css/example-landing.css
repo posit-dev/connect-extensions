@@ -1,0 +1,45 @@
+body, button, input, textarea {
+  font-family: 'Source Sans', sans-serif;
+  font-size: 13px;
+  font-weight: normal; }
+
+body {
+  margin: 0 0 100px 0;
+  padding: 0; }
+
+.band {
+  padding: 0 5%; }
+  .band.hero {
+    height: 200px;
+    background-color: #aaa;
+    background-image: url(../images/logo.png);
+    background-size: 400px 200px;
+    background-repeat: no-repeat;
+    background-position: center center; }
+
+.bandContent {
+  margin: 0 auto;
+  max-width: 1200px; }
+  .bandContent p {
+    margin: 1em 0; }
+  .bandContent h1 {
+    margin-top: 2.5em; }
+  .bandContent.intro p {
+    font-size: 16px; }
+  .bandContent a {
+    text-decoration: none;
+    color: #ee6331; }
+    .bandContent a:hover {
+      text-decoration: underline; }
+    .bandContent a.introDoc {
+      display: inline-block;
+      line-height: 50px;
+      padding-left: 50px;
+      background-image: url(../images/info.png);
+      background-size: 40px 40px;
+      background-repeat: no-repeat;
+      background-position: left center; }
+  .bandContent ul p {
+    line-height: 20px; }
+
+/*# sourceMappingURL=example-landing.css.map */
