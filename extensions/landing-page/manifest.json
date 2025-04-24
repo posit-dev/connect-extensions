@@ -1,0 +1,40 @@
+{
+  "version": 1,
+  "locale": "en_US",
+  "platform": "4.4.0",
+  "metadata": {
+    "appmode": "static",
+    "primary_rmd": null,
+    "primary_html": "index.html",
+    "content_category": null,
+    "has_parameters": false
+  },
+  "extension": {
+    "name": "landing-page",
+    "title": "Static HTML landing page",
+    "description": "A simple static HTML web page that can be served from Connect",
+    "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/landing-page",
+    "tags": [],
+    "minimumConnectVersion": "2025.04.0",
+    "version": "1.0.0"
+  },
+  "packages": null,
+  "files": {
+    "css/example-landing.css": {
+      "checksum": "d5ab84ce8482341785ad7798f272fcc5"
+    },
+    "images/info.png": {
+      "checksum": "184edb1e9b490e26bf93081274d45928"
+    },
+    "images/logo.png": {
+      "checksum": "38472dc2c802db2abbc2ee5c7204632d"
+    },
+    "index.html": {
+      "checksum": "5a39c2d4fea53f9e4d8870b6370facc4"
+    },
+    "README.md": {
+      "checksum": "31098f057b98fd974710bfc93d8eeee2"
+    }
+  },
+  "users": null
+}
