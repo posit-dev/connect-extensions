@@ -1,16 +1,16 @@
 /* Styles used by the Most Used Content table */
-.content-tbl {
+.metrics-tbl {
     font-size: 0.875rem;
     line-height: 1.125rem;
   }
 
-  .content-tbl a {
+  .metrics-tbl a {
     color: inherit;
     text-decoration: none;
   }
 
-  .content-tbl a:hover,
-  .content-tbl a:focus {
+  .metrics-tbl a:hover,
+  .metrics-tbl a:focus {
     text-decoration: underline;
     text-decoration-thickness: max(1px, 0.0625rem);
   }
@@ -45,11 +45,4 @@
 
   .bar {
     height: 100%;
-  }
-
-
-  /* Sidebar styles */
-
-  .selectize-dropdown-content{
-    max-height: 50vh !important;
   }

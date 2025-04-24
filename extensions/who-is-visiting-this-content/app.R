@@ -12,6 +12,7 @@ library(bsicons)
 library(bslib)
 library(ggplot2)
 library(plotly)
+library(reactlog)
 
 shinyOptions(
   cache = cachem::cache_disk("./app_cache/cache/", max_age = 60 * 60 * 8)
@@ -52,10 +53,12 @@ ui <- function(request) {
   page_sidebar(
     useShinyjs(),
     theme = bs_theme(version = 5),
-
     tags$head(
       tags$link(rel = "stylesheet", type = "text/css", href = "styles.css")
     ),
+
+    title = uiOutput("page_title_bar"),
+
     sidebar = sidebar(
       title = "Controls",
       open = TRUE,
@@ -94,60 +97,44 @@ ui <- function(request) {
         value = 0
       ),
 
+      # The remaining filter controls are different for the multi-content table
+      # and single-content detail view.
       uiOutput("conditional_filter_controls"),
 
-
-      # id = "multi_content_controls",
-      # title = "Content Table",
-
-
-      # id = "single_content_controls", style = "display: none;",
-      # title = "Content Detail Controls",
-
-      # uiOutput("email_selected_button"),
-
-
+      # TODO: Possibly remove or hide in a "Troubleshooting" or Advanced
+      # accordion section
       actionButton("clear_cache", "Clear Cache", icon = icon("refresh"))
     ),
 
-    # Multi-content view
+    # The multi-content table is shown if no content item is selected. The
+    # single-content detail view is displayed if an item is selected by clicking
+    # on its table row.
     div(
-
       id = "multi_content_table",
       textOutput("summary_text"),
       reactableOutput("content_usage_table")
     ),
 
-    # Single-content view
 
     div(
       id = "single_content_detail",
       style = "display:none;",
-
-      actionButton("clear_content_selection", "Back", icon("arrow-left"), class = "btn btn-sm"),
       div(
-        style = "display: flex; justify-content: space-between; gap: 1rem; align-items: center;",
-        div(
-          style = "display: inline-flex; gap: 0.5rem; align-items: center;",
-          h3(textOutput("content_title")),
-          uiOutput("dashboard_link")
+        class = "d-flex justify-content-between align-items-center gap-2 mb-3",
+        span(
+          uiOutput("filter_message")
         ),
         div(
-          style = "display: flex; gap: 0.5rem; align-items: center;",
-          textOutput("owner_info"),
+          class = "d-flex align-items-center gap-2",
+          textOutput("owner_info", inline = TRUE),
           uiOutput("email_owner_link")
         )
       ),
-
-      div(
-        style = "display: flex; justify-content: space-between; align-items: center;",
-        uiOutput("filter_message")
-      ),
-
       layout_column_wrap(
         width = "400px",
         heights_equal = "row",
         navset_card_tab(
+          # Plot panel
           tabPanel(
             "Daily Visits",
             div(
@@ -163,8 +150,8 @@ ui <- function(request) {
             )
           )
         ),
-
         navset_card_tab(
+          # Table panel
           tabPanel(
             title = tagList(
               "Top Visitors",
@@ -194,17 +181,15 @@ ui <- function(request) {
           });
         }
       });
-    ")),
-    tags$style(HTML("
-      #selected_users + .selectize-control .selectize-input {
-        max-height: 150px;
-        overflow-y: auto;
-      }
     "))
   )
 }
 
 server <- function(input, output, session) {
+
+  observe({
+    freezeReactiveValue(input, "app_mode_filter")
+  })
   # Bookmarking ----
 
   # observe({
@@ -230,9 +215,9 @@ server <- function(input, output, session) {
 
   observe({
     shinyjs::toggle(id = "multi_content_table", condition = is.null(selected_guid()))
-    shinyjs::toggle(id = "multi_content_controls", condition = is.null(selected_guid()))
+    # shinyjs::toggle(id = "multi_content_controls", condition = is.null(selected_guid()))
     shinyjs::toggle(id = "single_content_detail", condition = !is.null(selected_guid()))
-    shinyjs::toggle(id = "single_content_controls", condition = !is.null(selected_guid()))
+    # shinyjs::toggle(id = "single_content_controls", condition = !is.null(selected_guid()))
     shinyjs::toggle("clear_content_selection", condition = !is.null(selected_guid()))
   })
 
@@ -257,6 +242,7 @@ server <- function(input, output, session) {
 
   observeEvent(input$visit_merge_window, {
     if (input$visit_merge_window != input$visit_merge_window_text) {
+      freezeReactiveValue(input, "visit_merge_window_text")
       updateTextInput(session, "visit_merge_window_text", value = input$visit_merge_window)
     }
   })
@@ -264,12 +250,14 @@ server <- function(input, output, session) {
   observeEvent(input$visit_merge_window_text, {
     new_value <- suppressWarnings(as.numeric(input$visit_merge_window_text))
 
-    if (!is.na(new_value) && new_value >= 0 && new_value <= 600) {
+    if (!is.na(new_value) && new_value >= 0 && new_value <= 180) {
       if (new_value != input$visit_merge_window) {
+        freezeReactiveValue(input, "visit_merge_window")
         updateSliderInput(session, "visit_merge_window", value = new_value)
       }
     } else {
       if (input$visit_merge_window_text != input$visit_merge_window) {
+        freezeReactiveValue(input, "visit_merge_window_text")
         updateTextInput(session, "visit_merge_window_text", value = input$visit_merge_window)
       }
     }
@@ -353,8 +341,8 @@ server <- function(input, output, session) {
   # Multi-content view data ----
 
   # Apply client-side data filters (app mode)
-  usage_data_filtered <- reactive({
-    if (length(input$app_mode_filter ) == 0) {
+  usage_data_visits <- reactive({
+    filtered_data <- if (length(input$app_mode_filter ) == 0) {
       usage_data_raw()
     } else {
       app_modes <- unlist(app_mode_groups[input$app_mode_filter])
@@ -364,15 +352,12 @@ server <- function(input, output, session) {
       usage_data_raw() |>
         filter(content_guid %in% filter_guids)
     }
-  })
 
-  # Merge usage data hits into visits based on input.
-  usage_data_visits <- reactive({
     req(input$visit_merge_window)
     if (input$visit_merge_window == 0) {
-      usage_data_filtered()
+      filtered_data
     } else {
-      usage_data_filtered() |>
+      filtered_data |>
         group_by(content_guid, user_guid) |>
 
         # Compute time diffs and filter out hits within the session
@@ -413,6 +398,22 @@ server <- function(input, output, session) {
         select(title, dashboard_url, content_guid, owner_username, total_views, sparkline, unique_viewers)
     })
 
+    output$page_title_bar <- renderUI({
+      if (is.null(selected_guid())) {
+        "Usage"
+      } else {
+        div(
+          style = "display: flex; justify-content: space-between; gap: 1rem; align-items: center;",
+          actionButton("clear_content_selection", "Back", icon("arrow-left"), class = "btn btn-sm", style = "white-space: nowrap;"),
+          span(
+              "Usage / ",
+              textOutput("content_title", inline = TRUE)
+          ),
+          uiOutput("dashboard_link")
+        )
+      }
+    })
+
     output$summary_text <- renderText(
       glue::glue(
         "{nrow(usage_data_visits())} visits ",
@@ -431,13 +432,14 @@ server <- function(input, output, session) {
             Shiny.setInputValue('row_click_guid', rowInfo.row.content_guid, {priority: 'event'});
           }
         }"),
-        pagination = FALSE,
+        pagination = TRUE,
+        defaultPageSize = 25,
         sortable = TRUE,
         highlight = TRUE,
         defaultSorted = "total_views",
         # filterable = TRUE,
         wrap = FALSE,
-        class = "content-tbl",
+        class = "metrics-tbl",
 
         columns = list(
           title = colDef(
@@ -474,6 +476,7 @@ server <- function(input, output, session) {
           content_guid = colDef(
             name = "GUID",
             show = input$show_guid,
+            class = "number",
             cell = function(value) {
               div(style = list(whiteSpace = "normal", wordBreak = "break-all"), value)
             }
@@ -574,7 +577,10 @@ server <- function(input, output, session) {
 
       # Join to usernames
       left_join(users(), by = "user_guid") |>
-      replace_na(list(display_name = "[Anonymous]")) |>
+      replace_na(list(
+        user_guid = "ANONYMOUS",
+        display_name = "[Anonymous]"
+      )) |>
       arrange(desc(timestamp)) |>
       select(user_guid, display_name, timestamp)
 
@@ -603,7 +609,10 @@ server <- function(input, output, session) {
     filtered_visits |>
       left_join(unfiltered_hits, by = "user_guid") |>
       left_join(users(), by = "user_guid") |>
-      replace_na(list(display_name = "[Anonymous]")) |>
+      replace_na(list(
+        user_guid = "ANONYMOUS",
+        display_name = "[Anonymous]"
+      )) |>
       arrange(desc(n_visits), display_name) |>
       select(user_guid, display_name, email, n_visits)
   })
@@ -628,6 +637,8 @@ server <- function(input, output, session) {
       selection = "multiple",
       onClick = "select",
       defaultSorted = "n_visits",
+      class = "metrics-tbl",
+      wrap = FALSE,
       columns = list(
         user_guid = colDef(show = FALSE),
         display_name = colDef(name = "Visitor"),
@@ -652,7 +663,8 @@ server <- function(input, output, session) {
         n_visits = colDef(
           name = "Visits",
           defaultSortOrder = "desc",
-          maxWidth = 75
+          maxWidth = 75,
+          class = "number"
         )
       )
     )
@@ -662,12 +674,15 @@ server <- function(input, output, session) {
     reactable(
       all_visits_data(),
       defaultSorted = "timestamp",
+      class = "metrics-tbl",
+      wrap = FALSE,
       columns = list(
         user_guid = colDef(show = FALSE),
         timestamp = colDef(
           name = "Time",
           format = colFormat(datetime = TRUE, time = TRUE),
-          defaultSortOrder = "desc"
+          defaultSortOrder = "desc",
+          class = "number"
         ),
         display_name = colDef(name = "Visitor")
       )
@@ -712,7 +727,7 @@ server <- function(input, output, session) {
       selectizeInput(
         "selected_users",
         label = "Filter Users",
-        choices = NULL,  # set dynamically in server
+        choices = NULL,
         multiple = TRUE
       ),
       renderUI({
@@ -737,8 +752,6 @@ server <- function(input, output, session) {
           onclick = if (is.null(disabled)) sprintf("window.location.href='%s'", mailto) else NULL,
           tagList(icon("envelope"), "Email Selected Users")
         )
-
-      # Email button
       })
     )
 
@@ -763,7 +776,7 @@ server <- function(input, output, session) {
         filter(user_guid %in% input$selected_users) |>
         pull(display_name)
       user_string <- if (length(users) == 1) users else "selected users"
-      div(
+      tagList(
         glue(
           "{nrow(hits)} visits from {user_string} between ",
           "{date_range()$from} and {date_range()$to}."
@@ -771,12 +784,12 @@ server <- function(input, output, session) {
         actionLink("clear_selection", glue::glue("Clear filter"), icon = icon("times"))
       )
     } else {
-      div(
+
         glue(
           "{nrow(hits)} total visits between ",
           "{date_range()$from} and {date_range()$to}."
         )
-      )
+
     }
   })
 
@@ -803,7 +816,7 @@ server <- function(input, output, session) {
       div(
         style = "white-space: nowrap;",
         icon("arrow-up-right-from-square"),
-        "Open"
+        "Open in Connect"
       )
     )
   })
