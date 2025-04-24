@@ -37,6 +37,7 @@ jobs:
             stock-api-flask: extensions/stock-api-flask/**
             landing-page: extensions/landing-page/**
             stock-api-fastapi: extensions/stock-api-fastapi/**
+            connectwidgets-example: extensions/connectwidgets-example/**
 
   # Runs for each extension that has changed from `simple-extension-changes`
   # Lints and packages in preparation for tests and and release.
