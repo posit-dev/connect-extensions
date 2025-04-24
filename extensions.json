@@ -2,6 +2,27 @@
   "tags": [],
   "extensions": [
     {
+      "name": "connectwidgets-example",
+      "title": "Connect Widgets Example",
+      "description": "connectwidgets is an R package that can be used to query for a subset of your existing content items, then organize them within htmlwidget components in an R Markdown document or Shiny application.",
+      "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/connectwidgets-example",
+      "latestVersion": {
+        "version": "0.0.1",
+        "released": "2025-04-24T19:17:16Z",
+        "url": "https://github.com/posit-dev/connect-extensions/releases/download/connectwidgets-example%40v0.0.1/connectwidgets-example.tar.gz",
+        "minimumConnectVersion": "2025.04.0"
+      },
+      "versions": [
+        {
+          "version": "0.0.1",
+          "released": "2025-04-24T19:17:16Z",
+          "url": "https://github.com/posit-dev/connect-extensions/releases/download/connectwidgets-example%40v0.0.1/connectwidgets-example.tar.gz",
+          "minimumConnectVersion": "2025.04.0"
+        }
+      ],
+      "tags": []
+    },
+    {
       "name": "landing-page",
       "title": "Static HTML landing page",
       "description": "A simple static HTML web page that can be served from Connect",
