@@ -106,6 +106,27 @@
           "minimumConnectVersion": "2025.04.0"
         }
       ]
+    },
+    {
+      "name": "stock-api-fastapi",
+      "title": "FastAPI Stock Pricing Service",
+      "description": "APIs are a great way for software engineering teams to use your models without translating them into different languages",
+      "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/stock-api-fastapi",
+      "latestVersion": {
+        "version": "1.0.0",
+        "released": "2025-04-24T18:56:34Z",
+        "url": "https://github.com/posit-dev/connect-extensions/releases/download/stock-api-fastapi%40v1.0.0/stock-api-fastapi.tar.gz",
+        "minimumConnectVersion": "2025.04.0"
+      },
+      "versions": [
+        {
+          "version": "1.0.0",
+          "released": "2025-04-24T18:56:34Z",
+          "url": "https://github.com/posit-dev/connect-extensions/releases/download/stock-api-fastapi%40v1.0.0/stock-api-fastapi.tar.gz",
+          "minimumConnectVersion": "2025.04.0"
+        }
+      ],
+      "tags": []
     }
   ]
 }
