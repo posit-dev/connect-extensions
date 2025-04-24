@@ -1,8 +1,8 @@
-# Content Curation
+# Connectwidgets Example
 
 ## About this example
 
-connectwidgets is an R package that can be used to query {systemDisplayName} for a subset of your existing content items, then organize them within htmlwidget components in an R Markdown document or Shiny application. Use connectwidgets to create a content hub or knowledge repository, a customized summary page for a particular group of stakeholders, or a presentation layer for any group of related content.
+`connectwidgets` is an R package that can be used to query {systemDisplayName} for a subset of your existing content items, then organize them within htmlwidget components in an R Markdown document or Shiny application. Use `connectwidgets` to create a content hub or knowledge repository, a customized summary page for a particular group of stakeholders, or a presentation layer for any group of related content.
 
 
 ## Learn more
