@@ -1,4 +1,5 @@
 {
+  "tags": [],
   "extensions": [
     {
       "name": "portfolio-dashboard",
@@ -8,13 +9,15 @@
       "latestVersion": {
         "version": "0.0.1",
         "released": "2025-04-11T21:32:23Z",
-        "url": "https://github.com/posit-dev/connect-extensions/releases/download/portfolio-dashboard%40v0.0.1/portfolio-dashboard.tar.gz"
+        "url": "https://github.com/posit-dev/connect-extensions/releases/download/portfolio-dashboard%40v0.0.1/portfolio-dashboard.tar.gz",
+        "minimumConnectVersion": "2025.04.0"
       },
       "versions": [
         {
           "version": "0.0.1",
           "released": "2025-04-11T21:32:23Z",
-          "url": "https://github.com/posit-dev/connect-extensions/releases/download/portfolio-dashboard%40v0.0.1/portfolio-dashboard.tar.gz"
+          "url": "https://github.com/posit-dev/connect-extensions/releases/download/portfolio-dashboard%40v0.0.1/portfolio-dashboard.tar.gz",
+          "minimumConnectVersion": "2025.04.0"
         }
       ]
     },
@@ -26,13 +29,15 @@
       "latestVersion": {
         "version": "0.0.1",
         "released": "2025-03-19T23:00:09Z",
-        "url": "https://github.com/posit-dev/connect-extensions/releases/download/publisher-command-center%40v0.0.1/publisher-command-center.tar.gz"
+        "url": "https://github.com/posit-dev/connect-extensions/releases/download/publisher-command-center%40v0.0.1/publisher-command-center.tar.gz",
+        "minimumConnectVersion": "2025.04.0"
       },
       "versions": [
         {
           "version": "0.0.1",
           "released": "2025-03-19T23:00:09Z",
-          "url": "https://github.com/posit-dev/connect-extensions/releases/download/publisher-command-center%40v0.0.1/publisher-command-center.tar.gz"
+          "url": "https://github.com/posit-dev/connect-extensions/releases/download/publisher-command-center%40v0.0.1/publisher-command-center.tar.gz",
+          "minimumConnectVersion": "2025.04.0"
         }
       ]
     },
@@ -44,13 +49,15 @@
       "latestVersion": {
         "version": "1.0.0",
         "released": "2025-04-14T20:05:36Z",
-        "url": "https://github.com/posit-dev/connect-extensions/releases/download/quarto-document%40v1.0.0/quarto-document.tar.gz"
+        "url": "https://github.com/posit-dev/connect-extensions/releases/download/quarto-document%40v1.0.0/quarto-document.tar.gz",
+        "minimumConnectVersion": "2025.04.0"
       },
       "versions": [
         {
           "version": "1.0.0",
           "released": "2025-04-14T20:05:36Z",
-          "url": "https://github.com/posit-dev/connect-extensions/releases/download/quarto-document%40v1.0.0/quarto-document.tar.gz"
+          "url": "https://github.com/posit-dev/connect-extensions/releases/download/quarto-document%40v1.0.0/quarto-document.tar.gz",
+          "minimumConnectVersion": "2025.04.0"
         }
       ]
     },
@@ -62,13 +69,15 @@
       "latestVersion": {
         "version": "1.0.0",
         "released": "2025-04-14T18:38:38Z",
-        "url": "https://github.com/posit-dev/connect-extensions/releases/download/quarto-stock-report-python%40v1.0.0/quarto-stock-report-python.tar.gz"
+        "url": "https://github.com/posit-dev/connect-extensions/releases/download/quarto-stock-report-python%40v1.0.0/quarto-stock-report-python.tar.gz",
+        "minimumConnectVersion": "2025.04.0"
       },
       "versions": [
         {
           "version": "1.0.0",
           "released": "2025-04-14T18:38:38Z",
-          "url": "https://github.com/posit-dev/connect-extensions/releases/download/quarto-stock-report-python%40v1.0.0/quarto-stock-report-python.tar.gz"
+          "url": "https://github.com/posit-dev/connect-extensions/releases/download/quarto-stock-report-python%40v1.0.0/quarto-stock-report-python.tar.gz",
+          "minimumConnectVersion": "2025.04.0"
         }
       ]
     },
@@ -78,15 +87,23 @@
       "description": "A view to a kill.",
       "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/reaper",
       "latestVersion": {
-        "version": "0.0.1",
-        "released": "2025-03-19T22:59:58Z",
-        "url": "https://github.com/posit-dev/connect-extensions/releases/download/reaper%40v0.0.1/reaper.tar.gz"
+        "version": "0.0.2",
+        "released": "2025-04-16T22:32:48Z",
+        "url": "https://github.com/posit-dev/connect-extensions/releases/download/reaper%40v0.0.2/reaper.tar.gz",
+        "minimumConnectVersion": "2025.04.0"
       },
       "versions": [
         {
+          "version": "0.0.2",
+          "released": "2025-04-16T22:32:48Z",
+          "url": "https://github.com/posit-dev/connect-extensions/releases/download/reaper%40v0.0.2/reaper.tar.gz",
+          "minimumConnectVersion": "2025.04.0"
+        },
+        {
           "version": "0.0.1",
           "released": "2025-03-19T22:59:58Z",
-          "url": "https://github.com/posit-dev/connect-extensions/releases/download/reaper%40v0.0.1/reaper.tar.gz"
+          "url": "https://github.com/posit-dev/connect-extensions/releases/download/reaper%40v0.0.1/reaper.tar.gz",
+          "minimumConnectVersion": "2025.04.0"
         }
       ]
     }

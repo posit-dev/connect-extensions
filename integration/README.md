@@ -9,10 +9,11 @@ It is primarily designed to be run in CI, but can also be run locally.
 - Python
 
 ## Quick Start
-1. Use Makefile targets to set up and run tests
-2. For local testing:
-	- Copy the packaged extension (*.tar.gz) to `integration/bundles`
-	- Run: `make <connect-version> EXTENSION_NAME=<extension-name>`
+For local testing:
+- Install `uv` with a version matching that in `pyproject.toml`
+- Copy a valid Connect license file to `integration/license.lic`
+- Copy the packaged extension (*.tar.gz) to `integration/bundles`
+- Run: `make <connect-version> EXTENSION_NAME=<extension-name>`
 		- `<connect-version>` matches a valid version from CONNECT_VERSIONS in the Makefile 
 		- `<extension-name>` matches the base name of your .tar.gz file (without the .tar.gz extension)
 

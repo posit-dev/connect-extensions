@@ -32,6 +32,7 @@
     "title": "Plotting Connect Prometheus Metrics from Datadog",
     "description": "Allows users to query Datadog for a selected Connect Prometheus metric over a given timeframe and view a plot of the results.",
     "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/datadog-prometheus-metrics",
+    "minimumConnectVersion": "2025.04.0",
     "version": "0.0.0"
   }
 }

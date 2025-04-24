@@ -39,33 +39,6 @@ create-extension:  ## [ext] Create extension folder
 # 	@[ -d dist ] && rm -r dist || true
 # 	uv build
 
-# Python dependencies for Connect integration tests
-$(UV_LOCK): dev
-	$(UV) lock
-
-dev: ensure-uv  ## [py] Install dependencies for Connect integration tests
-	$(UV) pip install --upgrade -e .
-
-$(VIRTUAL_ENV):  ## [py] Create virtualenv for Connect integration tests
-	$(UV) venv $(VIRTUAL_ENV)
-
-ensure-uv:  ## [py] Ensure UV and virtualenv are available for Connect integration tests
-	@if ! command -v $(UV) >/dev/null; then \
-		$(PYTHON) -m ensurepip && $(PYTHON) -m pip install "uv >= 0.4.27"; \
-	fi
-	@# Install virtual environment (before calling `uv pip install ...`)
-	@$(MAKE) $(VIRTUAL_ENV) 1>/dev/null
-	@# Be sure recent uv is installed
-	@$(UV) pip install "uv >= 0.4.27" --quiet
-
-docker-deps: ensure-uv  ## [py] Install dependencies in Docker for Connect integration tests
-	# Sync given the `uv.lock` file
-	# --frozen : assert that the lock file exists
-	# --no-install-project : do not install the project itself, but install its dependencies
-	# $(UV) sync --frozen --no-install-project
-	# Install dependencies from pyproject.toml directly
-	$(UV) pip install .
-
 help: FORCE  ## Show help messages for make targets
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; { \
 		printf "\033[32m%-18s\033[0m", $$1; \
