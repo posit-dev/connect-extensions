@@ -2,6 +2,27 @@
   "tags": [],
   "extensions": [
     {
+      "name": "landing-page",
+      "title": "Static HTML landing page",
+      "description": "A simple static HTML web page that can be served from Connect",
+      "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/landing-page",
+      "latestVersion": {
+        "version": "1.0.0",
+        "released": "2025-04-24T19:04:23Z",
+        "url": "https://github.com/posit-dev/connect-extensions/releases/download/landing-page%40v1.0.0/landing-page.tar.gz",
+        "minimumConnectVersion": "2025.04.0"
+      },
+      "versions": [
+        {
+          "version": "1.0.0",
+          "released": "2025-04-24T19:04:23Z",
+          "url": "https://github.com/posit-dev/connect-extensions/releases/download/landing-page%40v1.0.0/landing-page.tar.gz",
+          "minimumConnectVersion": "2025.04.0"
+        }
+      ],
+      "tags": []
+    },
+    {
       "name": "portfolio-dashboard",
       "title": "Portfolio Dashboard",
       "description": "A shiny application makes it easy to transform your analysis into an interactive dashboard using R so users can ask and answer questions in real-time, without having to touch any code.",
