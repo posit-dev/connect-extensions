@@ -2,6 +2,7 @@ library(shiny)
 library(bslib)
 library(shinyjs)
 library(connectapi)
+library(purrr)
 library(dplyr)
 library(glue)
 library(lubridate)
@@ -16,6 +17,8 @@ shinyOptions(
   cache = cachem::cache_disk("./app_cache/cache/", max_age = 60 * 60 * 8)
 )
 
+source("get_usage.R")
+
 extract_guid <- function(raw) {
   guid_pattern <- "[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}"
   match <- regmatches(raw, regexpr(guid_pattern, raw))
@@ -26,135 +29,189 @@ extract_guid <- function(raw) {
   }
 }
 
-source("get_usage.R")
+app_mode_groups <- list(
+  "API" = c("api", "python-fastapi", "python-api", "tensorflow-saved-model"),
+  "Application" = c("shiny", "python-shiny", "python-dash", "python-gradio", "python-streamlit", "python-bokeh"),
+  "Jupyter" = c("jupyter-static", "jupyter-voila"),
+  "Quarto" = c("quarto-shiny", "quarto-static"),
+  "R Markdown" = c("rmd-shiny", "rmd-static"),
+  "Pin" = c("pin"),
+  "Other" = c("unknown")
+)
+
+bar_chart <- function(value, max_val, height = "1rem", fill = "#00bfc4", background = NULL) {
+  width <- paste0(value * 100 / max_val, "%")
+  value <- format(value, width = nchar(max_val), justify = "right")
+  bar <- div(class = "bar", style = list(background = fill, width = width))
+  chart <- div(class = "bar-chart", style = list(background = background), bar)
+  label <- span(class = "number", value)
+  div(class = "bar-cell", label, chart)
+}
 
 ui <- function(request) {
-  page_fluid(
+  page_sidebar(
     useShinyjs(),
     theme = bs_theme(version = 5),
 
-    div(
-      id = "guid_input_panel",
-      textInput("guid_field", "Paste in a content GUID or URL"),
-      actionButton("submit_guid", "Go", icon("arrow-right"))
+    tags$head(
+      tags$link(rel = "stylesheet", type = "text/css", href = "styles.css")
+    ),
+    sidebar = sidebar(
+      title = "Controls",
+      open = TRUE,
+      width = 275,
+
+      selectInput(
+        "date_range_choice",
+        label = "Date Range",
+        choices = c("1 Week", "30 Days", "90 Days", "Custom"),
+        selected = "1 Week"
+      ),
+
+      conditionalPanel(
+        condition = "input.date_range_choice === 'Custom'",
+        dateRangeInput(
+          "date_range_custom",
+          label = NULL,
+          start = today() - days(6),
+          end = today(),
+          max = today()
+        )
+      ),
+
+      sliderInput(
+        "visit_merge_window",
+        label = "Visit Merge Window (sec)",
+        min = 0,
+        max = 180,
+        value = 0,
+        step = 1
+      ),
+
+      textInput(
+        "visit_merge_window_text",
+        label = NULL,
+        value = 0
+      ),
+
+
+      # id = "multi_content_controls",
+      # title = "Content Table",
+      selectizeInput(
+        "app_mode_filter",
+        label = "Filter by Content Type",
+        options = list(placeholder = "All Content Types"),
+        choices = list(
+          "API",
+          "Application",
+          "Jupyter",
+          "Quarto",
+          "R Markdown",
+          "Pin",
+          "Other"
+        ),
+        multiple = TRUE
+      ),
+
+      checkboxInput(
+        "show_guid",
+        label = "Show GUID"
+      ),
+
+      downloadButton(
+        "export_raw_visits",
+        class = "mb-2",
+        label = "Export Raw Visits"
+      ),
+      downloadButton(
+        "export_visit_totals",
+        class = "mb-2",
+        label = "Export Visit Totals"
+      ),
+
+
+      # id = "single_content_controls", style = "display: none;",
+      # title = "Content Detail Controls",
+      selectizeInput(
+        "selected_users",
+        label = "Filter Users",
+        choices = NULL,  # set dynamically in server
+        multiple = TRUE
+      ),
+      uiOutput("email_selected_button"),
+
+
+      actionButton("clear_cache", "Clear Cache", icon = icon("refresh"))
     ),
 
+    # Multi-content view
     div(
-      id = "dashboard_panel",
+
+      id = "multi_content_table",
+      textOutput("summary_text"),
+      reactableOutput("content_usage_table")
+    ),
+
+    # Single-content view
+
+    div(
+      id = "single_content_detail",
       style = "display:none;",
-      card(
-        card_header(
-          tags$div(
-            style = "display: flex; align-items: center; gap: 0.5rem;",
-            actionButton("clear_guid", "Back", icon("arrow-left"), class = "btn btn-sm"),
-            span("Content Detail")
+
+      actionButton("clear_content_selection", "Back", icon("arrow-left"), class = "btn btn-sm"),
+      div(
+        style = "display: flex; justify-content: space-between; gap: 1rem; align-items: center;",
+        div(
+          style = "display: inline-flex; gap: 0.5rem; align-items: center;",
+          h3(textOutput("content_title")),
+          uiOutput("dashboard_link")
+        ),
+        div(
+          style = "display: flex; gap: 0.5rem; align-items: center;",
+          textOutput("owner_info"),
+          uiOutput("email_owner_link")
+        )
+      ),
+
+      div(
+        style = "display: flex; justify-content: space-between; align-items: center;",
+        uiOutput("filter_message")
+      ),
+
+      layout_column_wrap(
+        width = "400px",
+        heights_equal = "row",
+        navset_card_tab(
+          tabPanel(
+            "Daily Visits",
+            div(
+              style = "height: 300px",
+              plotlyOutput("daily_visits_plot", height = "100%", width = "100%")
+            )
+          ),
+          tabPanel(
+            "Visit Timeline",
+            div(
+              style = "height: 400px;",
+              uiOutput("visit_timeline_ui")
+            )
           )
         ),
-        layout_sidebar(
-          sidebar = sidebar(
-            title = "Controls",
-            open = TRUE,
 
-            selectInput(
-              "date_range_choice",
-              label = "Date Range",
-              choices = c("1 Week", "30 Days", "90 Days", "Custom"),
-              selected = "1 Week"
-            ),
-
-            conditionalPanel(
-              condition = "input.date_range_choice === 'Custom'",
-              dateRangeInput(
-                "date_range_custom",
-                label = NULL,
-                start = today() - days(6),
-                end = today(),
-                max = today()
+        navset_card_tab(
+          tabPanel(
+            title = tagList(
+              "Top Visitors",
+              tooltip(
+                bs_icon("info-circle-fill", class = "ms-2"),
+                "Click a row to show only that user's visits."
               )
             ),
-
-            selectizeInput(
-              "selected_users",
-              label = "Filter Users",
-              choices = NULL,  # set dynamically in server
-              multiple = TRUE
-            ),
-
-            uiOutput("email_selected_button"),
-
-            sliderInput(
-              "visit_lag_cutoff_slider",
-              label = "Visit Merge Window (sec)",
-              min = 0,
-              max = 180,
-              value = 0,
-              step = 0.5
-            ),
-
-            textInput(
-              "visit_lag_cutoff_text",
-              label = NULL,
-              value = 0
-            ),
-
-            actionButton("clear_cache", "Clear Cache", icon = icon("refresh"))
+            reactableOutput("aggregated_visits")
           ),
-
-          div(
-            style = "display: flex; justify-content: space-between; gap: 1rem; align-items: center;",
-            div(
-              style = "display: inline-flex; gap: 0.5rem; align-items: center;",
-              h3(textOutput("content_title")),
-              uiOutput("dashboard_link")
-            ),
-            div(
-              style = "display: flex; gap: 0.5rem; align-items: center;",
-              textOutput("owner_info"),
-              uiOutput("email_owner_link")
-            )
-          ),
-
-          div(
-            style = "display: flex; justify-content: space-between; align-items: center;",
-            uiOutput("filter_message")
-          ),
-
-          layout_column_wrap(
-            width = "400px",
-            heights_equal = "row",
-            navset_card_tab(
-              tabPanel(
-                "Daily Visits",
-                div(
-                  style = "height: 300px",
-                  plotlyOutput("daily_visits_plot", height = "100%", width = "100%")
-                )
-              ),
-              tabPanel(
-                "Visit Timeline",
-                div(
-                  style = "height: 400px;",
-                  uiOutput("visit_timeline_ui")
-                )
-              )
-            ),
-
-            navset_card_tab(
-              tabPanel(
-                title = tagList(
-                  "Top Visitors",
-                  tooltip(
-                    bs_icon("info-circle-fill", class = "ms-2"),
-                    "Click a row to show only that user's visits."
-                  )
-                ),
-                reactableOutput("aggregated_visits")
-              ),
-              tabPanel(
-                "List of Visits",
-                reactableOutput("all_visits")
-              )
-            )
+          tabPanel(
+            "List of Visits",
+            reactableOutput("all_visits")
           )
         )
       )
@@ -184,61 +241,40 @@ ui <- function(request) {
 server <- function(input, output, session) {
   # Bookmarking ----
 
-  observe({
-    setBookmarkExclude(setdiff(names(input), "guid_field"))
-  })
-  onBookmarked(function(url) {
-    message("Bookmark complete. URL: ", url)
-    updateQueryString(url)
-  })
-  onRestore(function(state) {
-    guid <- extract_guid(input$guid_field)
-    if (guid %in% content()$guid) {
-      resolved_guid(guid)
-    } else {
-      resolved_guid(NULL)
-    }
-  })
+  # observe({
+  #   setBookmarkExclude(setdiff(names(input), "guid_field"))
+  # })
+  # onBookmarked(function(url) {
+  #   message("Bookmark complete. URL: ", url)
+  #   updateQueryString(url)
+  # })
+  # onRestore(function(state) {
+
+  # })
 
   # Handle GUID input ----
 
-  resolved_guid <- reactiveVal()
+  # selected_content_guid <- reactiveVal()
 
-  observeEvent(input$submit_guid, {
-    raw_guid <- input$guid_field
-    guid <- extract_guid(raw_guid)
-
-    if (guid %in% content()$guid) {
-      freezeReactiveValue(input, "guid_field")
-      updateTextInput(session, "guid_field", value = guid)
-      resolved_guid(guid)
-    } else {
-      resolved_guid(NULL)
-    }
-  })
-
-  # Update the bookmark when a valid GUID is input
-  observeEvent(input$guid_field, {
-    req(!is.null(input$guid_field), input$guid_field %in% content()$guid)
-    session$doBookmark()
-  }, ignoreInit = TRUE)
+  # # Update the bookmark when a valid GUID is input
+  # observeEvent(input$guid_field, {
+  #   req(!is.null(input$guid_field), input$guid_field %in% content()$guid)
+  #   session$doBookmark()
+  # }, ignoreInit = TRUE)
 
   observe({
-    shinyjs::toggle(id = "guid_input_panel", condition = is.null(resolved_guid()))
-    shinyjs::toggle(id = "dashboard_panel", condition = !is.null(resolved_guid()))
+    shinyjs::toggle(id = "multi_content_table", condition = is.null(selected_guid()))
+    shinyjs::toggle(id = "multi_content_controls", condition = is.null(selected_guid()))
+    shinyjs::toggle(id = "single_content_detail", condition = !is.null(selected_guid()))
+    shinyjs::toggle(id = "single_content_controls", condition = !is.null(selected_guid()))
+    shinyjs::toggle("clear_content_selection", condition = !is.null(selected_guid()))
   })
 
   # Back button logic ----
 
-  observeEvent(input$clear_guid, {
-    resolved_guid(NULL)    # Hide dashboard
-    updateTextInput(session, "guid_field", value = "")
-
-    updateSliderInput(session, "visit_lag_cutoff_slider", value = 1)
-    updateTextInput(session, "visit_lag_cutoff_text", value = "1")
+  observeEvent(input$clear_content_selection, {
+    selected_guid(NULL)
     updateReactable("aggregated_visits", selected = NA)
-
-    # TODO: Investigate why this does not work correctly on Connect.
     updateQueryString("?", mode = "replace")
   })
 
@@ -253,22 +289,22 @@ server <- function(input, output, session) {
 
   # Visit Merge Window: sync slider and text input ----
 
-  observeEvent(input$visit_lag_cutoff_slider, {
-    if (input$visit_lag_cutoff_slider != input$visit_lag_cutoff_text) {
-      updateTextInput(session, "visit_lag_cutoff_text", value = input$visit_lag_cutoff_slider)
+  observeEvent(input$visit_merge_window, {
+    if (input$visit_merge_window != input$visit_merge_window_text) {
+      updateTextInput(session, "visit_merge_window_text", value = input$visit_merge_window)
     }
   })
 
-  observeEvent(input$visit_lag_cutoff_text, {
-    new_value <- suppressWarnings(as.numeric(input$visit_lag_cutoff_text))
+  observeEvent(input$visit_merge_window_text, {
+    new_value <- suppressWarnings(as.numeric(input$visit_merge_window_text))
 
     if (!is.na(new_value) && new_value >= 0 && new_value <= 600) {
-      if (new_value != input$visit_lag_cutoff_slider) {
-        updateSliderInput(session, "visit_lag_cutoff_slider", value = new_value)
+      if (new_value != input$visit_merge_window) {
+        updateSliderInput(session, "visit_merge_window", value = new_value)
       }
     } else {
-      if (input$visit_lag_cutoff_text != input$visit_lag_cutoff_slider) {
-        updateTextInput(session, "visit_lag_cutoff_text", value = input$visit_lag_cutoff_slider)
+      if (input$visit_merge_window_text != input$visit_merge_window) {
+        updateTextInput(session, "visit_merge_window_text", value = input$visit_merge_window)
       }
     }
   })
@@ -340,7 +376,7 @@ server <- function(input, output, session) {
       select(user_guid = guid, full_name, username, display_name, email)
   }) |> bindCache(authed_user_guid, "static_key")
 
-  firehose_usage_data <- reactive({
+  usage_data_raw <- reactive({
     get_usage(
       client,
       from = date_range()$from,
@@ -348,9 +384,216 @@ server <- function(input, output, session) {
     )
   }) |> bindCache(authed_user_guid, date_range())
 
+  # Multi-content view data ----
+
+  # Apply client-side data filters (app mode)
+  usage_data_filtered <- reactive({
+    if (length(input$app_mode_filter ) == 0) {
+      usage_data_raw()
+    } else {
+      app_modes <- unlist(app_mode_groups[input$app_mode_filter])
+      filter_guids <- content() |>
+        filter(app_mode %in% app_modes) |>
+        pull(guid)
+      usage_data_raw() |>
+        filter(content_guid %in% filter_guids)
+    }
+  })
+
+  # Merge usage data hits into visits based on input.
+  usage_data_visits <- reactive({
+    req(input$visit_merge_window)
+    if (input$visit_merge_window == 0) {
+      usage_data_filtered()
+    } else {
+      usage_data_filtered() |>
+        group_by(content_guid, user_guid) |>
+
+        # Compute time diffs and filter out hits within the session
+        mutate(time_diff = seconds(timestamp - lag(timestamp, 1))) |>
+        replace_na(list(time_diff = seconds(Inf))) |>
+        filter(time_diff > input$visit_merge_window) |>
+        ungroup() |>
+        select(-time_diff)
+    }
+  })
+
+    # Create data for the main table and summary export.
+    content_usage_data <- reactive({
+      usage_summary <- usage_data_visits() |>
+        group_by(content_guid) |>
+        summarize(
+          total_views = n(),
+          unique_viewers = n_distinct(user_guid, na.rm = TRUE),
+          .groups = "drop"
+        )
+
+      # Prepare sparkline data as a list column of numeric vectors.
+      all_dates <- seq.Date(date_range()$from, date_range()$to, by = "day")
+      daily_usage <- usage_data_visits() |>
+        count(content_guid, date = date(timestamp)) |>
+        complete(date = all_dates, nesting(content_guid), fill = list(n = 0)) |>
+        group_by(content_guid) |>
+        summarize(sparkline = list(n), .groups = "drop")
+
+      content() |>
+        mutate(owner_username = map_chr(owner, "username")) |>
+        select(title, content_guid = guid, owner_username, dashboard_url) |>
+        replace_na(list(title = "[Untitled]")) |>
+        right_join(usage_summary, by = "content_guid") |>
+        right_join(daily_usage, by = "content_guid") |>
+        replace_na(list(title = "[Deleted]")) |>
+        arrange(desc(total_views)) |>
+        select(title, dashboard_url, content_guid, owner_username, total_views, sparkline, unique_viewers)
+    })
+
+    output$summary_text <- renderText(
+      glue::glue(
+        "{nrow(usage_data_visits())} visits ",
+        "across {nrow(content_usage_data())} content items."
+      )
+    )
+
+    output$content_usage_table <- renderReactable({
+      data <- content_usage_data()
+
+      reactable(
+        data,
+        defaultSortOrder = "desc",
+        onClick = JS("function(rowInfo, colInfo) {
+          if (rowInfo && rowInfo.row && rowInfo.row.content_guid) {
+            Shiny.setInputValue('row_click_guid', rowInfo.row.content_guid, {priority: 'event'});
+          }
+        }"),
+        pagination = FALSE,
+        sortable = TRUE,
+        highlight = TRUE,
+        defaultSorted = "total_views",
+        # filterable = TRUE,
+        wrap = FALSE,
+        class = "content-tbl",
+
+        columns = list(
+          title = colDef(
+            name = "Content",
+            defaultSortOrder = "asc",
+            filterable = TRUE,
+            style = function(value) {
+              switch(value,
+                "[Untitled]" = list(fontStyle = "italic"),
+                "[Deleted]" = list(fontStyle = "italic", color = "#808080"),
+                NULL
+              )
+            }
+          ),
+
+          dashboard_url = colDef(
+            name = "",
+            width = 32,
+            sortable = FALSE,
+            cell = function(url) {
+              if (is.na(url) || url == "") return("")
+              HTML(as.character(tags$div(
+                onclick = "event.stopPropagation()",
+                tags$a(
+                  href = url,
+                  target = "_blank",
+                  bs_icon("arrow-up-right-square")
+                )
+              )))
+            },
+            html = TRUE
+          ),
+
+          content_guid = colDef(
+            name = "GUID",
+            show = input$show_guid,
+            cell = function(value) {
+              div(style = list(whiteSpace = "normal", wordBreak = "break-all"), value)
+            }
+          ),
+
+          owner_username = colDef(name = "Owner", defaultSortOrder = "asc", minWidth = 75, filterable = TRUE),
+
+          total_views = colDef(
+            name = "Visits",
+            align = "left",
+            minWidth = 75,
+            maxWidth = 150,
+            cell = function(value) {
+              max_val <- max(data$total_views, na.rm = TRUE)
+              bar_chart(value, max_val, fill = "#7494b1", background = "#e1e1e1")
+            }
+          ),
+
+          sparkline = colDef(
+            name = "By Day",
+            align = "left",
+            width = 90,
+            sortable = FALSE,
+            cell = function(value) {
+              sparkline::sparkline(
+                value,
+                type = "bar",
+                barColor = "#7494b1",
+                disableTooltips = TRUE,
+                barWidth = 8,
+                chartRangeMin = TRUE
+              )
+            }
+          ),
+
+          unique_viewers = colDef(
+            name = "Unique Visitors",
+            align = "left",
+            minWidth = 70,
+            maxWidth = 135,
+            cell = function(value) {
+              max_val <- max(data$total_views, na.rm = TRUE)
+              format(value, width = nchar(max_val), justify = "right")
+            },
+            class = "number"
+          )
+        )
+      )
+    })
+
+    selected_guid <- reactiveVal(NULL)
+
+    observeEvent(input$row_click_guid, {
+      selected_guid(input$row_click_guid)
+    })
+
+    # Download handlers ---
+
+    output$export_raw_visits <- downloadHandler(
+      filename = function() {
+        paste0("content_raw_visits_", Sys.Date(), ".csv")
+      },
+      content = function(file) {
+        write.csv(usage_data_raw(), file, row.names = FALSE)
+      }
+    )
+
+    output$export_visit_totals <- downloadHandler(
+      filename = function() {
+        paste0("content_visit_totals_", Sys.Date(), ".csv")
+      },
+      content = function(file) {
+        to_export <- content_usage_data() |>
+          select(-sparkline)
+        write.csv(to_export, file, row.names = FALSE)
+      }
+    )
+
+
+
+  # Single-content view data ----
+
   selected_content_usage <- reactive({
-    firehose_usage_data() |>
-      filter(content_guid == input$guid_field)
+    req(selected_guid())
+    usage_data_raw() |>
+      filter(content_guid == selected_guid())
   })
 
   all_visits_data <- reactive({
@@ -360,7 +603,7 @@ server <- function(input, output, session) {
       group_by(user_guid) |>
       mutate(time_diff = seconds(timestamp - lag(timestamp, 1))) |>
       replace_na(list(time_diff = seconds(Inf))) |>
-      filter(time_diff > input$visit_lag_cutoff_slider) |>
+      filter(time_diff > input$visit_merge_window) |>
       ungroup() |>
 
       # Join to usernames
@@ -387,7 +630,7 @@ server <- function(input, output, session) {
       # Compute time diffs and filter out hits within the session
       mutate(time_diff = seconds(timestamp - lag(timestamp, 1))) |>
       replace_na(list(time_diff = seconds(Inf))) |>
-      filter(time_diff > input$visit_lag_cutoff_slider) |>
+      filter(time_diff > input$visit_merge_window) |>
 
       summarize(n_visits = n())
 
@@ -400,7 +643,8 @@ server <- function(input, output, session) {
   })
 
   selected_content_info <- reactive({
-    filter(content(), guid == input$guid_field)
+    req(selected_guid())
+    filter(content(), guid == selected_guid())
   })
 
   # Render output tables ----
