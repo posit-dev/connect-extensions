@@ -1,6 +1,5 @@
 # RStudio
 .Rproj.user
-**/renv/
 .RData
 .Rhistory
 
