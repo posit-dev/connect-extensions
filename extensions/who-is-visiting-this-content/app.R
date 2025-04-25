@@ -16,16 +16,6 @@ shinyOptions(
 
 source("get_usage.R")
 
-extract_guid <- function(raw) {
-  guid_pattern <- "[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}"
-  match <- regmatches(raw, regexpr(guid_pattern, raw))
-  if (length(match) == 1) {
-    match
-  } else {
-    ""
-  }
-}
-
 app_mode_groups <- list(
   "API" = c("api", "python-fastapi", "python-api", "tensorflow-saved-model"),
   "Application" = c("shiny", "python-shiny", "python-dash", "python-gradio", "python-streamlit", "python-bokeh"),
@@ -154,7 +144,7 @@ ui <- function(request) {
           choices = NULL,
           multiple = TRUE
         ),
-        uiOutput("email_selected_users_button")
+        uiOutput("email_selected_visitors_button")
       ),
 
       tags$hr(),
@@ -164,16 +154,18 @@ ui <- function(request) {
       actionButton("clear_cache", "Clear Cache", icon = icon("refresh")),
     ),
 
-    # The multi-content table is shown if no content item is selected. The
-    # single-content detail view is displayed if an item is selected by clicking
-    # on its table row.
+    # Main content views ----
+
+    # The multi-content table is shown by default, when no content item is
+    # selected.
     div(
       id = "multi_content_table",
       textOutput("summary_text"),
       reactableOutput("content_usage_table")
     ),
 
-
+    # The single-content detail view is displayed when an item is selected,
+    # either by clicking on a table row or upon restoring from a bookmark URL.
     div(
       id = "single_content_detail",
       style = "display:none;",
@@ -185,7 +177,7 @@ ui <- function(request) {
         div(
           class = "d-flex align-items-center gap-2",
           textOutput("owner_info", inline = TRUE),
-          uiOutput("email_owner_link")
+          uiOutput("email_owner_button")
         )
       ),
       layout_column_wrap(
@@ -227,9 +219,12 @@ ui <- function(request) {
         )
       )
     ),
+
+    # Used to update the selected content GUID in locations other than the table
+    # row click.
     tags$script("
       Shiny.addCustomMessageHandler('set_input_value', function(args) {
-        Shiny.setInputValue(args[0], args[1]);
+        Shiny.setInputValue(args[0], args[1], {priority: 'event'});
       });
     ")
   )
@@ -237,8 +232,9 @@ ui <- function(request) {
 
 server <- function(input, output, session) {
 
+  # Set up Connect client; handle error if Visitor API Key integration isn't
+  # present.
   client <- NULL
-
   tryCatch(
     client <- connect(token = session$request$HTTP_POSIT_CONNECT_USER_SESSION_TOKEN),
     error = function(e) {
@@ -263,6 +259,17 @@ server <- function(input, output, session) {
     return()
   }
 
+  # Tracking the selected content GUID GUID input ----
+
+  # selected_guid is a reactive value that tracks the input GUID. They are each
+  # used to trigger different behaviors in different parts of the app so that it
+  # reacts appropriately to the selection state.
+  selected_guid <- reactiveVal(NULL)
+
+  observeEvent(input$content_guid, {
+    selected_guid(input$content_guid)
+  }, ignoreNULL = FALSE)
+
   # Bookmarking ----
 
   observe({
@@ -280,30 +287,28 @@ server <- function(input, output, session) {
       session$sendCustomMessage("set_input_value", list('content_guid', guid))
     }
   })
-
-  # Handle GUID input ----
-
-
-  # Update the bookmark when a valid GUID is input
   observeEvent(input$content_guid, {
     req(input$content_guid %in% content()$guid)
     session$doBookmark()
-
   }, ignoreInit = TRUE)
 
+  # Use selection state to toggle visibility of main views.
   observe({
     shinyjs::toggle(id = "multi_content_table", condition = is.null(selected_guid()))
     shinyjs::toggle(id = "single_content_detail", condition = !is.null(selected_guid()))
-    shinyjs::toggle("clear_content_selection", condition = !is.null(selected_guid()))
   })
 
-  # Back button logic ----
-
+  # Clicking the back button clears the selected GUID.
   observeEvent(input$clear_content_selection, {
     session$sendCustomMessage("set_input_value", list('content_guid', NULL))
     updateReactable("aggregated_visits", selected = NA)
-
     updateQueryString(paste0(full_url(session), "?"))
+
+    updateSelectizeInput(
+      session,
+      "selected_users",
+      selected = NA
+    )
   })
 
   # Cache invalidation button ----
@@ -315,7 +320,7 @@ server <- function(input, output, session) {
     session$reload()  # Reload the app to ensure fresh data
   })
 
-  # Visit Merge Window: sync slider and text input ----
+  # Visit Merge Window controls: sync slider and text input ----
 
   observeEvent(input$visit_merge_window, {
     if (input$visit_merge_window != input$visit_merge_window_text) {
@@ -326,7 +331,6 @@ server <- function(input, output, session) {
 
   observeEvent(input$visit_merge_window_text, {
     new_value <- suppressWarnings(as.numeric(input$visit_merge_window_text))
-
     if (!is.na(new_value) && new_value >= 0 && new_value <= 180) {
       if (new_value != input$visit_merge_window) {
         freezeReactiveValue(input, "visit_merge_window")
@@ -340,10 +344,11 @@ server <- function(input, output, session) {
     }
   })
 
-  # User filter behaviors ----
+  # Filter Visitors input behavior ----
 
-  # Set choices initially
+  # Set choices when aggregated visits data is present
   observe({
+    req(aggregated_visits_data())
     data <- aggregated_visits_data()
     updateSelectizeInput(
       session,
@@ -354,8 +359,13 @@ server <- function(input, output, session) {
   })
 
   # Selection syncing behavior is made more complex because the reactable data needs
-  # to be sorted differently from data for the sidebar and plots for them to be
+  # to be sorted differently from data for the sidebar and plots for them to appear
   # in the same order.
+
+  aggregated_visits_reactable_data <- reactive({
+    aggregated_visits_data() |>
+      arrange(desc(n_visits), desc(display_name))
+  })
 
   # Sync table to sidebar
   observe({
@@ -377,8 +387,11 @@ server <- function(input, output, session) {
     updateReactable("aggregated_visits", selected = selected_indices)
   }, ignoreNULL = FALSE)
 
+
   # Load and processing data ----
 
+  # The cache operates on a per-user basis, since different users see different
+  # content.
   authed_user_guid <- client$me()$guid
 
   date_range <- reactive({
@@ -391,11 +404,8 @@ server <- function(input, output, session) {
   })
 
   content <- reactive({
-    # Grab the entire content data frame here and filter it using the pasted-in
-    # GUID to obtain content title and other metadata, rather than making a
-    # request to `v1/content/{GUID}`.
     get_content(client)
-  }) |> bindCache(authed_user_guid, "static_key")
+  }) |> bindCache(authed_user_guid)
 
   users <- reactive({
     get_users(client) |>
@@ -404,7 +414,7 @@ server <- function(input, output, session) {
         display_name = paste0(full_name, " (", username, ")")
       ) |>
       select(user_guid = guid, full_name, username, display_name, email)
-  }) |> bindCache(authed_user_guid, "static_key")
+  }) |> bindCache(authed_user_guid)
 
   usage_data_raw <- reactive({
     get_usage(
@@ -414,9 +424,9 @@ server <- function(input, output, session) {
     )
   }) |> bindCache(authed_user_guid, date_range())
 
-  # Multi-content view data ----
+  # Multi-content table data ----
 
-  # Apply client-side data filters (app mode)
+  # Filter the raw data based on app mode and visit merge window
   usage_data_visits <- reactive({
     filtered_data <- if (length(input$app_mode_filter ) == 0) {
       usage_data_raw()
@@ -445,195 +455,171 @@ server <- function(input, output, session) {
     }
   })
 
-    # Create data for the main table and summary export.
-    content_usage_data <- reactive({
-      usage_summary <- usage_data_visits() |>
-        group_by(content_guid) |>
-        summarize(
-          total_views = n(),
-          unique_viewers = n_distinct(user_guid, na.rm = TRUE),
-          .groups = "drop"
-        )
-
-      # Prepare sparkline data as a list column of numeric vectors.
-      all_dates <- seq.Date(date_range()$from, date_range()$to, by = "day")
-      daily_usage <- usage_data_visits() |>
-        count(content_guid, date = date(timestamp)) |>
-        complete(date = all_dates, nesting(content_guid), fill = list(n = 0)) |>
-        group_by(content_guid) |>
-        summarize(sparkline = list(n), .groups = "drop")
-
-      content() |>
-        mutate(owner_username = map_chr(owner, "username")) |>
-        select(title, content_guid = guid, owner_username, dashboard_url) |>
-        replace_na(list(title = "[Untitled]")) |>
-        right_join(usage_summary, by = "content_guid") |>
-        right_join(daily_usage, by = "content_guid") |>
-        replace_na(list(title = "[Deleted]")) |>
-        arrange(desc(total_views)) |>
-        select(title, dashboard_url, content_guid, owner_username, total_views, sparkline, unique_viewers)
-    })
-
-    output$page_title_bar <- renderUI({
-      if (is.null(selected_guid())) {
-        "Usage"
-      } else {
-        div(
-          style = "display: flex; justify-content: space-between; gap: 1rem; align-items: center;",
-          actionButton("clear_content_selection", "Back", icon("arrow-left"), class = "btn btn-sm", style = "white-space: nowrap;"),
-          span(
-              "Usage / ",
-              textOutput("content_title", inline = TRUE)
-          ),
-          uiOutput("dashboard_link")
-        )
-      }
-    })
-
-    output$summary_text <- renderText(
-      glue::glue(
-        "{nrow(usage_data_visits())} visits ",
-        "across {nrow(content_usage_data())} content items."
+  # Create data for the main table and summary export.
+  multi_content_table_data <- reactive({
+    usage_summary <- usage_data_visits() |>
+      group_by(content_guid) |>
+      summarize(
+        total_views = n(),
+        unique_viewers = n_distinct(user_guid, na.rm = TRUE),
+        .groups = "drop"
       )
+
+    # Prepare sparkline data.
+    all_dates <- seq.Date(date_range()$from, date_range()$to, by = "day")
+    daily_usage <- usage_data_visits() |>
+      count(content_guid, date = date(timestamp)) |>
+      complete(date = all_dates, nesting(content_guid), fill = list(n = 0)) |>
+      group_by(content_guid) |>
+      summarize(sparkline = list(n), .groups = "drop")
+
+    content() |>
+      mutate(owner_username = map_chr(owner, "username")) |>
+      select(title, content_guid = guid, owner_username, dashboard_url) |>
+      replace_na(list(title = "[Untitled]")) |>
+      right_join(usage_summary, by = "content_guid") |>
+      right_join(daily_usage, by = "content_guid") |>
+      replace_na(list(title = "[Deleted]")) |>
+      arrange(desc(total_views)) |>
+      select(title, dashboard_url, content_guid, owner_username, total_views, sparkline, unique_viewers)
+  })
+
+  # Multi-content table UI and outputs ----
+
+  output$summary_text <- renderText(
+    glue::glue(
+      "{nrow(usage_data_visits())} visits ",
+      "across {nrow(multi_content_table_data())} content items."
     )
+  )
 
-    output$content_usage_table <- renderReactable({
-      data <- content_usage_data()
+  output$content_usage_table <- renderReactable({
+    data <- multi_content_table_data()
 
-      reactable(
-        data,
-        defaultSortOrder = "desc",
-        onClick = JS("function(rowInfo, colInfo) {
-          if (rowInfo && rowInfo.row && rowInfo.row.content_guid) {
-            Shiny.setInputValue('content_guid', rowInfo.row.content_guid, {priority: 'event'});
+    reactable(
+      data,
+      defaultSortOrder = "desc",
+      onClick = JS("function(rowInfo, colInfo) {
+        if (rowInfo && rowInfo.row && rowInfo.row.content_guid) {
+          Shiny.setInputValue('content_guid', rowInfo.row.content_guid, {priority: 'event'});
+        }
+      }"),
+      pagination = TRUE,
+      defaultPageSize = 25,
+      sortable = TRUE,
+      highlight = TRUE,
+      defaultSorted = "total_views",
+      style = list(cursor = "pointer"),
+      wrap = FALSE,
+      class = "metrics-tbl",
+
+      columns = list(
+        title = colDef(
+          name = "Content",
+          defaultSortOrder = "asc",
+          filterable = TRUE,
+          style = function(value) {
+            switch(value,
+              "[Untitled]" = list(fontStyle = "italic"),
+              "[Deleted]" = list(fontStyle = "italic", color = "#808080"),
+              NULL
+            )
           }
-        }"),
-        pagination = TRUE,
-        defaultPageSize = 25,
-        sortable = TRUE,
-        highlight = TRUE,
-        defaultSorted = "total_views",
-        style = list(cursor = "pointer"),
-        wrap = FALSE,
-        class = "metrics-tbl",
+        ),
 
-        columns = list(
-          title = colDef(
-            name = "Content",
-            defaultSortOrder = "asc",
-            filterable = TRUE,
-            style = function(value) {
-              switch(value,
-                "[Untitled]" = list(fontStyle = "italic"),
-                "[Deleted]" = list(fontStyle = "italic", color = "#808080"),
-                NULL
+        dashboard_url = colDef(
+          name = "",
+          width = 32,
+          sortable = FALSE,
+          cell = function(url) {
+            if (is.na(url) || url == "") return("")
+            HTML(as.character(tags$div(
+              onclick = "event.stopPropagation()",
+              tags$a(
+                href = url,
+                target = "_blank",
+                bsicons::bs_icon("arrow-up-right-square")
               )
-            }
-          ),
+            )))
+          },
+          html = TRUE
+        ),
 
-          dashboard_url = colDef(
-            name = "",
-            width = 32,
-            sortable = FALSE,
-            cell = function(url) {
-              if (is.na(url) || url == "") return("")
-              HTML(as.character(tags$div(
-                onclick = "event.stopPropagation()",
-                tags$a(
-                  href = url,
-                  target = "_blank",
-                  bsicons::bs_icon("arrow-up-right-square")
-                )
-              )))
-            },
-            html = TRUE
-          ),
+        content_guid = colDef(
+          name = "GUID",
+          show = input$show_guid,
+          class = "number",
+          cell = function(value) {
+            div(style = list(whiteSpace = "normal", wordBreak = "break-all"), value)
+          }
+        ),
 
-          content_guid = colDef(
-            name = "GUID",
-            show = input$show_guid,
-            class = "number",
-            cell = function(value) {
-              div(style = list(whiteSpace = "normal", wordBreak = "break-all"), value)
-            }
-          ),
+        owner_username = colDef(name = "Owner", defaultSortOrder = "asc", minWidth = 75, filterable = TRUE),
 
-          owner_username = colDef(name = "Owner", defaultSortOrder = "asc", minWidth = 75, filterable = TRUE),
+        total_views = colDef(
+          name = "Visits",
+          align = "left",
+          minWidth = 75,
+          maxWidth = 150,
+          cell = function(value) {
+            max_val <- max(data$total_views, na.rm = TRUE)
+            bar_chart(value, max_val, fill = "#7494b1", background = "#e1e1e1")
+          }
+        ),
 
-          total_views = colDef(
-            name = "Visits",
-            align = "left",
-            minWidth = 75,
-            maxWidth = 150,
-            cell = function(value) {
-              max_val <- max(data$total_views, na.rm = TRUE)
-              bar_chart(value, max_val, fill = "#7494b1", background = "#e1e1e1")
-            }
-          ),
+        sparkline = colDef(
+          name = "By Day",
+          align = "left",
+          width = 90,
+          sortable = FALSE,
+          cell = function(value) {
+            sparkline::sparkline(
+              value,
+              type = "bar",
+              barColor = "#7494b1",
+              disableTooltips = TRUE,
+              barWidth = 8,
+              chartRangeMin = TRUE
+            )
+          }
+        ),
 
-          sparkline = colDef(
-            name = "By Day",
-            align = "left",
-            width = 90,
-            sortable = FALSE,
-            cell = function(value) {
-              sparkline::sparkline(
-                value,
-                type = "bar",
-                barColor = "#7494b1",
-                disableTooltips = TRUE,
-                barWidth = 8,
-                chartRangeMin = TRUE
-              )
-            }
-          ),
-
-          unique_viewers = colDef(
-            name = "Unique Visitors",
-            align = "left",
-            minWidth = 70,
-            maxWidth = 135,
-            cell = function(value) {
-              max_val <- max(data$total_views, na.rm = TRUE)
-              format(value, width = nchar(max_val), justify = "right")
-            },
-            class = "number"
-          )
+        unique_viewers = colDef(
+          name = "Unique Visitors",
+          align = "left",
+          minWidth = 70,
+          maxWidth = 135,
+          cell = function(value) {
+            max_val <- max(data$total_views, na.rm = TRUE)
+            format(value, width = nchar(max_val), justify = "right")
+          },
+          class = "number"
         )
       )
-    })
-
-    selected_guid <- reactiveVal(NULL)
-
-    observeEvent(input$content_guid, {
-      selected_guid(input$content_guid)
-    }, ignoreNULL = FALSE)
-
-    # Download handlers ---
-
-    output$export_raw_visits <- downloadHandler(
-      filename = function() {
-        paste0("content_raw_visits_", Sys.Date(), ".csv")
-      },
-      content = function(file) {
-        write.csv(usage_data_raw(), file, row.names = FALSE)
-      }
     )
+  })
 
-    output$export_visit_totals <- downloadHandler(
-      filename = function() {
-        paste0("content_visit_totals_", Sys.Date(), ".csv")
-      },
-      content = function(file) {
-        to_export <- content_usage_data() |>
-          select(-sparkline)
-        write.csv(to_export, file, row.names = FALSE)
-      }
-    )
+  output$export_raw_visits <- downloadHandler(
+    filename = function() {
+      paste0("content_raw_visits_", Sys.Date(), ".csv")
+    },
+    content = function(file) {
+      write.csv(usage_data_raw(), file, row.names = FALSE)
+    }
+  )
 
+  output$export_visit_totals <- downloadHandler(
+    filename = function() {
+      paste0("content_visit_totals_", Sys.Date(), ".csv")
+    },
+    content = function(file) {
+      to_export <- multi_content_table_data() |>
+        select(-sparkline)
+      write.csv(to_export, file, row.names = FALSE)
+    }
+  )
 
-
-  # Single-content view data ----
+  # Single-content detail view data ----
 
   selected_content_usage <- reactive({
     req(selected_guid())
@@ -643,7 +629,6 @@ server <- function(input, output, session) {
 
   all_visits_data <- reactive({
     all_visits <- selected_content_usage() |>
-
       # Compute time diffs and filter out hits within the session
       group_by(user_guid) |>
       mutate(time_diff = seconds(timestamp - lag(timestamp, 1))) |>
@@ -668,10 +653,6 @@ server <- function(input, output, session) {
   })
 
   aggregated_visits_data <- reactive({
-    unfiltered_hits <- selected_content_usage() |>
-      group_by(user_guid) |>
-      summarize(n_hits = n())
-
     filtered_visits <- selected_content_usage() |>
       group_by(user_guid) |>
 
@@ -683,7 +664,6 @@ server <- function(input, output, session) {
       summarize(n_visits = n())
 
     filtered_visits |>
-      left_join(unfiltered_hits, by = "user_guid") |>
       left_join(users(), by = "user_guid") |>
       replace_na(list(
         user_guid = "ANONYMOUS",
@@ -698,14 +678,7 @@ server <- function(input, output, session) {
     filter(content(), guid == selected_guid())
   })
 
-  # Render output tables ----
-
-  # FIXME: This is required because the sort order handling of the reactable and
-  # other elements (the timeline plot, selection in the sidebar) differs.
-  aggregated_visits_reactable_data <- reactive({
-    aggregated_visits_data() |>
-      arrange(desc(n_visits), desc(display_name))
-  })
+  # Single-content detail view UI and outputs ----
 
   output$aggregated_visits <- renderReactable({
     reactable(
@@ -766,8 +739,6 @@ server <- function(input, output, session) {
     )
   })
 
-  # Render content metadata and other text ----
-
   output$filter_message <- renderUI({
     hits <- all_visits_data()
     glue::glue(
@@ -778,30 +749,21 @@ server <- function(input, output, session) {
       users <- aggregated_visits_data() |>
         filter(user_guid %in% input$selected_users) |>
         pull(display_name)
-      user_string <- if (length(users) == 1) users else "selected users"
+      user_string <- if (length(users) == 1) users else "multiple selected users"
       tagList(
-        glue::glue(
-          "{nrow(hits)} visits from {user_string} between ",
+        HTML(glue::glue(
+          "{nrow(hits)} visits from <b>{user_string}</b> between ",
           "{date_range()$from} and {date_range()$to}."
-        ),
+        )),
         actionLink("clear_selection", glue::glue("Clear filter"), icon = icon("times"))
       )
     } else {
-
         glue::glue(
           "{nrow(hits)} total visits between ",
           "{date_range()$from} and {date_range()$to}."
         )
 
     }
-  })
-
-  observeEvent(input$clear_selection, {
-    updateSelectizeInput(
-      session,
-      "selected_users",
-      selected = NA
-    )
   })
 
   output$content_title <- renderText({
@@ -832,7 +794,7 @@ server <- function(input, output, session) {
     }
   })
 
-  output$email_owner_link <- renderUI({
+  output$email_owner_button <- renderUI({
     owner_email <- users() |>
       filter(user_guid == selected_content_info()$owner[[1]]$guid) |>
       pull(email)
@@ -853,7 +815,7 @@ server <- function(input, output, session) {
     )
   })
 
-  output$email_selected_users_button <- renderUI({
+  output$email_selected_visitors_button <- renderUI({
     req(selected_content_info())
     emails <- users() |>
       filter(user_guid %in% input$selected_users) |>
@@ -877,9 +839,8 @@ server <- function(input, output, session) {
     )
   })
 
-  # Output plots ----
+  # Plots for single-content view ----
 
-  # Create day by day hit data for plot
   daily_hit_data <- reactive({
     all_dates <- seq.Date(date_range()$from, date_range()$to, by = "day")
 
@@ -933,6 +894,24 @@ server <- function(input, output, session) {
                 label_buffer + toolbar_buffer
 
     plotlyOutput("visit_timeline_plot", height = paste0(height_px, "px"))
+  })
+
+  # Global UI elements ----
+
+  output$page_title_bar <- renderUI({
+    if (is.null(selected_guid())) {
+      "Usage"
+    } else {
+      div(
+        style = "display: flex; justify-content: space-between; gap: 1rem; align-items: center;",
+        actionButton("clear_content_selection", "Back", icon("arrow-left"), class = "btn btn-sm", style = "white-space: nowrap;"),
+        span(
+            "Usage / ",
+            textOutput("content_title", inline = TRUE)
+        ),
+        uiOutput("dashboard_link")
+      )
+    }
   })
 }
 
