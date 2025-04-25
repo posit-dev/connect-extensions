@@ -9,7 +9,6 @@ library(lubridate)
 library(tidyr)
 library(reactable)
 library(bsicons)
-library(bslib)
 library(ggplot2)
 library(plotly)
 
@@ -126,14 +125,14 @@ ui <- function(request) {
           label = "Show GUID"
         ),
         downloadButton(
-          "export_raw_visits",
-          class = "mb-2",
-          label = "Export Raw Visits"
+          "export_visit_totals",
+          class = "btn-sm",
+          label = "Export Usage Table"
         ),
         downloadButton(
-          "export_visit_totals",
-          class = "mb-2",
-          label = "Export Visit Totals"
+          "export_raw_visits",
+          class = "btn-sm",
+          label = "Export Raw Visit Data"
         )
       ),
 
@@ -294,7 +293,6 @@ server <- function(input, output, session) {
   # Back button logic ----
 
   observeEvent(input$clear_content_selection, {
-    # selected_guid(NULL)
     session$sendCustomMessage("set_input_value", list('content_guid', NULL))
     updateReactable("aggregated_visits", selected = NA)
 
