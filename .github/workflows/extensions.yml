@@ -38,6 +38,7 @@ jobs:
             landing-page: extensions/landing-page/**
             stock-api-fastapi: extensions/stock-api-fastapi/**
             connectwidgets-example: extensions/connectwidgets-example/**
+            plumbertableau-example: extensions/plumbertableau-example/**
             fastapitableau-example: extensions/fastapitableau-example/**
 
   # Runs for each extension that has changed from `simple-extension-changes`
