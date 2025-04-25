@@ -59,7 +59,6 @@ ui <- function(request) {
     title = uiOutput("page_title_bar"),
 
     sidebar = sidebar(
-      title = "Controls",
       open = TRUE,
       width = 275,
 
@@ -83,7 +82,13 @@ ui <- function(request) {
 
       sliderInput(
         "visit_merge_window",
-        label = "Visit Merge Window (sec)",
+        label = tagList(
+          "Visit Merge Window (sec)",
+          tooltip(
+            bs_icon("question-circle-fill", class = "ms-2"),
+            "Filter out visits occurring within this many seconds of that user's last visit."
+          )
+        ),
         min = 0,
         max = 180,
         value = 0,
@@ -93,13 +98,14 @@ ui <- function(request) {
       textInput(
         "visit_merge_window_text",
         label = NULL,
-        value = 0
+        value = 0,
       ),
 
+      tags$hr(),
 
+      # Controls shown only when the outer table is displayed
       conditionalPanel(
         "input.content_guid == null",
-        # Content Table
         selectizeInput(
           "app_mode_filter",
           label = "Filter by Content Type",
@@ -131,16 +137,21 @@ ui <- function(request) {
         )
       ),
 
+      # Controls shown only when the inner detail view is displayed
       conditionalPanel(
         "input.content_guid != null",
+        # div(class = "fs-5", "Filters"),
         selectizeInput(
           "selected_users",
-          label = "Filter Users",
+          label = "Filter Visitors",
+          options = list(placeholder = "All Visitors"),
           choices = NULL,
           multiple = TRUE
         ),
         uiOutput("email_selected_users_button")
       ),
+
+      tags$hr(),
 
       # TODO: Possibly remove or hide in a "Troubleshooting" or Advanced
       # accordion section
@@ -230,7 +241,7 @@ server <- function(input, output, session) {
         footer = NULL,
         HTML(paste(
           "In the Access panel to the right, click <strong>\"Add integration\"</strong>,",
-          "then select a <strong>Connect Visitor API Key</strong> integration.",
+          "then select a <strong>Visitor API Key</strong> integration.",
           "If you don't see one in the list, an administrator must enable this feature on your Connect server.",
           "See the <a href='https://docs.posit.co/connect/admin/integrations/oauth-integrations/connect/' target='_blank'>Admin Guide</a> for setup instructions.",
           "<br><br>",
@@ -864,7 +875,7 @@ server <- function(input, output, session) {
       class = "btn btn-sm btn-outline-secondary",
       disabled = disabled,
       onclick = if (is.null(disabled)) sprintf("window.location.href='%s'", mailto) else NULL,
-      tagList(icon("envelope"), "Email Selected Users")
+      tagList(icon("envelope"), "Email Selected")
     )
   })
 
