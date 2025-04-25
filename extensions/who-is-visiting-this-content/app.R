@@ -875,7 +875,7 @@ server <- function(input, output, session) {
       class = "btn btn-sm btn-outline-secondary",
       disabled = disabled,
       onclick = if (is.null(disabled)) sprintf("window.location.href='%s'", mailto) else NULL,
-      tagList(icon("envelope"), "Email Selected")
+      tagList(icon("envelope"), "Email Selected Visitors")
     )
   })
 
