@@ -96,13 +96,55 @@ ui <- function(request) {
         value = 0
       ),
 
-      # The remaining filter controls are different for the multi-content table
-      # and single-content detail view.
-      uiOutput("conditional_filter_controls"),
+
+      conditionalPanel(
+        "input.content_guid == null",
+        # Content Table
+        selectizeInput(
+          "app_mode_filter",
+          label = "Filter by Content Type",
+          options = list(placeholder = "All Content Types"),
+          choices = list(
+            "API",
+            "Application",
+            "Jupyter",
+            "Quarto",
+            "R Markdown",
+            "Pin",
+            "Other"
+          ),
+          multiple = TRUE
+        ),
+        checkboxInput(
+          "show_guid",
+          label = "Show GUID"
+        ),
+        downloadButton(
+          "export_raw_visits",
+          class = "mb-2",
+          label = "Export Raw Visits"
+        ),
+        downloadButton(
+          "export_visit_totals",
+          class = "mb-2",
+          label = "Export Visit Totals"
+        )
+      ),
+
+      conditionalPanel(
+        "input.content_guid != null",
+        selectizeInput(
+          "selected_users",
+          label = "Filter Users",
+          choices = NULL,
+          multiple = TRUE
+        ),
+        uiOutput("email_selected_users_button")
+      ),
 
       # TODO: Possibly remove or hide in a "Troubleshooting" or Advanced
       # accordion section
-      actionButton("clear_cache", "Clear Cache", icon = icon("refresh"))
+      actionButton("clear_cache", "Clear Cache", icon = icon("refresh")),
     ),
 
     # The multi-content table is shown if no content item is selected. The
@@ -167,52 +209,92 @@ ui <- function(request) {
           )
         )
       )
-    )
+    ),
+    tags$script("
+      Shiny.addCustomMessageHandler('set_input_value', function(args) {
+        Shiny.setInputValue(args[0], args[1]);
+      });
+    ")
   )
 }
 
 server <- function(input, output, session) {
 
-  observe({
-    freezeReactiveValue(input, "app_mode_filter")
-  })
+  client <- NULL
+
+  tryCatch(
+    client <- connect(token = session$request$HTTP_POSIT_CONNECT_USER_SESSION_TOKEN),
+    error = function(e) {
+      showModal(modalDialog(
+        title = "Additional Setup Required",
+        footer = NULL,
+        HTML(paste(
+          "In the Access panel to the right, click <strong>\"Add integration\"</strong>,",
+          "then select a <strong>Connect Visitor API Key</strong> integration.",
+          "If you don't see one in the list, an administrator must enable this feature on your Connect server.",
+          "See the <a href='https://docs.posit.co/connect/admin/integrations/oauth-integrations/connect/' target='_blank'>Admin Guide</a> for setup instructions.",
+          "<br><br>",
+          "For guidance on using visitor-scoped permissions in your own Connect apps, see the",
+          "<a href='https://docs.posit.co/connect/user/oauth-integrations/#obtaining-a-visitor-api-key' target='_blank'>User Guide</a>.",
+          sep = " "
+        ))
+      ))
+    }
+  )
+  print(client)
+  if (is.null(client)) {
+    return()
+  }
+
   # Bookmarking ----
 
-  # observe({
-  #   setBookmarkExclude(setdiff(names(input), "guid_field"))
-  # })
-  # onBookmarked(function(url) {
-  #   message("Bookmark complete. URL: ", url)
-  #   updateQueryString(url)
-  # })
-  # onRestore(function(state) {
-
-  # })
+  observe({
+    setBookmarkExclude(setdiff(names(input), "content_guid"))
+  })
+  onBookmarked(function(url) {
+    message("Bookmark complete. URL: ", url)
+    updateQueryString(url)
+  })
+  onRestore(function(state) {
+    guid <- state$input$content_guid
+    print(guid)
+    if (length(guid) == 1 && guid %in% content()$guid) {
+      print("found a guid")
+      session$sendCustomMessage("set_input_value", list('content_guid', guid))
+    }
+  })
 
   # Handle GUID input ----
 
-  # selected_content_guid <- reactiveVal()
 
-  # # Update the bookmark when a valid GUID is input
-  # observeEvent(input$guid_field, {
-  #   req(!is.null(input$guid_field), input$guid_field %in% content()$guid)
-  #   session$doBookmark()
-  # }, ignoreInit = TRUE)
+  # Update the bookmark when a valid GUID is input
+  observeEvent(input$content_guid, {
+    req(input$content_guid %in% content()$guid)
+    session$doBookmark()
+
+  }, ignoreInit = TRUE)
 
   observe({
     shinyjs::toggle(id = "multi_content_table", condition = is.null(selected_guid()))
-    # shinyjs::toggle(id = "multi_content_controls", condition = is.null(selected_guid()))
     shinyjs::toggle(id = "single_content_detail", condition = !is.null(selected_guid()))
-    # shinyjs::toggle(id = "single_content_controls", condition = !is.null(selected_guid()))
     shinyjs::toggle("clear_content_selection", condition = !is.null(selected_guid()))
   })
 
   # Back button logic ----
 
   observeEvent(input$clear_content_selection, {
-    selected_guid(NULL)
+    # selected_guid(NULL)
+    session$sendCustomMessage("set_input_value", list('content_guid', NULL))
     updateReactable("aggregated_visits", selected = NA)
-    updateQueryString("?", mode = "replace")
+
+    full_url <- paste0(
+      session$clientData$url_protocol, "//",
+      session$clientData$url_hostname,
+      if (nzchar(session$clientData$url_port)) paste0(":", session$clientData$url_port),
+      session$clientData$url_pathname,
+      "?"
+    )
+    updateQueryString(full_url)
   })
 
   # Cache invalidation button ----
@@ -288,7 +370,6 @@ server <- function(input, output, session) {
 
   # Load and processing data ----
 
-  client <- connect(token = session$request$HTTP_POSIT_CONNECT_USER_SESSION_TOKEN)
   authed_user_guid <- client$me()$guid
 
   date_range <- reactive({
@@ -415,7 +496,7 @@ server <- function(input, output, session) {
         defaultSortOrder = "desc",
         onClick = JS("function(rowInfo, colInfo) {
           if (rowInfo && rowInfo.row && rowInfo.row.content_guid) {
-            Shiny.setInputValue('row_click_guid', rowInfo.row.content_guid, {priority: 'event'});
+            Shiny.setInputValue('content_guid', rowInfo.row.content_guid, {priority: 'event'});
           }
         }"),
         pagination = TRUE,
@@ -423,7 +504,7 @@ server <- function(input, output, session) {
         sortable = TRUE,
         highlight = TRUE,
         defaultSorted = "total_views",
-        # filterable = TRUE,
+        style = list(cursor = "pointer"),
         wrap = FALSE,
         class = "metrics-tbl",
 
@@ -515,9 +596,9 @@ server <- function(input, output, session) {
 
     selected_guid <- reactiveVal(NULL)
 
-    observeEvent(input$row_click_guid, {
-      selected_guid(input$row_click_guid)
-    })
+    observeEvent(input$content_guid, {
+      selected_guid(input$content_guid)
+    }, ignoreNULL = FALSE)
 
     # Download handlers ---
 
@@ -624,6 +705,7 @@ server <- function(input, output, session) {
       onClick = "select",
       defaultSorted = "n_visits",
       class = "metrics-tbl",
+      style = list(cursor = "pointer"),
       wrap = FALSE,
       columns = list(
         user_guid = colDef(show = FALSE),
@@ -673,80 +755,6 @@ server <- function(input, output, session) {
         display_name = colDef(name = "Visitor")
       )
     )
-  })
-
-  output$conditional_filter_controls <- renderUI({
-    # Content Table
-    content_table_filters <- tagList(
-      selectizeInput(
-        "app_mode_filter",
-        label = "Filter by Content Type",
-        options = list(placeholder = "All Content Types"),
-        choices = list(
-          "API",
-          "Application",
-          "Jupyter",
-          "Quarto",
-          "R Markdown",
-          "Pin",
-          "Other"
-        ),
-        multiple = TRUE
-      ),
-      checkboxInput(
-        "show_guid",
-        label = "Show GUID"
-      ),
-      downloadButton(
-        "export_raw_visits",
-        class = "mb-2",
-        label = "Export Raw Visits"
-      ),
-      downloadButton(
-        "export_visit_totals",
-        class = "mb-2",
-        label = "Export Visit Totals"
-      )
-    )
-
-    content_detail_filters <- tagList(
-      selectizeInput(
-        "selected_users",
-        label = "Filter Users",
-        choices = NULL,
-        multiple = TRUE
-      ),
-      renderUI({
-        req(selected_content_info())
-        emails <- users() |>
-          filter(user_guid %in% input$selected_users) |>
-          pull(email) |>
-          na.omit()
-
-        disabled <- if (length(emails) == 0) "disabled" else NULL
-
-        subject <- glue::glue("\"{selected_content_info()$title}\" on Posit Connect")
-        mailto <- glue::glue(
-          "mailto:{paste(emails, collapse = ',')}",
-          "?subject={URLencode(subject, reserved = TRUE)}"
-        )
-
-        tags$button(
-          type = "button",
-          class = "btn btn-sm btn-outline-secondary",
-          disabled = disabled,
-          onclick = if (is.null(disabled)) sprintf("window.location.href='%s'", mailto) else NULL,
-          tagList(icon("envelope"), "Email Selected Users")
-        )
-      })
-    )
-
-    if (is.null(selected_guid())) {
-      content_table_filters
-    } else {
-      content_detail_filters
-    }
-
   })
 
   # Render content metadata and other text ----
@@ -833,6 +841,30 @@ server <- function(input, output, session) {
         icon("envelope"),
         "Email"
       )
+    )
+  })
+
+  output$email_selected_users_button <- renderUI({
+    req(selected_content_info())
+    emails <- users() |>
+      filter(user_guid %in% input$selected_users) |>
+      pull(email) |>
+      na.omit()
+
+    disabled <- if (length(emails) == 0) "disabled" else NULL
+
+    subject <- glue::glue("\"{selected_content_info()$title}\" on Posit Connect")
+    mailto <- glue::glue(
+      "mailto:{paste(emails, collapse = ',')}",
+      "?subject={URLencode(subject, reserved = TRUE)}"
+    )
+
+    tags$button(
+      type = "button",
+      class = "btn btn-sm btn-outline-secondary",
+      disabled = disabled,
+      onclick = if (is.null(disabled)) sprintf("window.location.href='%s'", mailto) else NULL,
+      tagList(icon("envelope"), "Email Selected Users")
     )
   })
 
