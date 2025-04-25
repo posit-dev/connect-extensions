@@ -4,6 +4,7 @@ library(shinyjs)
 library(connectapi)
 library(purrr)
 library(dplyr)
+library(tidyr)
 library(lubridate)
 library(reactable)
 library(ggplot2)
@@ -42,6 +43,15 @@ bar_chart <- function(value, max_val, height = "1rem", fill = "#00bfc4", backgro
   chart <- div(class = "bar-chart", style = list(background = background), bar)
   label <- span(class = "number", value)
   div(class = "bar-cell", label, chart)
+}
+
+full_url <- function(session) {
+  paste0(
+    session$clientData$url_protocol, "//",
+    session$clientData$url_hostname,
+    if (nzchar(session$clientData$url_port)) paste0(":", session$clientData$url_port),
+    session$clientData$url_pathname
+  )
 }
 
 ui <- function(request) {
@@ -293,14 +303,7 @@ server <- function(input, output, session) {
     session$sendCustomMessage("set_input_value", list('content_guid', NULL))
     updateReactable("aggregated_visits", selected = NA)
 
-    full_url <- paste0(
-      session$clientData$url_protocol, "//",
-      session$clientData$url_hostname,
-      if (nzchar(session$clientData$url_port)) paste0(":", session$clientData$url_port),
-      session$clientData$url_pathname,
-      "?"
-    )
-    updateQueryString(full_url)
+    updateQueryString(paste0(full_url(session), "?"))
   })
 
   # Cache invalidation button ----
@@ -884,7 +887,7 @@ server <- function(input, output, session) {
       mutate(date = date(timestamp)) |>
       group_by(date) |>
       summarize(daily_visits = n(), .groups = "drop") |>
-      tidyr::complete(date = all_dates, fill = list(daily_visits = 0))
+      complete(date = all_dates, fill = list(daily_visits = 0))
   })
 
   output$daily_visits_plot <- renderPlotly({
