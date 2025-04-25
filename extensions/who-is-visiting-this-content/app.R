@@ -167,20 +167,7 @@ ui <- function(request) {
           )
         )
       )
-    ),
-    tags$script(HTML("
-      document.addEventListener('DOMContentLoaded', function() {
-        const input = document.getElementById('guid_field');
-        if (input) {
-          input.addEventListener('keydown', function(e) {
-            if (e.key === 'Enter') {
-              e.preventDefault();
-              document.getElementById('submit_guid').click();
-            }
-          });
-        }
-      });
-    "))
+    )
   )
 }
 
