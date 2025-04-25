@@ -4,11 +4,8 @@ library(shinyjs)
 library(connectapi)
 library(purrr)
 library(dplyr)
-library(glue)
 library(lubridate)
-library(tidyr)
 library(reactable)
-library(bsicons)
 library(ggplot2)
 library(plotly)
 
@@ -84,7 +81,7 @@ ui <- function(request) {
         label = tagList(
           "Visit Merge Window (sec)",
           tooltip(
-            bs_icon("question-circle-fill", class = "ms-2"),
+            bsicons::bs_icon("question-circle-fill", class = "ms-2"),
             "Filter out visits occurring within this many seconds of that user's last visit."
           )
         ),
@@ -207,7 +204,7 @@ ui <- function(request) {
             title = tagList(
               "Top Visitors",
               tooltip(
-                bs_icon("info-circle-fill", class = "ms-2"),
+                bsicons::bs_icon("info-circle-fill", class = "ms-2"),
                 "Click a row to show only that user's visits."
               )
             ),
@@ -542,7 +539,7 @@ server <- function(input, output, session) {
                 tags$a(
                   href = url,
                   target = "_blank",
-                  bs_icon("arrow-up-right-square")
+                  bsicons::bs_icon("arrow-up-right-square")
                 )
               )))
             },
@@ -770,7 +767,7 @@ server <- function(input, output, session) {
 
   output$filter_message <- renderUI({
     hits <- all_visits_data()
-    glue(
+    glue::glue(
       "{nrow(hits)} visits between ",
       "{date_range()$from} and {date_range()$to}."
     )
@@ -780,7 +777,7 @@ server <- function(input, output, session) {
         pull(display_name)
       user_string <- if (length(users) == 1) users else "selected users"
       tagList(
-        glue(
+        glue::glue(
           "{nrow(hits)} visits from {user_string} between ",
           "{date_range()$from} and {date_range()$to}."
         ),
@@ -788,7 +785,7 @@ server <- function(input, output, session) {
       )
     } else {
 
-        glue(
+        glue::glue(
           "{nrow(hits)} total visits between ",
           "{date_range()$from} and {date_range()$to}."
         )
