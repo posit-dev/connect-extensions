@@ -102,11 +102,13 @@ class TestExtensionDeployment:
             except requests.RequestException as e:
                 elapsed = time.time() - start_time
                 raise AssertionError(f"Failed to access content after {elapsed:.1f}s: {e}")
+
+
     
     def _fetch_and_print_job_logs(self):
         """Helper to fetch and print job logs for debugging."""
         try:
-            # Get the most recent job
+            # Get all jobs which will include the environment restore and application logs
             jobs_response = requests.get(
                 f"{self.base_url}/__api__/v1/content/{self.content['guid']}/jobs",
                 headers={"Authorization": f"Key {self.api_key}"}
@@ -117,23 +119,30 @@ class TestExtensionDeployment:
                 print("No jobs found for content")
                 return
                 
-            job_key = jobs[0]["key"]
+            print(f"Found {len(jobs)} jobs for content")
             
-            # Get the job logs
-            log_response = requests.get(
-                f"{self.base_url}/__api__/v1/content/{self.content['guid']}/jobs/{job_key}/log",
-                headers={"Authorization": f"Key {self.api_key}"}
-            )
-            logs = log_response.json()
-            
-            print(f"Job logs for job {job_key}:")
-            if "entries" in logs and logs["entries"]:
-                for entry in logs["entries"]:
-                    timestamp = entry.get("timestamp", "")
-                    message = entry.get("data", "")
-                    print(f"    {timestamp} - {message}")
-            else:
-                print("No log entries found")
+            # Iterate through all jobs
+            # Iterate through jobs in reverse order (most recent first)
+            for job in reversed(jobs):
+                job_key = job["key"]
+                
+                # Get the job logs
+                log_response = requests.get(
+                    f"{self.base_url}/__api__/v1/content/{self.content['guid']}/jobs/{job_key}/log",
+                    headers={"Authorization": f"Key {self.api_key}"}
+                )
+                logs = log_response.json()
+                
+                print(f"Job logs for job {job_key}:")
+                if "entries" in logs and logs["entries"]:
+                    for entry in logs["entries"]:
+                        timestamp = entry.get("timestamp", "")
+                        message = entry.get("data", "")
+                        print(f"    {timestamp} - {message}")
+                else:
+                    print(f"    No log entries found for job {job_key}")
+                
+                print("-" * 50)  # Separator between jobs
                 
         except Exception as e:
             print(f"Error fetching job logs: {e}")
