@@ -36,6 +36,35 @@ runs:
         ' ./extensions/${{ inputs.extension-name }}/manifest.json
       shell: bash
 
+    # Ensures that the manifest.json has only valid requiredFeatures
+    - name: Check required features
+      run: |
+        # Read in valid requiredFeatures from extensions.json
+        VALID_FEATURES=$(jq -c '.requiredFeatures' ./extensions.json)
+        
+        # Read in requiredFeatures from the extension's manifest.json
+        EXTENSION_REQUIRED_FEATURES=$(jq -c '.extension.requiredFeatures // []' ./extensions/${{ inputs.extension-name }}/manifest.json)
+
+        # Check if the extension's requiredFeatures is an array
+        if [ "$(jq -r 'type' <<< "$EXTENSION_REQUIRED_FEATURES")" != "array" ]; then
+          echo "Error: The requiredFeatures in manifest.json must be an array."
+          exit 1
+        fi
+        
+        # Check if any extension requiredFeatures are not in the valid requiredFeatures list
+        INVALID_FEATURES=$(jq -n -c --argjson global "$VALID_FEATURES" --argjson extension "$EXTENSION_REQUIRED_FEATURES" '
+          $extension | map(. as $feature | if ($global | index($feature) | not) then $feature else empty end)
+        ')
+        
+        # Check if there are any invalid requiredFeatures
+        if [ "$INVALID_FEATURES" != "[]" ]; then
+          echo "Error: The following `requiredFeatures` in manifest.json are not defined in extensions.json:"
+          echo "$INVALID_FEATURES"
+          echo "Please add these features to the 'requiredFeatures' array in extensions.json or remove them from the manifest."
+          exit 1
+        fi
+      shell: bash
+
     # Ensures that the manifest.json has only valid tags
     - name: Check tags
       run: |
