@@ -15,14 +15,6 @@
   text-decoration-thickness: max(1px, 0.0625rem);
 }
 
-/* Styles for the column headers */
-.header {
-  border-bottom: 2px solid #555;
-  font-size: 0.8125rem;
-  font-weight: 400;
-  text-transform: uppercase;
-}
-
 /* Bar chart styles */
 
 .bar-cell {
@@ -48,5 +40,5 @@
 }
 
 #visit_merge_window_text {
-  margin-top: -10px !important;
+  margin-top: -10px;
 }

@@ -44,6 +44,20 @@ full_url <- function(session) {
   )
 }
 
+content_usage_table_search_method = JS("
+  function(rows, columnIds, searchValue) {
+    const searchLower = searchValue.toLowerCase();
+    const searchColumns = ['title', 'dashboard_url', 'content_guid', 'owner_username'];
+
+    return rows.filter(function(row) {
+      return searchColumns.some(function(columnId) {
+        const value = String(row.values[columnId] || '').toLowerCase();
+        return value.includes(searchLower);
+      });
+    });
+  }
+")
+
 ui <- function(request) {
   page_sidebar(
     useShinyjs(),
@@ -507,6 +521,11 @@ server <- function(input, output, session) {
       pagination = TRUE,
       defaultPageSize = 25,
       sortable = TRUE,
+      searchable = TRUE,
+      searchMethod = content_usage_table_search_method,
+      language = reactableLang(
+        searchPlaceholder = "Search by title, URL, GUID, or owner",
+      ),
       highlight = TRUE,
       defaultSorted = "total_views",
       style = list(cursor = "pointer"),
@@ -517,7 +536,6 @@ server <- function(input, output, session) {
         title = colDef(
           name = "Content",
           defaultSortOrder = "asc",
-          filterable = TRUE,
           style = function(value) {
             switch(value,
               "[Untitled]" = list(fontStyle = "italic"),
@@ -554,7 +572,7 @@ server <- function(input, output, session) {
           }
         ),
 
-        owner_username = colDef(name = "Owner", defaultSortOrder = "asc", minWidth = 75, filterable = TRUE),
+        owner_username = colDef(name = "Owner", defaultSortOrder = "asc", minWidth = 75),
 
         total_views = colDef(
           name = "Visits",
@@ -771,6 +789,11 @@ server <- function(input, output, session) {
     selected_content_info()$title
   })
 
+  output$content_guid <- renderText({
+    req(selected_content_info())
+    selected_content_info()$guid
+  })
+
   output$dashboard_link <- renderUI({
     req(selected_content_info())
     url <- selected_content_info()$dashboard_url
@@ -903,11 +926,16 @@ server <- function(input, output, session) {
       "Usage"
     } else {
       div(
-        style = "display: flex; justify-content: space-between; gap: 1rem; align-items: center;",
+        style = "display: flex; justify-content: space-between; gap: 1rem; align-items: baseline;",
         actionButton("clear_content_selection", "Back", icon("arrow-left"), class = "btn btn-sm", style = "white-space: nowrap;"),
         span(
             "Usage / ",
             textOutput("content_title", inline = TRUE)
+        ),
+        code(
+          class = "text-muted",
+          style = "font-family: \"Fira Mono\", Consolas, Monaco, monospace; font-size: 0.875rem;",
+          textOutput("content_guid", inline = TRUE)
         ),
         uiOutput("dashboard_link")
       )
