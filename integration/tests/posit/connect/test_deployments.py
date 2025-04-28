@@ -102,6 +102,8 @@ class TestExtensionDeployment:
             except requests.RequestException as e:
                 elapsed = time.time() - start_time
                 raise AssertionError(f"Failed to access content after {elapsed:.1f}s: {e}")
+
+
     
     def _fetch_and_print_job_logs(self):
         """Helper to fetch and print job logs for debugging."""
@@ -120,7 +122,8 @@ class TestExtensionDeployment:
             print(f"Found {len(jobs)} jobs for content")
             
             # Iterate through all jobs
-            for job in jobs:
+            # Iterate through jobs in reverse order (most recent first)
+            for job in reversed(jobs):
                 job_key = job["key"]
                 
                 # Get the job logs
