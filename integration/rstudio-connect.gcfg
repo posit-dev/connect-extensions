@@ -6,7 +6,8 @@
 ; email. The system will not be able to send administrative email until this
 ; setting is configured.
 ;
-; SenderEmail = account@company.com
+SenderEmail = no-reply@example.com
+EmailProvider = none
 
 ; The persistent data directory mounted into our container.
 DataDir = /data
