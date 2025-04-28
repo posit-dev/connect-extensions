@@ -93,6 +93,27 @@ is recorded for that specific release.
 A good Connect Version to start with is `"2025.04.0"` since it is the
 release that introduced the Connect Gallery.
 
+#### Required Connect Features
+
+The `requiredFeatures` field in the `extension` section of the `manifest.json`
+is optional, but if your content requires enhanced features of Posit Connect to
+function correctly it should be included.
+
+For example, if your content requires the API Publishing feature your 
+`manifest.json` should include the following:
+
+```json
+// manifest.json
+
+{
+  ...
+  "extension": {
+    "requiredFeatures": ["API Publishing"],
+    ...
+  }
+}
+```
+
 ### README.md
 
 In the above extension section there is a `homepage` link that we provide in the
