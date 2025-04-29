@@ -9,12 +9,6 @@
   text-decoration: none;
 }
 
-.metrics-tbl a:hover,
-.metrics-tbl a:focus {
-  text-decoration: underline;
-  text-decoration-thickness: max(1px, 0.0625rem);
-}
-
 .rt-search {
   min-width: 525px;
 }
