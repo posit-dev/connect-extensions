@@ -15,6 +15,17 @@
   text-decoration-thickness: max(1px, 0.0625rem);
 }
 
+.rt-search {
+  min-width: 525px;
+}
+
+@media (max-width: 575.98px) {
+  .rt-search {
+    width: 100%;
+    min-width: auto;
+  }
+}
+
 /* Bar chart styles */
 
 .bar-cell {
