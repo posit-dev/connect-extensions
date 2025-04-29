@@ -40,6 +40,7 @@ jobs:
             stock-api-fastapi: extensions/stock-api-fastapi/**
             connectwidgets-example: extensions/connectwidgets-example/**
             fastapitableau-example: extensions/fastapitableau-example/**
+            pins-tutorial: extensions/pins-tutorial/**
 
   # Runs for each extension that has changed from `simple-extension-changes`
   # Lints and packages in preparation for tests and and release.
