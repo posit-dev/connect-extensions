@@ -2,6 +2,69 @@
   "tags": [],
   "extensions": [
     {
+      "name": "connectwidgets-example",
+      "title": "Connect Widgets Example",
+      "description": "connectwidgets is an R package that can be used to query for a subset of your existing content items, then organize them within htmlwidget components in an R Markdown document or Shiny application.",
+      "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/connectwidgets-example",
+      "latestVersion": {
+        "version": "0.0.1",
+        "released": "2025-04-24T19:17:16Z",
+        "url": "https://github.com/posit-dev/connect-extensions/releases/download/connectwidgets-example%40v0.0.1/connectwidgets-example.tar.gz",
+        "minimumConnectVersion": "2025.04.0"
+      },
+      "versions": [
+        {
+          "version": "0.0.1",
+          "released": "2025-04-24T19:17:16Z",
+          "url": "https://github.com/posit-dev/connect-extensions/releases/download/connectwidgets-example%40v0.0.1/connectwidgets-example.tar.gz",
+          "minimumConnectVersion": "2025.04.0"
+        }
+      ],
+      "tags": []
+    },
+    {
+      "name": "fastapitableau-example",
+      "title": "Tableau Python Extension",
+      "description": "fastapitableau is a Python package that enables Python developers to build FastAPI APIs that function as Tableau Analytics Extensions. These extensions can be leveraged from Tableau workbooks to allow real time requests from Tableau to Python. This extension builds on top of Tableau's example Superstore dataset.",
+      "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/fastapitableau-example",
+      "latestVersion": {
+        "version": "1.0.0",
+        "released": "2025-04-24T19:38:18Z",
+        "url": "https://github.com/posit-dev/connect-extensions/releases/download/fastapitableau-example%40v1.0.0/fastapitableau-example.tar.gz",
+        "minimumConnectVersion": "2025.04.0"
+      },
+      "versions": [
+        {
+          "version": "1.0.0",
+          "released": "2025-04-24T19:38:18Z",
+          "url": "https://github.com/posit-dev/connect-extensions/releases/download/fastapitableau-example%40v1.0.0/fastapitableau-example.tar.gz",
+          "minimumConnectVersion": "2025.04.0"
+        }
+      ],
+      "tags": []
+    },
+    {
+      "name": "landing-page",
+      "title": "Static HTML landing page",
+      "description": "A simple static HTML web page that can be served from Connect",
+      "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/landing-page",
+      "latestVersion": {
+        "version": "1.0.0",
+        "released": "2025-04-24T19:04:23Z",
+        "url": "https://github.com/posit-dev/connect-extensions/releases/download/landing-page%40v1.0.0/landing-page.tar.gz",
+        "minimumConnectVersion": "2025.04.0"
+      },
+      "versions": [
+        {
+          "version": "1.0.0",
+          "released": "2025-04-24T19:04:23Z",
+          "url": "https://github.com/posit-dev/connect-extensions/releases/download/landing-page%40v1.0.0/landing-page.tar.gz",
+          "minimumConnectVersion": "2025.04.0"
+        }
+      ],
+      "tags": []
+    },
+    {
       "name": "portfolio-dashboard",
       "title": "Portfolio Dashboard",
       "description": "A shiny application makes it easy to transform your analysis into an interactive dashboard using R so users can ask and answer questions in real-time, without having to touch any code.",
@@ -106,6 +169,69 @@
           "minimumConnectVersion": "2025.04.0"
         }
       ]
+    },
+    {
+      "name": "stock-api-fastapi",
+      "title": "FastAPI Stock Pricing Service",
+      "description": "APIs are a great way for software engineering teams to use your models without translating them into different languages",
+      "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/stock-api-fastapi",
+      "latestVersion": {
+        "version": "1.0.0",
+        "released": "2025-04-24T18:56:34Z",
+        "url": "https://github.com/posit-dev/connect-extensions/releases/download/stock-api-fastapi%40v1.0.0/stock-api-fastapi.tar.gz",
+        "minimumConnectVersion": "2025.04.0"
+      },
+      "versions": [
+        {
+          "version": "1.0.0",
+          "released": "2025-04-24T18:56:34Z",
+          "url": "https://github.com/posit-dev/connect-extensions/releases/download/stock-api-fastapi%40v1.0.0/stock-api-fastapi.tar.gz",
+          "minimumConnectVersion": "2025.04.0"
+        }
+      ],
+      "tags": []
+    },
+    {
+      "name": "stock-api-flask",
+      "title": "Flask Stock Pricing Service",
+      "description": "APIs are a great way for software engineering teams to use your models without translating them into different languages",
+      "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/stock-api-flask",
+      "latestVersion": {
+        "version": "1.0.0",
+        "released": "2025-04-24T19:12:11Z",
+        "url": "https://github.com/posit-dev/connect-extensions/releases/download/stock-api-flask%40v1.0.0/stock-api-flask.tar.gz",
+        "minimumConnectVersion": "2025.04.0"
+      },
+      "versions": [
+        {
+          "version": "1.0.0",
+          "released": "2025-04-24T19:12:11Z",
+          "url": "https://github.com/posit-dev/connect-extensions/releases/download/stock-api-flask%40v1.0.0/stock-api-flask.tar.gz",
+          "minimumConnectVersion": "2025.04.0"
+        }
+      ],
+      "tags": []
+    },
+    {
+      "name": "stock-api-plumber",
+      "title": "Stock Pricing Service with Plumber API",
+      "description": "An API allows you to turn your models into production services that other tools and teams can use. APIs are a great way for software engineering teams to use your models without translating them into different languages.",
+      "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/stock-api-plumber",
+      "latestVersion": {
+        "version": "1.0.0",
+        "released": "2025-04-25T18:11:56Z",
+        "url": "https://github.com/posit-dev/connect-extensions/releases/download/stock-api-plumber%40v1.0.0/stock-api-plumber.tar.gz",
+        "minimumConnectVersion": "2025.04.0"
+      },
+      "versions": [
+        {
+          "version": "1.0.0",
+          "released": "2025-04-25T18:11:56Z",
+          "url": "https://github.com/posit-dev/connect-extensions/releases/download/stock-api-plumber%40v1.0.0/stock-api-plumber.tar.gz",
+          "minimumConnectVersion": "2025.04.0"
+        }
+      ],
+      "tags": []
     }
   ]
 }
