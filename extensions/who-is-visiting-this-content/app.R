@@ -52,6 +52,9 @@ content_usage_table_search_method = JS("
     return rows.filter(function(row) {
       return searchColumns.some(function(columnId) {
         const value = String(row.values[columnId] || '').toLowerCase();
+        if (columnId === 'dashboard_url') {
+          return searchLower.includes(value);
+        }
         return value.includes(searchLower);
       });
     });
