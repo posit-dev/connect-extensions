@@ -442,18 +442,20 @@ server <- function(input, output, session) {
     updateSelectizeInput(session, "content_scope", choices = scope_choices, selected = scope_choices[1])
   })
 
+  content_unscoped <- reactive({
+    get_content(client)
+  }) |> bindCache(active_user_guid)
+
   content <- reactive({
     req(input$content_scope)
 
-    all_content <- get_content(client)
-
     switch(input$content_scope,
-      "all" = all_content,
-      "view" = all_content |> filter(app_role != "none"),
-      "edit" = all_content |> filter(app_role %in% c("owner", "editor")),
-      "own" = all_content |> filter(app_role == "owner")
+      "all" = content_unscoped(),
+      "view" = content_unscoped() |> filter(app_role != "none"),
+      "edit" = content_unscoped() |> filter(app_role %in% c("owner", "editor")),
+      "own" = content_unscoped() |> filter(app_role == "owner")
     )
-  }) |> bindCache(active_user_guid, input$content_scope)
+  })
 
   date_range <- reactive({
     switch(input$date_range_choice,
