@@ -12,14 +12,14 @@
   "extension": {
     "name": "portfolio-report",
     "title": "Portfolio Report",
-    "description": "A R Markdown document giving stakeholders the ability to customize a report's assumptions and create their own version",
+    "description": "This R Markdown document includes parameters, making it easier for stakeholders to customize the report's assumptions and create their own version. The main document serves as a standard base template, containing your core code and analysis, so you don't have to copy, paste, and republish.",
     "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/portfolio-report",
     "version": "0.0.1",
     "minimumConnectVersion": "2025.04.0"
   },
   "environment": {
     "r": {
-      "requires": ">=4.0"
+      "requires": ">=4.4.0"
     }
   },
   "packages": {
