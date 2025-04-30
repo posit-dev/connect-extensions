@@ -333,6 +333,16 @@ server <- function(input, output, session) {
     )
   })
 
+  # "Clear filter x" link ----
+
+  observeEvent(input$clear_selection, {
+    updateSelectizeInput(
+      session,
+      "selected_users",
+      selected = NA
+    )
+  })
+
   # Cache invalidation button ----
 
   cache <- cachem::cache_disk("./app_cache/cache/")
@@ -422,17 +432,12 @@ server <- function(input, output, session) {
   scope_choices <- switch(active_user_role,
     "administrator" = list(
       "All Content" = "all",
-      "Content I Can See" = "view",
       "Content I Can Edit" = "edit",
       "Content I Own" = "own"
     ),
     "publisher" = list(
-      "Content I Can See" = "view",
       "Content I Can Edit" = "edit",
       "Content I Own" = "own"
-    ),
-    "viewer" = list(
-      "Content I Can See" = "view"
     ),
     NULL
   )
