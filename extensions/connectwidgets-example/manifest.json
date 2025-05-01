@@ -19,7 +19,7 @@
   },
   "environment": {
     "r": {
-      "requires": ">=4.0"
+      "requires": "~=4.0"
     }
   },
   "packages": {

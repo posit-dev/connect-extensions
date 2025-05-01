@@ -12,7 +12,7 @@
   },
   "environment": {
     "r": {
-      "requires": ">=4.4"
+      "requires": "~=4.4"
     }
   },
   "metadata": {

@@ -19,7 +19,7 @@
   },
   "environment": {
     "python": {
-      "requires": ">=3.11, <4"
+      "requires": "~=3.11"
     }
   },
   "python": {
