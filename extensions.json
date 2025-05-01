@@ -65,6 +65,27 @@
       "tags": []
     },
     {
+      "name": "plumbertableau-example",
+      "title": "plumbertableau example",
+      "description": "plumbertableau is an R package that enables R developers to build Plumber APIs that function as Tableau Analytics Extensions. These extensions can be leveraged from Tableau workbooks to allow real time requests from Tableau to R. This extension builds on top of Tableau's example Superstore dataset.",
+      "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/plumbertableau-example",
+      "latestVersion": {
+        "version": "1.0.0",
+        "released": "2025-04-29T18:05:16Z",
+        "url": "https://github.com/posit-dev/connect-extensions/releases/download/plumbertableau-example%40v1.0.0/plumbertableau-example.tar.gz",
+        "minimumConnectVersion": "2025.04.0"
+      },
+      "versions": [
+        {
+          "version": "1.0.0",
+          "released": "2025-04-29T18:05:16Z",
+          "url": "https://github.com/posit-dev/connect-extensions/releases/download/plumbertableau-example%40v1.0.0/plumbertableau-example.tar.gz",
+          "minimumConnectVersion": "2025.04.0"
+        }
+      ],
+      "tags": []
+    },
+    {
       "name": "portfolio-dashboard",
       "title": "Portfolio Dashboard",
       "description": "A shiny application makes it easy to transform your analysis into an interactive dashboard using R so users can ask and answer questions in real-time, without having to touch any code.",
@@ -83,6 +104,27 @@
           "minimumConnectVersion": "2025.04.0"
         }
       ]
+    },
+    {
+      "name": "portfolio-report",
+      "title": "Portfolio Report",
+      "description": "This R Markdown document includes parameters, making it easier for stakeholders to customize the report's assumptions and create their own version. The main document serves as a standard base template, containing your core code and analysis, so you don't have to copy, paste, and republish.",
+      "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/portfolio-report",
+      "latestVersion": {
+        "version": "0.0.1",
+        "released": "2025-05-01T18:23:36Z",
+        "url": "https://github.com/posit-dev/connect-extensions/releases/download/portfolio-report%40v0.0.1/portfolio-report.tar.gz",
+        "minimumConnectVersion": "2025.04.0"
+      },
+      "versions": [
+        {
+          "version": "0.0.1",
+          "released": "2025-05-01T18:23:36Z",
+          "url": "https://github.com/posit-dev/connect-extensions/releases/download/portfolio-report%40v0.0.1/portfolio-report.tar.gz",
+          "minimumConnectVersion": "2025.04.0"
+        }
+      ],
+      "tags": []
     },
     {
       "name": "publisher-command-center",

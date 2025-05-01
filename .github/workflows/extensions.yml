@@ -39,7 +39,9 @@ jobs:
             landing-page: extensions/landing-page/**
             stock-api-fastapi: extensions/stock-api-fastapi/**
             connectwidgets-example: extensions/connectwidgets-example/**
+            plumbertableau-example: extensions/plumbertableau-example/**
             fastapitableau-example: extensions/fastapitableau-example/**
+            portfolio-report: extensions/portfolio-report/**
             pins-tutorial: extensions/pins-tutorial/**
 
   # Runs for each extension that has changed from `simple-extension-changes`
