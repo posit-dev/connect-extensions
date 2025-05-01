@@ -121,7 +121,7 @@ ui <- function(request) {
         "input.content_guid == null",
         selectizeInput(
           "content_scope",
-          "Content Scope",
+          "Included Content",
           choices = NULL
         ),
         selectizeInput(
@@ -432,12 +432,12 @@ server <- function(input, output, session) {
   scope_choices <- switch(active_user_role,
     "administrator" = list(
       "All Content" = "all",
-      "Content I Can Edit" = "edit",
-      "Content I Own" = "own"
+      "Owned + Collaborating" = "edit",
+      "Owned" = "own"
     ),
     "publisher" = list(
-      "Content I Can Edit" = "edit",
-      "Content I Own" = "own"
+      "Owned + Collaborating" = "edit",
+      "Owned" = "own"
     ),
     NULL
   )
