@@ -435,11 +435,10 @@ server <- function(input, output, session) {
       "Owned + Collaborating" = "edit",
       "Owned" = "own"
     ),
-    "publisher" = list(
+    list(
       "Owned + Collaborating" = "edit",
       "Owned" = "own"
-    ),
-    NULL
+    )
   )
 
   observe({
