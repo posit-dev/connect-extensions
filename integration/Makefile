@@ -52,12 +52,12 @@ PYTEST_ARGS ?= "-s"
 	up-%
 
 
-# All versions starting with 2025.03.0 (first Connect version fully supporting extensions, version matching) and newer
+# All versions starting with the first Connect version that fully supports extensions and version matching
 # Note connect-preview is the same version in the `preview` target. It is included here as part of the full list of all 
 # possible versions to test against in CI or when using the `all` target.
 CONNECT_VERSIONS := \
 	connect-preview \
-	2025.03.0
+	2025.04.0
 
 
 # Compute the latest official release version (excludes connect-preview)
@@ -245,6 +245,26 @@ print-versions:
 	@printf "%s\n" $(strip $(CONNECT_VERSIONS))
 
 
+# Package an extension into a tar.gz file. This only works for simple extensions.
+# Usage: make package-extension EXTENSION_NAME=<extension-name>
+package-extension:
+	@if [ -z "$(EXTENSION_NAME)" ]; then \
+			echo "Error: EXTENSION_NAME is required."; \
+			echo "Usage: make package-extension EXTENSION_NAME=<extension-name>"; \
+			exit 1; \
+	fi
+	@if [ ! -d "../extensions/$(EXTENSION_NAME)" ]; then \
+			echo "Error: Extension directory 'extensions/$(EXTENSION_NAME)' does not exist."; \
+			echo "Available extensions:"; \
+			ls -1 ../extensions/; \
+			exit 1; \
+	fi
+	@mkdir -p ./integration/bundles
+	@echo "Packaging extension: $(EXTENSION_NAME)"
+	@tar -czf ./bundles/$(EXTENSION_NAME).tar.gz ../extensions/$(EXTENSION_NAME)
+	@echo "✅ Package created: ./bundles/$(EXTENSION_NAME).tar.gz"
+
+
 # Show help message.
 help:
 	@echo "Makefile Targets:"
@@ -257,6 +277,7 @@ help:
 	@echo "  down             Tear down Docker resources for all Connect versions."
 	@echo "  clean            Clean up the project directory."
 	@echo "  print-versions   Show the available Connect versions."
+	@echo "  package-extension Package an extension into a tar.gz file."
 	@echo "  help             Show this help message."
 	@echo
 	@echo "Required Parameters:"
