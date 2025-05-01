@@ -14,6 +14,7 @@ export interface ExtensionManifest {
 export enum RequiredFeature {
   API_PUBLISHING = 'API Publishing',
   OAUTH_INTEGRATIONS = 'OAuth Integrations',
+  CURRENT_USER_EXECUTION = 'Current User Execution',
 }
 
 export interface ExtensionVersion {

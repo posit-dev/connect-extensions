@@ -2,7 +2,8 @@
   "tags": [],
   "requiredFeatures": [
     "API Publishing",
-    "OAuth Integrations"
+    "OAuth Integrations",
+    "Current User Execution"
   ],
   "extensions": [
     {
