@@ -6,8 +6,15 @@ export interface ExtensionManifest {
     homepage: string;
     version: string;
     minimumConnectVersion: string;
+    requiredFeatures?: RequiredFeature[];
     tags?: string[];
   };
+}
+
+export enum RequiredFeature {
+  API_PUBLISHING = 'API Publishing',
+  OAUTH_INTEGRATIONS = 'OAuth Integrations',
+  CURRENT_USER_EXECUTION = 'Current User Execution',
 }
 
 export interface ExtensionVersion {
@@ -15,6 +22,7 @@ export interface ExtensionVersion {
   released: string;
   url: string;
   minimumConnectVersion: string;
+  requiredFeatures?: RequiredFeature[];
 }
 
 export interface Extension {

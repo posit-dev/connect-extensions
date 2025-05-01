@@ -5,7 +5,12 @@ import semverValid from "semver/functions/valid";
 import semverEq from "semver/functions/eq";
 import semverRcompare from "semver/functions/rcompare";
 
-import { Extension, ExtensionManifest, ExtensionVersion } from "./types";
+import {
+  Extension,
+  ExtensionManifest,
+  ExtensionVersion,
+  RequiredFeature
+} from "./types";
 
 function getExtensionNameFromRelease(release: any): string {
   const tag = release.tag_name as string;
@@ -31,14 +36,19 @@ function sortExtensionVersions(extension: Extension) {
 }
 
 class ExtensionList {
-  constructor(public tags: string[], public extensions: Extension[]) {
+  constructor(
+    public tags: string[],
+    public requiredFeatures: RequiredFeature[],
+    public extensions: Extension[]
+  ) {
     this.tags = tags;
+    this.requiredFeatures = requiredFeatures;
     this.extensions = extensions;
   }
 
   static fromFile(path: string) {
     const file = JSON.parse(fs.readFileSync(path, "utf8"));
-    return new ExtensionList(file.tags, file.extensions);
+    return new ExtensionList(file.tags, file.requiredFeatures, file.extensions);
   }
 
   public addRelease(manifest: ExtensionManifest, githubRelease) {
@@ -50,6 +60,7 @@ class ExtensionList {
       version,
       tags,
       minimumConnectVersion,
+      requiredFeatures,
     } = manifest.extension;
     const { assets, published_at } = githubRelease;
 
@@ -62,6 +73,7 @@ class ExtensionList {
       released: published_at,
       url: browser_download_url,
       minimumConnectVersion: minimumConnectVersion,
+      ...(requiredFeatures ? { requiredFeatures } : {}),
     };
 
     if (this.getExtension(name)) {
@@ -150,6 +162,7 @@ class ExtensionList {
   public stringify() {
     const output = {
       tags: this.tags,
+      requiredFeatures: this.requiredFeatures,
       extensions: this.extensions
     }
     return JSON.stringify(output, null, 2);

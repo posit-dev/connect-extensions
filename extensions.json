@@ -1,5 +1,10 @@
 {
   "tags": [],
+  "requiredFeatures": [
+    "API Publishing",
+    "OAuth Integrations",
+    "Current User Execution"
+  ],
   "extensions": [
     {
       "name": "connectwidgets-example",
