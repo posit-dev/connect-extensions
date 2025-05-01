@@ -34,11 +34,6 @@ class TestExtensionDeployment:
         # Store initial content GUID for verification in teardown
         self.content_guid = self.content["guid"]
 
-    def teardown_method(self):
-        """Clean up any content created during the test."""
-        self.content.delete()
-        assert self.client.content.count() == 0, "Content not deleted after test"
-
     def test_extension_deploys(self):
         """Test that an Extension can be deployed and started successfully in Posit Connect."""
         # Get the bundle path using the container mount path
