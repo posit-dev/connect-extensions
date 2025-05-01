@@ -33,6 +33,9 @@ services:
       - CONNECT_BOOTSTRAP_SECRETKEY=${CONNECT_BOOTSTRAP_SECRETKEY}
       - CONNECT_APPLICATIONS_PACKAGEAUDITINGENABLED=true
       - CONNECT_API_KEY  # The API key generated from the Makefile test target
+      # Connect configuration overrides https://docs.posit.co/connect/admin/appendix/configuration/#environment-variables
+      - CONNECT_SERVER_SENDEREMAIL=no-reply@example.com
+      - CONNECT_SERVER_EMAILPROVIDER=none
     networks:
       - test
     privileged: true
