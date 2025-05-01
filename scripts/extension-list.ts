@@ -74,6 +74,7 @@ class ExtensionList {
       url: browser_download_url,
       minimumConnectVersion: minimumConnectVersion,
       ...(requiredFeatures ? { requiredFeatures } : {}),
+      requiredEnvironment: manifest.environment,
     };
 
     if (this.getExtension(name)) {
