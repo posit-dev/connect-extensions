@@ -159,14 +159,24 @@
         "version": "0.0.1",
         "released": "2025-05-01T18:23:36Z",
         "url": "https://github.com/posit-dev/connect-extensions/releases/download/portfolio-report%40v0.0.1/portfolio-report.tar.gz",
-        "minimumConnectVersion": "2025.04.0"
+        "minimumConnectVersion": "2025.04.0",
+        "requiredEnvironment": {
+          "r": {
+            "requires": "~=4.4"
+          }
+        }
       },
       "versions": [
         {
           "version": "0.0.1",
           "released": "2025-05-01T18:23:36Z",
           "url": "https://github.com/posit-dev/connect-extensions/releases/download/portfolio-report%40v0.0.1/portfolio-report.tar.gz",
-          "minimumConnectVersion": "2025.04.0"
+          "minimumConnectVersion": "2025.04.0",
+          "requiredEnvironment": {
+            "r": {
+              "requires": "~=4.4"
+            }
+          }
         }
       ],
       "tags": []
