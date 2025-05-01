@@ -106,6 +106,27 @@
       ]
     },
     {
+      "name": "portfolio-report",
+      "title": "Portfolio Report",
+      "description": "This R Markdown document includes parameters, making it easier for stakeholders to customize the report's assumptions and create their own version. The main document serves as a standard base template, containing your core code and analysis, so you don't have to copy, paste, and republish.",
+      "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/portfolio-report",
+      "latestVersion": {
+        "version": "0.0.1",
+        "released": "2025-05-01T18:23:36Z",
+        "url": "https://github.com/posit-dev/connect-extensions/releases/download/portfolio-report%40v0.0.1/portfolio-report.tar.gz",
+        "minimumConnectVersion": "2025.04.0"
+      },
+      "versions": [
+        {
+          "version": "0.0.1",
+          "released": "2025-05-01T18:23:36Z",
+          "url": "https://github.com/posit-dev/connect-extensions/releases/download/portfolio-report%40v0.0.1/portfolio-report.tar.gz",
+          "minimumConnectVersion": "2025.04.0"
+        }
+      ],
+      "tags": []
+    },
+    {
       "name": "publisher-command-center",
       "title": "Publisher Command Center",
       "description": "A dashboard for publishers to help manage and track their content",
