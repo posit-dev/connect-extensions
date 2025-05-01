@@ -457,7 +457,7 @@ server <- function(input, output, session) {
       "all" = content_unscoped(),
       "view" = content_unscoped() |> filter(app_role != "none"),
       "edit" = content_unscoped() |> filter(app_role %in% c("owner", "editor")),
-      "own" = content_unscoped() |> filter(app_role == "owner")
+      "own" = content_unscoped() |> filter(owner_guid == active_user_guid)
     )
   })
 
@@ -480,6 +480,7 @@ server <- function(input, output, session) {
   }) |> bindCache(active_user_guid)
 
   usage_data_raw <- reactive({
+    req(active_user_role %in% c("administrator", "publisher"))
     get_usage(
       client,
       from = date_range()$from,
@@ -524,6 +525,7 @@ server <- function(input, output, session) {
 
   # Create data for the main table and summary export.
   multi_content_table_data <- reactive({
+    req(nrow(usage_data_visits()) > 0)
     usage_summary <- usage_data_visits() |>
       group_by(content_guid) |>
       summarize(
@@ -554,10 +556,19 @@ server <- function(input, output, session) {
   # Multi-content table UI and outputs ----
 
   output$summary_text <- renderText(
-    glue::glue(
-      "{nrow(usage_data_visits())} visits ",
-      "across {nrow(multi_content_table_data())} content items."
-    )
+    if (active_user_role == "viewer") {
+      "Viewer accounts do not have permission to view usage data."
+    } else if (nrow(usage_data_visits()) == 0) {
+      paste(
+        "No usage data available.",
+        "Try adjusting your content filters or date range."
+      )
+    } else {
+      glue::glue(
+        "{nrow(usage_data_visits())} visits ",
+        "across {nrow(multi_content_table_data())} content items."
+      )
+    }
   )
 
   output$content_usage_table <- renderReactable({
