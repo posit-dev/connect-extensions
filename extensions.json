@@ -15,14 +15,24 @@
         "version": "0.0.1",
         "released": "2025-04-24T19:17:16Z",
         "url": "https://github.com/posit-dev/connect-extensions/releases/download/connectwidgets-example%40v0.0.1/connectwidgets-example.tar.gz",
-        "minimumConnectVersion": "2025.04.0"
+        "minimumConnectVersion": "2025.04.0",
+        "requiredEnvironment": {
+          "r": {
+            "requires": "~=4.0"
+          }
+        }
       },
       "versions": [
         {
           "version": "0.0.1",
           "released": "2025-04-24T19:17:16Z",
           "url": "https://github.com/posit-dev/connect-extensions/releases/download/connectwidgets-example%40v0.0.1/connectwidgets-example.tar.gz",
-          "minimumConnectVersion": "2025.04.0"
+          "minimumConnectVersion": "2025.04.0",
+          "requiredEnvironment": {
+            "r": {
+              "requires": "~=4.0"
+            }
+          }
         }
       ],
       "tags": []
@@ -36,14 +46,24 @@
         "version": "1.0.0",
         "released": "2025-04-24T19:38:18Z",
         "url": "https://github.com/posit-dev/connect-extensions/releases/download/fastapitableau-example%40v1.0.0/fastapitableau-example.tar.gz",
-        "minimumConnectVersion": "2025.04.0"
+        "minimumConnectVersion": "2025.04.0",
+        "requiredEnvironment": {
+          "python": {
+            "requires": "~=3.9"
+          }
+        }
       },
       "versions": [
         {
           "version": "1.0.0",
           "released": "2025-04-24T19:38:18Z",
           "url": "https://github.com/posit-dev/connect-extensions/releases/download/fastapitableau-example%40v1.0.0/fastapitableau-example.tar.gz",
-          "minimumConnectVersion": "2025.04.0"
+          "minimumConnectVersion": "2025.04.0",
+          "requiredEnvironment": {
+            "python": {
+              "requires": "~=3.9"
+            }
+          }
         }
       ],
       "tags": []
@@ -78,14 +98,24 @@
         "version": "1.0.0",
         "released": "2025-04-29T18:05:16Z",
         "url": "https://github.com/posit-dev/connect-extensions/releases/download/plumbertableau-example%40v1.0.0/plumbertableau-example.tar.gz",
-        "minimumConnectVersion": "2025.04.0"
+        "minimumConnectVersion": "2025.04.0",
+        "requiredEnvironment": {
+          "r": {
+            "requires": "~=4.4"
+          }
+        }
       },
       "versions": [
         {
           "version": "1.0.0",
           "released": "2025-04-29T18:05:16Z",
           "url": "https://github.com/posit-dev/connect-extensions/releases/download/plumbertableau-example%40v1.0.0/plumbertableau-example.tar.gz",
-          "minimumConnectVersion": "2025.04.0"
+          "minimumConnectVersion": "2025.04.0",
+          "requiredEnvironment": {
+            "r": {
+              "requires": "~=4.4"
+            }
+          }
         }
       ],
       "tags": []
@@ -99,14 +129,24 @@
         "version": "0.0.1",
         "released": "2025-04-11T21:32:23Z",
         "url": "https://github.com/posit-dev/connect-extensions/releases/download/portfolio-dashboard%40v0.0.1/portfolio-dashboard.tar.gz",
-        "minimumConnectVersion": "2025.04.0"
+        "minimumConnectVersion": "2025.04.0",
+        "requiredEnvironment": {
+          "r": {
+            "requires": "~=4.4"
+          }
+        }
       },
       "versions": [
         {
           "version": "0.0.1",
           "released": "2025-04-11T21:32:23Z",
           "url": "https://github.com/posit-dev/connect-extensions/releases/download/portfolio-dashboard%40v0.0.1/portfolio-dashboard.tar.gz",
-          "minimumConnectVersion": "2025.04.0"
+          "minimumConnectVersion": "2025.04.0",
+          "requiredEnvironment": {
+            "r": {
+              "requires": "~=4.4"
+            }
+          }
         }
       ]
     },
@@ -119,14 +159,24 @@
         "version": "0.0.1",
         "released": "2025-05-01T18:23:36Z",
         "url": "https://github.com/posit-dev/connect-extensions/releases/download/portfolio-report%40v0.0.1/portfolio-report.tar.gz",
-        "minimumConnectVersion": "2025.04.0"
+        "minimumConnectVersion": "2025.04.0",
+        "requiredEnvironment": {
+          "r": {
+            "requires": "~=4.4"
+          }
+        }
       },
       "versions": [
         {
           "version": "0.0.1",
           "released": "2025-05-01T18:23:36Z",
           "url": "https://github.com/posit-dev/connect-extensions/releases/download/portfolio-report%40v0.0.1/portfolio-report.tar.gz",
-          "minimumConnectVersion": "2025.04.0"
+          "minimumConnectVersion": "2025.04.0",
+          "requiredEnvironment": {
+            "r": {
+              "requires": "~=4.4"
+            }
+          }
         }
       ],
       "tags": []
@@ -140,14 +190,24 @@
         "version": "0.0.1",
         "released": "2025-03-19T23:00:09Z",
         "url": "https://github.com/posit-dev/connect-extensions/releases/download/publisher-command-center%40v0.0.1/publisher-command-center.tar.gz",
-        "minimumConnectVersion": "2025.04.0"
+        "minimumConnectVersion": "2025.04.0",
+        "requiredEnvironment": {
+          "python": {
+            "requires": "~=3.8"
+          }
+        }
       },
       "versions": [
         {
           "version": "0.0.1",
           "released": "2025-03-19T23:00:09Z",
           "url": "https://github.com/posit-dev/connect-extensions/releases/download/publisher-command-center%40v0.0.1/publisher-command-center.tar.gz",
-          "minimumConnectVersion": "2025.04.0"
+          "minimumConnectVersion": "2025.04.0",
+          "requiredEnvironment": {
+            "python": {
+              "requires": "~=3.8"
+            }
+          }
         }
       ]
     },
@@ -180,14 +240,24 @@
         "version": "1.0.0",
         "released": "2025-04-14T18:38:38Z",
         "url": "https://github.com/posit-dev/connect-extensions/releases/download/quarto-stock-report-python%40v1.0.0/quarto-stock-report-python.tar.gz",
-        "minimumConnectVersion": "2025.04.0"
+        "minimumConnectVersion": "2025.04.0",
+        "requiredEnvironment": {
+          "python": {
+            "requires": "~=3.9"
+          }
+        }
       },
       "versions": [
         {
           "version": "1.0.0",
           "released": "2025-04-14T18:38:38Z",
           "url": "https://github.com/posit-dev/connect-extensions/releases/download/quarto-stock-report-python%40v1.0.0/quarto-stock-report-python.tar.gz",
-          "minimumConnectVersion": "2025.04.0"
+          "minimumConnectVersion": "2025.04.0",
+          "requiredEnvironment": {
+            "python": {
+              "requires": "~=3.9"
+            }
+          }
         }
       ]
     },
@@ -200,20 +270,35 @@
         "version": "0.0.2",
         "released": "2025-04-16T22:32:48Z",
         "url": "https://github.com/posit-dev/connect-extensions/releases/download/reaper%40v0.0.2/reaper.tar.gz",
-        "minimumConnectVersion": "2025.04.0"
+        "minimumConnectVersion": "2025.04.0",
+        "requiredEnvironment": {
+          "python": {
+            "requires": "~=3.8"
+          }
+        }
       },
       "versions": [
         {
           "version": "0.0.2",
           "released": "2025-04-16T22:32:48Z",
           "url": "https://github.com/posit-dev/connect-extensions/releases/download/reaper%40v0.0.2/reaper.tar.gz",
-          "minimumConnectVersion": "2025.04.0"
+          "minimumConnectVersion": "2025.04.0",
+          "requiredEnvironment": {
+            "python": {
+              "requires": "~=3.8"
+            }
+          }
         },
         {
           "version": "0.0.1",
           "released": "2025-03-19T22:59:58Z",
           "url": "https://github.com/posit-dev/connect-extensions/releases/download/reaper%40v0.0.1/reaper.tar.gz",
-          "minimumConnectVersion": "2025.04.0"
+          "minimumConnectVersion": "2025.04.0",
+          "requiredEnvironment": {
+            "python": {
+              "requires": "~=3.8"
+            }
+          }
         }
       ]
     },
@@ -226,14 +311,24 @@
         "version": "1.0.0",
         "released": "2025-04-24T18:56:34Z",
         "url": "https://github.com/posit-dev/connect-extensions/releases/download/stock-api-fastapi%40v1.0.0/stock-api-fastapi.tar.gz",
-        "minimumConnectVersion": "2025.04.0"
+        "minimumConnectVersion": "2025.04.0",
+        "requiredEnvironment": {
+          "python": {
+            "requires": "~=3.11"
+          }
+        }
       },
       "versions": [
         {
           "version": "1.0.0",
           "released": "2025-04-24T18:56:34Z",
           "url": "https://github.com/posit-dev/connect-extensions/releases/download/stock-api-fastapi%40v1.0.0/stock-api-fastapi.tar.gz",
-          "minimumConnectVersion": "2025.04.0"
+          "minimumConnectVersion": "2025.04.0",
+          "requiredEnvironment": {
+            "python": {
+              "requires": "~=3.11"
+            }
+          }
         }
       ],
       "tags": []
@@ -247,14 +342,24 @@
         "version": "1.0.0",
         "released": "2025-04-24T19:12:11Z",
         "url": "https://github.com/posit-dev/connect-extensions/releases/download/stock-api-flask%40v1.0.0/stock-api-flask.tar.gz",
-        "minimumConnectVersion": "2025.04.0"
+        "minimumConnectVersion": "2025.04.0",
+        "requiredEnvironment": {
+          "python": {
+            "requires": "~=3.10"
+          }
+        }
       },
       "versions": [
         {
           "version": "1.0.0",
           "released": "2025-04-24T19:12:11Z",
           "url": "https://github.com/posit-dev/connect-extensions/releases/download/stock-api-flask%40v1.0.0/stock-api-flask.tar.gz",
-          "minimumConnectVersion": "2025.04.0"
+          "minimumConnectVersion": "2025.04.0",
+          "requiredEnvironment": {
+            "python": {
+              "requires": "~=3.10"
+            }
+          }
         }
       ],
       "tags": []
@@ -268,14 +373,24 @@
         "version": "1.0.0",
         "released": "2025-04-25T18:11:56Z",
         "url": "https://github.com/posit-dev/connect-extensions/releases/download/stock-api-plumber%40v1.0.0/stock-api-plumber.tar.gz",
-        "minimumConnectVersion": "2025.04.0"
+        "minimumConnectVersion": "2025.04.0",
+        "requiredEnvironment": {
+          "r": {
+            "requires": "~=4.4"
+          }
+        }
       },
       "versions": [
         {
           "version": "1.0.0",
           "released": "2025-04-25T18:11:56Z",
           "url": "https://github.com/posit-dev/connect-extensions/releases/download/stock-api-plumber%40v1.0.0/stock-api-plumber.tar.gz",
-          "minimumConnectVersion": "2025.04.0"
+          "minimumConnectVersion": "2025.04.0",
+          "requiredEnvironment": {
+            "r": {
+              "requires": "~=4.4"
+            }
+          }
         }
       ],
       "tags": []

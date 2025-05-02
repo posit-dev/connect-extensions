@@ -143,14 +143,21 @@ Here is an example of what needs to be included in a `manifest.json`:
   ...
   "environment": {
     "python": {
-      "requires": ">=3.8, <4"
+      "requires": "~=3.8"
     },
     "r": {
-      "requires": ">=4.2, <5"
+      "requires": "~=4.2"
     }
   }
 }
 ```
+
+It is recommended to use the `~=` operator to specify the version of the
+language(s) that the content requires for concise display in the Connect Gallery
+UI.
+
+`~=` is the "Compatible release" operator. `~=4.2` means "any version greater
+than or equal to 4.2 but less than 5.0".
 
 ## Adding content to the Connect Gallery
 

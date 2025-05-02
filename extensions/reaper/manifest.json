@@ -15,7 +15,7 @@
   },
   "environment": {
     "python": {
-      "requires": ">=3.8, <4"
+      "requires": "~=3.8"
     }
   },
   "files": {

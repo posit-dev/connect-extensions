@@ -14,7 +14,7 @@
   },
   "environment": {
     "python": {
-      "requires": ">=3.9, <4"
+      "requires": "~=3.9"
     }
   },
   "quarto": {

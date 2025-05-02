@@ -1,3 +1,13 @@
+export interface LanguageRequirement {
+  requires: string;
+}
+
+export interface ExtensionEnvironment {
+  python?: LanguageRequirement;
+  r?: LanguageRequirement;
+  quarto?: LanguageRequirement;
+}
+
 export interface ExtensionManifest {
   extension: {
     name: string;
@@ -9,6 +19,7 @@ export interface ExtensionManifest {
     requiredFeatures?: RequiredFeature[];
     tags?: string[];
   };
+  environment?: ExtensionEnvironment;
 }
 
 export enum RequiredFeature {
@@ -23,6 +34,7 @@ export interface ExtensionVersion {
   url: string;
   minimumConnectVersion: string;
   requiredFeatures?: RequiredFeature[];
+  requiredEnvironment?: ExtensionEnvironment;
 }
 
 export interface Extension {
