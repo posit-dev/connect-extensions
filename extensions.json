@@ -47,6 +47,9 @@
         "released": "2025-04-24T19:38:18Z",
         "url": "https://github.com/posit-dev/connect-extensions/releases/download/fastapitableau-example%40v1.0.0/fastapitableau-example.tar.gz",
         "minimumConnectVersion": "2025.04.0",
+        "requiredFeatures": [
+          "API Publishing"
+        ],
         "requiredEnvironment": {
           "python": {
             "requires": "~=3.9"
@@ -59,6 +62,9 @@
           "released": "2025-04-24T19:38:18Z",
           "url": "https://github.com/posit-dev/connect-extensions/releases/download/fastapitableau-example%40v1.0.0/fastapitableau-example.tar.gz",
           "minimumConnectVersion": "2025.04.0",
+          "requiredFeatures": [
+            "API Publishing"
+          ],
           "requiredEnvironment": {
             "python": {
               "requires": "~=3.9"
@@ -99,6 +105,9 @@
         "released": "2025-04-29T18:05:16Z",
         "url": "https://github.com/posit-dev/connect-extensions/releases/download/plumbertableau-example%40v1.0.0/plumbertableau-example.tar.gz",
         "minimumConnectVersion": "2025.04.0",
+        "requiredFeatures": [
+          "API Publishing"
+        ],
         "requiredEnvironment": {
           "r": {
             "requires": "~=4.4"
@@ -111,6 +120,9 @@
           "released": "2025-04-29T18:05:16Z",
           "url": "https://github.com/posit-dev/connect-extensions/releases/download/plumbertableau-example%40v1.0.0/plumbertableau-example.tar.gz",
           "minimumConnectVersion": "2025.04.0",
+          "requiredFeatures": [
+            "API Publishing"
+          ],
           "requiredEnvironment": {
             "r": {
               "requires": "~=4.4"
@@ -191,6 +203,10 @@
         "released": "2025-03-19T23:00:09Z",
         "url": "https://github.com/posit-dev/connect-extensions/releases/download/publisher-command-center%40v0.0.1/publisher-command-center.tar.gz",
         "minimumConnectVersion": "2025.04.0",
+        "requiredFeatures": [
+          "API Publishing",
+          "OAuth Integrations"
+        ],
         "requiredEnvironment": {
           "python": {
             "requires": "~=3.8"
@@ -203,6 +219,10 @@
           "released": "2025-03-19T23:00:09Z",
           "url": "https://github.com/posit-dev/connect-extensions/releases/download/publisher-command-center%40v0.0.1/publisher-command-center.tar.gz",
           "minimumConnectVersion": "2025.04.0",
+          "requiredFeatures": [
+            "API Publishing",
+            "OAuth Integrations"
+          ],
           "requiredEnvironment": {
             "python": {
               "requires": "~=3.8"
@@ -312,6 +332,9 @@
         "released": "2025-04-24T18:56:34Z",
         "url": "https://github.com/posit-dev/connect-extensions/releases/download/stock-api-fastapi%40v1.0.0/stock-api-fastapi.tar.gz",
         "minimumConnectVersion": "2025.04.0",
+        "requiredFeatures": [
+          "API Publishing"
+        ],
         "requiredEnvironment": {
           "python": {
             "requires": "~=3.11"
@@ -324,6 +347,9 @@
           "released": "2025-04-24T18:56:34Z",
           "url": "https://github.com/posit-dev/connect-extensions/releases/download/stock-api-fastapi%40v1.0.0/stock-api-fastapi.tar.gz",
           "minimumConnectVersion": "2025.04.0",
+          "requiredFeatures": [
+            "API Publishing"
+          ],
           "requiredEnvironment": {
             "python": {
               "requires": "~=3.11"
@@ -343,6 +369,9 @@
         "released": "2025-04-24T19:12:11Z",
         "url": "https://github.com/posit-dev/connect-extensions/releases/download/stock-api-flask%40v1.0.0/stock-api-flask.tar.gz",
         "minimumConnectVersion": "2025.04.0",
+        "requiredFeatures": [
+          "API Publishing"
+        ],
         "requiredEnvironment": {
           "python": {
             "requires": "~=3.10"
@@ -355,6 +384,9 @@
           "released": "2025-04-24T19:12:11Z",
           "url": "https://github.com/posit-dev/connect-extensions/releases/download/stock-api-flask%40v1.0.0/stock-api-flask.tar.gz",
           "minimumConnectVersion": "2025.04.0",
+          "requiredFeatures": [
+            "API Publishing"
+          ],
           "requiredEnvironment": {
             "python": {
               "requires": "~=3.10"
@@ -374,6 +406,9 @@
         "released": "2025-04-25T18:11:56Z",
         "url": "https://github.com/posit-dev/connect-extensions/releases/download/stock-api-plumber%40v1.0.0/stock-api-plumber.tar.gz",
         "minimumConnectVersion": "2025.04.0",
+        "requiredFeatures": [
+          "API Publishing"
+        ],
         "requiredEnvironment": {
           "r": {
             "requires": "~=4.4"
@@ -386,6 +421,9 @@
           "released": "2025-04-25T18:11:56Z",
           "url": "https://github.com/posit-dev/connect-extensions/releases/download/stock-api-plumber%40v1.0.0/stock-api-plumber.tar.gz",
           "minimumConnectVersion": "2025.04.0",
+          "requiredFeatures": [
+            "API Publishing"
+          ],
           "requiredEnvironment": {
             "r": {
               "requires": "~=4.4"
