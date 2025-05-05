@@ -190,7 +190,7 @@ ui <- function(request) {
 
       # TODO: Possibly remove or hide in a "Troubleshooting" or Advanced
       # accordion section
-      actionButton("clear_cache", "Clear Cache", icon = icon("refresh")),
+      actionLink("clear_cache", "Clear Cache", icon = icon("refresh")),
     ),
 
     # Main content views ----
@@ -384,8 +384,8 @@ server <- function(input, output, session) {
   cache <- cachem::cache_disk("./app_cache/cache/")
   observeEvent(input$clear_cache, {
     print("Cache cleared!")
-    cache$reset() # Clears all cached data
-    session$reload() # Reload the app to ensure fresh data
+    cache$reset()
+    session$reload()
   })
 
   # Visit Merge Window controls: sync slider and text input ----

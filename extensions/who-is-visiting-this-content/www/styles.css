@@ -47,3 +47,10 @@
 #visit_merge_window_text {
   margin-top: -10px;
 }
+
+/* App styles */
+
+a.action-button {
+  text-decoration: none;
+  white-space: nowrap;
+}
