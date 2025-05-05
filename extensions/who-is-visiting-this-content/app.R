@@ -18,7 +18,14 @@ source("get_usage.R")
 
 app_mode_groups <- list(
   "API" = c("api", "python-fastapi", "python-api", "tensorflow-saved-model"),
-  "Application" = c("shiny", "python-shiny", "python-dash", "python-gradio", "python-streamlit", "python-bokeh"),
+  "Application" = c(
+    "shiny",
+    "python-shiny",
+    "python-dash",
+    "python-gradio",
+    "python-streamlit",
+    "python-bokeh"
+  ),
   "Jupyter" = c("jupyter-static", "jupyter-voila"),
   "Quarto" = c("quarto-shiny", "quarto-static"),
   "R Markdown" = c("rmd-shiny", "rmd-static"),
@@ -26,7 +33,13 @@ app_mode_groups <- list(
   "Other" = c("unknown")
 )
 
-bar_chart <- function(value, max_val, height = "1rem", fill = "#00bfc4", background = NULL) {
+bar_chart <- function(
+  value,
+  max_val,
+  height = "1rem",
+  fill = "#00bfc4",
+  background = NULL
+) {
   width <- paste0(value * 100 / max_val, "%")
   value <- format(value, width = nchar(max_val), justify = "right")
   bar <- div(class = "bar", style = list(background = fill, width = width))
@@ -37,14 +50,17 @@ bar_chart <- function(value, max_val, height = "1rem", fill = "#00bfc4", backgro
 
 full_url <- function(session) {
   paste0(
-    session$clientData$url_protocol, "//",
+    session$clientData$url_protocol,
+    "//",
     session$clientData$url_hostname,
-    if (nzchar(session$clientData$url_port)) paste0(":", session$clientData$url_port),
+    if (nzchar(session$clientData$url_port))
+      paste0(":", session$clientData$url_port),
     session$clientData$url_pathname
   )
 }
 
-content_usage_table_search_method = JS("
+content_usage_table_search_method = JS(
+  "
   function(rows, columnIds, searchValue) {
     const searchLower = searchValue.toLowerCase();
     const searchColumns = ['title', 'dashboard_url', 'content_guid', 'owner_username'];
@@ -59,7 +75,8 @@ content_usage_table_search_method = JS("
       });
     });
   }
-")
+"
+)
 
 ui <- function(request) {
   page_sidebar(
@@ -244,21 +261,24 @@ ui <- function(request) {
 
     # Used to update the selected content GUID in locations other than the table
     # row click.
-    tags$script("
+    tags$script(
+      "
       Shiny.addCustomMessageHandler('set_input_value', function(args) {
         Shiny.setInputValue(args[0], args[1], {priority: 'event'});
       });
-    ")
+    "
+    )
   )
 }
 
 server <- function(input, output, session) {
-
   # Set up Connect client; handle error if Visitor API Key integration isn't
   # present.
   client <- NULL
   tryCatch(
-    client <- connect(token = session$request$HTTP_POSIT_CONNECT_USER_SESSION_TOKEN),
+    client <- connect(
+      token = session$request$HTTP_POSIT_CONNECT_USER_SESSION_TOKEN
+    ),
     error = function(e) {
       showModal(modalDialog(
         title = "Additional Setup Required",
@@ -288,9 +308,13 @@ server <- function(input, output, session) {
   # reacts appropriately to the selection state.
   selected_guid <- reactiveVal(NULL)
 
-  observeEvent(input$content_guid, {
-    selected_guid(input$content_guid)
-  }, ignoreNULL = FALSE)
+  observeEvent(
+    input$content_guid,
+    {
+      selected_guid(input$content_guid)
+    },
+    ignoreNULL = FALSE
+  )
 
   # Bookmarking ----
 
@@ -309,15 +333,25 @@ server <- function(input, output, session) {
       session$sendCustomMessage("set_input_value", list('content_guid', guid))
     }
   })
-  observeEvent(input$content_guid, {
-    req(input$content_guid %in% content()$guid)
-    session$doBookmark()
-  }, ignoreInit = TRUE)
+  observeEvent(
+    input$content_guid,
+    {
+      req(input$content_guid %in% content()$guid)
+      session$doBookmark()
+    },
+    ignoreInit = TRUE
+  )
 
   # Use selection state to toggle visibility of main views.
   observe({
-    shinyjs::toggle(id = "multi_content_table", condition = is.null(selected_guid()))
-    shinyjs::toggle(id = "single_content_detail", condition = !is.null(selected_guid()))
+    shinyjs::toggle(
+      id = "multi_content_table",
+      condition = is.null(selected_guid())
+    )
+    shinyjs::toggle(
+      id = "single_content_detail",
+      condition = !is.null(selected_guid())
+    )
   })
 
   # Clicking the back button clears the selected GUID.
@@ -348,8 +382,8 @@ server <- function(input, output, session) {
   cache <- cachem::cache_disk("./app_cache/cache/")
   observeEvent(input$clear_cache, {
     print("Cache cleared!")
-    cache$reset()  # Clears all cached data
-    session$reload()  # Reload the app to ensure fresh data
+    cache$reset() # Clears all cached data
+    session$reload() # Reload the app to ensure fresh data
   })
 
   # Visit Merge Window controls: sync slider and text input ----
@@ -357,7 +391,11 @@ server <- function(input, output, session) {
   observeEvent(input$visit_merge_window, {
     if (input$visit_merge_window != input$visit_merge_window_text) {
       freezeReactiveValue(input, "visit_merge_window_text")
-      updateTextInput(session, "visit_merge_window_text", value = input$visit_merge_window)
+      updateTextInput(
+        session,
+        "visit_merge_window_text",
+        value = input$visit_merge_window
+      )
     }
   })
 
@@ -371,7 +409,11 @@ server <- function(input, output, session) {
     } else {
       if (input$visit_merge_window_text != input$visit_merge_window) {
         freezeReactiveValue(input, "visit_merge_window_text")
-        updateTextInput(session, "visit_merge_window_text", value = input$visit_merge_window)
+        updateTextInput(
+          session,
+          "visit_merge_window_text",
+          value = input$visit_merge_window
+        )
       }
     }
   })
@@ -401,7 +443,11 @@ server <- function(input, output, session) {
 
   # Sync table to sidebar
   observe({
-    selected_guids_reactable <- aggregated_visits_reactable_data()[getReactableState("aggregated_visits", "selected"), "user_guid", drop = TRUE]
+    selected_guids_reactable <- aggregated_visits_reactable_data()[
+      getReactableState("aggregated_visits", "selected"),
+      "user_guid",
+      drop = TRUE
+    ]
     # Get indices of selected reactable GUIDs from the main table
     all_guids <- aggregated_visits_data()$"user_guid"
     selected_guids <- all_guids[which(all_guids %in% selected_guids_reactable)]
@@ -413,12 +459,15 @@ server <- function(input, output, session) {
   })
 
   # Sync sidebar to table
-  observeEvent(input$selected_users, {
-    all_guids_reactable <- aggregated_visits_reactable_data()$user_guid
-    selected_indices <- which(all_guids_reactable %in% input$selected_users)
-    updateReactable("aggregated_visits", selected = selected_indices)
-  }, ignoreNULL = FALSE)
-
+  observeEvent(
+    input$selected_users,
+    {
+      all_guids_reactable <- aggregated_visits_reactable_data()$user_guid
+      selected_indices <- which(all_guids_reactable %in% input$selected_users)
+      updateReactable("aggregated_visits", selected = selected_indices)
+    },
+    ignoreNULL = FALSE
+  )
 
   # Load and processing data ----
 
@@ -429,7 +478,8 @@ server <- function(input, output, session) {
   # Allow the user to control the content they can see.
   active_user_role <- active_user_info$user_role
 
-  scope_choices <- switch(active_user_role,
+  scope_choices <- switch(
+    active_user_role,
     "administrator" = list(
       "All Content" = "all",
       "Owned + Collaborating" = "edit",
@@ -443,17 +493,24 @@ server <- function(input, output, session) {
 
   observe({
     req(scope_choices)
-    updateSelectizeInput(session, "content_scope", choices = scope_choices, selected = scope_choices[1])
+    updateSelectizeInput(
+      session,
+      "content_scope",
+      choices = scope_choices,
+      selected = scope_choices[1]
+    )
   })
 
   content_unscoped <- reactive({
     get_content(client)
-  }) |> bindCache(active_user_guid)
+  }) |>
+    bindCache(active_user_guid)
 
   content <- reactive({
     req(input$content_scope)
 
-    switch(input$content_scope,
+    switch(
+      input$content_scope,
       "all" = content_unscoped(),
       "view" = content_unscoped() |> filter(app_role != "none"),
       "edit" = content_unscoped() |> filter(app_role %in% c("owner", "editor")),
@@ -462,11 +519,15 @@ server <- function(input, output, session) {
   })
 
   date_range <- reactive({
-    switch(input$date_range_choice,
+    switch(
+      input$date_range_choice,
       "1 Week" = list(from = today() - days(6), to = today()),
       "30 Days" = list(from = today() - days(29), to = today()),
       "90 Days" = list(from = today() - days(89), to = today()),
-      "Custom" = list(from = input$date_range_custom[1], to = input$date_range_custom[2])
+      "Custom" = list(
+        from = input$date_range_custom[1],
+        to = input$date_range_custom[2]
+      )
     )
   })
 
@@ -477,7 +538,8 @@ server <- function(input, output, session) {
         display_name = paste0(full_name, " (", username, ")")
       ) |>
       select(user_guid = guid, full_name, username, display_name, email)
-  }) |> bindCache(active_user_guid)
+  }) |>
+    bindCache(active_user_guid)
 
   usage_data_raw <- reactive({
     req(active_user_role %in% c("administrator", "publisher"))
@@ -486,7 +548,8 @@ server <- function(input, output, session) {
       from = date_range()$from,
       to = date_range()$to
     )
-  }) |> bindCache(active_user_guid, date_range())
+  }) |>
+    bindCache(active_user_guid, date_range())
 
   # Multi-content table data ----
 
@@ -496,7 +559,7 @@ server <- function(input, output, session) {
     scope_filtered_usage <- usage_data_raw() |>
       filter(content_guid %in% content()$guid)
 
-    app_mode_filtered_usage <- if (length(input$app_mode_filter ) == 0) {
+    app_mode_filtered_usage <- if (length(input$app_mode_filter) == 0) {
       scope_filtered_usage
     } else {
       app_modes <- unlist(app_mode_groups[input$app_mode_filter])
@@ -550,7 +613,15 @@ server <- function(input, output, session) {
       right_join(daily_usage, by = "content_guid") |>
       replace_na(list(title = "[Deleted]")) |>
       arrange(desc(total_views)) |>
-      select(title, dashboard_url, content_guid, owner_username, total_views, sparkline, unique_viewers)
+      select(
+        title,
+        dashboard_url,
+        content_guid,
+        owner_username,
+        total_views,
+        sparkline,
+        unique_viewers
+      )
   })
 
   # Multi-content table UI and outputs ----
@@ -577,11 +648,13 @@ server <- function(input, output, session) {
     reactable(
       data,
       defaultSortOrder = "desc",
-      onClick = JS("function(rowInfo, colInfo) {
+      onClick = JS(
+        "function(rowInfo, colInfo) {
         if (rowInfo && rowInfo.row && rowInfo.row.content_guid) {
           Shiny.setInputValue('content_guid', rowInfo.row.content_guid, {priority: 'event'});
         }
-      }"),
+      }"
+      ),
       pagination = TRUE,
       defaultPageSize = 25,
       sortable = TRUE,
@@ -601,7 +674,8 @@ server <- function(input, output, session) {
           name = "Content",
           defaultSortOrder = "asc",
           style = function(value) {
-            switch(value,
+            switch(
+              value,
               "[Untitled]" = list(fontStyle = "italic"),
               "[Deleted]" = list(fontStyle = "italic", color = "#808080"),
               NULL
@@ -632,11 +706,18 @@ server <- function(input, output, session) {
           show = input$show_guid,
           class = "number",
           cell = function(value) {
-            div(style = list(whiteSpace = "normal", wordBreak = "break-all"), value)
+            div(
+              style = list(whiteSpace = "normal", wordBreak = "break-all"),
+              value
+            )
           }
         ),
 
-        owner_username = colDef(name = "Owner", defaultSortOrder = "asc", minWidth = 75),
+        owner_username = colDef(
+          name = "Owner",
+          defaultSortOrder = "asc",
+          minWidth = 75
+        ),
 
         total_views = colDef(
           name = "Visits",
@@ -780,8 +861,12 @@ server <- function(input, output, session) {
           sortable = FALSE,
           cell = function(url) {
             if (is.na(url) || url == "") return("")
-            subject <- glue::glue("\"{selected_content_info()$title}\" on Posit Connect")
-            mailto <- glue::glue("mailto:{url}?subject={URLencode(subject, reserved = TRUE)}")
+            subject <- glue::glue(
+              "\"{selected_content_info()$title}\" on Posit Connect"
+            )
+            mailto <- glue::glue(
+              "mailto:{url}?subject={URLencode(subject, reserved = TRUE)}"
+            )
             HTML(as.character(tags$div(
               onclick = "event.stopPropagation()",
               tags$a(
@@ -831,20 +916,24 @@ server <- function(input, output, session) {
       users <- aggregated_visits_data() |>
         filter(user_guid %in% input$selected_users) |>
         pull(display_name)
-      user_string <- if (length(users) == 1) users else "multiple selected users"
+      user_string <- if (length(users) == 1) users else
+        "multiple selected users"
       tagList(
         HTML(glue::glue(
           "{nrow(hits)} visits from <b>{user_string}</b> between ",
           "{date_range()$from} and {date_range()$to}."
         )),
-        actionLink("clear_selection", glue::glue("Clear filter"), icon = icon("times"))
+        actionLink(
+          "clear_selection",
+          glue::glue("Clear filter"),
+          icon = icon("times")
+        )
       )
     } else {
-        glue::glue(
-          "{nrow(hits)} total visits between ",
-          "{date_range()$from} and {date_range()$to}."
-        )
-
+      glue::glue(
+        "{nrow(hits)} total visits between ",
+        "{date_range()$from} and {date_range()$to}."
+      )
     }
   })
 
@@ -876,7 +965,10 @@ server <- function(input, output, session) {
   output$owner_info <- renderText({
     req(selected_content_info())
     if (nrow(selected_content_info()) == 1) {
-      owner <- filter(users(), user_guid == selected_content_info()$owner[[1]]$guid)
+      owner <- filter(
+        users(),
+        user_guid == selected_content_info()$owner[[1]]$guid
+      )
       glue::glue("Owner: {owner$display_name}")
     }
   })
@@ -885,7 +977,9 @@ server <- function(input, output, session) {
     owner_email <- users() |>
       filter(user_guid == selected_content_info()$owner[[1]]$guid) |>
       pull(email)
-    subject <- glue::glue("\"{selected_content_info()$title}\" on Posit Connect")
+    subject <- glue::glue(
+      "\"{selected_content_info()$title}\" on Posit Connect"
+    )
     mailto <- glue::glue(
       "mailto:{owner_email}",
       "?subject={URLencode(subject, reserved = TRUE)}"
@@ -911,7 +1005,9 @@ server <- function(input, output, session) {
 
     disabled <- if (length(emails) == 0) "disabled" else NULL
 
-    subject <- glue::glue("\"{selected_content_info()$title}\" on Posit Connect")
+    subject <- glue::glue(
+      "\"{selected_content_info()$title}\" on Posit Connect"
+    )
     mailto <- glue::glue(
       "mailto:{paste(emails, collapse = ',')}",
       "?subject={URLencode(subject, reserved = TRUE)}"
@@ -921,7 +1017,8 @@ server <- function(input, output, session) {
       type = "button",
       class = "btn btn-sm btn-outline-secondary",
       disabled = disabled,
-      onclick = if (is.null(disabled)) sprintf("window.location.href='%s'", mailto) else NULL,
+      onclick = if (is.null(disabled))
+        sprintf("window.location.href='%s'", mailto) else NULL,
       tagList(icon("envelope"), "Email Selected Visitors")
     )
   })
@@ -941,7 +1038,11 @@ server <- function(input, output, session) {
   output$daily_visits_plot <- renderPlotly({
     p <- ggplot(
       daily_hit_data(),
-      aes(x = date, y = daily_visits, text = paste("Date:", date, "<br>Visits:", daily_visits))
+      aes(
+        x = date,
+        y = daily_visits,
+        text = paste("Date:", date, "<br>Visits:", daily_visits)
+      )
     ) +
       geom_bar(stat = "identity", fill = "#447099") +
       labs(y = "Visits", x = "Date") +
@@ -950,7 +1051,6 @@ server <- function(input, output, session) {
   })
 
   output$visit_timeline_plot <- renderPlotly({
-
     visit_order <- aggregated_visits_data()$display_name
     data <- all_visits_data() |>
       mutate(display_name = factor(display_name, levels = rev(visit_order)))
@@ -959,7 +1059,11 @@ server <- function(input, output, session) {
     to <- as.POSIXct(paste(date_range()$to, "23:59:59"), tz = "")
     p <- ggplot(
       data,
-      aes(x = timestamp, y = display_name, text = paste("Timestamp:", timestamp))
+      aes(
+        x = timestamp,
+        y = display_name,
+        text = paste("Timestamp:", timestamp)
+      )
     ) +
       geom_point(color = "#447099") +
       # Plotly output does not yet support `position = "top"`, but it should be
@@ -973,12 +1077,11 @@ server <- function(input, output, session) {
 
   output$visit_timeline_ui <- renderUI({
     n_users <- length(unique(all_visits_data()$display_name))
-    row_height <- 20  # visual pitch per user
-    label_buffer <- 50  # additional padding for y-axis labels
-    toolbar_buffer <- 80  # plotly toolbar & margins
+    row_height <- 20 # visual pitch per user
+    label_buffer <- 50 # additional padding for y-axis labels
+    toolbar_buffer <- 80 # plotly toolbar & margins
 
-    height_px <- n_users * row_height +
-                label_buffer + toolbar_buffer
+    height_px <- n_users * row_height + label_buffer + toolbar_buffer
 
     plotlyOutput("visit_timeline_plot", height = paste0(height_px, "px"))
   })
@@ -991,10 +1094,16 @@ server <- function(input, output, session) {
     } else {
       div(
         style = "display: flex; justify-content: space-between; gap: 1rem; align-items: baseline;",
-        actionButton("clear_content_selection", "Back", icon("arrow-left"), class = "btn btn-sm", style = "white-space: nowrap;"),
+        actionButton(
+          "clear_content_selection",
+          "Back",
+          icon("arrow-left"),
+          class = "btn btn-sm",
+          style = "white-space: nowrap;"
+        ),
         span(
-            "Usage / ",
-            textOutput("content_title", inline = TRUE)
+          "Usage / ",
+          textOutput("content_title", inline = TRUE)
         ),
         code(
           class = "text-muted",
