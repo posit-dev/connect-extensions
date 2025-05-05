@@ -11,7 +11,7 @@ library(ggplot2)
 library(plotly)
 
 shinyOptions(
-  cache = cachem::cache_disk("./app_cache/cache/", max_age = 60 * 60 * 8)
+  cache = cachem::cache_disk("./app_cache/cache/", max_age = 60 * 60)
 )
 
 source("get_usage.R")
