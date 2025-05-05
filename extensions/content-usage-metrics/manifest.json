@@ -3123,17 +3123,17 @@
   },
   "users": null,
   "extension": {
-    "name": "content-usage-metrics-dashboard",
-    "title": "Content Usage Metrics Dashboard",
-    "description": "See what content is popular on your Connect instance. Dive into details for a content item to learn who's viewing it, and when.",
-    "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/who-is-visiting-this-content",
-    "tags": ["R", "shiny", "usage-metrics"],
+    "name": "content-usage-metrics",
+    "title": "Content Usage Metrics",
+    "description": "understand content usage patterns on your Connect server. Browse an overview of usage across your published content, and dive into a detailed breakdown of visit-level data for each piece of content.",
+    "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/content-usage-metrics",
+    "tags": [],
     "minimumConnectVersion": "2025.04.0",
-    "version": "0.0.0"
+    "version": "1.0.0"
   },
   "environment": {
     "r": {
-      "requires": ">=4.3, <5"
+      "requires": "~=4.3"
     }
   }
 }
