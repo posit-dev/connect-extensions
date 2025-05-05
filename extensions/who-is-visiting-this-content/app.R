@@ -120,6 +120,11 @@ ui <- function(request) {
       conditionalPanel(
         "input.content_guid == null",
         selectizeInput(
+          "content_scope",
+          "Included Content",
+          choices = NULL
+        ),
+        selectizeInput(
           "app_mode_filter",
           label = "Filter by Content Type",
           options = list(placeholder = "All Content Types"),
@@ -328,6 +333,16 @@ server <- function(input, output, session) {
     )
   })
 
+  # "Clear filter x" link ----
+
+  observeEvent(input$clear_selection, {
+    updateSelectizeInput(
+      session,
+      "selected_users",
+      selected = NA
+    )
+  })
+
   # Cache invalidation button ----
 
   cache <- cachem::cache_disk("./app_cache/cache/")
@@ -407,22 +422,53 @@ server <- function(input, output, session) {
 
   # Load and processing data ----
 
-  # The cache operates on a per-user basis, since different users see different
-  # content.
-  authed_user_guid <- client$me()$guid
+  active_user_info <- client$me()
 
-  date_range <- reactive({
-    switch(input$date_range_choice,
-            "1 Week" = list(from = today() - days(6), to = today()),
-            "30 Days" = list(from = today() - days(29), to = today()),
-            "90 Days" = list(from = today() - days(89), to = today()),
-            "Custom" = list(from = input$date_range_custom[1], to = input$date_range_custom[2])
+  active_user_guid <- active_user_info$guid
+
+  # Allow the user to control the content they can see.
+  active_user_role <- active_user_info$user_role
+
+  scope_choices <- switch(active_user_role,
+    "administrator" = list(
+      "All Content" = "all",
+      "Owned + Collaborating" = "edit",
+      "Owned" = "own"
+    ),
+    list(
+      "Owned + Collaborating" = "edit",
+      "Owned" = "own"
+    )
+  )
+
+  observe({
+    req(scope_choices)
+    updateSelectizeInput(session, "content_scope", choices = scope_choices, selected = scope_choices[1])
+  })
+
+  content_unscoped <- reactive({
+    get_content(client)
+  }) |> bindCache(active_user_guid)
+
+  content <- reactive({
+    req(input$content_scope)
+
+    switch(input$content_scope,
+      "all" = content_unscoped(),
+      "view" = content_unscoped() |> filter(app_role != "none"),
+      "edit" = content_unscoped() |> filter(app_role %in% c("owner", "editor")),
+      "own" = content_unscoped() |> filter(owner_guid == active_user_guid)
     )
   })
 
-  content <- reactive({
-    get_content(client)
-  }) |> bindCache(authed_user_guid)
+  date_range <- reactive({
+    switch(input$date_range_choice,
+      "1 Week" = list(from = today() - days(6), to = today()),
+      "30 Days" = list(from = today() - days(29), to = today()),
+      "90 Days" = list(from = today() - days(89), to = today()),
+      "Custom" = list(from = input$date_range_custom[1], to = input$date_range_custom[2])
+    )
+  })
 
   users <- reactive({
     get_users(client) |>
@@ -431,36 +477,41 @@ server <- function(input, output, session) {
         display_name = paste0(full_name, " (", username, ")")
       ) |>
       select(user_guid = guid, full_name, username, display_name, email)
-  }) |> bindCache(authed_user_guid)
+  }) |> bindCache(active_user_guid)
 
   usage_data_raw <- reactive({
+    req(active_user_role %in% c("administrator", "publisher"))
     get_usage(
       client,
       from = date_range()$from,
       to = date_range()$to
     )
-  }) |> bindCache(authed_user_guid, date_range())
+  }) |> bindCache(active_user_guid, date_range())
 
   # Multi-content table data ----
 
-  # Filter the raw data based on app mode and visit merge window
+  # Filter the raw data based on selected scope, app mode and visit merge window
   usage_data_visits <- reactive({
-    filtered_data <- if (length(input$app_mode_filter ) == 0) {
-      usage_data_raw()
+    req(content())
+    scope_filtered_usage <- usage_data_raw() |>
+      filter(content_guid %in% content()$guid)
+
+    app_mode_filtered_usage <- if (length(input$app_mode_filter ) == 0) {
+      scope_filtered_usage
     } else {
       app_modes <- unlist(app_mode_groups[input$app_mode_filter])
       filter_guids <- content() |>
         filter(app_mode %in% app_modes) |>
         pull(guid)
-      usage_data_raw() |>
+      scope_filtered_usage |>
         filter(content_guid %in% filter_guids)
     }
 
     req(input$visit_merge_window)
     if (input$visit_merge_window == 0) {
-      filtered_data
+      app_mode_filtered_usage
     } else {
-      filtered_data |>
+      app_mode_filtered_usage |>
         group_by(content_guid, user_guid) |>
 
         # Compute time diffs and filter out hits within the session
@@ -474,6 +525,7 @@ server <- function(input, output, session) {
 
   # Create data for the main table and summary export.
   multi_content_table_data <- reactive({
+    req(nrow(usage_data_visits()) > 0)
     usage_summary <- usage_data_visits() |>
       group_by(content_guid) |>
       summarize(
@@ -504,10 +556,19 @@ server <- function(input, output, session) {
   # Multi-content table UI and outputs ----
 
   output$summary_text <- renderText(
-    glue::glue(
-      "{nrow(usage_data_visits())} visits ",
-      "across {nrow(multi_content_table_data())} content items."
-    )
+    if (active_user_role == "viewer") {
+      "Viewer accounts do not have permission to view usage data."
+    } else if (nrow(usage_data_visits()) == 0) {
+      paste(
+        "No usage data available.",
+        "Try adjusting your content filters or date range."
+      )
+    } else {
+      glue::glue(
+        "{nrow(usage_data_visits())} visits ",
+        "across {nrow(multi_content_table_data())} content items."
+      )
+    }
   )
 
   output$content_usage_table <- renderReactable({
