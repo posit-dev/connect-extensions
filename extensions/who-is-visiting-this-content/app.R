@@ -327,9 +327,11 @@ server <- function(input, output, session) {
   })
   onRestore(function(state) {
     guid <- state$input$content_guid
-    print(guid)
-    if (length(guid) == 1 && guid %in% content()$guid) {
-      print("found a guid")
+    # Need to use content_unscoped() here because the input value that content()
+    # depends on is not available yet. And we *can* use it, because the app
+    # always starts up with the widest-selected scope level for a given user,
+    # which corresponds to all the content they can view metrics data for.
+    if (length(guid) == 1 && guid %in% content_unscoped()$guid) {
       session$sendCustomMessage("set_input_value", list('content_guid', guid))
     }
   })
