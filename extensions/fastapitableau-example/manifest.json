@@ -11,6 +11,9 @@
     "description": "fastapitableau is a Python package that enables Python developers to build FastAPI APIs that function as Tableau Analytics Extensions. These extensions can be leveraged from Tableau workbooks to allow real time requests from Tableau to Python. This extension builds on top of Tableau's example Superstore dataset.",
     "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/fastapitableau-example",
     "minimumConnectVersion": "2025.04.0",
+    "requiredFeatures": [
+      "API Publishing"
+    ],
     "version": "1.0.0"
   },
   "environment": {
