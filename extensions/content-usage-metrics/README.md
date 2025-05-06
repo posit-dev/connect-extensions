@@ -1,6 +1,6 @@
 # Content Usage Metrics
 
-A Shiny app that helps you understand content usage patterns on your Connect server. Browse an overview of usage across your published content, and dive into a detailed breakdown of visit-level data for each piece of content.
+A Shiny app that helps you understand usage patterns across your work on Connect. Browse an overview of usage across everything you've published, and dive into detailed breakdowns of data for an individual deployment, down to the level of individual visits.
 
 ## Setup
 

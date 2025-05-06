@@ -3132,6 +3132,9 @@
     "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/content-usage-metrics",
     "tags": [],
     "minimumConnectVersion": "2025.04.0",
+    "requiredFeatures": [
+      "OAuth Integrations"
+    ],
     "version": "1.0.0"
   },
   "environment": {
