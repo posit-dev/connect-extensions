@@ -41,6 +41,7 @@ jobs:
             top-5-income-share-bokeh: extensions/top-5-income-share-bokeh/**
             landing-page: extensions/landing-page/**
             stock-api-fastapi: extensions/stock-api-fastapi/**
+            quarto-presentation: extensions/quarto-presentation/**
             connectwidgets-example: extensions/connectwidgets-example/**
             plumbertableau-example: extensions/plumbertableau-example/**
             fastapitableau-example: extensions/fastapitableau-example/**
