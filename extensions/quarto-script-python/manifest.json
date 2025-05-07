@@ -1,0 +1,58 @@
+{
+  "version": 1,
+  "locale": "en_US.UTF-8",
+  "metadata": {
+    "appmode": "quarto-static"
+  },
+  "extension": {
+    "name": "quarto-script-python",
+    "title": "Run a Python Script using Quarto",
+    "description": "This data transformation script uses Quarto and Python. It is an example of how you might automate regular imports and transformations from a data source. JSON and CSV files are exported and made available for download.",
+    "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/quarto-script-python",
+    "tags": [],
+    "minimumConnectVersion": "2025.04.0",
+    "version": "1.0.0"
+  },
+  "environment": {
+    "python": {
+      "requires": "~=3.8.20"
+    }
+  },
+  "quarto": {
+    "version": "1.6.42",
+    "engines": [
+      "jupyter"
+    ]
+  },
+  "python": {
+    "version": "3.8.20",
+    "package_manager": {
+      "name": "pip",
+      "version": "23.0.1",
+      "package_file": "requirements.txt"
+    }
+  },
+  "files": {
+    "requirements.txt": {
+      "checksum": "5a2845f6ec11bcefce420b49ef94c152"
+    },
+    ".Rprofile": {
+      "checksum": "57f9047cb06fdbef821b61f49e21406e"
+    },
+    ".gitignore": {
+      "checksum": "9658d20c63e9e203b48838ae16556463"
+    },
+    "README.md": {
+      "checksum": "87c06eb724cdf54ed602741c3a82cc71"
+    },
+    "_quarto.yml": {
+      "checksum": "e5bfdf389c2ae3bc115d8f4add41fc2f"
+    },
+    "script.py": {
+      "checksum": "46d490184f5d440c884c6fd28460b54f"
+    },
+    "script.quarto_ipynb": {
+      "checksum": "a20b0aa7344952a23abc8e33e847185c"
+    }
+  }
+}
