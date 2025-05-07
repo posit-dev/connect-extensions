@@ -3,6 +3,7 @@ import asyncio
 from fastapi import FastAPI, Header
 from fastapi.staticfiles import StaticFiles
 from posit import connect
+import os
 
 from cachetools import TTLCache, cached
 
@@ -13,6 +14,24 @@ app = FastAPI()
 # Create cache with TTL=1hour and unlimited size
 client_cache = TTLCache(maxsize=float("inf"), ttl=3600)
 
+@app.get("/api/auth-status")
+async def auth_status(posit_connect_user_session_token: str = Header(None)):
+    """
+    If running on Connect and no token is present, return False.
+    """
+    is_connect = os.getenv("RSTUDIO_PRODUCT") == "CONNECT"
+    print(is_connect)
+    print(posit_connect_user_session_token)
+    if is_connect and not posit_connect_user_session_token:
+        return {
+            "authorized": False,
+            "setupInstructions": (
+                "⚠️ To use this extension on Connect, you must create an "
+                "API Viewer-role OAuth integration in Connect. "
+                "See: https://docs.posit.co/connect/admin/integrations/oauth-integrations"
+            ),
+        }
+    return {"authorized": True}
 
 @cached(client_cache)
 def get_visitor_client(token: str | None) -> connect.Client:

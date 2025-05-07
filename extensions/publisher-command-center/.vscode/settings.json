@@ -5,5 +5,17 @@
   },
   "typescript.tsdk": ".yarn/sdks/typescript/lib",
   "typescript.enablePromptUseWorkspaceTsdk": true,
-  "cSpell.words": ["oninit", "onremove", "vnode"]
+  "cSpell.words": [
+    "oninit",
+    "onremove",
+    "vnode"
+  ],
+  "github.copilot.enable": {
+    "*": false,
+    "quarto": false,
+    "plaintext": false,
+    "markdown": false,
+    "scminput": false,
+    "javascript": false
+  }
 }
