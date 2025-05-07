@@ -31,6 +31,11 @@
     "description": "This Quarto example shows how a basic document can present diagrams and interactivity.",
     "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/quarto-document",
     "minimumConnectVersion": "2025.04.0",
-    "version": "1.0.0"
+    "version": "1.0.1"
+  },
+  "environment": {
+    "quarto": {
+      "requires": "~=1.0"
+    }
   }
 }
