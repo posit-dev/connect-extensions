@@ -18,4 +18,4 @@ attachments.
 ## Requirements
 
 * Quarto version 1.4 or higher
-* Python version 3.8.20 or higher
+* Python version 3.8 or higher
