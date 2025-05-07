@@ -3126,10 +3126,10 @@
   },
   "users": null,
   "extension": {
-    "name": "content-usage-metrics",
-    "title": "Content Usage Metrics",
+    "name": "usage-metrics-dashboard",
+    "title": "Usage Metrics Dashboard",
     "description": "Understand usage patterns across your work on Connect. Browse an overview of usage across everything you've published, and dive into detailed breakdowns of data for an individual deployment, down to the level of individual visits.",
-    "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/content-usage-metrics",
+    "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/usage-metrics-dashboard",
     "tags": [],
     "minimumConnectVersion": "2025.04.0",
     "requiredFeatures": [

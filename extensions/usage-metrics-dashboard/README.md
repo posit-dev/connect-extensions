@@ -1,4 +1,4 @@
-# Content Usage Metrics
+# Usage Metrics Dashboard
 
 A Shiny app that helps you understand usage patterns across your work on Connect. Browse an overview of usage across everything you've published, and dive into detailed breakdowns of data for an individual deployment, down to the level of individual visits.
 
@@ -13,7 +13,7 @@ See the [Admin Guide](https://docs.posit.co/connect/admin/integrations/oauth-int
 
 ## Viewing usage data
 
-The Content Usage Metrics app shows you usage data for your content on the Connect server where it's published. There are two main views: a table that shows you usage overview across pieces of content, and a detail view that breaks down usage for a selected piece of content by visitor and over time. The app's sidebar contains controls to filter the data and adjust how it is displayed. Some controls affect data across the entire app, and some are only available for the table or the detail views.
+The Usage Metrics Dashboard shows you usage data for your content on the Connect server where it's published. There are two main views: a table that shows you usage overview across pieces of content, and a detail view that breaks down usage for a selected piece of content by visitor and over time. The app's sidebar contains controls to filter the data and adjust how it is displayed. Some controls affect data across the entire app, and some are only available for the table or the detail views.
 
 ### Global controls
 
