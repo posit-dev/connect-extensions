@@ -21,13 +21,14 @@ export default {
 
 
     return m("div", [
-      // Authorization instructions when missing token on Connect.
-      !authorized &&
-      m(
-        "div.alert.alert-warning",
-        { style: { margin: "1rem" } },
-        setupInstructions
-      ),
+      // If unauthorized, render only the banner
+      if (!authorized) {
+        return m(
+          "div.alert.alert-warning",
+          { style: { margin: "1rem" } },
+          setupInstructions
+        );
+      }
 
       // Navbar Header
       m("nav.navbar.navbar-expand-lg.bg-light", [
