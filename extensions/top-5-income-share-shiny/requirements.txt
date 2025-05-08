@@ -1,0 +1,5 @@
+shiny==1.0.0
+shinywidgets==0.3.2
+altair==5.3.0
+pandas==2.2.2
+anywidget==0.9.13
