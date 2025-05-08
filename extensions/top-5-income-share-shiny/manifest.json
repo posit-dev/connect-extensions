@@ -10,7 +10,7 @@
     "title": "Top 5% income share using Shiny",
     "description": "A Shiny application makes it easy to transform your analysis into an interactive application using Python so users can ask and answer their own questions in real-time.",
     "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/top-5-income-share-shiny",
-    "tags": [],
+    "tags": ["Jump Start"],
     "minimumConnectVersion": "2025.04.0",
     "version": "1.0.0"
   },
