@@ -1,5 +1,5 @@
 {
-  "tags": [],
+  "tags": ["Jump Start"],
   "requiredFeatures": [
     "API Publishing",
     "OAuth Integrations",
@@ -35,7 +35,7 @@
           }
         }
       ],
-      "tags": []
+      "tags": ["Jump Start"]
     },
     {
       "name": "fastapitableau-example",
@@ -72,7 +72,7 @@
           }
         }
       ],
-      "tags": []
+      "tags": ["Jump Start"]
     },
     {
       "name": "landing-page",
@@ -93,7 +93,7 @@
           "minimumConnectVersion": "2025.04.0"
         }
       ],
-      "tags": []
+      "tags": ["Jump Start"]
     },
     {
       "name": "plumbertableau-example",
@@ -130,7 +130,7 @@
           }
         }
       ],
-      "tags": []
+      "tags": ["Jump Start"]
     },
     {
       "name": "portfolio-dashboard",
@@ -160,7 +160,8 @@
             }
           }
         }
-      ]
+      ],
+      "tags": ["Jump Start"]
     },
     {
       "name": "portfolio-report",
@@ -191,7 +192,7 @@
           }
         }
       ],
-      "tags": []
+      "tags": ["Jump Start"]
     },
     {
       "name": "publisher-command-center",
@@ -287,7 +288,7 @@
           }
         }
       ],
-      "tags": []
+      "tags": ["Jump Start"]
     },
     {
       "name": "quarto-stock-report-python",
@@ -338,7 +339,7 @@
           }
         }
       ],
-      "tags": []
+      "tags": ["Jump Start"]
     },
     {
       "name": "reaper",
@@ -416,7 +417,7 @@
           }
         }
       ],
-      "tags": []
+      "tags": ["Jump Start"]
     },
     {
       "name": "stock-api-flask",
@@ -453,7 +454,7 @@
           }
         }
       ],
-      "tags": []
+      "tags": ["Jump Start"]
     },
     {
       "name": "stock-api-plumber",
@@ -490,7 +491,7 @@
           }
         }
       ],
-      "tags": []
+      "tags": ["Jump Start"]
     },
     {
       "name": "usage-metrics-dashboard",

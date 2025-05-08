@@ -37,5 +37,6 @@
     "quarto": {
       "requires": "~=1.0"
     }
-  }
+  },
+  "tags": ["Jump Start"]
 }

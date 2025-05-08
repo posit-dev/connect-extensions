@@ -18,7 +18,8 @@
     "minimumConnectVersion": "2025.04.0",
     "requiredFeatures": [
       "API Publishing"
-    ]
+    ],
+    "tags": ["Jump Start"]
   },
   "environment": {
     "r": {
