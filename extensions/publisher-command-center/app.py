@@ -3,6 +3,7 @@ import asyncio
 from fastapi import FastAPI, Header
 from fastapi.staticfiles import StaticFiles
 from posit import connect
+from posit.connect.errors import ClientError
 import os
 
 from cachetools import TTLCache, cached
@@ -17,20 +18,20 @@ client_cache = TTLCache(maxsize=float("inf"), ttl=3600)
 @app.get("/api/auth-status")
 async def auth_status(posit_connect_user_session_token: str = Header(None)):
     """
-    If running on Connect and no token is present, return False.
+    If running on Connect, attempt to build a visitor client.
+    If that raises the 212 error (no OAuth integration), return authorized=False.
     """
-    is_connect = os.getenv("RSTUDIO_PRODUCT") == "CONNECT"
-    print(is_connect)
-    print(posit_connect_user_session_token)
-    if is_connect and not posit_connect_user_session_token:
-        return {
-            "authorized": False,
-            "setupInstructions": (
-                "⚠️ To use this extension on Connect, you must create an "
-                "API Viewer-role OAuth integration in Connect. "
-                "See: https://docs.posit.co/connect/admin/integrations/oauth-integrations"
-            ),
-        }
+
+    if os.getenv("RSTUDIO_PRODUCT") == "CONNECT":
+        if not posit_connect_user_session_token:
+            return {"authorized": False}
+        try:
+            get_visitor_client(posit_connect_user_session_token)
+        except ClientError as err:
+            if err.error_code == 212:
+                return {"authorized": False}
+            raise # Other errors bubble up
+
     return {"authorized": True}
 
 @cached(client_cache)

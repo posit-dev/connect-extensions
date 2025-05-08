@@ -1,35 +1,8 @@
 import m from "mithril";
 
 export default {
-  oninit: (vnode) => {
-    vnode.state.auth = {authorized: true, setupInstructions: ""};
-    m.request({
-      method: "GET",
-      url: "/api/auth-status"
-    })
-      .then((res) => {
-        vnode.state.auth = res;
-        m.redraw();
-      })
-      .catch((err) => {
-        console.error("failed to fetch auth-status", err);
-      });
-  },
-
   view: (vnode) => {
-    const { authorized, setupInstructions } = vnode.state.auth;
-
-
     return m("div", [
-      // If unauthorized, render only the banner
-      if (!authorized) {
-        return m(
-          "div.alert.alert-warning",
-          { style: { margin: "1rem" } },
-          setupInstructions
-        );
-      }
-
       // Navbar Header
       m("nav.navbar.navbar-expand-lg.bg-light", [
         m("div.container-xxl", [
