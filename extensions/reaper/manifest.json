@@ -31,8 +31,8 @@
   },
   "extension": {
     "name": "reaper",
-    "title": "Reaper",
-    "description": "A view to a kill.",
+    "title": "Process monitor",
+    "description": "A process management tool for Connect. Monitor running processes for your apps and dashboards: see detailed information about them and terminate them if they are stuck or causing issues.",
     "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/reaper",
     "minimumConnectVersion": "2025.04.0",
     "version": "0.0.2"
