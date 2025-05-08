@@ -58,6 +58,10 @@ To build the frontend for production:
 npm run build
 ```
 
+### Deploying to Connect
+
+When deploying, include `app.py`, `requirements.txt`, and the contents of the `dist` directory created by `npm run build`.
+
 ### Publishing on Connect
 
 This extension utilizes the [Connect API OAuth Integration](https://docs.posit.co/connect/admin/integrations/oauth-integrations/connect/index.html#create-connect-api-integration-in-posit-connect).
