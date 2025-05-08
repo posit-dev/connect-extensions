@@ -49,7 +49,9 @@ PYTEST_ARGS ?= "-s"
 	print-versions \
 	test \
 	up \
-	up-%
+	up-% \
+	up-connect-only-% \
+	down-connect-only-% \
 
 
 # All versions starting with the first Connect version that fully supports extensions and version matching
@@ -240,6 +242,69 @@ up-%: build
 	$(DOCKER_COMPOSE) -p $(PROJECT_NAME)-$(subst .,-,$(CONNECT_VERSION)) up -V --abort-on-container-exit --no-build
 
 
+# Start just the Connect service without tests, useful for testing the infrastructure and containers.
+# Usage: make up-connect-only VERSION=2025.04.0
+up-connect-only:
+	@if [ -z "$(VERSION)" ]; then \
+		echo "Error: VERSION is required."; \
+		echo "Usage: make up-connect-only VERSION=<version>"; \
+		exit 1; \
+	fi
+	@echo "Starting only Connect $(VERSION) in detached mode..."
+	@# Set appropriate image tag based on version
+	@if [ "$(VERSION)" = "preview" ] || [ "$(VERSION)" = "connect-preview" ]; then \
+		DOCKER_CONNECT_IMAGE_TO_USE="$(preview_DOCKER_CONNECT_IMAGE)"; \
+		DOCKER_CONNECT_IMAGE_TAG_TO_USE="$(preview_DOCKER_CONNECT_IMAGE_TAG)"; \
+	else \
+		DOCKER_CONNECT_IMAGE_TO_USE="$(DOCKER_CONNECT_IMAGE)"; \
+		DOCKER_CONNECT_IMAGE_TAG_TO_USE="jammy-$(VERSION)"; \
+	fi; \
+	\
+	EXTENSION_NAME=dummy \
+	PYTEST_ARGS="$(PYTEST_ARGS)" \
+	DOCKER_PROJECT_IMAGE_TAG="$(DOCKER_PROJECT_IMAGE_TAG)" \
+	CONNECT_BOOTSTRAP_SECRETKEY="$(CONNECT_BOOTSTRAP_SECRETKEY)" \
+	CONNECT_VERSION="$(VERSION)" \
+	DOCKER_CONNECT_IMAGE=$$DOCKER_CONNECT_IMAGE_TO_USE \
+	DOCKER_CONNECT_IMAGE_TAG=$$DOCKER_CONNECT_IMAGE_TAG_TO_USE \
+	$(DOCKER_COMPOSE) -f compose.yaml -p $(PROJECT_NAME)-$(subst .,-,$(VERSION)) \
+		up -d connect mailhog
+	
+	@echo "Connect is now running!"
+	@echo "- Web UI: http://localhost:3939"
+	@echo "- Admin: http://localhost:3939/__admin__"
+	@echo "- Mail UI: http://localhost:8025"
+	@echo ""
+	@echo "To stop it: make down-connect-only VERSION=$(VERSION)"
+
+
+# Stop just the Connect service
+# Usage: make down-connect-only VERSION=2025.04.0
+down-connect-only:
+	@if [ -z "$(VERSION)" ]; then \
+			echo "Error: VERSION is required."; \
+			echo "Usage: make down-connect-only VERSION=<version>"; \
+			exit 1; \
+	fi
+	@echo "Stopping Connect $(VERSION)..."
+	@# Set appropriate image tag based on version
+	@if [ "$(VERSION)" = "preview" ] || [ "$(VERSION)" = "connect-preview" ]; then \
+			DOCKER_CONNECT_IMAGE_TO_USE="$(preview_DOCKER_CONNECT_IMAGE)"; \
+			DOCKER_CONNECT_IMAGE_TAG_TO_USE="$(preview_DOCKER_CONNECT_IMAGE_TAG)"; \
+	else \
+			DOCKER_CONNECT_IMAGE_TO_USE="$(DOCKER_CONNECT_IMAGE)"; \
+			DOCKER_CONNECT_IMAGE_TAG_TO_USE="jammy-$(VERSION)"; \
+	fi; \
+	\
+	CONNECT_BOOTSTRAP_SECRETKEY="$(CONNECT_BOOTSTRAP_SECRETKEY)" \
+	CONNECT_VERSION="$(VERSION)" \
+	DOCKER_CONNECT_IMAGE=$$DOCKER_CONNECT_IMAGE_TO_USE \
+	DOCKER_CONNECT_IMAGE_TAG=$$DOCKER_CONNECT_IMAGE_TAG_TO_USE \
+	$(DOCKER_COMPOSE) -p $(PROJECT_NAME)-$(subst .,-,$(VERSION)) down -v connect mailhog
+	
+	@echo "Connect $(VERSION) stopped."
+
+
 # Show available versions
 print-versions:
 	@printf "%s\n" $(strip $(CONNECT_VERSIONS))
@@ -278,6 +343,8 @@ help:
 	@echo "  clean            Clean up the project directory."
 	@echo "  print-versions   Show the available Connect versions."
 	@echo "  package-extension Package an extension into a tar.gz file."
+	@echo "  up-connect-only  Start only the Connect service (detached mode)."
+	@echo "  down-connect-only Stop only the Connect service."
 	@echo "  help             Show this help message."
 	@echo
 	@echo "Required Parameters:"
