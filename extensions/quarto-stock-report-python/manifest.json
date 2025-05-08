@@ -35,26 +35,17 @@
     }
   },
   "files": {
-    "requirements.txt": {
-      "checksum": "1b9e705f62a822cffaa4dc0e988101b4"
-    },
-    ".gitignore": {
-      "checksum": "ae206a13f5875901e752811238e8fdbd"
-    },
-    "README.md": {
-      "checksum": "837f74720c4532629d02fd4bff3df83b"
-    },
     "_quarto.yml": {
       "checksum": "35b4c4c58cce875b126683c525ad40f4"
     },
     "index.qmd": {
       "checksum": "6fb0db80d26eab1544afdcbc91df228b"
     },
-    "index.quarto_ipynb": {
-      "checksum": "04ad8e09510236db1b397038a4c06186"
+    "gspc.csv": {
+      "checksum": "f74c93cd12f334a4923d6fa4d81cdd1e"
     },
-    "thumbnail.jpg": {
-      "checksum": "8db36358d1e9dbab78f8ffef39846eee"
+    "requirements.txt": {
+      "checksum": "1b9e705f62a822cffaa4dc0e988101b4"
     }
   }
 }
