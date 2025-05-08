@@ -1,0 +1,60 @@
+---
+title: Quarto Presentation
+author: Tidy Writer
+date: today
+format:
+  revealjs:
+    footer: "Example Footer"
+---
+
+## Overview
+
+*   Quarto supports a number of [presentation
+    formats](https://quarto.org/docs/presentations/).
+
+     *   This presentation uses
+         [reveal.js](https://quarto.org/docs/presentations/revealjs/).
+
+*   Quarto presentations can include
+    [diagrams](https://quarto.org/docs/authoring/diagrams.html).
+
+*   Quarto presentations can include [interactive
+    elements](https://quarto.org/docs/interactive/).
+
+## Workflow
+
+::: aside
+A diagram created using
+[Mermaid](https://quarto.org/docs/authoring/diagrams.html).
+:::
+
+```{mermaid}
+stateDiagram-v2
+  [*] --> tidy
+  tidy --> analyze
+  analyze --> tidy
+  analyze --> write
+  write --> review
+  review --> write: feedback
+  review --> accepted
+  accepted --> [*]
+```
+
+## Height of Olympians
+
+::: aside
+An interactive element created with [Observable
+JS](https://quarto.org/docs/interactive/ojs/).
+:::
+
+```{ojs}
+// https://observablehq.com/@observablehq/sample-datasets
+Plot.plot({
+  marks: [
+    Plot.rectY(olympians, Plot.binX({y: "count"}, {x: "height"})),
+    Plot.ruleY([0])
+  ],
+  x: { label: "Height (m)" },
+})
+```
+
