@@ -14,9 +14,14 @@
     "title": "Quarto Presentation",
     "description": "This presentation is generated using Quarto and reveal.js. It demonstrates how you might use code to highlight your work.",
     "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/quarto-presentation",
-    "tags": [],
+    "tags": ["Jump Start"],
     "minimumConnectVersion": "2025.04.0",
     "version": "1.0.0"
+  },
+  "environment": {
+    "quarto": {
+      "requires": "~=1.6"
+    }
   },
   "quarto": {
     "version": "1.6.42",
