@@ -256,14 +256,24 @@
         "version": "1.0.0",
         "released": "2025-04-14T20:05:36Z",
         "url": "https://github.com/posit-dev/connect-extensions/releases/download/quarto-document%40v1.0.0/quarto-document.tar.gz",
-        "minimumConnectVersion": "2025.04.0"
+        "minimumConnectVersion": "2025.04.0",
+        "requiredEnvironment": {
+          "quarto": {
+            "requires": "~=1.0"
+          }
+        }
       },
       "versions": [
         {
           "version": "1.0.0",
           "released": "2025-04-14T20:05:36Z",
           "url": "https://github.com/posit-dev/connect-extensions/releases/download/quarto-document%40v1.0.0/quarto-document.tar.gz",
-          "minimumConnectVersion": "2025.04.0"
+          "minimumConnectVersion": "2025.04.0",
+          "requiredEnvironment": {
+            "quarto": {
+              "requires": "~=1.0"
+            }
+          }
         }
       ]
     },
@@ -280,6 +290,9 @@
         "requiredEnvironment": {
           "python": {
             "requires": "~=3.9"
+          },
+          "quarto": {
+            "requires": "~=1.4"
           }
         }
       },
@@ -292,6 +305,9 @@
           "requiredEnvironment": {
             "python": {
               "requires": "~=3.9"
+            },
+            "quarto": {
+              "requires": "~=1.4"
             }
           }
         }
