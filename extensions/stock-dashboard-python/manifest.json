@@ -1,0 +1,44 @@
+{
+  "version": 1,
+  "locale": "en_US.UTF-8",
+  "metadata": {
+    "appmode": "python-dash",
+    "entrypoint": "app"
+  },
+  "extension": {
+    "name": "stock-dashboard-python",
+    "title": "Stock Pricing Dashboard using Python Dash",
+    "description": "A Dash application makes it easy to transform your analysis into an interactive dashboard using Python so users can ask and answer questions in real-time, without having to touch any code.",
+    "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/stock-dashboard-python",
+    "tags": [],
+    "minimumConnectVersion": "2025.04.0",
+    "version": "1.0.0"
+  },
+  "environment": {
+    "python": {
+      "requires": "~=3.9"
+    }
+  },
+  "python": {
+    "version": "3.11.7",
+    "package_manager": {
+      "name": "pip",
+      "version": "24.2",
+      "package_file": "requirements.txt"
+    }
+  },
+  "files": {
+    "requirements.txt": {
+      "checksum": "61ac7515f621e8b8fd2076964779769e"
+    },
+    "README.md": {
+      "checksum": "04838bc8a8810526a01a2a13877e04fb"
+    },
+    "app.py": {
+      "checksum": "04ca7a6cf33e3100e09abbc389552cd8"
+    },
+    "prices.csv": {
+      "checksum": "e0bc27e3dd358c360863807e09079985"
+    }
+  }
+}
