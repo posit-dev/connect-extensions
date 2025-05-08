@@ -1,5 +1,7 @@
 {
-  "tags": ["Jump Start"],
+  "tags": [
+    "Jump Start"
+  ],
   "requiredFeatures": [
     "API Publishing",
     "OAuth Integrations",
@@ -35,7 +37,9 @@
           }
         }
       ],
-      "tags": ["Jump Start"]
+      "tags": [
+        "Jump Start"
+      ]
     },
     {
       "name": "fastapitableau-example",
@@ -72,7 +76,9 @@
           }
         }
       ],
-      "tags": ["Jump Start"]
+      "tags": [
+        "Jump Start"
+      ]
     },
     {
       "name": "landing-page",
@@ -93,7 +99,9 @@
           "minimumConnectVersion": "2025.04.0"
         }
       ],
-      "tags": ["Jump Start"]
+      "tags": [
+        "Jump Start"
+      ]
     },
     {
       "name": "plumbertableau-example",
@@ -130,7 +138,9 @@
           }
         }
       ],
-      "tags": ["Jump Start"]
+      "tags": [
+        "Jump Start"
+      ]
     },
     {
       "name": "portfolio-dashboard",
@@ -161,7 +171,9 @@
           }
         }
       ],
-      "tags": ["Jump Start"]
+      "tags": [
+        "Jump Start"
+      ]
     },
     {
       "name": "portfolio-report",
@@ -192,7 +204,9 @@
           }
         }
       ],
-      "tags": ["Jump Start"]
+      "tags": [
+        "Jump Start"
+      ]
     },
     {
       "name": "publisher-command-center",
@@ -288,7 +302,9 @@
           }
         }
       ],
-      "tags": ["Jump Start"]
+      "tags": [
+        "Jump Start"
+      ]
     },
     {
       "name": "quarto-stock-report-python",
@@ -339,17 +355,19 @@
           }
         }
       ],
-      "tags": ["Jump Start"]
+      "tags": [
+        "Jump Start"
+      ]
     },
     {
       "name": "reaper",
-      "title": "Reaper",
-      "description": "A view to a kill.",
+      "title": "Process Monitor",
+      "description": "A process management tool for Connect. Monitor running processes for your apps and dashboards: see detailed information about them and terminate them if they are stuck or causing issues.",
       "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/reaper",
       "latestVersion": {
-        "version": "0.0.2",
-        "released": "2025-04-16T22:32:48Z",
-        "url": "https://github.com/posit-dev/connect-extensions/releases/download/reaper%40v0.0.2/reaper.tar.gz",
+        "version": "0.0.3",
+        "released": "2025-05-08T23:18:53Z",
+        "url": "https://github.com/posit-dev/connect-extensions/releases/download/reaper%40v0.0.3/reaper.tar.gz",
         "minimumConnectVersion": "2025.04.0",
         "requiredEnvironment": {
           "python": {
@@ -358,6 +376,17 @@
         }
       },
       "versions": [
+        {
+          "version": "0.0.3",
+          "released": "2025-05-08T23:18:53Z",
+          "url": "https://github.com/posit-dev/connect-extensions/releases/download/reaper%40v0.0.3/reaper.tar.gz",
+          "minimumConnectVersion": "2025.04.0",
+          "requiredEnvironment": {
+            "python": {
+              "requires": "~=3.8"
+            }
+          }
+        },
         {
           "version": "0.0.2",
           "released": "2025-04-16T22:32:48Z",
@@ -380,7 +409,8 @@
             }
           }
         }
-      ]
+      ],
+      "tags": []
     },
     {
       "name": "stock-api-fastapi",
@@ -417,7 +447,9 @@
           }
         }
       ],
-      "tags": ["Jump Start"]
+      "tags": [
+        "Jump Start"
+      ]
     },
     {
       "name": "stock-api-flask",
@@ -454,7 +486,9 @@
           }
         }
       ],
-      "tags": ["Jump Start"]
+      "tags": [
+        "Jump Start"
+      ]
     },
     {
       "name": "stock-api-plumber",
@@ -491,7 +525,9 @@
           }
         }
       ],
-      "tags": ["Jump Start"]
+      "tags": [
+        "Jump Start"
+      ]
     },
     {
       "name": "usage-metrics-dashboard",
