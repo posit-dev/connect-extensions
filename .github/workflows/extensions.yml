@@ -38,6 +38,7 @@ jobs:
             stock-api-flask: extensions/stock-api-flask/**
             landing-page: extensions/landing-page/**
             stock-api-fastapi: extensions/stock-api-fastapi/**
+            quarto-script-python: extensions/quarto-script-python/**
             connectwidgets-example: extensions/connectwidgets-example/**
             plumbertableau-example: extensions/plumbertableau-example/**
             fastapitableau-example: extensions/fastapitableau-example/**
