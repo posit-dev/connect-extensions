@@ -1,5 +1,5 @@
 /.quarto/
-*.csv
+data.csv
 index.html
 index_files
 index.ipynb

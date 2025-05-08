@@ -3,6 +3,8 @@ import asyncio
 from fastapi import FastAPI, Header
 from fastapi.staticfiles import StaticFiles
 from posit import connect
+from posit.connect.errors import ClientError
+import os
 
 from cachetools import TTLCache, cached
 
@@ -13,6 +15,24 @@ app = FastAPI()
 # Create cache with TTL=1hour and unlimited size
 client_cache = TTLCache(maxsize=float("inf"), ttl=3600)
 
+@app.get("/api/auth-status")
+async def auth_status(posit_connect_user_session_token: str = Header(None)):
+    """
+    If running on Connect, attempt to build a visitor client.
+    If that raises the 212 error (no OAuth integration), return authorized=False.
+    """
+
+    if os.getenv("RSTUDIO_PRODUCT") == "CONNECT":
+        if not posit_connect_user_session_token:
+            return {"authorized": False}
+        try:
+            get_visitor_client(posit_connect_user_session_token)
+        except ClientError as err:
+            if err.error_code == 212:
+                return {"authorized": False}
+            raise # Other errors bubble up
+
+    return {"authorized": True}
 
 @cached(client_cache)
 def get_visitor_client(token: str | None) -> connect.Client:
