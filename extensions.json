@@ -196,12 +196,12 @@
     {
       "name": "publisher-command-center",
       "title": "Publisher Command Center",
-      "description": "A dashboard for publishers to help manage and track their content",
+      "description": "An app that helps publishers view and manage details about apps and dashboards deployed to Connect: View app metadata and history for all of the apps you are collaborating on as well as see and managing running process for individual apps.",
       "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/publisher-command-center",
       "latestVersion": {
-        "version": "0.0.1",
-        "released": "2025-03-19T23:00:09Z",
-        "url": "https://github.com/posit-dev/connect-extensions/releases/download/publisher-command-center%40v0.0.1/publisher-command-center.tar.gz",
+        "version": "0.0.2",
+        "released": "2025-05-08T19:26:11Z",
+        "url": "https://github.com/posit-dev/connect-extensions/releases/download/publisher-command-center%40v0.0.2/publisher-command-center.tar.gz",
         "minimumConnectVersion": "2025.04.0",
         "requiredFeatures": [
           "API Publishing",
@@ -214,6 +214,21 @@
         }
       },
       "versions": [
+        {
+          "version": "0.0.2",
+          "released": "2025-05-08T19:26:11Z",
+          "url": "https://github.com/posit-dev/connect-extensions/releases/download/publisher-command-center%40v0.0.2/publisher-command-center.tar.gz",
+          "minimumConnectVersion": "2025.04.0",
+          "requiredFeatures": [
+            "API Publishing",
+            "OAuth Integrations"
+          ],
+          "requiredEnvironment": {
+            "python": {
+              "requires": "~=3.8"
+            }
+          }
+        },
         {
           "version": "0.0.1",
           "released": "2025-03-19T23:00:09Z",
@@ -229,7 +244,8 @@
             }
           }
         }
-      ]
+      ],
+      "tags": []
     },
     {
       "name": "quarto-document",
