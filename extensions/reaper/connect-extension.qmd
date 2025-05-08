@@ -1,9 +1,0 @@
----
-title: reaper
-categories:
-    - ps
-    - shiny
-    - python
----
-
-kill your darlings
