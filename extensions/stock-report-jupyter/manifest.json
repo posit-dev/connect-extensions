@@ -1,0 +1,38 @@
+{
+  "version": 1,
+  "locale": "en_US.UTF-8",
+  "metadata": {
+    "appmode": "jupyter-static",
+    "entrypoint": "stock-report-jupyter.ipynb"
+  },
+  "extension": {
+    "name": "stock-report-jupyter",
+    "title": "Stock Report using Jupyter",
+    "description": "This stock report is generated using Python and Jupyter Notebook. Stock prices are populated from Quandl to generate a stock performance summary intended to run daily after market close.",
+    "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/stock-report-jupyter",
+    "tags": [],
+    "minimumConnectVersion": "2025.04.0",
+    "version": "1.0.0"
+  },
+  "environment": {
+    "python": {
+      "requires": "~=3.9"
+    }
+  },
+  "python": {
+    "version": "3.11.7",
+    "package_manager": {
+      "name": "pip",
+      "version": "24.2",
+      "package_file": "requirements.txt"
+    }
+  },
+  "files": {
+    "stock-report-jupyter.ipynb": {
+      "checksum": "9f26b6fcc64283c7253edd2d37ad417c"
+    },
+    "requirements.txt": {
+      "checksum": "a21501182f426dfe1dc08a839ad47144"
+    }
+  }
+}
