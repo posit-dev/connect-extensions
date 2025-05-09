@@ -1,0 +1,200 @@
+---
+title: Stock Report
+date: today
+date-format: long
+published-title: produced
+format: email
+attachments:
+  - data.csv
+email-preview: true
+---
+
+## Report for `^GSPC`
+
+```{r, echo=TRUE, message=FALSE}
+library(DT)
+library(formattable)
+library(ggthemes)
+library(quantmod)
+library(dplyr)
+library(plotly)
+library(xts)
+library(dotty)
+```
+
+
+```{r}
+#| eval: false
+#| echo: false
+
+# set eval: TRUE  fetch updated data
+
+prices <- round(getSymbols("^GSPC", auto.assign = FALSE, src = "yahoo"), 2)
+close <- Cl(xts::last(prices))
+open <- Op(xts::last(prices))
+
+prices_df <- prices %>%
+  as_tibble() %>%
+  mutate(
+    Date = index(prices),
+    Direction = ifelse(GSPC.Close >= GSPC.Open, 'Increasing', 'Decreasing')
+  )
+
+readr::write_csv(prices_df, "gspc.csv")
+```
+
+
+```{r}
+prices_df <- readr::read_csv("gspc.csv")
+recent <- slice_max(prices_df, order_by = Date, n = 90)
+yest <- prices_df |> slice_max(order_by = Date, n = 1) |> select(close = GSPC.Close, open = GSPC.Open)
+.[close, open] <- yest
+```
+
+The stock closed `r ifelse(close>open,'up','down')` at `r close` dollars per share yesterday.
+
+### Price History
+
+The chart below is made with the `quantmod` and `plotly` R packages. An API returns all of the price history based on the stock tick symbol "GSPC.".
+
+
+```{r build_plot, echo=TRUE, warning=FALSE, message=FALSE}
+fig1 <- plot_ly(prices_df) %>%
+  add_trace(
+    type = "candlestick", x = ~Date, name = "GSPC",
+    open = ~GSPC.Open, close = ~GSPC.Close,
+    high = ~GSPC.High, low = ~GSPC.Low,
+    increasing = list(line = list(color = '#17BECF')),
+    decreasing = list(line = list(color = '#7F7F7F'))
+  ) %>%
+  layout(yaxis = list(title = "Price"))
+
+fig2 <- plot_ly(prices_df) %>%
+  add_bars(
+    x = ~Date, y = ~GSPC.Volume, name = "GSPC Volume",
+    color = ~Direction, colors = c('#17BECF', '#7F7F7F')
+  ) %>%
+  layout(yaxis = list(title = "Volume"), xaxis = list(title = ""))
+
+subplot(
+  fig1, fig2, heights = c(0.7, 0.2), nrows = 2,
+  shareX = TRUE, titleY = TRUE
+) %>%
+  layout(
+    hovermode = "x", margin = list(t = 80),
+    title = paste("Tesla from", min(prices_df$Date), "to", max(prices_df$Date)),
+    xaxis = list(
+      rangeselector = list(
+        x = 0, y = 1, xanchor = 'left', yanchor = "top",
+        visible = TRUE, font = list(size = 9),
+        buttons = list(
+          list(count = 1, label = 'RESET', step = 'all'),
+          list(count = 1, label = '1 YR', step = 'year', stepmode = 'backward'),
+          list(count = 3, label = '3 MO', step = 'month', stepmode = 'backward'),
+          list(count = 1, label = '1 MO', step = 'month', stepmode = 'backward')
+        )
+      )
+    ),
+    legend = list(
+      x = 1, y = 1, xanchor = 'right',
+      orientation = 'h', font = list(size = 10)
+    )
+  )
+```
+
+### Raw Data
+
+The table below displays the daily price data for the stock. A concise, interactive table is created with the `DT` package.
+
+
+```{r show_data, echo=TRUE}
+recent %>%
+  mutate(GSPC.Volume = GSPC.Volume / 1000000) %>%
+  datatable() %>%
+  formatCurrency(c("GSPC.Open", "GSPC.High", "GSPC.Low", "GSPC.Close"), digits = 2) %>%
+  formatRound("GSPC.Volume", digits = 0)
+```
+
+## Legacy Information
+
+This report also produces a CSV file containing recent price data, which may
+be used in other analysis.
+
+```{r write_csv, echo = FALSE, include = FALSE}
+write.csv(recent, file = "data.csv")
+```
+
+[Link to CSV](data.csv)
+
+## Email
+
+This report also produces an email that is sent to key stakeholders with summary
+information.
+
+::: {.email}
+
+```{r compute_subject, warning = FALSE, message = FALSE, echo = FALSE}
+# Calculate the total change
+
+diff <- prices_df |>
+  slice_max(order_by = Date, n = 2) |>
+  mutate(chg = GSPC.Close - lag(GSPC.Close, order_by = Date)) |>
+  pull(chg)
+subject <- sprintf("GSPC is %s today by $%g!",
+        ifelse(diff[1] > 0,"up", "down"),
+        abs(diff[1]))
+
+# ideally, we would always compute the email content but
+# suppress its scheduled sending only when (abs(diff) > 0.5)
+```
+
+::: {.subject}
+`r#subject`
+:::
+
+# Stock Update
+
+Hello Team,
+
+Here are the latest stock prices for **GSPC** as of `r Sys.Date()`:
+
+```{r, echo = FALSE}
+price_new <- prices_df |>
+  slice_tail(n = 10) |>
+  select(Date, open = GSPC.Open, close = GSPC.Close) |>
+  mutate(change = close - open)
+
+# include a table with the stock prices
+format_table(
+    x = as.data.frame(tail(price_new)),
+    list(
+      change = formatter(
+        "span",
+        style = x ~ ifelse(
+          x > 0,
+          formattable::style(color = "green"),
+          formattable::style(color = "red")))
+    )
+  )
+```
+
+The historical trend is shown below:
+
+```{r, echo = FALSE, message = FALSE}
+# include a plot with the price data
+ggplot(recent) +
+  aes(Date, GSPC.Adjusted) +
+  geom_smooth() +
+  theme_fivethirtyeight() +
+  labs(
+    title = sprintf("%s Price Adjusted", "GSPC")
+  )
+```
+
+Let me know if you have any questions.
+
+Best,
+
+Team Lead
+
+:::
