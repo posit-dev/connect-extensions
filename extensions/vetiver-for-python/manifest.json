@@ -1,0 +1,46 @@
+{
+  "version": 1,
+  "locale": "en_US.UTF-8",
+  "metadata": {
+    "appmode": "quarto-static"
+  },
+  "extension": {
+    "name": "vetiver-for-python",
+    "title": "Deploy Models with Vetiver for Python",
+    "description": "Using vetiver allows you to version and deploy your ML model as a production service that other tools and teams can use. APIs like those created with vetiver are a great way for software engineering teams to use your models without translating them into different languages.",
+    "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/vetiver-for-python",
+    "tags": ["Jump Start"],
+    "minimumConnectVersion": "2025.04.0",
+    "version": "1.0.0"
+  },
+  "environment": {
+    "python": {
+      "requires": "~=3.8"
+    },
+    "quarto": {
+      "requires": "~=1.4"
+    }
+  },
+  "quarto": {
+    "version": "1.4.557",
+    "engines": [
+      "jupyter"
+    ]
+  },
+  "python": {
+    "version": "3.11.7",
+    "package_manager": {
+      "name": "pip",
+      "version": "24.2",
+      "package_file": "requirements.txt"
+    }
+  },
+  "files": {
+    "requirements.txt": {
+      "checksum": "1130b244b7b45e6345d267a43d9f3b0e"
+    },
+    "vetiver.qmd": {
+      "checksum": "beb1cc1f8163cf999b52bcc82cb795d2"
+    }
+  }
+}
