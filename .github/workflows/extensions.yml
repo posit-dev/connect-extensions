@@ -32,6 +32,7 @@ jobs:
             reaper: extensions/reaper/**
             integration-session-manager: extensions/integration-session-manager/**
             quarto-stock-report-python: extensions/quarto-stock-report-python/**
+            quarto-website: extensions/quarto-website/**
             portfolio-dashboard: extensions/portfolio-dashboard/**
             quarto-document: extensions/quarto-document/**
             stock-api-plumber: extensions/stock-api-plumber/**
