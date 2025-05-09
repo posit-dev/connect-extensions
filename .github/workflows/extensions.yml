@@ -40,6 +40,7 @@ jobs:
             stock-dashboard-python: extensions/stock-dashboard-python/**
             top-5-income-share-bokeh: extensions/top-5-income-share-bokeh/**
             landing-page: extensions/landing-page/**
+            quarto-stock-report-r: extensions/quarto-stock-report-r/**
             stock-api-fastapi: extensions/stock-api-fastapi/**
             quarto-presentation: extensions/quarto-presentation/**
             connectwidgets-example: extensions/connectwidgets-example/**
