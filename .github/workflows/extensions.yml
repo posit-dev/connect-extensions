@@ -36,6 +36,7 @@ jobs:
             quarto-document: extensions/quarto-document/**
             stock-api-plumber: extensions/stock-api-plumber/**
             stock-api-flask: extensions/stock-api-flask/**
+            vetiver-for-r: extensions/vetiver-for-r/**
             landing-page: extensions/landing-page/**
             stock-api-fastapi: extensions/stock-api-fastapi/**
             connectwidgets-example: extensions/connectwidgets-example/**
