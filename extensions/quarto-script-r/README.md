@@ -4,8 +4,7 @@
 
 This data transformation script uses Quarto and R. It is an example of how you might automate regular imports and transformations from a data source. JSON and CSV files are exported and made available for download.
 
-The script also generates a custom email, with the generated CSV files as
-attachments.
+The script also generates a custom email, with the generated CSV files as attachments.
 
 
 ## Learn more
