@@ -42,6 +42,7 @@ jobs:
             plumbertableau-example: extensions/plumbertableau-example/**
             fastapitableau-example: extensions/fastapitableau-example/**
             portfolio-report: extensions/portfolio-report/**
+            quarto-script-r: extensions/quarto-script-r/**
             usage-metrics-dashboard: extensions/usage-metrics-dashboard/**
 
   # Runs for each extension that has changed from `simple-extension-changes`
