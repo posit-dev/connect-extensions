@@ -360,59 +360,6 @@
       ]
     },
     {
-      "name": "reaper",
-      "title": "Process Monitor",
-      "description": "A process management tool for Connect. Monitor running processes for your apps and dashboards: see detailed information about them and terminate them if they are stuck or causing issues.",
-      "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/reaper",
-      "latestVersion": {
-        "version": "0.0.3",
-        "released": "2025-05-08T23:18:53Z",
-        "url": "https://github.com/posit-dev/connect-extensions/releases/download/reaper%40v0.0.3/reaper.tar.gz",
-        "minimumConnectVersion": "2025.04.0",
-        "requiredEnvironment": {
-          "python": {
-            "requires": "~=3.8"
-          }
-        }
-      },
-      "versions": [
-        {
-          "version": "0.0.3",
-          "released": "2025-05-08T23:18:53Z",
-          "url": "https://github.com/posit-dev/connect-extensions/releases/download/reaper%40v0.0.3/reaper.tar.gz",
-          "minimumConnectVersion": "2025.04.0",
-          "requiredEnvironment": {
-            "python": {
-              "requires": "~=3.8"
-            }
-          }
-        },
-        {
-          "version": "0.0.2",
-          "released": "2025-04-16T22:32:48Z",
-          "url": "https://github.com/posit-dev/connect-extensions/releases/download/reaper%40v0.0.2/reaper.tar.gz",
-          "minimumConnectVersion": "2025.04.0",
-          "requiredEnvironment": {
-            "python": {
-              "requires": "~=3.8"
-            }
-          }
-        },
-        {
-          "version": "0.0.1",
-          "released": "2025-03-19T22:59:58Z",
-          "url": "https://github.com/posit-dev/connect-extensions/releases/download/reaper%40v0.0.1/reaper.tar.gz",
-          "minimumConnectVersion": "2025.04.0",
-          "requiredEnvironment": {
-            "python": {
-              "requires": "~=3.8"
-            }
-          }
-        }
-      ],
-      "tags": []
-    },
-    {
       "name": "stock-api-fastapi",
       "title": "FastAPI Stock Pricing Service",
       "description": "APIs are a great way for software engineering teams to use your models without translating them into different languages",
