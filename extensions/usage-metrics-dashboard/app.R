@@ -15,6 +15,7 @@ shinyOptions(
 )
 
 source("get_usage.R")
+source("integrations.R")
 
 app_mode_groups <- list(
   "API" = c("api", "python-fastapi", "python-api", "tensorflow-saved-model"),
@@ -274,25 +275,82 @@ ui <- function(request) {
 server <- function(input, output, session) {
   # Set up Connect client; handle error if Visitor API Key integration isn't
   # present.
+
+  publisher_client <- connect()
+
+  selected_integration_guid <- reactiveVal(NULL)
+  observeEvent(input$auto_add_integration, {
+    print("Clicked auto add integration button")
+    auto_add_integration(publisher_client, selected_integration_guid())
+    # Hard refresh so that the sidebar gets the up to date info
+    runjs("window.top.location.reload(true);")
+  })
+
   client <- NULL
   tryCatch(
     client <- connect(
       token = session$request$HTTP_POSIT_CONNECT_USER_SESSION_TOKEN
     ),
     error = function(e) {
+      eligible_integrations <- get_eligible_integrations(publisher_client)
+      selected_integration <- slice_head(eligible_integrations, n = 1)
+      selected_integration_guid(selected_integration$guid)
+
+      message <- paste0(
+        "This content requires a <strong>Visitor API Key</strong> ",
+        "integration to show users the content they have access to."
+      )
+      if (nrow(selected_integration) == 1) {
+        message <- paste0(
+          message,
+          "<br><br>",
+          "Click the button below to add the integration <strong>\"",
+          selected_integration$name,
+          "\"</strong> to this content."
+        )
+      } else if (nrow(selected_integration) == 0) {
+        print("PLACE ONE")
+        integration_settings_url <- publisher_client$server_url(connectapi:::unversioned_url(
+          "connect",
+          "#",
+          "system",
+          "integrations"
+        ))
+        print("PLACE TWO")
+        message <- paste0(
+          message,
+          "<br><br>",
+          "An Administrator must add a Connect API integration on the ",
+          "<a href='",
+          integration_settings_url,
+          "' target='_blank'>Integration Settings page</a>. ",
+          "The 'Max Role' field must be set to 'Administrator' or 'Publisher'. ",
+          "See the <a href='https://docs.posit.co/connect/admin/integrations/oauth-integrations/connect/' ",
+          "target='_blank'>Admin Guide</a> for more setup instructions."
+        )
+        print("PLACE THREE")
+      }
+
+      footer <- if (nrow(selected_integration) == 1) {
+        actionButton(
+          "auto_add_integration",
+          "Add Required Integration",
+          icon = icon("plus")
+        )
+      } else if (nrow(selected_integration) == 0) {
+        NULL
+      }
+      message <- paste0(
+        message,
+        "<br><br>",
+        "For more information, see ",
+        "<a href='https://docs.posit.co/connect/user/oauth-integrations/#obtaining-a-visitor-api-key' ",
+        "target='_blank'>documentation on Visitor API Key integrations</a>."
+      )
       showModal(modalDialog(
         title = "Additional Setup Required",
-        footer = NULL,
-        HTML(paste(
-          "In the Access panel to the right, click <strong>\"Add integration\"</strong>,",
-          "then select a <strong>Visitor API Key</strong> integration.",
-          "If you don't see one in the list, an administrator must enable this feature on your Connect server.",
-          "See the <a href='https://docs.posit.co/connect/admin/integrations/oauth-integrations/connect/' target='_blank'>Admin Guide</a> for setup instructions.",
-          "<br><br>",
-          "For guidance on using visitor-scoped permissions in your own Connect apps, see the",
-          "<a href='https://docs.posit.co/connect/user/oauth-integrations/#obtaining-a-visitor-api-key' target='_blank'>User Guide</a>.",
-          sep = " "
-        ))
+        footer = footer,
+        HTML(message)
       ))
     }
   )
@@ -387,6 +445,8 @@ server <- function(input, output, session) {
     cache$reset()
     session$reload()
   })
+
+  # Auto-add integration button ----
 
   # Visit Merge Window controls: sync slider and text input ----
 
