@@ -360,6 +360,45 @@
       ]
     },
     {
+      "name": "quarto-website",
+      "title": "Quarto Website",
+      "description": "This Quarto website uses the Posit Connect Server API together with Python to construct a dashboard that presents published content. Views showing featured and all content are included. Set the `FEATURED_TAGS` environment variable and feature content having a particular tag name.",
+      "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/quarto-website",
+      "latestVersion": {
+        "version": "1.0.0",
+        "released": "2025-05-14T12:56:14Z",
+        "url": "https://github.com/posit-dev/connect-extensions/releases/download/quarto-website%40v1.0.0/quarto-website.tar.gz",
+        "minimumConnectVersion": "2025.04.0",
+        "requiredEnvironment": {
+          "python": {
+            "requires": "~=3.8"
+          },
+          "quarto": {
+            "requires": "~=1.4"
+          }
+        }
+      },
+      "versions": [
+        {
+          "version": "1.0.0",
+          "released": "2025-05-14T12:56:14Z",
+          "url": "https://github.com/posit-dev/connect-extensions/releases/download/quarto-website%40v1.0.0/quarto-website.tar.gz",
+          "minimumConnectVersion": "2025.04.0",
+          "requiredEnvironment": {
+            "python": {
+              "requires": "~=3.8"
+            },
+            "quarto": {
+              "requires": "~=1.4"
+            }
+          }
+        }
+      ],
+      "tags": [
+        "Jump Start"
+      ]
+    },
+    {
       "name": "stock-api-fastapi",
       "title": "FastAPI Stock Pricing Service",
       "description": "APIs are a great way for software engineering teams to use your models without translating them into different languages",
