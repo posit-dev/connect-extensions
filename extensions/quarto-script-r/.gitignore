@@ -1,0 +1,10 @@
+/.quarto/
+*.csv
+*.json
+script.html
+script_files
+/email-preview/
+.output_metadata.json
+
+# Always include manifest.json
+!manifest.json
