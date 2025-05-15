@@ -295,17 +295,18 @@ server <- function(input, output, session) {
       selected_integration <- slice_head(eligible_integrations, n = 1)
       selected_integration_guid(selected_integration$guid)
 
-      message <- paste0(
-        "This content requires a <strong>Visitor API Key</strong> ",
-        "integration to show users the content they have access to."
-      )
       if (nrow(selected_integration) == 1) {
         message <- paste0(
-          message,
+          "This content uses a <strong>Visitor API Key</strong> ",
+          "integration to show users their own content's usage data.",
           "<br><br>",
-          "Click the button below to add the integration <strong>\"",
+          "Click the button below to allow this content to use the integration <strong>'",
           selected_integration$name,
-          "\"</strong> to this content."
+          "'</strong>.",
+          "<br><br>",
+          "For more information, see ",
+          "<a href='https://docs.posit.co/connect/user/oauth-integrations/#obtaining-a-visitor-api-key' ",
+          "target='_blank'>Visitor API Key section of the User Guide</a>."
         )
       } else if (nrow(selected_integration) == 0) {
         integration_settings_url <- publisher_client$server_url(connectapi:::unversioned_url(
@@ -315,36 +316,37 @@ server <- function(input, output, session) {
           "integrations"
         ))
         message <- paste0(
-          message,
+          "This dashboard needs permission to ",
+          " show users their own content's usage data.",
           "<br><br>",
-          "An Administrator must add a Connect API integration on the ",
-          "<a href='",
+          "To allow this, an Administrator must configure a ",
+          "<strong>Connect API</strong> integration on the ",
+          "<strong><a href='",
           integration_settings_url,
-          "' target='_blank'>Integration Settings page</a>. ",
-          "The 'Max Role' field must be set to 'Administrator' or 'Publisher'; 'Viewer' will not work. ",
+          "' target='_blank'>Integration Settings</a></strong> page. ",
+          "<br><br>",
+          "On that page, select <strong>'+ Add Integration'</strong>. ",
+          "In the 'Select Integration' dropdown, choose <strong>'Connect API'</strong>. ",
+          "The 'Max Role' field must be set to <strong>'Administrator'</strong> ",
+          "or <strong>'Publisher'</strong>; 'Viewer' will not work. ",
+          "<br><br>",
           "See the <a href='https://docs.posit.co/connect/admin/integrations/oauth-integrations/connect/' ",
-          "target='_blank'>Admin Guide</a> for more setup instructions."
+          "target='_blank'>Connect API section of the Admin Guide</a> for more detailed setup instructions."
         )
       }
 
       footer <- if (nrow(selected_integration) == 1) {
         actionButton(
           "auto_add_integration",
-          "Add Required Integration",
+          "Add Integration",
           icon = icon("plus")
         )
       } else if (nrow(selected_integration) == 0) {
         NULL
       }
-      message <- paste0(
-        message,
-        "<br><br>",
-        "For more information, see ",
-        "<a href='https://docs.posit.co/connect/user/oauth-integrations/#obtaining-a-visitor-api-key' ",
-        "target='_blank'>documentation on Visitor API Key integrations</a>."
-      )
+
       showModal(modalDialog(
-        title = "Additional Setup Required",
+        # title = "Additional Setup Required",
         footer = footer,
         HTML(message)
       ))
