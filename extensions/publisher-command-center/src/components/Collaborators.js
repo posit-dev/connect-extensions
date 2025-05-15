@@ -15,7 +15,7 @@ export default {
           m("small.text-body-secondary.align-items-center", [
             m(".fa-solid.fa-user-lock"),
             " ",
-            m("a", { href: accessUrl, target: "_blank" }, "Manage Access"),
+            m("a", { href: accessUrl, target: "_blank" }, "See Collaborators and Manage Access"),
           ])
         ),
       ]),
