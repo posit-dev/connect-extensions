@@ -309,14 +309,12 @@ server <- function(input, output, session) {
           "\"</strong> to this content."
         )
       } else if (nrow(selected_integration) == 0) {
-        print("PLACE ONE")
         integration_settings_url <- publisher_client$server_url(connectapi:::unversioned_url(
           "connect",
           "#",
           "system",
           "integrations"
         ))
-        print("PLACE TWO")
         message <- paste0(
           message,
           "<br><br>",
@@ -324,11 +322,10 @@ server <- function(input, output, session) {
           "<a href='",
           integration_settings_url,
           "' target='_blank'>Integration Settings page</a>. ",
-          "The 'Max Role' field must be set to 'Administrator' or 'Publisher'. ",
+          "The 'Max Role' field must be set to 'Administrator' or 'Publisher'; 'Viewer' will not work. ",
           "See the <a href='https://docs.posit.co/connect/admin/integrations/oauth-integrations/connect/' ",
           "target='_blank'>Admin Guide</a> for more setup instructions."
         )
-        print("PLACE THREE")
       }
 
       footer <- if (nrow(selected_integration) == 1) {
