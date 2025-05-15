@@ -280,7 +280,6 @@ server <- function(input, output, session) {
 
   selected_integration_guid <- reactiveVal(NULL)
   observeEvent(input$auto_add_integration, {
-    print("Clicked auto add integration button")
     auto_add_integration(publisher_client, selected_integration_guid())
     # Hard refresh so that the sidebar gets the up to date info
     runjs("window.top.location.reload(true);")
@@ -442,8 +441,6 @@ server <- function(input, output, session) {
     cache$reset()
     session$reload()
   })
-
-  # Auto-add integration button ----
 
   # Visit Merge Window controls: sync slider and text input ----
 
