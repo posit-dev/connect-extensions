@@ -5,7 +5,7 @@ import About from "../components/About";
 import Releases from "../components/Releases";
 import Processes from "../components/Processes";
 import Author from "../components/Author";
-
+import Collaborators from "../components/Collaborators";
 import Languages from "../components/Languages";
 
 const Edit = {
@@ -70,6 +70,9 @@ const Edit = {
             created: content?.created_time,
           }),
           m(Author, {
+            content_id: content?.guid,
+          }),
+          m(Collaborators, {
             content_id: content?.guid,
           }),
           m(Releases, {
