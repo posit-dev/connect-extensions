@@ -316,7 +316,7 @@ server <- function(input, output, session) {
           "integrations"
         ))
         message <- paste0(
-          "This dashboard needs permission to ",
+          "This content needs permission to ",
           " show users their own content's usage data.",
           "<br><br>",
           "To allow this, an Administrator must configure a ",
