@@ -298,15 +298,12 @@ server <- function(input, output, session) {
       if (nrow(selected_integration) == 1) {
         message <- paste0(
           "This content uses a <strong>Visitor API Key</strong> ",
-          "integration to show users their own content's usage data.",
-          "<br><br>",
-          "Click the button below to allow this content to use the integration <strong>'",
-          selected_integration$name,
-          "'</strong>.",
+          "integration to show users the content they have access to. ",
+          "A compatible integration is displayed below.",
           "<br><br>",
           "For more information, see ",
           "<a href='https://docs.posit.co/connect/user/oauth-integrations/#obtaining-a-visitor-api-key' ",
-          "target='_blank'>Visitor API Key section of the User Guide</a>."
+          "target='_blank'>documentation on Visitor API Key integrations</a>."
         )
       } else if (nrow(selected_integration) == 0) {
         integration_settings_url <- publisher_client$server_url(connectapi:::unversioned_url(
@@ -317,7 +314,7 @@ server <- function(input, output, session) {
         ))
         message <- paste0(
           "This content needs permission to ",
-          " show users their own content's usage data.",
+          " show users the content they have access to.",
           "<br><br>",
           "To allow this, an Administrator must configure a ",
           "<strong>Connect API</strong> integration on the ",
@@ -336,9 +333,16 @@ server <- function(input, output, session) {
       }
 
       footer <- if (nrow(selected_integration) == 1) {
+        button_label <- HTML(paste0(
+          "Add the ",
+          "<strong>'",
+          selected_integration$name,
+          "'</strong> ",
+          "Integration"
+        ))
         actionButton(
           "auto_add_integration",
-          "Add Integration",
+          button_label,
           icon = icon("plus")
         )
       } else if (nrow(selected_integration) == 0) {
