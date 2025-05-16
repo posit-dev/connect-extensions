@@ -73,6 +73,9 @@ Available categories are listed in the [`extensions.json`](./extensions.json)
 file. The category should match the `id`, and automations in the repository
 will check that the category is valid.
 
+The order of the categories determines the order in which they are displayed
+in the Connect Gallery.
+
 #### Tags
 
 The `tags` array in the `extension` section of the `manifest.json` is optional,
