@@ -93,6 +93,8 @@ ui <- function(request) {
       open = TRUE,
       width = 275,
 
+      actionLink("clear_cache", "Refresh Data", icon = icon("refresh")),
+
       selectInput(
         "date_range_choice",
         label = "Date Range",
@@ -188,10 +190,6 @@ ui <- function(request) {
       ),
 
       tags$hr(),
-
-      # TODO: Possibly remove or hide in a "Troubleshooting" or Advanced
-      # accordion section
-      actionLink("clear_cache", "Clear Cache", icon = icon("refresh")),
     ),
 
     # Main content views ----
@@ -604,12 +602,14 @@ server <- function(input, output, session) {
     bindCache(active_user_guid)
 
   usage_data_raw <- reactive({
-    req(active_user_role %in% c("administrator", "publisher"))
-    get_usage(
-      client,
-      from = date_range()$from,
-      to = date_range()$to
-    )
+    withProgress({
+      req(active_user_role %in% c("administrator", "publisher"))
+      get_usage(
+        client,
+        from = date_range()$from,
+        to = date_range()$to
+      )
+    })
   }) |>
     bindCache(active_user_guid, date_range())
 
