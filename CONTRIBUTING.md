@@ -40,7 +40,7 @@ to the `manifest.json`:
     "title": "My Content Name",
     "description": "A lovely, detailed description of the content.",
     "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/my-content-name",
-    "category": "Extensions",
+    "category": "",
     "tags": [],
     "minimumConnectVersion": "2025.04.0",
     "version": "0.0.0"
@@ -57,8 +57,20 @@ the gallery check the [Adding content to the Connect Gallery](#adding-content-to
 The `category` field in the `extension` section of the `manifest.json` is
 required to group content in the Gallery.
 
+```json
+// manifest.json
+
+{
+  ...
+  "extension": {
+    "category": "extension,
+    ...
+  }
+}
+```
+
 Available categories are listed in the [`extensions.json`](./extensions.json)
-file. The category should match the `title`, and automations in the repository
+file. The category should match the `id`, and automations in the repository
 will check that the category is valid.
 
 #### Tags

@@ -1,10 +1,12 @@
 {
   "categories": [
     {
+      "id": "example",
       "title": "Examples",
       "description": "Examples are pre-built content to illustrate the types of content publishable on Posit Connect."
     },
     {
+      "id": "extension",
       "title": "Extensions",
       "description": "Extensions are useful tools that utilize the Posit Connect API to extend the functionality of Posit Connect."
     }
