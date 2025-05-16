@@ -10,7 +10,7 @@
     "title": "FastAPI Stock Pricing Service",
     "description": "APIs are a great way for software engineering teams to use your models without translating them into different languages",
     "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/stock-api-fastapi",
-    "category": "Examples",
+    "category": "example",
     "tags": [],
     "minimumConnectVersion": "2025.04.0",
     "requiredFeatures": [
