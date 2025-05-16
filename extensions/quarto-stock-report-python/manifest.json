@@ -10,8 +10,8 @@
     "description": "An example of how you might automate regular updates using a data source",
     "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/quarto-stock-report-python",
     "minimumConnectVersion": "2025.04.0",
-    "version": "1.0.1",
-    "tags": ["Jump Start"]
+    "category": "example",
+    "version": "1.0.1"
   },
   "environment": {
     "python": {

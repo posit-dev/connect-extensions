@@ -6,6 +6,7 @@ import semverEq from "semver/functions/eq";
 import semverRcompare from "semver/functions/rcompare";
 
 import {
+  Category,
   Extension,
   ExtensionManifest,
   ExtensionVersion,
@@ -37,10 +38,12 @@ function sortExtensionVersions(extension: Extension) {
 
 class ExtensionList {
   constructor(
+    public categories: Category[],
     public tags: string[],
     public requiredFeatures: RequiredFeature[],
     public extensions: Extension[]
   ) {
+    this.categories = categories;
     this.tags = tags;
     this.requiredFeatures = requiredFeatures;
     this.extensions = extensions;
@@ -48,7 +51,12 @@ class ExtensionList {
 
   static fromFile(path: string) {
     const file = JSON.parse(fs.readFileSync(path, "utf8"));
-    return new ExtensionList(file.tags, file.requiredFeatures, file.extensions);
+    return new ExtensionList(
+      file.categories,
+      file.tags,
+      file.requiredFeatures,
+      file.extensions
+    );
   }
 
   public addRelease(manifest: ExtensionManifest, githubRelease) {
@@ -58,6 +66,7 @@ class ExtensionList {
       description,
       homepage,
       version,
+      category,
       tags,
       minimumConnectVersion,
       requiredFeatures,
@@ -78,10 +87,10 @@ class ExtensionList {
     };
 
     if (this.getExtension(name)) {
-      this.updateExtensionDetails(name, title, description, homepage, tags);
+      this.updateExtensionDetails(name, title, description, homepage, tags, category);
       this.addExtensionVersion(name, newVersion);
     } else {
-      this.addNewExtension(name, title, description, homepage, newVersion, tags);
+      this.addNewExtension(name, title, description, homepage, newVersion, tags, category);
     }
   }
 
@@ -94,7 +103,8 @@ class ExtensionList {
     title: string,
     description: string,
     homepage: string,
-    tags: string[] = []
+    tags: string[] = [],
+    category?: string
   ) {
     this.updateExtension(name, {
       ...this.getExtension(name),
@@ -102,6 +112,7 @@ class ExtensionList {
       description,
       homepage,
       tags,
+      ...(category ? { category } : {}),
     });
   }
 
@@ -135,7 +146,8 @@ class ExtensionList {
     description: string,
     homepage: string,
     initialVersion: ExtensionVersion,
-    tags: string[] = []
+    tags: string[] = [],
+    category?: string
   ) {
     if (this.getExtension(name) !== undefined) {
       throw new Error(`Extension ${name} already exists in the list`);
@@ -148,6 +160,7 @@ class ExtensionList {
       latestVersion: initialVersion,
       versions: [initialVersion],
       tags,
+      ...(category ? { category } : {}),
     });
     this.sortExtensions();
   }
@@ -162,6 +175,7 @@ class ExtensionList {
 
   public stringify() {
     const output = {
+      categories: this.categories,
       tags: this.tags,
       requiredFeatures: this.requiredFeatures,
       extensions: this.extensions
