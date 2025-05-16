@@ -5,6 +5,8 @@ library(dplyr)
 get_eligible_integrations <- function(client) {
   tryCatch(
     {
+      # TODO When https://github.com/posit-dev/connectapi/issues/413 is closed,
+      # remove this and use that functionality instead.
       integrations <- client$GET("v1/oauth/integrations")
 
       integrations_df <- map_dfr(integrations, function(record) {
@@ -39,6 +41,8 @@ get_eligible_integrations <- function(client) {
 auto_add_integration <- function(client, integration_guid) {
   print("About to PUT the integration!")
 
+  # TODO When https://github.com/posit-dev/connectapi/issues/414 is implemented,
+  # delete this and use that instead.
   client$PUT(
     connectapi:::v1_url(
       "content",
