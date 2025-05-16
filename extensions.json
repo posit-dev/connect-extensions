@@ -1,7 +1,15 @@
 {
-  "tags": [
-    "Jump Start"
+  "categories": [
+    {
+      "title": "Examples",
+      "description": "Examples are pre-built content that you can use to get started with Posit Connect."
+    },
+    {
+      "title": "Extensions",
+      "description": "Extensions are useful tools that utilize the Posit Connect API to extend the functionality of Posit Connect."
+    }
   ],
+  "tags": [],
   "requiredFeatures": [
     "API Publishing",
     "OAuth Integrations",
