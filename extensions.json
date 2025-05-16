@@ -217,6 +217,7 @@
       "title": "Publisher Command Center",
       "description": "An app that helps publishers view and manage details about apps and dashboards deployed to Connect: View app metadata and history for all of the apps you are collaborating on as well as see and managing running process for individual apps.",
       "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/publisher-command-center",
+      "category": "extension",
       "latestVersion": {
         "version": "0.0.2",
         "released": "2025-05-08T19:26:11Z",
@@ -588,6 +589,7 @@
       "title": "Usage Metrics Dashboard",
       "description": "Understand usage patterns across your work on Connect. Browse an overview of usage across everything you've published, and dive into detailed breakdowns of data for an individual deployment, down to the level of individual visits.",
       "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/usage-metrics-dashboard",
+      "category": "extension",
       "latestVersion": {
         "version": "1.0.0",
         "released": "2025-05-07T20:38:49Z",
