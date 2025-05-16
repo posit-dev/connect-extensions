@@ -9,7 +9,9 @@
       "description": "Extensions are useful tools that utilize the Posit Connect API to extend the functionality of Posit Connect."
     }
   ],
-  "tags": [],
+  "tags": [
+    "Jump Start"
+  ],
   "requiredFeatures": [
     "API Publishing",
     "OAuth Integrations",
