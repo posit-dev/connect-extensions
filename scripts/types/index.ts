@@ -51,5 +51,5 @@ export interface Extension {
   latestVersion: ExtensionVersion;
   versions: ExtensionVersion[];
   tags: string[];
-  category?: string;
+  category?: Category['title'];
 }
