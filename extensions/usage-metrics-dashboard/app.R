@@ -93,6 +93,18 @@ ui <- function(request) {
       open = TRUE,
       width = 275,
 
+      div(
+        actionLink("clear_cache", "Refresh Data", icon = icon("refresh")),
+        div(
+          textOutput("last_updated"),
+          style = "
+            font-size:0.75rem;
+            color:#6c757d;
+            margin:2px 0 0 0;
+          "
+        )
+      ),
+
       selectInput(
         "date_range_choice",
         label = "Date Range",
@@ -188,10 +200,6 @@ ui <- function(request) {
       ),
 
       tags$hr(),
-
-      # TODO: Possibly remove or hide in a "Troubleshooting" or Advanced
-      # accordion section
-      actionLink("clear_cache", "Clear Cache", icon = icon("refresh")),
     ),
 
     # Main content views ----
@@ -603,15 +611,27 @@ server <- function(input, output, session) {
   }) |>
     bindCache(active_user_guid)
 
-  usage_data_raw <- reactive({
+  usage_data_meta <- reactive({
     req(active_user_role %in% c("administrator", "publisher"))
-    get_usage(
+    dat <- get_usage(
       client,
       from = date_range()$from,
       to = date_range()$to
     )
+    list(
+      data = dat,
+      last_updated = Sys.time()
+    )
   }) |>
     bindCache(active_user_guid, date_range())
+
+  usage_data_raw <- reactive({
+    usage_data_meta()$data
+  })
+
+  usage_last_updated <- reactive({
+    usage_data_meta()$last_updated
+  })
 
   # Multi-content table data ----
 
@@ -703,6 +723,11 @@ server <- function(input, output, session) {
       )
     }
   )
+
+  output$last_updated <- renderText({
+    fmt <- "%Y-%m-%d %l:%M:%S %p"
+    paste0("Last updated ", format(usage_last_updated(), fmt))
+  })
 
   output$content_usage_table <- renderReactable({
     data <- multi_content_table_data()
