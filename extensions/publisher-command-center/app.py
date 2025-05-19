@@ -100,6 +100,15 @@ async def destroy_process(
                 return
             await asyncio.sleep(1)
 
+@app.delete("/api/content/{content_id}")
+async def delete_content(
+    content_id: str,
+    posit_connect_user_session_token: str = Header(None),
+):
+    visitor = get_visitor_client(posit_connect_user_session_token)
+
+    content = visitor.content.get(content_id)
+    content.delete()
 
 @app.get("/api/contents/{content_id}/author")
 async def get_author(

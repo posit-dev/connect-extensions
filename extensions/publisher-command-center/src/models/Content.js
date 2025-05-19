@@ -25,6 +25,13 @@ const Content = {
       });
   },
 
+  delete: function (content_id) {
+    return m.request({
+      method: "DELETE",
+      url: `api/content/${content_id}/`,
+    });
+  },
+
   reset: function () {
     this.data = null;
     this._fetch = null;
