@@ -53,10 +53,6 @@ const ContentsComponent = {
           return m(
             "tr",
             [
-              m(DeleteModal, {
-                contentId: guid,
-                contentTitle: title,
-              }),
               m(
                 "td",
                   {
@@ -77,7 +73,7 @@ const ContentsComponent = {
                 m("button", {
                   class: "action-btn",
                   "data-bs-toggle": "modal",
-                  "data-bs-target": "#deleteModal",
+                  "data-bs-target": `#deleteModal-${guid}`,
                 }, [
                   m("i", { class: "fa-solid fa-trash" })
                 ]),
@@ -91,6 +87,10 @@ const ContentsComponent = {
                   onclick: (e) => e.stopPropagation(),
                 }),
               ),
+              m(DeleteModal, {
+                contentId: guid,
+                contentTitle: title,
+              }),
             ],
           );
         }),

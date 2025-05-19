@@ -33,7 +33,7 @@ const CancelDeleteButton = {
 
 const DeleteModal = {
   view: function(vnode) {
-    return m("div", { class: "modal fade", id: "deleteModal", tabindex: "-1", ariaHidden: true }, [
+    return m("div", { class: "modal", id: `deleteModal-${vnode.attrs.contentId}`, tabindex: "-1", ariaHidden: true }, [
       m("div", { class: "modal-dialog modal-dialog-centered" }, [
         m("div", { class: "modal-content" }, [
           m("div", { class: "modal-header"}, [

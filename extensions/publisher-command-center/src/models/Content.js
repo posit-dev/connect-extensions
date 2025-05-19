@@ -28,7 +28,7 @@ const Content = {
   delete: function (content_id) {
     return m.request({
       method: "DELETE",
-      url: `api/content/${content_id}/`,
+      url: `api/contents/${content_id}/`,
     });
   },
 
