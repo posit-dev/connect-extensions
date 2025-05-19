@@ -93,18 +93,6 @@ ui <- function(request) {
       open = TRUE,
       width = 275,
 
-      div(
-        actionLink("clear_cache", "Refresh Data", icon = icon("refresh")),
-        div(
-          textOutput("last_updated"),
-          style = "
-            font-size:0.75rem;
-            color:#6c757d;
-            margin:2px 0 0 0;
-          "
-        )
-      ),
-
       selectInput(
         "date_range_choice",
         label = "Date Range",
@@ -143,8 +131,6 @@ ui <- function(request) {
         label = NULL,
         value = 0,
       ),
-
-      tags$hr(),
 
       # Controls shown only when the outer table is displayed
       conditionalPanel(
@@ -199,7 +185,17 @@ ui <- function(request) {
         uiOutput("email_selected_visitors_button")
       ),
 
-      tags$hr(),
+      div(
+        actionLink("clear_cache", "Refresh Data", icon = icon("refresh")),
+        div(
+          textOutput("last_updated"),
+          style = "
+            font-size:0.75rem;
+            color:#6c757d;
+            margin:2px 0 0 0;
+          "
+        )
+      )
     ),
 
     # Main content views ----
@@ -725,8 +721,8 @@ server <- function(input, output, session) {
   )
 
   output$last_updated <- renderText({
-    fmt <- "%Y-%m-%d %l:%M:%S %p"
-    paste0("Last updated ", format(usage_last_updated(), fmt))
+    fmt <- "%Y-%m-%d %l:%M:%S %p %Z"
+    paste0("Updated ", format(usage_last_updated(), fmt))
   })
 
   output$content_usage_table <- renderReactable({
