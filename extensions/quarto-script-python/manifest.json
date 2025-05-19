@@ -39,11 +39,8 @@
     "requirements.txt": {
       "checksum": "5a2845f6ec11bcefce420b49ef94c152"
     },
-    ".Rprofile": {
-      "checksum": "57f9047cb06fdbef821b61f49e21406e"
-    },
     ".gitignore": {
-      "checksum": "9658d20c63e9e203b48838ae16556463"
+      "checksum": "42b3cf8550e12acf456cef1254151634"
     },
     "README.md": {
       "checksum": "87c06eb724cdf54ed602741c3a82cc71"
@@ -55,7 +52,7 @@
       "checksum": "46d490184f5d440c884c6fd28460b54f"
     },
     "script.quarto_ipynb": {
-      "checksum": "a20b0aa7344952a23abc8e33e847185c"
+      "checksum": "e032e1bd96459a32494df48ea2e58194"
     }
   }
 }
