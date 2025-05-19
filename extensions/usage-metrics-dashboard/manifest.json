@@ -3115,10 +3115,13 @@
   },
   "files": {
     "app.R": {
-      "checksum": "93046fabfbe4c7e1e1360ba431583cf0"
+      "checksum": "b41b69293d2b2a9c4faac002e9384143"
     },
     "get_usage.R": {
       "checksum": "f232066323b2f15d618663c2c2e97d0a"
+    },
+    "integrations.R": {
+      "checksum": "069b072123263b40775ab4f819eb26fc"
     },
     "www/styles.css": {
       "checksum": "86129d1eb71c75924c7584af191c4cd9"
