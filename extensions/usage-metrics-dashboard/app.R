@@ -114,10 +114,13 @@ ui <- function(request) {
       sliderInput(
         "visit_merge_window",
         label = tagList(
-          "Visit Merge Window (sec)",
+          "Session Window (sec)",
           tooltip(
             bsicons::bs_icon("question-circle-fill", class = "ms-2"),
-            "Filter out visits occurring within this many seconds of that user's last visit."
+            paste0(
+              "Visits within this number of seconds are counted only once, ",
+              "representing a unique session where a user is interacting with an app."
+            )
           )
         ),
         min = 0,
@@ -448,7 +451,7 @@ server <- function(input, output, session) {
     session$reload()
   })
 
-  # Visit Merge Window controls: sync slider and text input ----
+  # Session Window controls: sync slider and text input ----
 
   observeEvent(input$visit_merge_window, {
     if (input$visit_merge_window != input$visit_merge_window_text) {
@@ -1019,7 +1022,7 @@ server <- function(input, output, session) {
       div(
         style = "white-space: nowrap;",
         icon("arrow-up-right-from-square"),
-        "Open in Connect"
+        "Open"
       )
     )
   })
