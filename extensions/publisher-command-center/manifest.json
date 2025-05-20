@@ -1,13 +1,9 @@
 {
   "version": 1,
-  "locale": "en_US",
-  "platform": "4.4.3",
+  "locale": "en_US.UTF-8",
   "metadata": {
-    "appmode": "static",
-    "primary_rmd": null,
-    "primary_html": "index.html",
-    "content_category": null,
-    "has_parameters": false
+    "appmode": "python-fastapi",
+    "entrypoint": "app"
   },
   "python": {
     "version": "3.12.3",
@@ -21,7 +17,18 @@
       "requires": "~=3.8"
     }
   },
-  "packages": null,
+  "extension": {
+  "name": "publisher-command-center",
+  "title": "Publisher Command Center",
+  "description": "An app that helps publishers view and manage details about apps and dashboards deployed to Connect: View app metadata and history for all of the apps you are collaborating on as well as see and managing running process for individual apps.",
+  "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/publisher-command-center",
+  "minimumConnectVersion": "2025.04.0",
+  "requiredFeatures": [
+    "API Publishing",
+    "OAuth Integrations"
+  ],
+  "version": "0.0.4"
+  },
   "files": {
     "requirements.txt": {
       "checksum": "a162a98758867a701ce693948ffdfa67"
@@ -53,27 +60,14 @@
     "dist/assets/fa-v4compatibility.30f6abf6.ttf": {
       "checksum": "4ed293ceaca9b5b2d9cd74a477963fae"
     },
-    "dist/assets/index.64acb7bc.js": {
-      "checksum": "25cfcad0b5e471716932e533bce9f5ed"
-    },
     "dist/assets/index.eba02280.css": {
       "checksum": "cb5a34d5ea88d4969288161bd3123ee4"
     },
+    "dist/assets/index.f987f996.js": {
+      "checksum": "f8a777db2d3d8e211a31f70bbca57234"
+    },
     "dist/index.html": {
-      "checksum": "eabef7e27d16e29bd50c4845c185ebaf"
+      "checksum": "c61715903d067cc4ece8190fbdddb516"
     }
-  },
-  "extension": {
-  "name": "publisher-command-center",
-  "title": "Publisher Command Center",
-  "description": "An app that helps publishers view and manage details about apps and dashboards deployed to Connect: View app metadata and history for all of the apps you are collaborating on as well as see and managing running process for individual apps.",
-  "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/publisher-command-center",
-  "minimumConnectVersion": "2025.04.0",
-  "requiredFeatures": [
-    "API Publishing",
-    "OAuth Integrations"
-  ],
-  "version": "0.0.4"
-  },
-  "users": null
+  }
 }
