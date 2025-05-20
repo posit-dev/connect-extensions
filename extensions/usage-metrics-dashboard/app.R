@@ -187,9 +187,7 @@ ui <- function(request) {
           multiple = TRUE
         ),
         uiOutput("email_selected_visitors_button")
-      ),
-
-      tags$hr()
+      )
     ),
 
     # Main content views ----
