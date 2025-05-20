@@ -3,6 +3,7 @@ import { format } from "date-fns";
 import Contents from "../models/Contents";
 import Languages from "./Languages";
 import DeleteModal from "./DeleteModal";
+import LockContentButton from "./LockContentButton";
 
 const ContentsComponent = {
   error: null,
@@ -70,8 +71,16 @@ const ContentsComponent = {
               m("td", format(content["created_time"], "MMM do, yyyy")),
               m(
                 "td",
+                m(LockContentButton, {
+                  contentId: guid,
+                  isLocked: content["locked"],
+                }),
+              ),
+              m(
+                "td",
                 m("button", {
                   class: "action-btn",
+                  ariaLabel: "Delete Content",
                   "data-bs-toggle": "modal",
                   "data-bs-target": `#deleteModal-${guid}`,
                 }, [

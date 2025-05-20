@@ -34,6 +34,26 @@ export default {
     this.data = this.data.filter((c) => c.guid !== guid);
   },
 
+  lock: async function (guid) {
+    await m.request({
+      method: "PATCH",
+      url: `api/content/${guid}/lock`,
+    }).then((response) => {
+      const targetContent = this.data.find((c) => c.guid === guid);
+      Object.assign(targetContent, response);
+    });
+  },
+
+  rename: async function (guid, newName) {
+    await m.request({
+      method: "PATCH",
+      url: `api/content/${guid}/rename`,
+      body: {
+        title: newName,
+      },
+    });
+  },
+
   reset: function () {
     this.data = null;
     this._fetch = null;
