@@ -4,7 +4,7 @@ export default {
   data: null,
   _fetch: null,
 
-  load: function (guid) {
+  load: function () {
     if (this.data) {
       return Promise.resolve(this.data);
     }
