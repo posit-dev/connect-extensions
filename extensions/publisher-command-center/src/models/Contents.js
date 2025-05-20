@@ -4,7 +4,7 @@ export default {
   data: null,
   _fetch: null,
 
-  load: function (id) {
+  load: function (guid) {
     if (this.data) {
       return Promise.resolve(this.data);
     }
@@ -23,6 +23,15 @@ export default {
         this._fetch = null;
         throw err;
       });
+  },
+
+  delete: async function (guid) {
+    await m.request({
+      method: "DELETE",
+      url: `api/contents/${guid}`,
+    });
+
+    this.data = this.data.filter((c) => c.guid !== guid);
   },
 
   reset: function () {

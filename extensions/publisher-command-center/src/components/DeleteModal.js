@@ -1,15 +1,5 @@
 import m from "mithril";
-import Content from "../models/Content";
 import Contents from "../models/Contents";
-
-const reloadContents = () => {
-  try {
-    Contents.reset();
-    Contents.load();
-  } catch (err) {
-    console.error(err, "Failed to reload contents.");
-  }
-}
 
 const ConfirmDeleteButton = {
   view(vnode) {
@@ -20,8 +10,7 @@ const ConfirmDeleteButton = {
         ariaLabel: "Yes",
         "data-bs-dismiss": "modal",
         onclick: () => {
-          Content.delete(vnode.attrs.contentId);
-          reloadContents();
+          Contents.delete(vnode.attrs.contentId);
         },
       },
       "Yes",
