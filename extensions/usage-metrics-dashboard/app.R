@@ -15,6 +15,7 @@ shinyOptions(
 )
 
 source("get_usage.R")
+source("integrations.R")
 
 app_mode_groups <- list(
   "API" = c("api", "python-fastapi", "python-api", "tensorflow-saved-model"),
@@ -274,25 +275,84 @@ ui <- function(request) {
 server <- function(input, output, session) {
   # Set up Connect client; handle error if Visitor API Key integration isn't
   # present.
+
+  publisher_client <- connect()
+
+  selected_integration_guid <- reactiveVal(NULL)
+  observeEvent(input$auto_add_integration, {
+    auto_add_integration(publisher_client, selected_integration_guid())
+    # Hard refresh so that the sidebar gets the up to date info
+    runjs("window.top.location.reload(true);")
+  })
+
   client <- NULL
   tryCatch(
     client <- connect(
       token = session$request$HTTP_POSIT_CONNECT_USER_SESSION_TOKEN
     ),
     error = function(e) {
-      showModal(modalDialog(
-        title = "Additional Setup Required",
-        footer = NULL,
-        HTML(paste(
-          "In the Access panel to the right, click <strong>\"Add integration\"</strong>,",
-          "then select a <strong>Visitor API Key</strong> integration.",
-          "If you don't see one in the list, an administrator must enable this feature on your Connect server.",
-          "See the <a href='https://docs.posit.co/connect/admin/integrations/oauth-integrations/connect/' target='_blank'>Admin Guide</a> for setup instructions.",
+      eligible_integrations <- get_eligible_integrations(publisher_client)
+      selected_integration <- slice_head(eligible_integrations, n = 1)
+      selected_integration_guid(selected_integration$guid)
+
+      if (nrow(selected_integration) == 1) {
+        message <- paste0(
+          "This content uses a <strong>Visitor API Key</strong> ",
+          "integration to show users the content they have access to. ",
+          "A compatible integration is displayed below.",
           "<br><br>",
-          "For guidance on using visitor-scoped permissions in your own Connect apps, see the",
-          "<a href='https://docs.posit.co/connect/user/oauth-integrations/#obtaining-a-visitor-api-key' target='_blank'>User Guide</a>.",
-          sep = " "
+          "For more information, see ",
+          "<a href='https://docs.posit.co/connect/user/oauth-integrations/#obtaining-a-visitor-api-key' ",
+          "target='_blank'>documentation on Visitor API Key integrations</a>."
+        )
+      } else if (nrow(selected_integration) == 0) {
+        integration_settings_url <- publisher_client$server_url(connectapi:::unversioned_url(
+          "connect",
+          "#",
+          "system",
+          "integrations"
         ))
+        message <- paste0(
+          "This content needs permission to ",
+          " show users the content they have access to.",
+          "<br><br>",
+          "To allow this, an Administrator must configure a ",
+          "<strong>Connect API</strong> integration on the ",
+          "<strong><a href='",
+          integration_settings_url,
+          "' target='_blank'>Integration Settings</a></strong> page. ",
+          "<br><br>",
+          "On that page, select <strong>'+ Add Integration'</strong>. ",
+          "In the 'Select Integration' dropdown, choose <strong>'Connect API'</strong>. ",
+          "The 'Max Role' field must be set to <strong>'Administrator'</strong> ",
+          "or <strong>'Publisher'</strong>; 'Viewer' will not work. ",
+          "<br><br>",
+          "See the <a href='https://docs.posit.co/connect/admin/integrations/oauth-integrations/connect/' ",
+          "target='_blank'>Connect API section of the Admin Guide</a> for more detailed setup instructions."
+        )
+      }
+
+      footer <- if (nrow(selected_integration) == 1) {
+        button_label <- HTML(paste0(
+          "Add the ",
+          "<strong>'",
+          selected_integration$name,
+          "'</strong> ",
+          "Integration"
+        ))
+        actionButton(
+          "auto_add_integration",
+          button_label,
+          icon = icon("plus")
+        )
+      } else if (nrow(selected_integration) == 0) {
+        NULL
+      }
+
+      showModal(modalDialog(
+        # title = "Additional Setup Required",
+        footer = footer,
+        HTML(message)
       ))
     }
   )

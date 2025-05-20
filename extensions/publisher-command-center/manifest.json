@@ -22,7 +22,7 @@
       "checksum": "a162a98758867a701ce693948ffdfa67"
     },
     "app.py": {
-      "checksum": "0e5df52143323d9ae49cf77c51298cde"
+      "checksum": "92709c50369eca0216b8e121cd87c94c"
     },
     "dist/assets/fa-brands-400.808443ae.ttf": {
       "checksum": "15d54d142da2f2d6f2e90ed1d55121af"
@@ -51,11 +51,11 @@
     "dist/assets/index.0c2ac2eb.css": {
       "checksum": "96fb5a8d93644a29ece62d52354fbc73"
     },
-    "dist/assets/index.835b2c40.js": {
-      "checksum": "52e8175304138c1ef6d18c808dcb4b04"
+    "dist/assets/index.3b47d0e1.js": {
+      "checksum": "b7a54352e0a5437ef97c8d3202983dac"
     },
     "dist/index.html": {
-      "checksum": "a3cf0e03275e2436d932280af100438c"
+      "checksum": "a64aa56406944bd2184562c18bfc3b4e"
     }
 	},
 	"extension": {
@@ -68,6 +68,6 @@
 			"API Publishing",
 			"OAuth Integrations"
 		],
-		"version": "0.0.2"
+		"version": "0.0.3"
 	}
 }

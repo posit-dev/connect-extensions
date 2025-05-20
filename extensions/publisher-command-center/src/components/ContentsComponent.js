@@ -65,7 +65,7 @@ const ContentsComponent = {
                 "td",
                 m(Languages, content)
               ),
-              m("td", content?.processes.length),
+              m("td", content?.active_jobs?.length),
               m("td", format(content["last_deployed_time"], "MMM do, yyyy")),
               m("td", format(content["created_time"], "MMM do, yyyy")),
               m(
