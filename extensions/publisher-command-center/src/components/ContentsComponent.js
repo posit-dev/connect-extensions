@@ -7,7 +7,7 @@ import DeleteModal from "./DeleteModal";
 const ContentsComponent = {
   error: null,
 
-  oninit: function () {
+  oninit: () => {
     try {
       Contents.load();
     } catch (err) {

@@ -79,13 +79,9 @@ async def delete_content(
     content_id: str,
     posit_connect_user_session_token: str = Header(None),
 ):
-    print(content_id)
     visitor = get_visitor_client(posit_connect_user_session_token)
-    print(visitor)
 
     content = visitor.content.get(content_id)
-    print(content)
-    print('hello!')
     content.delete()
 
 @app.delete("/api/contents/{content_id}/processes/{process_id}")
