@@ -9,9 +9,15 @@ library(lubridate)
 library(reactable)
 library(ggplot2)
 library(plotly)
+library(shinycssloaders)
 
 shinyOptions(
   cache = cachem::cache_disk("./app_cache/cache/", max_age = 60 * 60)
+)
+
+options(
+  spinner.type = 1,
+  spinner.color = "#7494b1"
 )
 
 source("get_usage.R")
@@ -38,7 +44,7 @@ bar_chart <- function(
   value,
   max_val,
   height = "1rem",
-  fill = "#00bfc4",
+  fill = "#7494b1",
   background = NULL
 ) {
   width <- paste0(value * 100 / max_val, "%")
@@ -204,7 +210,7 @@ ui <- function(request) {
     div(
       id = "multi_content_table",
       textOutput("summary_text"),
-      reactableOutput("content_usage_table")
+      withSpinner(reactableOutput("content_usage_table"))
     ),
 
     # The single-content detail view is displayed when an item is selected,
@@ -232,7 +238,11 @@ ui <- function(request) {
             "Daily Visits",
             div(
               style = "height: 300px",
-              plotlyOutput("daily_visits_plot", height = "100%", width = "100%")
+              withSpinner(plotlyOutput(
+                "daily_visits_plot",
+                height = "100%",
+                width = "100%"
+              ))
             )
           ),
           tabPanel(
@@ -253,11 +263,11 @@ ui <- function(request) {
                 "Click a row to show only that user's visits."
               )
             ),
-            reactableOutput("aggregated_visits")
+            withSpinner(reactableOutput("aggregated_visits"))
           ),
           tabPanel(
             "List of Visits",
-            reactableOutput("all_visits")
+            withSpinner(reactableOutput("all_visits"))
           )
         )
       )
@@ -1148,7 +1158,10 @@ server <- function(input, output, session) {
 
     height_px <- n_users * row_height + label_buffer + toolbar_buffer
 
-    plotlyOutput("visit_timeline_plot", height = paste0(height_px, "px"))
+    withSpinner(plotlyOutput(
+      "visit_timeline_plot",
+      height = paste0(height_px, "px")
+    ))
   })
 
   # Global UI elements ----

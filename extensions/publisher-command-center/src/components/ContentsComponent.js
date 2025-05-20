@@ -2,6 +2,7 @@ import m from "mithril";
 import { format } from "date-fns";
 import Contents from "../models/Contents";
 import Languages from "./Languages";
+import DeleteModal from "./DeleteModal";
 
 const ContentsComponent = {
   error: null,
@@ -35,12 +36,12 @@ const ContentsComponent = {
       m(
         "thead",
         m("tr", [
-          m("th", { scope: "col" }, ""),
           m("th", { scope: "col" }, "Title"),
           m("th", { scope: "col" }, "Language"),
           m("th", { scope: "col" }, "Running Processes"),
           m("th", { scope: "col" }, "Last Updated"),
           m("th", { scope: "col" }, "Date Added"),
+          m("th", { scope: "col" }, ""),
           m("th", { scope: "col" }, ""),
         ]),
       ),
@@ -48,25 +49,17 @@ const ContentsComponent = {
         "tbody",
         Contents.data.map((content) => {
           const guid = content["guid"];
+          const title = content["title"];
           return m(
             "tr",
-            {
-              style: { cursor: "pointer" },
-              onclick: () => m.route.set(`/contents/${guid}`),
-            },
             [
               m(
                 "td",
-                m("", {
-                  class: "fa-solid fa-gear text-secondary",
-                }),
-              ),
-              m(
-                "td",
-                m(
-                  ".link-primary",
-                  content["title"] || m("i", "No Name"),
-                ),
+                  {
+                    class: "link-primary content-page-link",
+                    onclick: () => m.route.set(`/contents/${guid}`),
+                  },
+                  title || m("i", "No Name"),
               ),
               m(
                 "td",
@@ -77,6 +70,16 @@ const ContentsComponent = {
               m("td", format(content["created_time"], "MMM do, yyyy")),
               m(
                 "td",
+                m("button", {
+                  class: "action-btn",
+                  "data-bs-toggle": "modal",
+                  "data-bs-target": `#deleteModal-${guid}`,
+                }, [
+                  m("i", { class: "fa-solid fa-trash" })
+                ]),
+              ),
+              m(
+                "td",
                 m("a", {
                   class: "fa-solid fa-arrow-up-right-from-square",
                   href: content["content_url"],
@@ -84,11 +87,15 @@ const ContentsComponent = {
                   onclick: (e) => e.stopPropagation(),
                 }),
               ),
+              m(DeleteModal, {
+                contentId: guid,
+                contentTitle: title,
+              }),
             ],
           );
         }),
       ),
-    );
+    )
   },
 };
 
