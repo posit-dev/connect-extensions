@@ -1,5 +1,4 @@
 library(connectapi)
-library(pins)
 
 NA_datetime_ <- vctrs::new_datetime(NA_real_, tzone = "UTC")
 NA_list_ <- list(list())

@@ -54,3 +54,7 @@ a.action-button {
   text-decoration: none;
   white-space: nowrap;
 }
+
+.shiny-spinner-output-container {
+  height: 100% !important;
+}
