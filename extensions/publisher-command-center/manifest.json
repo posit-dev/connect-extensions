@@ -1,10 +1,15 @@
 {
-	"version": 1,
-	"metadata": {
-		"appmode": "python-fastapi",
-		"entrypoint": "app.py"
-	},
-	"python": {
+  "version": 1,
+  "locale": "en_US",
+  "platform": "4.4.3",
+  "metadata": {
+    "appmode": "static",
+    "primary_rmd": null,
+    "primary_html": "index.html",
+    "content_category": null,
+    "has_parameters": false
+  },
+  "python": {
 		"version": "3.12.3",
 		"package_manager": {
 			"name": "pip",
@@ -16,13 +21,22 @@
 			"requires": "~=3.8"
 		}
 	},
-	"packages": {},
-	"files": {
-    "requirements.txt": {
-      "checksum": "a162a98758867a701ce693948ffdfa67"
-    },
+  "extension": {
+  "name": "publisher-command-center",
+  "title": "Publisher Command Center",
+  "description": "An app that helps publishers view and manage details about apps and dashboards deployed to Connect: View app metadata and history for all of the apps you are collaborating on as well as see and managing running process for individual apps.",
+  "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/publisher-command-center",
+  "minimumConnectVersion": "2025.04.0",
+  "requiredFeatures": [
+    "API Publishing",
+    "OAuth Integrations"
+  ],
+  "version": "0.0.4"
+  },
+  "packages": null,
+  "files": {
     "app.py": {
-      "checksum": "92709c50369eca0216b8e121cd87c94c"
+      "checksum": "55729c283443e02bcfc4233ccf0c2b3d"
     },
     "dist/assets/fa-brands-400.808443ae.ttf": {
       "checksum": "15d54d142da2f2d6f2e90ed1d55121af"
@@ -48,26 +62,18 @@
     "dist/assets/fa-v4compatibility.30f6abf6.ttf": {
       "checksum": "4ed293ceaca9b5b2d9cd74a477963fae"
     },
-    "dist/assets/index.0c2ac2eb.css": {
-      "checksum": "96fb5a8d93644a29ece62d52354fbc73"
+    "dist/assets/index.0414c885.css": {
+      "checksum": "e90bff5c84d5a1f452547bf255a0e941"
     },
-    "dist/assets/index.3b47d0e1.js": {
-      "checksum": "b7a54352e0a5437ef97c8d3202983dac"
+    "dist/assets/index.64acb7bc.js": {
+      "checksum": "e080b351ef15821ce5209bddbfdcf2f2"
     },
     "dist/index.html": {
-      "checksum": "a64aa56406944bd2184562c18bfc3b4e"
+      "checksum": "71ae0324162ed08510d16ca2b67ab17a"
+    },
+    "requirements.txt": {
+      "checksum": "a162a98758867a701ce693948ffdfa67"
     }
-	},
-	"extension": {
-		"name": "publisher-command-center",
-		"title": "Publisher Command Center",
-		"description": "An app that helps publishers view and manage details about apps and dashboards deployed to Connect: View app metadata and history for all of the apps you are collaborating on as well as see and managing running process for individual apps.",
-		"homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/publisher-command-center",
-		"minimumConnectVersion": "2025.04.0",
-		"requiredFeatures": [
-			"API Publishing",
-			"OAuth Integrations"
-		],
-		"version": "0.0.4"
-	}
+  },
+  "users": null
 }
