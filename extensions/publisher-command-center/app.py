@@ -74,6 +74,15 @@ async def get_content_processes(
     active_jobs = [job for job in content.jobs if job["status"] == 0]
     return active_jobs
 
+@app.delete("/api/contents/{content_id}")
+async def delete_content(
+    content_id: str,
+    posit_connect_user_session_token: str = Header(None),
+):
+    visitor = get_visitor_client(posit_connect_user_session_token)
+
+    content = visitor.content.get(content_id)
+    content.delete()
 
 @app.delete("/api/contents/{content_id}/processes/{process_id}")
 async def destroy_process(
@@ -92,7 +101,6 @@ async def destroy_process(
             if job["status"] != 0:
                 return
             await asyncio.sleep(1)
-
 
 @app.get("/api/contents/{content_id}/author")
 async def get_author(

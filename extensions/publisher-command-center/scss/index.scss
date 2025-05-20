@@ -27,3 +27,19 @@ $colors: (
 );
 
 @import "bootstrap/scss/bootstrap";
+
+.content-page-link {
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.action-btn {
+  background: none;
+  border: none;
+  color: $blue;
+}
+
+// Removes the white background of the modal
+.modal.show {
+  background: none;
+}
