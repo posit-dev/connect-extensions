@@ -11,10 +11,6 @@ library(ggplot2)
 library(plotly)
 library(shinycssloaders)
 
-shinyOptions(
-  cache = cachem::cache_disk("./app_cache/cache/", max_age = 60 * 60)
-)
-
 options(
   spinner.type = 1,
   spinner.color = "#7494b1"
@@ -193,11 +189,7 @@ ui <- function(request) {
         uiOutput("email_selected_visitors_button")
       ),
 
-      tags$hr(),
-
-      # TODO: Possibly remove or hide in a "Troubleshooting" or Advanced
-      # accordion section
-      actionLink("clear_cache", "Clear Cache", icon = icon("refresh")),
+      tags$hr()
     ),
 
     # Main content views ----
@@ -449,15 +441,6 @@ server <- function(input, output, session) {
     )
   })
 
-  # Cache invalidation button ----
-
-  cache <- cachem::cache_disk("./app_cache/cache/")
-  observeEvent(input$clear_cache, {
-    print("Cache cleared!")
-    cache$reset()
-    session$reload()
-  })
-
   # Visit Merge Window controls: sync slider and text input ----
 
   observeEvent(input$visit_merge_window, {
@@ -576,7 +559,7 @@ server <- function(input, output, session) {
   content_unscoped <- reactive({
     get_content(client)
   }) |>
-    bindCache(active_user_guid)
+    bindCache(active_user_guid, cache = "session")
 
   content <- reactive({
     req(input$content_scope)
@@ -611,7 +594,7 @@ server <- function(input, output, session) {
       ) |>
       select(user_guid = guid, full_name, username, display_name, email)
   }) |>
-    bindCache(active_user_guid)
+    bindCache(active_user_guid, cache = "session")
 
   usage_data_raw <- reactive({
     req(active_user_role %in% c("administrator", "publisher"))
@@ -621,7 +604,7 @@ server <- function(input, output, session) {
       to = date_range()$to
     )
   }) |>
-    bindCache(active_user_guid, date_range())
+    bindCache(active_user_guid, date_range(), cache = "session")
 
   # Multi-content table data ----
 
