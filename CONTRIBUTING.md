@@ -73,8 +73,8 @@ Available categories are listed in the [`extensions.json`](./extensions.json)
 file. The category should match the `id`, and automations in the repository
 will check that the category is valid.
 
-The order of the categories determines the order in which they are displayed
-in the Connect Gallery.
+The order of the categories in [`extensions.json`](./extensions.json) determines
+the order in which they are displayed in the Connect Gallery.
 
 #### Tags
 
