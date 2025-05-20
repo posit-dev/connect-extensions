@@ -1,4 +1,5 @@
 export interface Category {
+  id: string;
   title: string;
   description: string;
 }
@@ -22,7 +23,7 @@ export interface ExtensionManifest {
     version: string;
     minimumConnectVersion: string;
     requiredFeatures?: RequiredFeature[];
-    category?: Category['title'];
+    category?: Category['id'];
     tags?: string[];
   };
   environment?: ExtensionEnvironment;
@@ -51,5 +52,5 @@ export interface Extension {
   latestVersion: ExtensionVersion;
   versions: ExtensionVersion[];
   tags: string[];
-  category?: Category['title'];
+  category?: Category['id'];
 }
