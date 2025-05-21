@@ -51,6 +51,9 @@ export default {
       body: {
         title: newName,
       },
+    }).then((response) => {
+      const targetContent = this.data.find((c) => c.guid === guid);
+      Object.assign(targetContent, response);
     });
   },
 

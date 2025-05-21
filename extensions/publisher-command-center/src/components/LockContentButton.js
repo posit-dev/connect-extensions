@@ -3,7 +3,9 @@ import Contents from "../models/Contents";
 
 const LockedContentButton = {  
   view: function(vnode) {
-    const labelMessage = vnode.attrs.isLocked ? "Unlock Content" : "Lock Content";
+    const labelMessage = vnode.attrs.isLocked ?
+       `Unlock ${vnode.attrs.contentTitle}` :
+       `Lock Content ${vnode.attrs.contentTitle}`;
     const iconClassName = vnode.attrs.isLocked ? "fa-lock" : "fa-lock-open";
     return m("button", {
       class: "action-btn",

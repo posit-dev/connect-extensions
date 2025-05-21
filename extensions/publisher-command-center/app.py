@@ -1,6 +1,6 @@
 from http import client
 import asyncio
-from fastapi import FastAPI, Header
+from fastapi import FastAPI, Header, Body
 from fastapi.staticfiles import StaticFiles
 from posit import connect
 from posit.connect.errors import ClientError
@@ -76,13 +76,13 @@ async def lock_content(
 @app.patch("/api/content/{content_id}/rename")
 async def rename_content(
     content_id: str,
-    new_name: str = "",
+    title: str = Body(..., embed = True),
     posit_connect_user_session_token: str = Header(None),
 ):
     visitor = get_visitor_client(posit_connect_user_session_token)
     content = visitor.content.get(content_id)
 
-    content.update(title = new_name)
+    content.update(title = title)
     return content
 
 @app.get("/api/contents/{content_id}/processes")
