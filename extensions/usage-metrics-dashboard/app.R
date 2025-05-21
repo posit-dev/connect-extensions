@@ -305,7 +305,10 @@ server <- function(input, output, session) {
     ),
     error = function(e) {
       eligible_integrations <- get_eligible_integrations(publisher_client)
-      selected_integration <- slice_head(eligible_integrations, n = 1)
+      selected_integration <- eligible_integrations |>
+        # Sort "max_role: Admin" before "max_role: Publisher"
+        arrange(config) |>
+        slice_head(n = 1)
       selected_integration_guid(selected_integration$guid)
 
       if (nrow(selected_integration) == 1) {
