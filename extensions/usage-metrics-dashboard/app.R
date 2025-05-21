@@ -141,6 +141,8 @@ ui <- function(request) {
         value = 0,
       ),
 
+      tags$hr(),
+
       # Controls shown only when the outer table is displayed
       conditionalPanel(
         "input.content_guid == null",
@@ -193,6 +195,8 @@ ui <- function(request) {
         ),
         uiOutput("email_selected_visitors_button")
       ),
+
+      tags$hr(),
 
       div(
         actionLink("clear_cache", "Refresh Data", icon = icon("refresh")),

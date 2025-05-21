@@ -58,3 +58,7 @@ a.action-button {
 .shiny-spinner-output-container {
   height: 100% !important;
 }
+
+.sidebar hr {
+  margin: 0.25rem 0;
+}
