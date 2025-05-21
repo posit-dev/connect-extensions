@@ -1,5 +1,6 @@
 import m from "mithril";
 import Contents from "../models/Contents";
+import { Modal } from "bootstrap";
 
 const RenameModalForm = {
   newName: "",
@@ -11,8 +12,10 @@ const RenameModalForm = {
       Contents.rename(RenameModalForm.guid, RenameModalForm.newName);
 
       const modalEl = document.getElementById(`renameModal-${RenameModalForm.guid}`);
-      const modal = bootstrap.Modal.getInstance(modalEl);
+      const modal = Modal.getInstance(modalEl);
       modal.hide();
+
+      RenameModalForm.newName = "";
     }
   },
   view: function(vnode) {
@@ -21,7 +24,7 @@ const RenameModalForm = {
       },
       [
         m("section", { class: "modal-body" }, [
-          m("div", { class: "form-group has-validation" }, [
+          m("div", { class: "form-group" }, [
             m("label", {
               for: "rename-content-input",
               class: "mb-3",
@@ -40,6 +43,7 @@ const RenameModalForm = {
               required: true,
               minlength: 3,
               maxlength: 1024,
+              value: RenameModalForm.newName,
             }),
           ])
         ]),

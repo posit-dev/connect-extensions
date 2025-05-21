@@ -1,6 +1,6 @@
 import m from "mithril";
 
-import "bootstrap/dist/js/bootstrap.bundle.min.js";
+import * as bootstrap from "bootstrap";
 import "@fortawesome/fontawesome-free/css/all.min.css";
 
 import "../scss/index.scss";
