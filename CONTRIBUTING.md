@@ -40,6 +40,7 @@ to the `manifest.json`:
     "title": "My Content Name",
     "description": "A lovely, detailed description of the content.",
     "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/my-content-name",
+    "category": "",
     "tags": [],
     "minimumConnectVersion": "2025.04.0",
     "version": "0.0.0"
@@ -50,6 +51,30 @@ to the `manifest.json`:
 It is recommended to begin with `"version": "0.0.0"` to avoid triggering a
 release during development of your content. When you are ready to release to
 the gallery check the [Adding content to the Connect Gallery](#adding-content-to-the-connect-gallery) section.
+
+#### Category
+
+The `category` field in the `extension` section of the `manifest.json` is
+required to group content in the Gallery.
+
+```json
+// manifest.json
+
+{
+  ...
+  "extension": {
+    "category": "extension,
+    ...
+  }
+}
+```
+
+Available categories are listed in the [`extensions.json`](./extensions.json)
+file. The category should match the `id`, and automations in the repository
+will check that the category is valid.
+
+The order of the categories in [`extensions.json`](./extensions.json) determines
+the order in which they are displayed in the Connect Gallery.
 
 #### Tags
 

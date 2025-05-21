@@ -65,6 +65,35 @@ runs:
         fi
       shell: bash
 
+    # Ensures that the manifest.json category is valid
+    - name: Check category
+      run: |
+        # Read in valid category IDs from extensions.json
+        VALID_CATEGORY_IDS=$(jq -c '[.categories[] | .id]' ./extensions.json)
+
+        # Read in category from the extension's manifest.json
+        EXTENSION_CATEGORY=$(jq -r '.extension.category // ""' ./extensions/${{ inputs.extension-name }}/manifest.json)
+
+        # If the extension's category is empty, skip validation
+        if [ -z "$EXTENSION_CATEGORY" ]; then
+          echo "No category specified in manifest.json"
+          exit 0
+        fi
+
+        # Check if extension category is in the valid categories ID list
+        CATEGORY_VALID=$(jq -n --argjson global "$VALID_CATEGORY_IDS" --arg category "$EXTENSION_CATEGORY" '
+          $global | index($category) != null
+        ')
+
+        # Check if the category is valid
+        if [ "$CATEGORY_VALID" != "true" ]; then
+          echo "Error: The category '$EXTENSION_CATEGORY' in manifest.json is not defined in extensions.json"
+          echo "Valid categories are: $(jq -r 'join(", ")' <<< "$VALID_CATEGORY_IDS")"
+          echo "Please use one of the valid category IDs or add a new category to the 'categories' array in extensions.json."
+          exit 1
+        fi
+      shell: bash
+
     # Ensures that the manifest.json has only valid tags
     - name: Check tags
       run: |

@@ -47,14 +47,9 @@ def get_visitor_client(token: str | None) -> connect.Client:
 async def contents(posit_connect_user_session_token: str = Header(None)):
     visitor = get_visitor_client(posit_connect_user_session_token)
 
-    response = client.get("metrics/procs")
-    processes = response.json()
-
     contents = visitor.me.content.find()
     for content in contents:
-        content["processes"] = [
-            process for process in processes if content["guid"] == process["app_guid"]
-        ]
+        content["active_jobs"] = [job for job in content.jobs if job["status"] == 0]
 
     return contents
 
@@ -74,13 +69,20 @@ async def get_content_processes(
     visitor = get_visitor_client(posit_connect_user_session_token)
 
     # Assert the viewer has access to the content
-    assert visitor.content.get(content_id)
+    content = visitor.content.get(content_id)
+    # make a list of the iterable:
+    active_jobs = [job for job in content.jobs if job["status"] == 0]
+    return active_jobs
 
-    response = client.get("metrics/procs")
-    processes = response.json()
+@app.delete("/api/contents/{content_id}")
+async def delete_content(
+    content_id: str,
+    posit_connect_user_session_token: str = Header(None),
+):
+    visitor = get_visitor_client(posit_connect_user_session_token)
 
-    return [process for process in processes if process.get("app_guid") == content_id]
-
+    content = visitor.content.get(content_id)
+    content.delete()
 
 @app.delete("/api/contents/{content_id}/processes/{process_id}")
 async def destroy_process(
@@ -99,7 +101,6 @@ async def destroy_process(
             if job["status"] != 0:
                 return
             await asyncio.sleep(1)
-
 
 @app.get("/api/contents/{content_id}/author")
 async def get_author(

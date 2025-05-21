@@ -9,9 +9,15 @@ library(lubridate)
 library(reactable)
 library(ggplot2)
 library(plotly)
+library(shinycssloaders)
 
 shinyOptions(
   cache = cachem::cache_disk("./app_cache/cache/", max_age = 60 * 60)
+)
+
+options(
+  spinner.type = 1,
+  spinner.color = "#7494b1"
 )
 
 source("get_usage.R")
@@ -38,7 +44,7 @@ bar_chart <- function(
   value,
   max_val,
   height = "1rem",
-  fill = "#00bfc4",
+  fill = "#7494b1",
   background = NULL
 ) {
   width <- paste0(value * 100 / max_val, "%")
@@ -114,10 +120,13 @@ ui <- function(request) {
       sliderInput(
         "visit_merge_window",
         label = tagList(
-          "Visit Merge Window (sec)",
+          "Session Window (sec)",
           tooltip(
             bsicons::bs_icon("question-circle-fill", class = "ms-2"),
-            "Filter out visits occurring within this many seconds of that user's last visit."
+            paste0(
+              "Visits within this number of seconds are counted only once, ",
+              "representing a unique session where a user is interacting with an app."
+            )
           )
         ),
         min = 0,
@@ -205,7 +214,7 @@ ui <- function(request) {
     div(
       id = "multi_content_table",
       textOutput("summary_text"),
-      reactableOutput("content_usage_table")
+      withSpinner(reactableOutput("content_usage_table"))
     ),
 
     # The single-content detail view is displayed when an item is selected,
@@ -233,7 +242,11 @@ ui <- function(request) {
             "Daily Visits",
             div(
               style = "height: 300px",
-              plotlyOutput("daily_visits_plot", height = "100%", width = "100%")
+              withSpinner(plotlyOutput(
+                "daily_visits_plot",
+                height = "100%",
+                width = "100%"
+              ))
             )
           ),
           tabPanel(
@@ -254,11 +267,11 @@ ui <- function(request) {
                 "Click a row to show only that user's visits."
               )
             ),
-            reactableOutput("aggregated_visits")
+            withSpinner(reactableOutput("aggregated_visits"))
           ),
           tabPanel(
             "List of Visits",
-            reactableOutput("all_visits")
+            withSpinner(reactableOutput("all_visits"))
           )
         )
       )
@@ -296,7 +309,10 @@ server <- function(input, output, session) {
     ),
     error = function(e) {
       eligible_integrations <- get_eligible_integrations(publisher_client)
-      selected_integration <- slice_head(eligible_integrations, n = 1)
+      selected_integration <- eligible_integrations |>
+        # Sort "max_role: Admin" before "max_role: Publisher"
+        arrange(config) |>
+        slice_head(n = 1)
       selected_integration_guid(selected_integration$guid)
 
       if (nrow(selected_integration) == 1) {
@@ -452,7 +468,7 @@ server <- function(input, output, session) {
     session$reload()
   })
 
-  # Visit Merge Window controls: sync slider and text input ----
+  # Session Window controls: sync slider and text input ----
 
   observeEvent(input$visit_merge_window, {
     if (input$visit_merge_window != input$visit_merge_window_text) {
@@ -1040,7 +1056,7 @@ server <- function(input, output, session) {
       div(
         style = "white-space: nowrap;",
         icon("arrow-up-right-from-square"),
-        "Open in Connect"
+        "Open"
       )
     )
   })
@@ -1166,7 +1182,10 @@ server <- function(input, output, session) {
 
     height_px <- n_users * row_height + label_buffer + toolbar_buffer
 
-    plotlyOutput("visit_timeline_plot", height = paste0(height_px, "px"))
+    withSpinner(plotlyOutput(
+      "visit_timeline_plot",
+      height = paste0(height_px, "px")
+    ))
   })
 
   # Global UI elements ----

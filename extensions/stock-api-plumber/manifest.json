@@ -19,7 +19,7 @@
     "requiredFeatures": [
       "API Publishing"
     ],
-    "tags": ["Jump Start"]
+    "category": "example"
   },
   "environment": {
     "r": {

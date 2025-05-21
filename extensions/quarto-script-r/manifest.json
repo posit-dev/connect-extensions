@@ -14,7 +14,7 @@
     "title": "Run an R Script using Quarto",
     "description": "This example demonstrates running a simple R script on Connect as a Quarto project. It is an example of how you might automate regular imports and transformations from a data source. JSON and CSV files are exported and made available for download. The script also generates a custom email, with the generated CSV files as attachments.",
     "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/quarto-script-r",
-    "tags": ["Jump Start"],
+    "category": "example",
     "minimumConnectVersion": "2025.04.0",
     "version": "1.0.0"
   },
@@ -28,7 +28,9 @@
   },
   "quarto": {
     "version": "1.4.557",
-    "engines": ["knitr"]
+    "engines": [
+      "knitr"
+    ]
   },
   "packages": {
     "R6": {

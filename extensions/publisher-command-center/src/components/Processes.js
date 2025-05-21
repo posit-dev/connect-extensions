@@ -103,8 +103,6 @@ export default {
             m("th", { scope: "col" }, ""),
             m("th", { scope: "col" }, "Id"),
             m("th", { scope: "col" }, "Started"),
-            m("th", { scope: "col" }, "CPUs"),
-            m("th", { scope: "col" }, "Memory"),
             m("th", { scope: "col" }, "Hostname"),
           ]),
         ),
@@ -116,7 +114,7 @@ export default {
                 "td.text-center.py-2",
                 m(StopButton, {
                   content_id: vnode.attrs.id,
-                  process_id: process?.job_key,
+                  process_id: process?.key,
                 }),
               ),
               m("td", process?.pid),
@@ -124,8 +122,6 @@ export default {
                 "td",
                 formatDistanceToNow(process?.start_time, { addSuffix: true }),
               ),
-              m("td", Number(process?.cpu_current).toFixed(2)),
-              m("td", filesize(process?.ram)),
               m("td", process?.hostname),
             ]);
           }),
