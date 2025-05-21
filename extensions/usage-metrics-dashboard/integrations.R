@@ -29,8 +29,7 @@ get_eligible_integrations <- function(client) {
         filter(
           template == "connect",
           config %in% c("max_role: Admin", "max_role: Publisher")
-        ) |>
-        arrange(desc(config))
+        )
     },
     error = function(e) {
       data.frame()
