@@ -52,6 +52,7 @@ const Edit = {
           {
             href: content?.dashboard_url,
             target: "_blank",
+            ariaLabel: "Open in a new tab"
           },
           ["Open", m("i.fa-solid.fa-arrow-up-right-from-square")],
         ),
