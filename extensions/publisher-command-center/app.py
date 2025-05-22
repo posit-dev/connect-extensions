@@ -81,7 +81,9 @@ def get_visitor_client(token: str | None) -> connect.Client:
 async def contents(posit_connect_user_session_token: str = Header(None)):
     visitor = get_visitor_client(posit_connect_user_session_token)
 
-    contents = visitor.me.content.find()
+    all_content = visitor.content.find()
+    contents = [c for c in all_content if c.app_role in ["owner", "editor"]]
+
     for content in contents:
         content["active_jobs"] = [job for job in content.jobs if job["status"] == 0]
 
