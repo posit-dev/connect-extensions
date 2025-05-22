@@ -109,7 +109,8 @@ const ContentsComponent = {
                 m("a", {
                   class: "fa-solid fa-arrow-up-right-from-square",
                   href: content["content_url"],
-                  title: `Open ${title} (opens in new tab)`,
+                  ariaLabel: `Open ${title} (opens in new tab)`,
+                  title: `Open ${title}`,
                   target: "_blank",
                   onclick: (e) => e.stopPropagation(),
                 }),

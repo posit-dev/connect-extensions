@@ -27,7 +27,7 @@
     "API Publishing",
     "OAuth Integrations"
   ],
-  "version": "0.0.5"
+  "version": "0.0.4"
   },
   "files": {
     "requirements.txt": {
@@ -60,14 +60,14 @@
     "dist/assets/fa-v4compatibility.30f6abf6.ttf": {
       "checksum": "4ed293ceaca9b5b2d9cd74a477963fae"
     },
-    "dist/assets/index.3a9c08bc.js": {
-      "checksum": "190b4f6c18d188527b1bfbf2bef1ede6"
+    "dist/assets/index.043e0ce3.css": {
+      "checksum": "0e41eeba30bce2f8e92873acb12462f7"
     },
-    "dist/assets/index.eba02280.css": {
-      "checksum": "cb5a34d5ea88d4969288161bd3123ee4"
+    "dist/assets/index.7d457dc3.js": {
+      "checksum": "5cbfee09ee6b22913005c1adbaff39f7"
     },
     "dist/index.html": {
-      "checksum": "1cbc14166f5e5bcf06fbe9c6c35d55aa"
+      "checksum": "ae6f4b40d27ac5c0586b85fd13806c72"
     }
   }
 }

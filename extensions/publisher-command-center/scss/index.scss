@@ -39,6 +39,10 @@ $colors: (
   color: $blue;
 }
 
+.lock-loading {
+  color: $gray;
+}
+
 // Removes the white background of the modal
 .modal.show {
   background: none;
