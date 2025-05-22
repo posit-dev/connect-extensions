@@ -2,7 +2,9 @@ import m from "mithril";
 import { format } from "date-fns";
 import Contents from "../models/Contents";
 import Languages from "./Languages";
+import LockContentButton from "./LockContentButton";
 import DeleteModal from "./DeleteModal";
+import RenameModal from "./RenameModal";
 
 const ContentsComponent = {
   error: null,
@@ -43,6 +45,8 @@ const ContentsComponent = {
           m("th", { scope: "col" }, "Date Added"),
           m("th", { scope: "col" }, ""),
           m("th", { scope: "col" }, ""),
+          m("th", { scope: "col" }, ""),
+          m("th", { scope: "col" }, ""),
         ]),
       ),
       m(
@@ -72,6 +76,28 @@ const ContentsComponent = {
                 "td",
                 m("button", {
                   class: "action-btn",
+                  ariaLabel: `Rename ${title}`,
+                  title: `Rename ${title}`,
+                  "data-bs-toggle": "modal",
+                  "data-bs-target": `#renameModal-${guid}`,
+                }, [
+                  m("i", { class: "fa-solid fa-pencil" })
+                ]),
+              ),
+              m(
+                "td",
+                m(LockContentButton, {
+                  contentId: guid,
+                  contentTitle: title,
+                  isLocked: content["locked"],
+                }),
+              ),
+              m(
+                "td",
+                m("button", {
+                  class: "action-btn",
+                  title: `Delete ${title}`,
+                  ariaLabel: `Delete ${title}`,
                   "data-bs-toggle": "modal",
                   "data-bs-target": `#deleteModal-${guid}`,
                 }, [
@@ -83,11 +109,17 @@ const ContentsComponent = {
                 m("a", {
                   class: "fa-solid fa-arrow-up-right-from-square",
                   href: content["content_url"],
+                  ariaLabel: `Open ${title} (opens in new tab)`,
+                  title: `Open ${title}`,
                   target: "_blank",
                   onclick: (e) => e.stopPropagation(),
                 }),
               ),
               m(DeleteModal, {
+                contentId: guid,
+                contentTitle: title,
+              }),
+              m(RenameModal, {
                 contentId: guid,
                 contentTitle: title,
               }),

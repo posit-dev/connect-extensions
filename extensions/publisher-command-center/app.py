@@ -95,6 +95,29 @@ async def content(
     visitor = get_visitor_client(posit_connect_user_session_token)
     return visitor.content.get(content_id)
 
+@app.patch("/api/content/{content_id}/lock")
+async def lock_content(
+    content_id: str,
+    posit_connect_user_session_token: str = Header(None),
+):
+    visitor = get_visitor_client(posit_connect_user_session_token)
+    content = visitor.content.get(content_id)
+    is_locked = content.locked
+
+    content.update(locked=not is_locked)
+    return content
+
+@app.patch("/api/content/{content_id}/rename")
+async def rename_content(
+    content_id: str,
+    title: str = Body(..., embed = True),
+    posit_connect_user_session_token: str = Header(None),
+):
+    visitor = get_visitor_client(posit_connect_user_session_token)
+    content = visitor.content.get(content_id)
+
+    content.update(title = title)
+    return content
 
 @app.get("/api/contents/{content_id}/processes")
 async def get_content_processes(
