@@ -91,7 +91,7 @@ export default {
     return m(".pt-3.border-top", [
       m(".", [
         m("h5", [
-          "Releases ",
+          "Source Versions ",
           m("span.badge.rounded-pill.text-bg-secondary", releases.length),
         ]),
         recent,

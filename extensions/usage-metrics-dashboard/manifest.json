@@ -3056,16 +3056,16 @@
   },
   "files": {
     "app.R": {
-      "checksum": "544181b20a34795af22ff51d3607938d"
+      "checksum": "dd69a9e45f5e4e02496de7b6cbb828d8"
     },
     "get_usage.R": {
       "checksum": "ac5b526efed72f1c34786620ca2ddacd"
     },
     "integrations.R": {
-      "checksum": "069b072123263b40775ab4f819eb26fc"
+      "checksum": "2b495c74b5987a2c318bcd80a0c2be8f"
     },
     "www/styles.css": {
-      "checksum": "96b6068bd63e5daf1f938bfb854fd849"
+      "checksum": "7ea30e3cc044a3221877a503b0e1ee7d"
     }
   },
   "users": null,
@@ -3079,7 +3079,7 @@
     "requiredFeatures": [
       "OAuth Integrations"
     ],
-    "version": "1.0.0"
+    "version": "1.0.2"
   },
   "environment": {
     "r": {

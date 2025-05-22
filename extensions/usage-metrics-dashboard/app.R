@@ -120,10 +120,13 @@ ui <- function(request) {
       sliderInput(
         "visit_merge_window",
         label = tagList(
-          "Visit Merge Window (sec)",
+          "Session Window (sec)",
           tooltip(
             bsicons::bs_icon("question-circle-fill", class = "ms-2"),
-            "Filter out visits occurring within this many seconds of that user's last visit."
+            paste0(
+              "Visits within this number of seconds are counted only once, ",
+              "representing a unique session where a user is interacting with an app."
+            )
           )
         ),
         min = 0,
@@ -195,9 +198,17 @@ ui <- function(request) {
 
       tags$hr(),
 
-      # TODO: Possibly remove or hide in a "Troubleshooting" or Advanced
-      # accordion section
-      actionLink("clear_cache", "Clear Cache", icon = icon("refresh")),
+      div(
+        actionLink("clear_cache", "Refresh Data", icon = icon("refresh")),
+        div(
+          textOutput("last_updated"),
+          style = "
+            font-size:0.75rem;
+            color:#6c757d;
+            margin:2px 0 0 0;
+          "
+        )
+      )
     ),
 
     # Main content views ----
@@ -302,7 +313,10 @@ server <- function(input, output, session) {
     ),
     error = function(e) {
       eligible_integrations <- get_eligible_integrations(publisher_client)
-      selected_integration <- slice_head(eligible_integrations, n = 1)
+      selected_integration <- eligible_integrations |>
+        # Sort "max_role: Admin" before "max_role: Publisher"
+        arrange(config) |>
+        slice_head(n = 1)
       selected_integration_guid(selected_integration$guid)
 
       if (nrow(selected_integration) == 1) {
@@ -458,7 +472,7 @@ server <- function(input, output, session) {
     session$reload()
   })
 
-  # Visit Merge Window controls: sync slider and text input ----
+  # Session Window controls: sync slider and text input ----
 
   observeEvent(input$visit_merge_window, {
     if (input$visit_merge_window != input$visit_merge_window_text) {
@@ -613,15 +627,27 @@ server <- function(input, output, session) {
   }) |>
     bindCache(active_user_guid)
 
-  usage_data_raw <- reactive({
+  usage_data_meta <- reactive({
     req(active_user_role %in% c("administrator", "publisher"))
-    get_usage(
+    dat <- get_usage(
       client,
       from = date_range()$from,
       to = date_range()$to
     )
+    list(
+      data = dat,
+      last_updated = Sys.time()
+    )
   }) |>
     bindCache(active_user_guid, date_range())
+
+  usage_data_raw <- reactive({
+    usage_data_meta()$data
+  })
+
+  usage_last_updated <- reactive({
+    usage_data_meta()$last_updated
+  })
 
   # Multi-content table data ----
 
@@ -713,6 +739,11 @@ server <- function(input, output, session) {
       )
     }
   )
+
+  output$last_updated <- renderText({
+    fmt <- "%Y-%m-%d %l:%M:%S %p %Z"
+    paste0("Updated ", format(usage_last_updated(), fmt))
+  })
 
   output$content_usage_table <- renderReactable({
     data <- multi_content_table_data()
@@ -1029,7 +1060,7 @@ server <- function(input, output, session) {
       div(
         style = "white-space: nowrap;",
         icon("arrow-up-right-from-square"),
-        "Open in Connect"
+        "Open"
       )
     )
   })
