@@ -48,7 +48,13 @@ const UnauthorizedView = {
 
     // We have an integration ready to add
     if (vnode.state.integration) {
-      return m("div.alert.alert-info", { style: { margin: "1rem auto", maxWidth: "800px" } }, [
+      return m("div.alert.alert-info", {
+        style: {
+          margin: "1rem auto",
+          maxWidth: "640px",
+          width: "calc(100% - 2rem)"
+        }
+      }, [
         m("div", { style: { marginBottom: "1rem" } }, [
           m("p", [
             "This content uses a ",
@@ -78,7 +84,13 @@ const UnauthorizedView = {
     const baseUrl = window.location.origin;
     const integrationSettingsUrl = `${baseUrl}/connect/#/system/integrations`;
 
-    return m("div.alert.alert-warning", { style: { margin: "1rem auto", maxWidth: "800px" } }, [
+    return m("div.alert.alert-warning", {
+      style: {
+        margin: "1rem auto",
+        maxWidth: "640px",
+        width: "calc(100% - 2rem)"
+      }
+    }, [
       m("div", { style: { marginBottom: "1rem" } }, [
         m("p", "This content needs permission to show users the content they have access to."),
         m("p", [
