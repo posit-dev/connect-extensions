@@ -27,7 +27,7 @@
     "API Publishing",
     "OAuth Integrations"
   ],
-  "version": "0.0.5"
+  "version": "0.0.4"
   },
   "files": {
     "requirements.txt": {

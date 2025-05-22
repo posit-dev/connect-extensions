@@ -53,7 +53,6 @@ async def set_integration(integration_guid: str = Body(..., embed=True)):
 
 @app.get("/api/integrations")
 async def get_integrations():
-    print("get_integration()")
     integrations = client.oauth.integrations.find()
     admin_integrations = [
         i

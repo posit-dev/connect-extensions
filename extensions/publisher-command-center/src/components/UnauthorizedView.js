@@ -1,7 +1,7 @@
 import m from "mithril";
 
 const UnauthorizedView = {
-  oninit: function(vnode) {
+  oninit: function (vnode) {
     vnode.state.integration = null;
     vnode.state.loading = true;
 
@@ -19,7 +19,7 @@ const UnauthorizedView = {
       });
   },
 
-  addIntegration: function(vnode) {
+  addIntegration: function (vnode) {
     if (!vnode.state.integration) return;
 
     m.request({
@@ -36,7 +36,7 @@ const UnauthorizedView = {
       });
   },
 
-  view: function(vnode) {
+  view: function (vnode) {
     // Show loading state
     if (vnode.state.loading) {
       return m("div.d-flex.justify-content-center", { style: { margin: "3rem" } }, [
@@ -50,19 +50,26 @@ const UnauthorizedView = {
     if (vnode.state.integration) {
       return m("div.alert.alert-info", { style: { margin: "1rem auto", maxWidth: "800px" } }, [
         m("div", { style: { marginBottom: "1rem" } }, [
-          m.trust("This content uses a <strong>Visitor API Key</strong> " +
-            "integration to show users the content they have access to. " +
-            "A compatible integration is displayed below." +
-            "<br><br>" +
-            "For more information, see " +
-            "<a href='https://docs.posit.co/connect/user/oauth-integrations/#obtaining-a-visitor-api-key' " +
-            "target='_blank'>documentation on Visitor API Key integrations</a>.")
+          m("p", [
+            "This content uses a ",
+            m("strong", "Visitor API Key"),
+            " integration to show users the content they have access to. A compatible integration is displayed below."
+          ]),
+          m("p", [
+            "For more information, see ",
+            m("a", {
+              href: "https://docs.posit.co/connect/user/oauth-integrations/#obtaining-a-visitor-api-key",
+              target: "_blank"
+            }, "documentation on Visitor API Key integrations")
+          ])
         ]),
         m("button.btn.btn-primary", {
           onclick: () => this.addIntegration(vnode)
         }, [
           m("i.fas.fa-plus.me-2"),
-          m.trust("Add the <strong>'" + (vnode.state.integration.title || vnode.state.integration.name || "Connect API") + "'</strong> Integration")
+          "Add the ",
+          m("strong", vnode.state.integration.title || vnode.state.integration.name || "Connect API"),
+          " Integration"
         ])
       ]);
     }
@@ -73,19 +80,35 @@ const UnauthorizedView = {
 
     return m("div.alert.alert-warning", { style: { margin: "1rem auto", maxWidth: "800px" } }, [
       m("div", { style: { marginBottom: "1rem" } }, [
-        m.trust("This content needs permission to show users the content they have access to." +
-          "<br><br>" +
-          "To allow this, an Administrator must configure a " +
-          "<strong>Connect API</strong> integration on the " +
-          "<strong><a href='" + integrationSettingsUrl + "' target='_blank'>Integration Settings</a></strong> page. " +
-          "<br><br>" +
-          "On that page, select <strong>'+ Add Integration'</strong>. " +
-          "In the 'Select Integration' dropdown, choose <strong>'Connect API'</strong>. " +
-          "The 'Max Role' field must be set to <strong>'Administrator'</strong> " +
-          "or <strong>'Publisher'</strong>; 'Viewer' will not work. " +
-          "<br><br>" +
-          "See the <a href='https://docs.posit.co/connect/admin/integrations/oauth-integrations/connect/' " +
-          "target='_blank'>Connect API section of the Admin Guide</a> for more detailed setup instructions.")
+        m("p", "This content needs permission to show users the content they have access to."),
+        m("p", [
+          "To allow this, an Administrator must configure a ",
+          m("strong", "Connect API"),
+          " integration on the ",
+          m("strong", [
+            m("a", { href: integrationSettingsUrl, target: "_blank" }, "Integration Settings")
+          ]),
+          " page."
+        ]),
+        m("p", [
+          "On that page, select ",
+          m("strong", "+ Add Integration"),
+          ". In the 'Select Integration' dropdown, choose ",
+          m("strong", "Connect API"),
+          ". The 'Max Role' field must be set to ",
+          m("strong", "Administrator"),
+          " or ",
+          m("strong", "Publisher"),
+          "; 'Viewer' will not work."
+        ]),
+        m("p", [
+          "See the ",
+          m("a", {
+            href: "https://docs.posit.co/connect/admin/integrations/oauth-integrations/connect/",
+            target: "_blank"
+          }, "Connect API section of the Admin Guide"),
+          " for more detailed setup instructions."
+        ])
       ])
     ]);
   }
