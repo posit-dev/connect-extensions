@@ -36,15 +36,24 @@ const Edit = {
 
     return m(
       "div",
-      m(".d-flex.flex-row.justify-content-between.align-items-center.my-3", [
-        m("h2.mb-0", content?.title || m("i", "No Name")),
+      m(".d-flex.flex-row.justify-content-between.align-items-baseline.my-3", [
+        m(".d-flex.align-items-baseline", [
+          m(
+            "a.btn.btn-md.btn-outline-primary.d-flex.align-items-center.justify-content-center.gap-2",
+            {
+              onclick: () => m.route.set("/contents")
+            },
+            [m("i.fa-solid.fa-arrow-left"), "Back"],
+          ),
+          m("h3.mb-0.ms-3", content?.title || m("i", "No Name")),
+        ]),
         m(
-          "a.btn.btn-lg.btn-outline-primary.d-flex.align-items-center.justify-content-center.gap-2",
+          "a.btn.btn-md.btn-outline-primary.d-flex.align-items-center.justify-content-center.gap-2.ms-3",
           {
             href: content?.dashboard_url,
             target: "_blank",
           },
-          ["Open in Connect", m("i.fa-solid.fa-arrow-up-right-from-square")],
+          ["Open", m("i.fa-solid.fa-arrow-up-right-from-square")],
         ),
       ]),
       m(".row", m(".pb-3", m(Languages, content))),
