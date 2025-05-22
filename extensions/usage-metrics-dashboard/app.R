@@ -323,7 +323,7 @@ server <- function(input, output, session) {
         message <- paste0(
           "This content uses a <strong>Visitor API Key</strong> ",
           "integration to show users the content they have access to. ",
-          "A compatible integration is displayed below.",
+          "A compatible integration is already available; use it below.",
           "<br><br>",
           "For more information, see ",
           "<a href='https://docs.posit.co/connect/user/oauth-integrations/#obtaining-a-visitor-api-key' ",
@@ -358,7 +358,7 @@ server <- function(input, output, session) {
 
       footer <- if (nrow(selected_integration) == 1) {
         button_label <- HTML(paste0(
-          "Add the ",
+          "Use the ",
           "<strong>'",
           selected_integration$name,
           "'</strong> ",
@@ -367,7 +367,8 @@ server <- function(input, output, session) {
         actionButton(
           "auto_add_integration",
           button_label,
-          icon = icon("plus")
+          icon = icon("plus"),
+          class = "btn btn-primary"
         )
       } else if (nrow(selected_integration) == 0) {
         NULL
