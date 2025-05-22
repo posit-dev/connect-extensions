@@ -59,7 +59,8 @@ const UnauthorizedView = {
           m("p", [
             "This content uses a ",
             m("strong", "Visitor API Key"),
-            " integration to show users the content they have access to. A compatible integration is displayed below."
+            " integration to show users the content they have access to.",
+            " A compatible integration is already available; use it below."
           ]),
           m("p", [
             "For more information, see ",
@@ -73,7 +74,7 @@ const UnauthorizedView = {
           onclick: () => this.addIntegration(vnode)
         }, [
           m("i.fas.fa-plus.me-2"),
-          "Add the ",
+          "Use the ",
           m("strong", vnode.state.integration.title || vnode.state.integration.name || "Connect API"),
           " Integration"
         ])
