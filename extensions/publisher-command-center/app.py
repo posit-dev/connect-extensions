@@ -1,6 +1,6 @@
 from http import client
 import asyncio
-from fastapi import FastAPI, Header
+from fastapi import FastAPI, Header, Body
 from fastapi.staticfiles import StaticFiles
 from posit import connect
 from posit.connect.errors import ClientError
@@ -15,8 +15,9 @@ app = FastAPI()
 # Create cache with TTL=1hour and unlimited size
 client_cache = TTLCache(maxsize=float("inf"), ttl=3600)
 
-@app.get("/api/auth-status")
-async def auth_status(posit_connect_user_session_token: str = Header(None)):
+
+@app.get("/api/visitor-auth")
+async def integration_status(posit_connect_user_session_token: str = Header(None)):
     """
     If running on Connect, attempt to build a visitor client.
     If that raises the 212 error (no OAuth integration), return authorized=False.
@@ -30,9 +31,42 @@ async def auth_status(posit_connect_user_session_token: str = Header(None)):
         except ClientError as err:
             if err.error_code == 212:
                 return {"authorized": False}
-            raise # Other errors bubble up
+            raise
 
     return {"authorized": True}
+
+
+@app.put("/api/visitor-auth")
+async def set_integration(integration_guid: str = Body(..., embed=True)):
+    if os.getenv("RSTUDIO_PRODUCT") == "CONNECT":
+        content_guid = os.getenv("CONNECT_CONTENT_GUID")
+        content = client.content.get(content_guid)
+        content.oauth.associations.update(integration_guid)
+    else:
+        # Raise an error if not running on Connect
+        raise ClientError(
+            error_code=400,
+            message="This endpoint is only available when running on Posit Connect.",
+        )
+    return {"status": "success"}
+
+
+@app.get("/api/integrations")
+async def get_integrations():
+    integrations = client.oauth.integrations.find()
+    admin_integrations = [
+        i
+        for i in integrations
+        if i["template"] == "connect" and i["config"]["max_role"] == "Admin"
+    ]
+    publisher_integrations = [
+        i
+        for i in integrations
+        if i["template"] == "connect" and i["config"]["max_role"] == "Publisher"
+    ]
+    eligible_integrations = admin_integrations + publisher_integrations
+    return eligible_integrations[0] if eligible_integrations else None
+
 
 @cached(client_cache)
 def get_visitor_client(token: str | None) -> connect.Client:
@@ -74,6 +108,7 @@ async def get_content_processes(
     active_jobs = [job for job in content.jobs if job["status"] == 0]
     return active_jobs
 
+
 @app.delete("/api/contents/{content_id}")
 async def delete_content(
     content_id: str,
@@ -83,6 +118,7 @@ async def delete_content(
 
     content = visitor.content.get(content_id)
     content.delete()
+
 
 @app.delete("/api/contents/{content_id}/processes/{process_id}")
 async def destroy_process(
@@ -101,6 +137,7 @@ async def destroy_process(
             if job["status"] != 0:
                 return
             await asyncio.sleep(1)
+
 
 @app.get("/api/contents/{content_id}/author")
 async def get_author(
