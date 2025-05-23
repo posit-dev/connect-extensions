@@ -1,0 +1,45 @@
+{
+  "version": 1,
+  "locale": "en_US",
+  "platform": "4.4.0",
+  "metadata": {
+    "appmode": "quarto-static",
+    "primary_rmd": "index.qmd",
+    "primary_html": null,
+    "content_category": null,
+    "has_parameters": false
+  },
+  "extension": {
+    "name": "quarto-presentation",
+    "title": "Quarto Presentation",
+    "description": "This presentation is generated using Quarto and reveal.js. It demonstrates how you might use code to highlight your work.",
+    "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/quarto-presentation",
+    "category": "example",
+    "minimumConnectVersion": "2025.04.0",
+    "version": "1.0.0"
+  },
+  "environment": {
+    "quarto": {
+      "requires": "~=1.6"
+    }
+  },
+  "quarto": {
+    "version": "1.6.42",
+    "engines": [
+      "markdown"
+    ]
+  },
+  "packages": null,
+  "files": {
+    "_quarto.yml": {
+      "checksum": "80f9dca03266ef4fbfef85e1f8be2699"
+    },
+    "index.qmd": {
+      "checksum": "fb7df1cb7f52c2d0502281e9bc0e31ee"
+    },
+    "README.md": {
+      "checksum": "725f7b7c6d298b276d7e9261d0ec8a61"
+    }
+  },
+  "users": null
+}
