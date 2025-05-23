@@ -25,24 +25,20 @@
   },
   "quarto": {
     "version": "1.6.42",
-    "engines": ["markdown"]
+    "engines": [
+      "markdown"
+    ]
   },
   "packages": null,
   "files": {
     "_quarto.yml": {
       "checksum": "80f9dca03266ef4fbfef85e1f8be2699"
     },
-    ".Rprofile": {
-      "checksum": "65aa4f9ede26c73c72d18b03fcd06bc9"
-    },
     "index.qmd": {
       "checksum": "fb7df1cb7f52c2d0502281e9bc0e31ee"
     },
     "README.md": {
       "checksum": "725f7b7c6d298b276d7e9261d0ec8a61"
-    },
-    "renv.lock": {
-      "checksum": "c8c07519c8556d43e3ec0fa0da82d910"
     }
   },
   "users": null
