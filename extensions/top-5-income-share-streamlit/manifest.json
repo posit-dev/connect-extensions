@@ -10,9 +10,9 @@
     "title": "Top 5% income share using Streamlit",
     "description": "A Streamlit application makes it easy to transform your analysis into an interactive dashboard using Python so users can ask and answer questions in real-time, without having to touch any code.",
     "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/top-5-income-share-streamlit",
-    "tags": ["Jump Start"],
+    "category": "example",
     "minimumConnectVersion": "2025.04.0",
-    "version": ".0.0"
+    "version": "1.0.0"
   },
   "environment": {
     "python": {
