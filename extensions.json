@@ -478,6 +478,44 @@
       "tags": []
     },
     {
+      "name": "quarto-stock-report-r",
+      "title": "Quarto Stock Report using R",
+      "description": "This stock report is generated using Quarto and R. It is an example of how you might automate regular updates using a data source. The report also generates a custom email, sharing the results directly to stakeholders.",
+      "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/quarto-stock-report-r",
+      "latestVersion": {
+        "version": "1.0.0",
+        "released": "2025-05-23T22:16:09Z",
+        "url": "https://github.com/posit-dev/connect-extensions/releases/download/quarto-stock-report-r%40v1.0.0/quarto-stock-report-r.tar.gz",
+        "minimumConnectVersion": "2025.04.0",
+        "requiredEnvironment": {
+          "quarto": {
+            "requires": "~=1.4"
+          },
+          "r": {
+            "requires": "~=4.4"
+          }
+        }
+      },
+      "versions": [
+        {
+          "version": "1.0.0",
+          "released": "2025-05-23T22:16:09Z",
+          "url": "https://github.com/posit-dev/connect-extensions/releases/download/quarto-stock-report-r%40v1.0.0/quarto-stock-report-r.tar.gz",
+          "minimumConnectVersion": "2025.04.0",
+          "requiredEnvironment": {
+            "quarto": {
+              "requires": "~=1.4"
+            },
+            "r": {
+              "requires": "~=4.4"
+            }
+          }
+        }
+      ],
+      "tags": [],
+      "category": "example"
+    },
+    {
       "name": "quarto-website",
       "title": "Quarto Website",
       "description": "This Quarto website uses the Posit Connect Server API together with Python to construct a dashboard that presents published content. Views showing featured and all content are included. Set the `FEATURED_TAGS` environment variable and feature content having a particular tag name.",
