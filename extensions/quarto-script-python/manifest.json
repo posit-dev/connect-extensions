@@ -9,7 +9,7 @@
     "title": "Run a Python Script using Quarto",
     "description": "This data transformation script uses Quarto and Python. It is an example of how you might automate regular imports and transformations from a data source. JSON and CSV files are exported and made available for download.",
     "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/quarto-script-python",
-    "tags": ["Jump Start"],
+    "category": "example",
     "minimumConnectVersion": "2025.04.0",
     "version": "1.0.0"
   },
