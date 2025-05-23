@@ -38,6 +38,7 @@ jobs:
             stock-api-plumber: extensions/stock-api-plumber/**
             stock-api-flask: extensions/stock-api-flask/**
             stock-dashboard-python: extensions/stock-dashboard-python/**
+            top-5-income-share-bokeh: extensions/top-5-income-share-bokeh/**
             landing-page: extensions/landing-page/**
             stock-api-fastapi: extensions/stock-api-fastapi/**
             connectwidgets-example: extensions/connectwidgets-example/**

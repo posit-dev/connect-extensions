@@ -1,0 +1,44 @@
+{
+  "version": 1,
+  "locale": "en_US.UTF-8",
+  "metadata": {
+    "appmode": "python-bokeh",
+    "entrypoint": "app"
+  },
+  "extension": {
+    "name": "top-5-income-share-bokeh",
+    "title": "Top 5% income share using Bokeh",
+    "description": "A Bokeh application makes it easy to transform your analysis into an interactive dashboard using Python so users can ask and answer questions in real-time, without having to touch any code.",
+    "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/top-5-income-share-bokeh",
+    "category": "example",
+    "minimumConnectVersion": "2025.04.0",
+    "version": "1.0.0"
+  },
+  "environment": {
+    "python": {
+      "requires": "~=3.9"
+    }
+  },
+  "python": {
+    "version": "3.11.7",
+    "package_manager": {
+      "name": "pip",
+      "version": "24.2",
+      "package_file": "requirements.txt"
+    }
+  },
+  "files": {
+    "requirements.txt": {
+      "checksum": "78537c6327323d7ddeea0a92b3e17740"
+    },
+    "README.md": {
+      "checksum": "5007a3c8a406354fc4ce88f46a22c5c0"
+    },
+    "app.py": {
+      "checksum": "b965e780a74b524f0ab5263a214614d7"
+    },
+    "data.csv": {
+      "checksum": "8da5e3f4e5d46c024310cd04354f81bd"
+    }
+  }
+}
