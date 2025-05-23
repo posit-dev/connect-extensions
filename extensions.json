@@ -356,6 +356,38 @@
       "tags": []
     },
     {
+      "name": "quarto-presentation",
+      "title": "Quarto Presentation",
+      "description": "This presentation is generated using Quarto and reveal.js. It demonstrates how you might use code to highlight your work.",
+      "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/quarto-presentation",
+      "latestVersion": {
+        "version": "1.0.0",
+        "released": "2025-05-23T21:55:03Z",
+        "url": "https://github.com/posit-dev/connect-extensions/releases/download/quarto-presentation%40v1.0.0/quarto-presentation.tar.gz",
+        "minimumConnectVersion": "2025.04.0",
+        "requiredEnvironment": {
+          "quarto": {
+            "requires": "~=1.6"
+          }
+        }
+      },
+      "versions": [
+        {
+          "version": "1.0.0",
+          "released": "2025-05-23T21:55:03Z",
+          "url": "https://github.com/posit-dev/connect-extensions/releases/download/quarto-presentation%40v1.0.0/quarto-presentation.tar.gz",
+          "minimumConnectVersion": "2025.04.0",
+          "requiredEnvironment": {
+            "quarto": {
+              "requires": "~=1.6"
+            }
+          }
+        }
+      ],
+      "tags": [],
+      "category": "example"
+    },
+    {
       "name": "quarto-script-r",
       "title": "Run an R Script using Quarto",
       "description": "This example demonstrates running a simple R script on Connect as a Quarto project. It is an example of how you might automate regular imports and transformations from a data source. JSON and CSV files are exported and made available for download. The script also generates a custom email, with the generated CSV files as attachments.",
