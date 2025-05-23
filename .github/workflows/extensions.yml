@@ -51,6 +51,7 @@ jobs:
             quarto-script-r: extensions/quarto-script-r/**
             top-5-income-share-streamlit: extensions/top-5-income-share-streamlit/**
             usage-metrics-dashboard: extensions/usage-metrics-dashboard/**
+            voila-example: extensions/voila-example/**
 
   # Runs for each extension that has changed from `simple-extension-changes`
   # Lints and packages in preparation for tests and and release.
