@@ -10,7 +10,7 @@
     "title": "Stock Report using Jupyter",
     "description": "This stock report is generated using Python and Jupyter Notebook. Stock prices are populated from Quandl to generate a stock performance summary intended to run daily after market close.",
     "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/stock-report-jupyter",
-    "tags": ["Jump Start"],
+    "category": "example",
     "minimumConnectVersion": "2025.04.0",
     "version": "1.0.0"
   },
