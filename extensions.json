@@ -732,6 +732,38 @@
       "category": "example"
     },
     {
+      "name": "top-5-income-share-shiny",
+      "title": "Top 5% income share using Shiny",
+      "description": "A Shiny application makes it easy to transform your analysis into an interactive application using Python so users can ask and answer their own questions in real-time.",
+      "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/top-5-income-share-shiny",
+      "latestVersion": {
+        "version": "1.0.0",
+        "released": "2025-05-23T22:35:47Z",
+        "url": "https://github.com/posit-dev/connect-extensions/releases/download/top-5-income-share-shiny%40v1.0.0/top-5-income-share-shiny.tar.gz",
+        "minimumConnectVersion": "2025.04.0",
+        "requiredEnvironment": {
+          "python": {
+            "requires": "~=3.9"
+          }
+        }
+      },
+      "versions": [
+        {
+          "version": "1.0.0",
+          "released": "2025-05-23T22:35:47Z",
+          "url": "https://github.com/posit-dev/connect-extensions/releases/download/top-5-income-share-shiny%40v1.0.0/top-5-income-share-shiny.tar.gz",
+          "minimumConnectVersion": "2025.04.0",
+          "requiredEnvironment": {
+            "python": {
+              "requires": "~=3.9"
+            }
+          }
+        }
+      ],
+      "tags": [],
+      "category": "example"
+    },
+    {
       "name": "top-5-income-share-streamlit",
       "title": "Top 5% income share using Streamlit",
       "description": "A Streamlit application makes it easy to transform your analysis into an interactive dashboard using Python so users can ask and answer questions in real-time, without having to touch any code.",
