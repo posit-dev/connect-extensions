@@ -34,6 +34,7 @@ jobs:
             quarto-stock-report-python: extensions/quarto-stock-report-python/**
             quarto-website: extensions/quarto-website/**
             portfolio-dashboard: extensions/portfolio-dashboard/**
+            top-5-income-share-shiny: extensions/top-5-income-share-shiny/**
             quarto-document: extensions/quarto-document/**
             stock-api-plumber: extensions/stock-api-plumber/**
             stock-api-flask: extensions/stock-api-flask/**

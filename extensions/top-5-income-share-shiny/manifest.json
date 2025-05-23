@@ -1,0 +1,44 @@
+{
+  "version": 1,
+  "locale": "en_US.UTF-8",
+  "metadata": {
+    "appmode": "python-shiny",
+    "entrypoint": "app"
+  },
+  "extension": {
+    "name": "top-5-income-share-shiny",
+    "title": "Top 5% income share using Shiny",
+    "description": "A Shiny application makes it easy to transform your analysis into an interactive application using Python so users can ask and answer their own questions in real-time.",
+    "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/top-5-income-share-shiny",
+    "category": "example",
+    "minimumConnectVersion": "2025.04.0",
+    "version": "1.0.0"
+  },
+  "environment": {
+    "python": {
+      "requires": "~=3.9"
+    }
+  },
+  "python": {
+    "version": "3.11.7",
+    "package_manager": {
+      "name": "pip",
+      "version": "24.2",
+      "package_file": "requirements.txt"
+    }
+  },
+  "files": {
+    "requirements.txt": {
+      "checksum": "4583d99c9250f0b1dbb638ff6508db9a"
+    },
+    "README.md": {
+      "checksum": "af0c77b5f71a94dc99862a8a9f468746"
+    },
+    "app.py": {
+      "checksum": "da61dbb8757d8fcda7f8faef1ac4c87e"
+    },
+    "data.csv": {
+      "checksum": "8da5e3f4e5d46c024310cd04354f81bd"
+    }
+  }
+}
