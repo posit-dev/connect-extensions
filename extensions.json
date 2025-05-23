@@ -630,6 +630,38 @@
       "tags": []
     },
     {
+      "name": "top-5-income-share-streamlit",
+      "title": "Top 5% income share using Streamlit",
+      "description": "A Streamlit application makes it easy to transform your analysis into an interactive dashboard using Python so users can ask and answer questions in real-time, without having to touch any code.",
+      "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/top-5-income-share-streamlit",
+      "latestVersion": {
+        "version": "1.0.0",
+        "released": "2025-05-23T19:46:22Z",
+        "url": "https://github.com/posit-dev/connect-extensions/releases/download/top-5-income-share-streamlit%40v1.0.0/top-5-income-share-streamlit.tar.gz",
+        "minimumConnectVersion": "2025.04.0",
+        "requiredEnvironment": {
+          "python": {
+            "requires": "~=3.9"
+          }
+        }
+      },
+      "versions": [
+        {
+          "version": "1.0.0",
+          "released": "2025-05-23T19:46:22Z",
+          "url": "https://github.com/posit-dev/connect-extensions/releases/download/top-5-income-share-streamlit%40v1.0.0/top-5-income-share-streamlit.tar.gz",
+          "minimumConnectVersion": "2025.04.0",
+          "requiredEnvironment": {
+            "python": {
+              "requires": "~=3.9"
+            }
+          }
+        }
+      ],
+      "tags": [],
+      "category": "example"
+    },
+    {
       "name": "usage-metrics-dashboard",
       "title": "Usage Metrics Dashboard",
       "description": "Understand usage patterns across your work on Connect. Browse an overview of usage across everything you've published, and dive into detailed breakdowns of data for an individual deployment, down to the level of individual visits.",
