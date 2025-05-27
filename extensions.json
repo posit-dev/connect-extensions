@@ -700,6 +700,38 @@
       "tags": []
     },
     {
+      "name": "stock-report-jupyter",
+      "title": "Stock Report using Jupyter",
+      "description": "This stock report is generated using Python and Jupyter Notebook. Stock prices are populated from Quandl to generate a stock performance summary intended to run daily after market close.",
+      "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/stock-report-jupyter",
+      "latestVersion": {
+        "version": "1.0.0",
+        "released": "2025-05-27T21:38:44Z",
+        "url": "https://github.com/posit-dev/connect-extensions/releases/download/stock-report-jupyter%40v1.0.0/stock-report-jupyter.tar.gz",
+        "minimumConnectVersion": "2025.04.0",
+        "requiredEnvironment": {
+          "python": {
+            "requires": "~=3.9"
+          }
+        }
+      },
+      "versions": [
+        {
+          "version": "1.0.0",
+          "released": "2025-05-27T21:38:44Z",
+          "url": "https://github.com/posit-dev/connect-extensions/releases/download/stock-report-jupyter%40v1.0.0/stock-report-jupyter.tar.gz",
+          "minimumConnectVersion": "2025.04.0",
+          "requiredEnvironment": {
+            "python": {
+              "requires": "~=3.9"
+            }
+          }
+        }
+      ],
+      "tags": [],
+      "category": "example"
+    },
+    {
       "name": "top-5-income-share-bokeh",
       "title": "Top 5% income share using Bokeh",
       "description": "A Bokeh application makes it easy to transform your analysis into an interactive dashboard using Python so users can ask and answer questions in real-time, without having to touch any code.",
