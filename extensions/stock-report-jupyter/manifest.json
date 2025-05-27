@@ -33,6 +33,9 @@
     },
     "requirements.txt": {
       "checksum": "a21501182f426dfe1dc08a839ad47144"
+    },
+    "quandl-wiki-tsla.json.gz": {
+      "checksum": "3950ee9583143349c74e6caabcf4d47e"
     }
   }
 }
