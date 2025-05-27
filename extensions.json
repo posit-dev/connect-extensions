@@ -874,6 +874,38 @@
         }
       ],
       "tags": []
+    },
+    {
+      "name": "voila-example",
+      "title": "Secure Hashes with Voilà",
+      "description": "Voilà allows you to convert a Jupyter Notebook into an interactive dashboard that allows you to share your work with others.",
+      "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/voila-example",
+      "latestVersion": {
+        "version": "1.0.0",
+        "released": "2025-05-27T15:10:17Z",
+        "url": "https://github.com/posit-dev/connect-extensions/releases/download/voila-example%40v1.0.0/voila-example.tar.gz",
+        "minimumConnectVersion": "2025.04.0",
+        "requiredEnvironment": {
+          "python": {
+            "requires": "~=3.11.3"
+          }
+        }
+      },
+      "versions": [
+        {
+          "version": "1.0.0",
+          "released": "2025-05-27T15:10:17Z",
+          "url": "https://github.com/posit-dev/connect-extensions/releases/download/voila-example%40v1.0.0/voila-example.tar.gz",
+          "minimumConnectVersion": "2025.04.0",
+          "requiredEnvironment": {
+            "python": {
+              "requires": "~=3.11.3"
+            }
+          }
+        }
+      ],
+      "tags": [],
+      "category": "example"
     }
   ]
 }
