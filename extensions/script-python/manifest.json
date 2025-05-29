@@ -5,9 +5,9 @@
     "appmode": "quarto-static"
   },
   "extension": {
-    "name": "quarto-script-python",
-    "title": "Run a Python Script using Quarto",
-    "description": "This data transformation script uses Quarto and Python. It is an example of how you might automate regular imports and transformations from a data source. JSON and CSV files are exported and made available for download.",
+    "name": "script-python",
+    "title": "Run a Python Script",
+    "description": "This data transformation Python script is an example of how you might automate regular imports and transformations from a data source. JSON and CSV files are exported and made available for download. Quarto is used to render the script.",
     "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/quarto-script-python",
     "category": "example",
     "minimumConnectVersion": "2025.04.0",
