@@ -11,6 +11,21 @@ create a new extension directory. Note, you will need to manually create your
 Use `rsconnect` or `rsconnect-python` to generate a manifest, which is required
 as part of the extension bundle.
 
+## Use the Posit Public Package Manager as your R package repository
+
+Before you work with R content, set the Posit Public Package Manager as your R
+package repository. Put the following in your `~/.Rprofile`:
+
+```r
+options(repos = c(CRAN = "https://packagemanager.posit.co/cran/latest"))
+```
+
+It's best to do this this *before* you install packages, run `renv::init()` or
+`renv::restore()`, or generate a `manifest.json`. Doing this allows content to
+use binary packages when it installs on a Connect server.
+
+See https://packagemanager.posit.co/client/#/repos/cran/setup for more detail.
+
 ## Connect Gallery
 
 The Connect Gallery displays apps, dashboards, and reports that can be easily
@@ -124,7 +139,7 @@ The `requiredFeatures` field in the `extension` section of the `manifest.json`
 is optional, but if your content requires enhanced features of Posit Connect to
 function correctly it should be included.
 
-For example, if your content requires the API Publishing feature your 
+For example, if your content requires the API Publishing feature your
 `manifest.json` should include the following:
 
 ```json
@@ -290,17 +305,17 @@ Connect Gallery.
 ### Checking if your extension will release
 
 If you would like to check if merging a pull request will trigger a new release
-you can do that by looking in the GitHub Actions summary. Click on the "Checks" 
-tab for a Pull Request and then click on the Extension Workflow run and the 
+you can do that by looking in the GitHub Actions summary. Click on the "Checks"
+tab for a Pull Request and then click on the Extension Workflow run and the
 summary will be displayed below the workflow graph.
 
 It will say one of the following based on the `version` in the
 `manifest.json` and the last released version:
 
-> The manifest version is '1.1.0' and the released version is '1.0.0'  
+> The manifest version is '1.1.0' and the released version is '1.0.0'
 > 🚀 Will release! The manifest version is greater than the released version.
 
-> The manifest version is '1.0.0' and the released version is '1.0.0'  
+> The manifest version is '1.0.0' and the released version is '1.0.0'
 > 😴 Holding back from release: The manifest version is not greater than the released version.
 
 > ⚠️ Version 0.0.0 is reserved and will never be released.
@@ -323,7 +338,7 @@ the steps below:
 
 ### Removing a single release
 
-Open a pull request to remove the release: 
+Open a pull request to remove the release:
 
 1. Remove the release from the content list in `extension.json`
     - If the removed release is the latest release, update the `latestVersion`
@@ -332,7 +347,7 @@ Open a pull request to remove the release:
       the first element in the `versions` array
 2. Revert the content's `version` in the `manifest.json` file to the previous
    release
-    
+
 Once the pull request is merged continue with the steps below:
 
 1. Remove the associated release from the [GitHub Releases page](https://github.com/posit-dev/connect-extensions/releases).
@@ -356,7 +371,7 @@ And after the pull request is merged:
 ## Removing Content
 
 Removing content from the `extensions/` subdirectory that has already been
-added to the Connect Gallery requires that you follow instructions in the 
+added to the Connect Gallery requires that you follow instructions in the
 above [Removing an entire piece of content](#removing-an-entire-piece-of-content)
 section.
 
