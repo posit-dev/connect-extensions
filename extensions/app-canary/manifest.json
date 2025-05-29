@@ -1,0 +1,29 @@
+{
+  "version": 1,
+  "locale": "en_US.UTF-8",
+  "metadata": {
+    "appmode": "quarto-static"
+  },
+  "quarto": {
+    "version": "1.4.557",
+    "engines": [
+      "jupyter"
+    ]
+  },
+  "python": {
+    "version": "3.11.7",
+    "package_manager": {
+      "name": "pip",
+      "version": "23.2.1",
+      "package_file": "requirements.txt"
+    }
+  },
+  "files": {
+    "requirements.txt": {
+      "checksum": "83bcdb40712bd02357e3266e13ae8fec"
+    },
+    "app-canary.qmd": {
+      "checksum": "99e945d6c78b16eebdcf297b759ebe2c"
+    }
+  }
+}
