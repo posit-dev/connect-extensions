@@ -1,18 +1,24 @@
 ---
 title: "App Canary - Application Health Monitor"
-format: 
+format:
   dashboard:
     theme: cosmo
+  email:
+    embed-resources: true
+email-preview: true
 ---
 
 ```{python}
-#| output: false
+#| echo: false
 
 import os
 import requests
 import datetime
 import pandas as pd
-from great_tables import GT, style, loc, exibble, html
+import css_inline
+from great_tables import GT, style, loc, html
+from IPython.display import HTML
+
 
 # Used to display on-screen setup instructions if environment variables are missing
 show_instructions = False
@@ -141,7 +147,7 @@ else:
     check_time = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
 ```
 
-::: {.card .table-card}
+::: {.card .table-card .content-visible when-format="dashboard"}
 ```{python}
 #| echo: false
 
@@ -196,4 +202,40 @@ if not show_instructions and not df.empty:
     # Display the table
     gt_tbl
 ```
+:::
+
+
+```{python}
+#| echo: false
+
+# Computer if we should send an email, only send if at least one app has a failure
+send_email = not df.empty and (df['status'] == 'FAIL').any()
+```
+
+
+::: {.email .content-visible when-format="email"}
+
+::: {.email-scheduled}
+`{python} send_email`
+:::
+
+::: {.subject}
+App Canary - ❌ one or more apps have failed monitoring
+:::
+
+::: {.email-text}
+One or more of the apps you are monitoring have failed.
+
+See the report at: {{< env RSC_REPORT_URL >}}
+:::
+
+One or more of the apps you are monitoring have failed.
+
+```{python}
+#| echo: false
+
+HTML(gt_tbl.as_raw_html(inline_css=True))
+```
+
+
 :::

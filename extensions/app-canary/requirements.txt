@@ -3,3 +3,4 @@ ipython==8.12.3
 great_tables
 pandas==2.2.3
 requests==2.31.0
+css-inline==0.14.6
