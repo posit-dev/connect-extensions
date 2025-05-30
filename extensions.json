@@ -554,6 +554,44 @@
       "tags": []
     },
     {
+      "name": "script-python",
+      "title": "Run a Python Script",
+      "description": "This data transformation Python script is an example of how you might automate regular imports and transformations from a data source. JSON and CSV files are exported and made available for download. Quarto is used to render the script.",
+      "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/script-python",
+      "latestVersion": {
+        "version": "1.0.0",
+        "released": "2025-05-30T18:32:01Z",
+        "url": "https://github.com/posit-dev/connect-extensions/releases/download/script-python%40v1.0.0/script-python.tar.gz",
+        "minimumConnectVersion": "2025.04.0",
+        "requiredEnvironment": {
+          "python": {
+            "requires": "~=3.8"
+          },
+          "quarto": {
+            "requires": "~=1.4"
+          }
+        }
+      },
+      "versions": [
+        {
+          "version": "1.0.0",
+          "released": "2025-05-30T18:32:01Z",
+          "url": "https://github.com/posit-dev/connect-extensions/releases/download/script-python%40v1.0.0/script-python.tar.gz",
+          "minimumConnectVersion": "2025.04.0",
+          "requiredEnvironment": {
+            "python": {
+              "requires": "~=3.8"
+            },
+            "quarto": {
+              "requires": "~=1.4"
+            }
+          }
+        }
+      ],
+      "tags": [],
+      "category": "example"
+    },
+    {
       "name": "stock-api-fastapi",
       "title": "FastAPI Stock Pricing Service",
       "description": "APIs are a great way for software engineering teams to use your models without translating them into different languages",
