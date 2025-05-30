@@ -1,0 +1,11 @@
+/.quarto/
+
+/_*.local
+
+app-canary.html
+
+/email-preview
+
+.output_metadata.json
+
+preview.html
