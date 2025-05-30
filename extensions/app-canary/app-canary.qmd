@@ -12,7 +12,7 @@ import os
 import requests
 import datetime
 import pandas as pd
-from great_tables import GT
+from great_tables import GT, style, loc, exibble, html
 
 # Used to display on-screen setup instructions if environment variables are missing
 show_instructions = False
@@ -161,9 +161,39 @@ if show_instructions:
     """
     display(HTML(html_content))
 
-# Display table
-if not show_instructions:
-    gt_tbl = GT(df)
+
+# Display table with basic styling
+if not show_instructions and not df.empty:
+    
+    # First create links for name and guid columns
+    df_display = df.copy()
+    
+    # Process the DataFrame rows to add HTML links
+    for i in range(len(df_display)):
+        if not pd.isna(df_display.loc[i, 'dashboard_url']) and df_display.loc[i, 'dashboard_url']:
+            url = df_display.loc[i, 'dashboard_url']
+            df_display.loc[i, 'name'] = f"<a href='{url}' target='_blank'>{df_display.loc[i, 'name']}</a>"
+            df_display.loc[i, 'guid'] = f"<a href='{url}' target='_blank'>{df_display.loc[i, 'guid']}</a>"
+    
+    # Remove dashboard_url column since the links are embedded in the other columns
+    if 'dashboard_url' in df_display.columns:
+        df_display = df_display.drop(columns=['dashboard_url'])
+    
+    # Create GT table
+    gt_tbl = GT(df_display)
+    
+    # Apply styling to status column
+    gt_tbl = (gt_tbl
+              .tab_style(
+                  style.fill("green"),
+                  locations=loc.body(columns="status", rows=lambda df: df["status"] == "PASS")
+              )
+              .tab_style(
+                  style.fill("red"),
+                  locations=loc.body(columns="status", rows=lambda df: df["status"] == "FAIL")
+              ))
+    
+    # Display the table
     gt_tbl
 ```
 :::
