@@ -1,0 +1,11 @@
+/.quarto/
+/env/
+*.csv
+*.json
+script.html
+script_files
+/email-preview/
+.output_metadata.json
+
+# But do not ignore manifest.json
+!manifest.json

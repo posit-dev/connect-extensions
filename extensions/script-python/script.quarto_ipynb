@@ -1,0 +1,168 @@
+{
+  "cells": [
+    {
+      "cell_type": "markdown",
+      "metadata": {},
+      "source": [
+        "---\n",
+        "title: \"Penguin data transformations\"\n",
+        "subtitle: \"Exported as JSON and CSV\"\n",
+        "format: email\n",
+        "email-attachments:\n",
+        "  - \"adelie-m.csv\"\n",
+        "  - \"gentoo-f.csv\"\n",
+        "---\n",
+        "\n",
+        "\n",
+        "## Setup\n"
+      ],
+      "id": "05b2b162"
+    },
+    {
+      "cell_type": "code",
+      "metadata": {},
+      "source": [
+        "import palmerpenguins\n",
+        "\n",
+        "penguins = palmerpenguins.load_penguins()"
+      ],
+      "id": "d0398bb8",
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {},
+      "source": [
+        "## Filtering\n"
+      ],
+      "id": "d9632eb2"
+    },
+    {
+      "cell_type": "code",
+      "metadata": {},
+      "source": [
+        "gentoo_f = penguins[\n",
+        "    (penguins[\"species\"] == \"Gentoo\") &\n",
+        "    (penguins[\"sex\"] == \"female\")\n",
+        "]\n",
+        "adelie_m = penguins[\n",
+        "    (penguins[\"species\"] == \"Adelie\") &\n",
+        "    (penguins[\"sex\"] == \"male\")\n",
+        "]"
+      ],
+      "id": "180dd4e3",
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {},
+      "source": [
+        "## Statistics (Gentoo)\n"
+      ],
+      "id": "2c56f743"
+    },
+    {
+      "cell_type": "code",
+      "metadata": {},
+      "source": [
+        "gentoo_f.describe()"
+      ],
+      "id": "19650928",
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {},
+      "source": [
+        "## Statistics (Adelie)\n"
+      ],
+      "id": "f957bb3e"
+    },
+    {
+      "cell_type": "code",
+      "metadata": {},
+      "source": [
+        "adelie_m.describe()"
+      ],
+      "id": "9ee32e66",
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {},
+      "source": [
+        "## Export\n"
+      ],
+      "id": "b71c1828"
+    },
+    {
+      "cell_type": "code",
+      "metadata": {},
+      "source": [
+        "gentoo_f.to_csv(\"gentoo-f.csv\")\n",
+        "gentoo_f.to_json(\"gentoo-f.json\", orient=\"records\")\n",
+        "adelie_m.to_csv(\"adelie-m.csv\")\n",
+        "adelie_m.to_json(\"adelie-m.json\", orient=\"records\")"
+      ],
+      "id": "7edff85c",
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {},
+      "source": [
+        "# Exported data\n",
+        "\n",
+        "* [gentoo-f.json](gentoo-f.json)\n",
+        "* [gentoo-f.csv](gentoo-f.csv)\n",
+        "* [adelie-m.json](adelie-m.json)\n",
+        "* [adelie-m.csv](adelie-m.csv)\n",
+        "\n",
+        "\n",
+        "::: {.email}\n",
+        "::: {.subject}\n",
+        "Penguin data files\n",
+        ":::\n"
+      ],
+      "id": "89f8e637"
+    },
+    {
+      "cell_type": "code",
+      "metadata": {},
+      "source": [
+        "#| echo: false\n",
+        "#| output: asis\n",
+        "print(\"Identified\", len(gentoo_f), \"female Gentoo penguins.\")\n",
+        "print(\"Identified\", len(adelie_m), \"male Adelie penguins.\")\n",
+        "print(\"\")\n",
+        "print(\"CSV files are attached.\")"
+      ],
+      "id": "eed89b62",
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {},
+      "source": [
+        ":::\n"
+      ],
+      "id": "c6118388"
+    }
+  ],
+  "metadata": {
+    "kernelspec": {
+      "name": "python3",
+      "language": "python",
+      "display_name": "Python 3 (ipykernel)",
+      "path": "/Users/christophergraham/.pyenv/versions/3.11.7/share/jupyter/kernels/python3"
+    }
+  },
+  "nbformat": 4,
+  "nbformat_minor": 5
+}

@@ -44,6 +44,7 @@ jobs:
             quarto-stock-report-r: extensions/quarto-stock-report-r/**
             stock-api-fastapi: extensions/stock-api-fastapi/**
             quarto-presentation: extensions/quarto-presentation/**
+            script-python: extensions/script-python/**
             connectwidgets-example: extensions/connectwidgets-example/**
             plumbertableau-example: extensions/plumbertableau-example/**
             fastapitableau-example: extensions/fastapitableau-example/**
