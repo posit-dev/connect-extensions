@@ -20,10 +20,10 @@
   },
   "files": {
     "requirements.txt": {
-      "checksum": "83bcdb40712bd02357e3266e13ae8fec"
+      "checksum": "09254fc2dfa7d869ffbc3da2abb1d224"
     },
     "app-canary.qmd": {
-      "checksum": "99e945d6c78b16eebdcf297b759ebe2c"
+      "checksum": "732af0f4ea846c37d3a7641c3bbd6ba3"
     }
   }
 }
