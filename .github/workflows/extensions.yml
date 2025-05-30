@@ -49,7 +49,7 @@ jobs:
             plumbertableau-example: extensions/plumbertableau-example/**
             fastapitableau-example: extensions/fastapitableau-example/**
             portfolio-report: extensions/portfolio-report/**
-            quarto-script-r: extensions/quarto-script-r/**
+            script-r: extensions/script-r/**
             top-5-income-share-streamlit: extensions/top-5-income-share-streamlit/**
             stock-report-jupyter: extensions/stock-report-jupyter/**
             usage-metrics-dashboard: extensions/usage-metrics-dashboard/**
