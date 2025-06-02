@@ -554,6 +554,44 @@
       "category": "example"
     },
     {
+      "name": "script-r",
+      "title": "Run an R Script",
+      "description": "This data transformation R script is an example of how you might automate regular imports and transformations from a data source. JSON and CSV files are exported and made available for download. Quarto is used to render the script. The script also generates a custom email, with the generated CSV files as attachments.",
+      "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/script-r",
+      "latestVersion": {
+        "version": "1.0.0",
+        "released": "2025-06-02T13:47:10Z",
+        "url": "https://github.com/posit-dev/connect-extensions/releases/download/script-r%40v1.0.0/script-r.tar.gz",
+        "minimumConnectVersion": "2025.04.0",
+        "requiredEnvironment": {
+          "quarto": {
+            "requires": "~=1.4"
+          },
+          "r": {
+            "requires": "~=4.4"
+          }
+        }
+      },
+      "versions": [
+        {
+          "version": "1.0.0",
+          "released": "2025-06-02T13:47:10Z",
+          "url": "https://github.com/posit-dev/connect-extensions/releases/download/script-r%40v1.0.0/script-r.tar.gz",
+          "minimumConnectVersion": "2025.04.0",
+          "requiredEnvironment": {
+            "quarto": {
+              "requires": "~=1.4"
+            },
+            "r": {
+              "requires": "~=4.4"
+            }
+          }
+        }
+      ],
+      "tags": [],
+      "category": "example"
+    },
+    {
       "name": "stock-api-fastapi",
       "title": "FastAPI Stock Pricing Service",
       "description": "APIs are a great way for software engineering teams to use your models without translating them into different languages",
