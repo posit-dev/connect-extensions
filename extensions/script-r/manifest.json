@@ -10,10 +10,10 @@
     "has_parameters": false
   },
   "extension": {
-    "name": "quarto-script-r",
-    "title": "Run an R Script using Quarto",
-    "description": "This example demonstrates running a simple R script on Connect as a Quarto project. It is an example of how you might automate regular imports and transformations from a data source. JSON and CSV files are exported and made available for download. The script also generates a custom email, with the generated CSV files as attachments.",
-    "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/quarto-script-r",
+    "name": "script-r",
+    "title": "Run an R Script",
+    "description": "This data transformation R script is an example of how you might automate regular imports and transformations from a data source. JSON and CSV files are exported and made available for download. Quarto is used to render the script. The script also generates a custom email, with the generated CSV files as attachments.",
+    "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/script-r",
     "category": "example",
     "minimumConnectVersion": "2025.04.0",
     "version": "1.0.0"
