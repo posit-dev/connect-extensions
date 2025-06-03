@@ -15,6 +15,7 @@ from great_tables import GT, style, loc, exibble, html
 # Used to display on-screen setup instructions if environment variables are missing
 show_instructions = False
 instructions = []
+gt_tbl = None
 
 # Read CONNECT_SERVER from environment, should be configured automatically when run on Connect
 connect_server = os.environ.get("CONNECT_SERVER", "")
@@ -30,7 +31,6 @@ if not api_key:
 
 # Read CANARY_GUIDS from environment, needs to be manually configured on Connect
 app_guid_str = os.environ.get("CANARY_GUIDS", "")
-
 if not app_guid_str:
     show_instructions = True
     instructions.append("Please set the CANARY_GUIDS environment variable. It should be a comma separated list of GUID you wish to monitor.")
@@ -143,23 +143,6 @@ else:
 ```{python}
 #| echo: false
 
-# Display instructions if setup failed
-if show_instructions:
-    from IPython.display import display, HTML
-    html_content = """
-    <h2>Setup Instructions</h2>
-    <ul>
-    """
-    for instruction in instructions:
-        html_content += f"<li>{instruction}</li>"
-    
-    html_content += """
-    </ul>
-    <p>Posit Connect documentation for Vars (environment variables): <a href="https://docs.posit.co/connect/user/content-settings/#content-vars" target="_blank">https://docs.posit.co/connect/user/content-settings/#content-vars</a></p>
-    """
-    display(HTML(html_content))
-
-
 # Create a table with basic styling
 if not show_instructions and not df.empty:
     
@@ -191,6 +174,20 @@ if not show_instructions and not df.empty:
                   locations=loc.body(columns="status", rows=lambda df: df["status"] == "FAIL")
               ))
 
+# Display instructions if setup failed
+if show_instructions:
+    # Create a DataFrame with instructions
+    instructions_df = pd.DataFrame({
+        "Setup has failed": instructions
+    })
+    
+    # Create a GT table for instructions
+    gt_tbl = GT(instructions_df)
+    gt_tbl = (gt_tbl
+        .tab_source_note(
+            source_note=html("See Posit Connect documentation for <a href='https://docs.posit.co/connect/user/content-settings/#content-vars' target='_blank'>Vars (environment variables)</a>")
+        ))
+
 # Compute if we should send an email, only send if at least one app has a failure
 if 'df' in locals() and 'status' in df.columns:
     send_email = not df.empty and (df['status'] == 'FAIL').any()
@@ -201,6 +198,7 @@ else:
 
 ```{python}
 #| echo: false
+
 # Display the table in the rendered document HTML, email is handled separately below
 gt_tbl
 ```
@@ -217,9 +215,6 @@ send_email
 ::: {.subject}
 App Canary - ❌ one or more apps have failed monitoring
 :::
-
-
-One or more of the apps you are monitoring have failed.
 
 ```{python}
 #| echo: false
