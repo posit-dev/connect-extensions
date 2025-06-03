@@ -92,14 +92,15 @@ else:
             app_response = requests.get(
                 app_url, 
                 headers=headers,
-                timeout=10
+                timeout=60, # Max time to wait for a response from the content
+                allow_redirects=True  # Enabled by default in Python requests, included for clarity
             )
             
             return {
                 "guid": guid,
                 "name": app_name,
                 "dashboard_url": dashboard_url,
-                "status": "PASS" if app_response.status_code == 200 else "FAIL",
+                "status": "PASS" if app_response.status_code >= 200 and app_response.status_code < 300 else "FAIL",
                 "http_code": app_response.status_code
             }
 
