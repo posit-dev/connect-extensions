@@ -25,21 +25,21 @@ ui <- page_sidebar(
 
     selectizeInput(
       "r_versions",
-      label = "R Versions",
+      label = "Select R Versions",
       choices = NULL,
       multiple = TRUE
     ),
 
     selectizeInput(
       "py_versions",
-      label = "Python Versions",
+      label = "Select Python Versions",
       choices = NULL,
       multiple = TRUE
     ),
 
     selectizeInput(
       "quarto_versions",
-      label = "Quarto Versions",
+      label = "Select Quarto Versions",
       choices = NULL,
       multiple = TRUE
     )
@@ -98,18 +98,17 @@ server <- function(input, output, session) {
   })
 
   content_filtered <- reactive({
-    content() |>
+    df <- content()
+    rv <- input$r_versions
+    pv <- input$py_versions
+    qv <- input$quarto_versions
+
+    df |>
       filter(
-        (length(input$r_versions) == 0) |
-          r_version %in% input$r_versions
-      ) |>
-      filter(
-        (length(input$py_versions) == 0) |
-          py_version %in% input$py_versions
-      ) |>
-      filter(
-        (length(input$quarto_versions) == 0) |
-          quarto_version %in% input$quarto_versions
+        (length(rv) > 0 & r_version %in% rv) |
+          (length(pv) > 0 & py_version %in% pv) |
+          (length(qv) > 0 & quarto_version %in% qv) |
+          (length(rv) == 0 & length(pv) == 0 & length(qv) == 0)
       )
   })
 
