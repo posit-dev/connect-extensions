@@ -1,12 +1,10 @@
 ---
 title: "App Canary - Application Health Monitor"
-format: 
-  dashboard:
-    theme: cosmo
+format: email
 ---
 
 ```{python}
-#| output: false
+#| echo: false
 
 import os
 import requests
@@ -141,7 +139,7 @@ else:
     check_time = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
 ```
 
-::: {.card .table-card}
+
 ```{python}
 #| echo: false
 
@@ -162,7 +160,7 @@ if show_instructions:
     display(HTML(html_content))
 
 
-# Display table with basic styling
+# Create a table with basic styling
 if not show_instructions and not df.empty:
     
     # First create links for name and guid columns
@@ -192,8 +190,40 @@ if not show_instructions and not df.empty:
                   style.fill("red"),
                   locations=loc.body(columns="status", rows=lambda df: df["status"] == "FAIL")
               ))
-    
-    # Display the table
-    gt_tbl
+
+# Compute if we should send an email, only send if at least one app has a failure
+if 'df' in locals() and 'status' in df.columns:
+    send_email = not df.empty and (df['status'] == 'FAIL').any()
+else:
+    send_email = False
+```
+
+
+```{python}
+#| echo: false
+# Display the table in the rendered document HTML, email is handled separately below
+gt_tbl
+```
+
+
+::: {.email}
+
+::: {.email-scheduled}
+```{python}
+send_email
+```
+:::
+
+::: {.subject}
+App Canary - ❌ one or more apps have failed monitoring
+:::
+
+
+One or more of the apps you are monitoring have failed.
+
+```{python}
+#| echo: false
+
+gt_tbl
 ```
 :::

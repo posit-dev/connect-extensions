@@ -4,6 +4,14 @@
   "metadata": {
     "appmode": "quarto-static"
   },
+  "environment": {
+    "python": {
+      "requires": "~=3.11"
+    },
+    "quarto": {
+      "requires": "~=1.4"
+    }
+  },
   "quarto": {
     "version": "1.4.557",
     "engines": [
