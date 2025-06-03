@@ -52,6 +52,7 @@ jobs:
             top-5-income-share-streamlit: extensions/top-5-income-share-streamlit/**
             stock-report-jupyter: extensions/stock-report-jupyter/**
             usage-metrics-dashboard: extensions/usage-metrics-dashboard/**
+            app-canary: extensions/app-canary/**
             voila-example: extensions/voila-example/**
 
   # Runs for each extension that has changed from `simple-extension-changes`
