@@ -190,7 +190,7 @@ if show_instructions:
 
 # Compute if we should send an email, only send if at least one app has a failure
 if 'df' in locals() and 'status' in df.columns:
-    send_email = not df.empty and (df['status'] == 'FAIL').any()
+    send_email = bool(not df.empty and (df['status'] == 'FAIL').any())
 else:
     send_email = False
 ```
@@ -207,9 +207,7 @@ gt_tbl
 ::: {.email}
 
 ::: {.email-scheduled}
-```{python}
-send_email
-```
+`{python} send_email`
 :::
 
 ::: {.subject}
@@ -218,7 +216,6 @@ App Canary - ❌ one or more apps have failed monitoring
 
 ```{python}
 #| echo: false
-
 gt_tbl
 ```
 :::
