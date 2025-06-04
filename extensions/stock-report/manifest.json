@@ -24,6 +24,33 @@
     }
   },
   "packages": {
+    "DT": {
+      "Source": "CRAN",
+      "Repository": "https://cloud.r-project.org",
+      "description": {
+        "Package": "DT",
+        "Type": "Package",
+        "Title": "A Wrapper of the JavaScript Library 'DataTables'",
+        "Version": "0.33",
+        "Authors@R": "c(\n    person(\"Yihui\", \"Xie\", role = \"aut\"),\n    person(\"Joe\", \"Cheng\", email = \"joe@posit.co\", role = c(\"aut\", \"cre\")),\n    person(\"Xianying\", \"Tan\", role = \"aut\"),\n    person(\"JJ\", \"Allaire\", role = \"ctb\"),\n    person(\"Maximilian\", \"Girlich\", role = \"ctb\"),\n    person(\"Greg\", \"Freedman Ellis\", role = \"ctb\"),\n    person(\"Johannes\", \"Rauh\", role = \"ctb\"),\n    person(\"SpryMedia Limited\", role = c(\"ctb\", \"cph\"), comment = \"DataTables in htmlwidgets/lib\"),\n    person(\"Brian\", \"Reavis\", role = c(\"ctb\", \"cph\"), comment = \"selectize.js in htmlwidgets/lib\"),\n    person(\"Leon\", \"Gersen\", role = c(\"ctb\", \"cph\"), comment = \"noUiSlider in htmlwidgets/lib\"),\n    person(\"Bartek\", \"Szopka\", role = c(\"ctb\", \"cph\"), comment = \"jquery.highlight.js in htmlwidgets/lib\"),\n    person(\"Alex\", \"Pickering\", role = c(\"ctb\")),\n    person(\"William\", \"Holmes\", role = c(\"ctb\")),\n    person(\"Mikko\", \"Marttila\", role = c(\"ctb\")),\n    person(\"Andres\", \"Quintero\", role = c(\"ctb\")),\n    person(\"Stéphane\", \"Laurent\", role = c(\"ctb\")),\n    person(given = \"Posit Software, PBC\", role = c(\"cph\", \"fnd\"))\n    )",
+        "Description": "Data objects in R can be rendered as HTML tables using the\n    JavaScript library 'DataTables' (typically via R Markdown or Shiny). The\n    'DataTables' library has been included in this R package. The package name\n    'DT' is an abbreviation of 'DataTables'.",
+        "URL": "https://github.com/rstudio/DT",
+        "BugReports": "https://github.com/rstudio/DT/issues",
+        "License": "GPL-3 | file LICENSE",
+        "Imports": "htmltools (>= 0.3.6), htmlwidgets (>= 1.3), httpuv, jsonlite\n(>= 0.9.16), magrittr, crosstalk, jquerylib, promises",
+        "Suggests": "knitr (>= 1.8), rmarkdown, shiny (>= 1.6), bslib, future,\ntestit, tibble",
+        "VignetteBuilder": "knitr",
+        "RoxygenNote": "7.3.1",
+        "Encoding": "UTF-8",
+        "NeedsCompilation": "no",
+        "Packaged": "2024-04-03 14:36:50 UTC; yihui",
+        "Author": "Yihui Xie [aut],\n  Joe Cheng [aut, cre],\n  Xianying Tan [aut],\n  JJ Allaire [ctb],\n  Maximilian Girlich [ctb],\n  Greg Freedman Ellis [ctb],\n  Johannes Rauh [ctb],\n  SpryMedia Limited [ctb, cph] (DataTables in htmlwidgets/lib),\n  Brian Reavis [ctb, cph] (selectize.js in htmlwidgets/lib),\n  Leon Gersen [ctb, cph] (noUiSlider in htmlwidgets/lib),\n  Bartek Szopka [ctb, cph] (jquery.highlight.js in htmlwidgets/lib),\n  Alex Pickering [ctb],\n  William Holmes [ctb],\n  Mikko Marttila [ctb],\n  Andres Quintero [ctb],\n  Stéphane Laurent [ctb],\n  Posit Software, PBC [cph, fnd]",
+        "Maintainer": "Joe Cheng <joe@posit.co>",
+        "Repository": "CRAN",
+        "Date/Publication": "2024-04-04 05:03:17 UTC",
+        "Built": "R 4.4.0; ; 2024-04-06 10:57:00 UTC; unix"
+      }
+    },
     "MASS": {
       "Source": "CRAN",
       "Repository": "https://cloud.r-project.org",
@@ -160,6 +187,33 @@
         "Date/Publication": "2025-01-12 16:10:02 UTC",
         "Built": "R 4.4.1; aarch64-apple-darwin20; 2025-02-01 04:46:06 UTC; unix",
         "Archs": "Rcpp.so.dSYM"
+      }
+    },
+    "TTR": {
+      "Source": "CRAN",
+      "Repository": "https://cloud.r-project.org",
+      "description": {
+        "Package": "TTR",
+        "Type": "Package",
+        "Title": "Technical Trading Rules",
+        "Version": "0.24.4",
+        "Authors@R": "c(\n  person(given=\"Joshua\", family=\"Ulrich\", role=c(\"cre\",\"aut\"), email=\"josh.m.ulrich@gmail.com\"),\n  person(given=c(\"Ethan\",\"B.\"), family=\"Smith\", role=\"ctb\")\n  )",
+        "Imports": "xts (>= 0.10-0), zoo, curl",
+        "LinkingTo": "xts",
+        "Enhances": "quantmod",
+        "Suggests": "RUnit",
+        "Description": "A collection of over 50 technical indicators for creating technical trading rules. The package also provides fast implementations of common rolling-window functions, and several volatility calculations.",
+        "License": "GPL (>= 2)",
+        "URL": "https://github.com/joshuaulrich/TTR",
+        "BugReports": "https://github.com/joshuaulrich/TTR/issues",
+        "NeedsCompilation": "yes",
+        "Packaged": "2023-11-28 00:12:35 UTC; josh",
+        "Author": "Joshua Ulrich [cre, aut],\n  Ethan B. Smith [ctb]",
+        "Maintainer": "Joshua Ulrich <josh.m.ulrich@gmail.com>",
+        "Repository": "CRAN",
+        "Date/Publication": "2023-11-28 05:20:21 UTC",
+        "Built": "R 4.4.0; aarch64-apple-darwin20; 2024-04-05 22:38:31 UTC; unix",
+        "Archs": "TTR.so.dSYM"
       }
     },
     "askpass": {
@@ -851,6 +905,35 @@
         "Built": "R 4.4.1; ; 2025-04-09 11:08:10 UTC; unix"
       }
     },
+    "ggthemes": {
+      "Source": "CRAN",
+      "Repository": "https://cloud.r-project.org",
+      "description": {
+        "Package": "ggthemes",
+        "Version": "5.1.0",
+        "Title": "Extra Themes, Scales and Geoms for 'ggplot2'",
+        "Authors@R": "c(person(\"Jeffrey B.\", \"Arnold\", role = c(\"aut\", \"cre\"),\n    email = \"jeffrey.arnold@gmail.com\", \n    comment = \"<https://orcid.org/0000-0001-9953-3904>\"),\n    person(\"Gergely\", \"Daroczi\", role = \"ctb\"),\n    person(\"Bo\", \"Werth\", role = \"ctb\"),\n    person(\"Brian\", \"Weitzner\", role = \"ctb\"),\n    person(\"Joshua\", \"Kunst\", role = \"ctb\"),\n    person(\"Baptise\", \"Auguie\", role = \"ctb\"),\n    person(\"Bob\", \"Rudis\", role = \"ctb\"),\n    person(\"Hadley\", \"Wickham\", role = c(\"ctb\"),\n    comment = \"Code from the ggplot2 package.\"),\n    person(\"Justin\",  \"Talbot\", role = \"ctb\",\n    comment = \"Code from the labeling package\"),\n    person(\"Joshua\", \"London\", role = \"ctb\"))",
+        "Depends": "R (>= 3.3.0)",
+        "Imports": "ggplot2 (>= 3.0.0), graphics, grid, lifecycle, methods, purrr,\nscales, stringr, tibble",
+        "Suggests": "dplyr, covr, extrafont, glue, knitr, lattice, lintr, maps,\nmapproj, pander, quantreg, rlang, rmarkdown, spelling, testthat\n(>= 3.2.0), tidyr, vdiffr, withr",
+        "Description": "Some extra themes, geoms, and scales for 'ggplot2'.\n    Provides 'ggplot2' themes and scales that replicate the look of plots\n    by Edward Tufte, Stephen Few, 'Fivethirtyeight', 'The Economist', 'Stata',\n    'Excel', and 'The Wall Street Journal', among others.\n    Provides 'geoms' for Tufte's box plot and range frame.",
+        "License": "GPL-2",
+        "URL": "https://jrnold.github.io/ggthemes/,\nhttps://github.com/jrnold/ggthemes",
+        "BugReports": "https://github.com/jrnold/ggthemes/issues",
+        "RoxygenNote": "7.3.1",
+        "LazyData": "true",
+        "Language": "en-US",
+        "Encoding": "UTF-8",
+        "Config/testthat/edition": "3",
+        "NeedsCompilation": "no",
+        "Packaged": "2024-02-09 17:47:25 UTC; jrnold",
+        "Author": "Jeffrey B. Arnold [aut, cre] (<https://orcid.org/0000-0001-9953-3904>),\n  Gergely Daroczi [ctb],\n  Bo Werth [ctb],\n  Brian Weitzner [ctb],\n  Joshua Kunst [ctb],\n  Baptise Auguie [ctb],\n  Bob Rudis [ctb],\n  Hadley Wickham [ctb] (Code from the ggplot2 package.),\n  Justin Talbot [ctb] (Code from the labeling package),\n  Joshua London [ctb]",
+        "Maintainer": "Jeffrey B. Arnold <jeffrey.arnold@gmail.com>",
+        "Repository": "CRAN",
+        "Date/Publication": "2024-02-10 00:30:02 UTC",
+        "Built": "R 4.4.0; ; 2024-04-06 10:59:58 UTC; unix"
+      }
+    },
     "glue": {
       "Source": "CRAN",
       "Repository": "https://cloud.r-project.org",
@@ -1027,6 +1110,37 @@
         "Repository": "CRAN",
         "Date/Publication": "2023-12-06 06:00:06 UTC",
         "Built": "R 4.4.0; ; 2024-04-06 10:51:24 UTC; unix"
+      }
+    },
+    "httpuv": {
+      "Source": "CRAN",
+      "Repository": "https://cloud.r-project.org",
+      "description": {
+        "Type": "Package",
+        "Package": "httpuv",
+        "Title": "HTTP and WebSocket Server Library",
+        "Version": "1.6.16",
+        "Authors@R": "c(\n    person(\"Joe\", \"Cheng\", , \"joe@posit.co\", role = \"aut\"),\n    person(\"Winston\", \"Chang\", , \"winston@posit.co\", role = c(\"aut\", \"cre\")),\n    person(\"Posit, PBC\", \"fnd\", role = \"cph\"),\n    person(\"Hector\", \"Corrada Bravo\", role = \"ctb\"),\n    person(\"Jeroen\", \"Ooms\", role = \"ctb\"),\n    person(\"Andrzej\", \"Krzemienski\", role = \"cph\",\n           comment = \"optional.hpp\"),\n    person(\"libuv project contributors\", role = \"cph\",\n           comment = \"libuv library, see src/libuv/AUTHORS file\"),\n    person(\"Joyent, Inc. and other Node contributors\", role = \"cph\",\n           comment = \"libuv library, see src/libuv/AUTHORS file; and http-parser library, see src/http-parser/AUTHORS file\"),\n    person(\"Niels\", \"Provos\", role = \"cph\",\n           comment = \"libuv subcomponent: tree.h\"),\n    person(\"Internet Systems Consortium, Inc.\", role = \"cph\",\n           comment = \"libuv subcomponent: inet_pton and inet_ntop, contained in src/libuv/src/inet.c\"),\n    person(\"Alexander\", \"Chemeris\", role = \"cph\",\n           comment = \"libuv subcomponent: stdint-msvc2008.h (from msinttypes)\"),\n    person(\"Google, Inc.\", role = \"cph\",\n           comment = \"libuv subcomponent: pthread-fixes.c\"),\n    person(\"Sony Mobile Communcations AB\", role = \"cph\",\n           comment = \"libuv subcomponent: pthread-fixes.c\"),\n    person(\"Berkeley Software Design Inc.\", role = \"cph\",\n           comment = \"libuv subcomponent: android-ifaddrs.h, android-ifaddrs.c\"),\n    person(\"Kenneth\", \"MacKay\", role = \"cph\",\n           comment = \"libuv subcomponent: android-ifaddrs.h, android-ifaddrs.c\"),\n    person(\"Emergya (Cloud4all, FP7/2007-2013, grant agreement no 289016)\", role = \"cph\",\n           comment = \"libuv subcomponent: android-ifaddrs.h, android-ifaddrs.c\"),\n    person(\"Steve\", \"Reid\", role = \"aut\",\n           comment = \"SHA-1 implementation\"),\n    person(\"James\", \"Brown\", role = \"aut\",\n           comment = \"SHA-1 implementation\"),\n    person(\"Bob\", \"Trower\", role = \"aut\",\n           comment = \"base64 implementation\"),\n    person(\"Alexander\", \"Peslyak\", role = \"aut\",\n           comment = \"MD5 implementation\"),\n    person(\"Trantor Standard Systems\", role = \"cph\",\n           comment = \"base64 implementation\"),\n    person(\"Igor\", \"Sysoev\", role = \"cph\",\n           comment = \"http-parser\")\n  )",
+        "Description": "Provides low-level socket and protocol support for handling\n    HTTP and WebSocket requests directly from within R. It is primarily\n    intended as a building block for other packages, rather than making it\n    particularly easy to create complete web applications using httpuv\n    alone.  httpuv is built on top of the libuv and http-parser C\n    libraries, both of which were developed by Joyent, Inc. (See LICENSE\n    file for libuv and http-parser license information.)",
+        "License": "GPL (>= 2) | file LICENSE",
+        "URL": "https://github.com/rstudio/httpuv",
+        "BugReports": "https://github.com/rstudio/httpuv/issues",
+        "Depends": "R (>= 2.15.1)",
+        "Imports": "later (>= 0.8.0), promises, R6, Rcpp (>= 1.0.7), utils",
+        "Suggests": "callr, curl, jsonlite, testthat, websocket",
+        "LinkingTo": "later, Rcpp",
+        "Encoding": "UTF-8",
+        "RoxygenNote": "7.3.2",
+        "SystemRequirements": "GNU make, zlib",
+        "Collate": "'RcppExports.R' 'httpuv.R' 'random_port.R' 'server.R'\n'staticServer.R' 'static_paths.R' 'utils.R'",
+        "NeedsCompilation": "yes",
+        "Packaged": "2025-04-15 17:47:41 UTC; cg334",
+        "Author": "Joe Cheng [aut],\n  Winston Chang [aut, cre],\n  Posit, PBC fnd [cph],\n  Hector Corrada Bravo [ctb],\n  Jeroen Ooms [ctb],\n  Andrzej Krzemienski [cph] (optional.hpp),\n  libuv project contributors [cph] (libuv library, see src/libuv/AUTHORS\n    file),\n  Joyent, Inc. and other Node contributors [cph] (libuv library, see\n    src/libuv/AUTHORS file; and http-parser library, see\n    src/http-parser/AUTHORS file),\n  Niels Provos [cph] (libuv subcomponent: tree.h),\n  Internet Systems Consortium, Inc. [cph] (libuv subcomponent: inet_pton\n    and inet_ntop, contained in src/libuv/src/inet.c),\n  Alexander Chemeris [cph] (libuv subcomponent: stdint-msvc2008.h (from\n    msinttypes)),\n  Google, Inc. [cph] (libuv subcomponent: pthread-fixes.c),\n  Sony Mobile Communcations AB [cph] (libuv subcomponent:\n    pthread-fixes.c),\n  Berkeley Software Design Inc. [cph] (libuv subcomponent:\n    android-ifaddrs.h, android-ifaddrs.c),\n  Kenneth MacKay [cph] (libuv subcomponent: android-ifaddrs.h,\n    android-ifaddrs.c),\n  Emergya (Cloud4all, FP7/2007-2013, grant agreement no 289016) [cph]\n    (libuv subcomponent: android-ifaddrs.h, android-ifaddrs.c),\n  Steve Reid [aut] (SHA-1 implementation),\n  James Brown [aut] (SHA-1 implementation),\n  Bob Trower [aut] (base64 implementation),\n  Alexander Peslyak [aut] (MD5 implementation),\n  Trantor Standard Systems [cph] (base64 implementation),\n  Igor Sysoev [cph] (http-parser)",
+        "Maintainer": "Winston Chang <winston@posit.co>",
+        "Repository": "CRAN",
+        "Date/Publication": "2025-04-16 08:00:06 UTC",
+        "Built": "R 4.4.1; aarch64-apple-darwin20; 2025-04-16 08:52:02 UTC; unix",
+        "Archs": "httpuv.so.dSYM"
       }
     },
     "httr": {
@@ -1639,6 +1753,32 @@
         "Date/Publication": "2025-02-05 18:00:01 UTC",
         "Built": "R 4.4.1; aarch64-apple-darwin20; 2025-02-05 18:50:51 UTC; unix",
         "Archs": "purrr.so.dSYM"
+      }
+    },
+    "quantmod": {
+      "Source": "CRAN",
+      "Repository": "https://cloud.r-project.org",
+      "description": {
+        "Package": "quantmod",
+        "Type": "Package",
+        "Title": "Quantitative Financial Modelling Framework",
+        "Version": "0.4.27",
+        "Authors@R": "c(\n  person(given=c(\"Jeffrey\",\"A.\"), family=\"Ryan\", role=c(\"aut\",\"cph\")),\n  person(given=c(\"Joshua\",\"M.\"), family=\"Ulrich\", role=c(\"cre\",\"aut\"), email=\"josh.m.ulrich@gmail.com\"),\n  person(given=c(\"Ethan\",\"B.\"), family=\"Smith\", role=\"ctb\"),\n  person(given=\"Wouter\", family=\"Thielen\", role=\"ctb\"),\n  person(given=\"Paul\", family=\"Teetor\", role=\"ctb\"),\n  person(given=\"Steve\", family=\"Bronder\", role=\"ctb\")\n  )",
+        "Depends": "R (>= 3.2.0), xts(>= 0.9-0), zoo, TTR(>= 0.2), methods",
+        "Imports": "curl, jsonlite(>= 1.1)",
+        "Suggests": "DBI, RMySQL, RSQLite, timeSeries, xml2, downloader, tinytest",
+        "Description": "Specify, build, trade, and analyse quantitative financial trading strategies.",
+        "LazyLoad": "yes",
+        "License": "GPL-3",
+        "URL": "https://www.quantmod.com/,\nhttps://github.com/joshuaulrich/quantmod",
+        "BugReports": "https://github.com/joshuaulrich/quantmod/issues",
+        "NeedsCompilation": "no",
+        "Packaged": "2025-04-06 20:34:56 UTC; josh",
+        "Author": "Jeffrey A. Ryan [aut, cph],\n  Joshua M. Ulrich [cre, aut],\n  Ethan B. Smith [ctb],\n  Wouter Thielen [ctb],\n  Paul Teetor [ctb],\n  Steve Bronder [ctb]",
+        "Maintainer": "Joshua M. Ulrich <josh.m.ulrich@gmail.com>",
+        "Repository": "CRAN",
+        "Date/Publication": "2025-04-06 23:10:02 UTC",
+        "Built": "R 4.4.1; ; 2025-04-06 23:33:09 UTC; unix"
       }
     },
     "rappdirs": {
