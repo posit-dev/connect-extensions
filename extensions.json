@@ -738,6 +738,38 @@
       "tags": []
     },
     {
+      "name": "stock-report",
+      "title": "Automated Stock Report",
+      "description": "This R Markdown document shows how to automate regular updates to a PDF. The report code also generates a custom email, re-using the plots and putting the results where stakeholders live - their inbox.",
+      "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/stock-report",
+      "latestVersion": {
+        "version": "1.0.0",
+        "released": "2025-06-04T18:06:12Z",
+        "url": "https://github.com/posit-dev/connect-extensions/releases/download/stock-report%40v1.0.0/stock-report.tar.gz",
+        "minimumConnectVersion": "2025.04.0",
+        "requiredEnvironment": {
+          "r": {
+            "requires": "~=4.4"
+          }
+        }
+      },
+      "versions": [
+        {
+          "version": "1.0.0",
+          "released": "2025-06-04T18:06:12Z",
+          "url": "https://github.com/posit-dev/connect-extensions/releases/download/stock-report%40v1.0.0/stock-report.tar.gz",
+          "minimumConnectVersion": "2025.04.0",
+          "requiredEnvironment": {
+            "r": {
+              "requires": "~=4.4"
+            }
+          }
+        }
+      ],
+      "tags": [],
+      "category": "example"
+    },
+    {
       "name": "stock-report-jupyter",
       "title": "Stock Report using Jupyter",
       "description": "This stock report is generated using Python and Jupyter Notebook. Stock prices are populated from Quandl to generate a stock performance summary intended to run daily after market close.",
