@@ -54,7 +54,7 @@ jobs:
             stock-report-jupyter: extensions/stock-report-jupyter/**
             usage-metrics-dashboard: extensions/usage-metrics-dashboard/**
             voila-example: extensions/voila-example/**
-            stock-report: extension/stock-report/**
+            stock-report: extensions/stock-report/**
 
   # Runs for each extension that has changed from `simple-extension-changes`
   # Lints and packages in preparation for tests and and release.
