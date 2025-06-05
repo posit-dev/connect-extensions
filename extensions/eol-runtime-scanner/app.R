@@ -8,6 +8,7 @@ library(lubridate)
 library(bsicons)
 
 source("get_usage.R")
+source("connect_module.R")
 
 options(
   spinner.type = 1,
@@ -49,7 +50,10 @@ ui <- page_sidebar(
 )
 
 server <- function(input, output, session) {
-  client <- connect()
+  client <- connectVisitorClient()
+  if (is.null(client)) {
+    return()
+  }
 
   content <- reactive({
     content <- get_content(client) |>
