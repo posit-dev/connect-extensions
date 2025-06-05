@@ -6,6 +6,7 @@ library(dplyr)
 library(shinycssloaders)
 library(lubridate)
 library(bsicons)
+library(tidyr)
 
 source("get_usage.R")
 source("connect_module.R")
@@ -24,27 +25,32 @@ ui <- page_sidebar(
     open = TRUE,
     width = 275,
 
+    h5("Select EOL Versions"),
+
     selectizeInput(
       "r_versions",
-      label = "Select R Versions",
+      label = "R Versions",
       choices = NULL,
       multiple = TRUE
     ),
 
     selectizeInput(
       "py_versions",
-      label = "Select Python Versions",
+      label = "Python Versions",
       choices = NULL,
       multiple = TRUE
     ),
 
     selectizeInput(
       "quarto_versions",
-      label = "Select Quarto Versions",
+      label = "Quarto Versions",
       choices = NULL,
       multiple = TRUE
     )
   ),
+
+  textOutput("selected_versions_text"),
+  textOutput("n_eol_content_text"),
 
   withSpinner(reactableOutput("content_table"))
 )
@@ -57,9 +63,7 @@ server <- function(input, output, session) {
 
   content <- reactive({
     content <- get_content(client) |>
-      filter(
-        !if_all(c(r_version, py_version, quarto_version), is.na)
-      )
+      filter(app_role %in% c("owner", "editor"))
   })
 
   observeEvent(
@@ -101,8 +105,23 @@ server <- function(input, output, session) {
       summarize(hits = n())
   })
 
-  content_filtered <- reactive({
-    df <- content()
+  content_table_data <- reactive({
+    content() |>
+      left_join(usage(), by = c("guid" = "content_guid")) |>
+      select(
+        title,
+        dashboard_url,
+        app_mode,
+        r_version,
+        py_version,
+        quarto_version,
+        hits
+      ) |>
+      replace_na(list(hits = 0))
+  })
+
+  content_eol <- reactive({
+    df <- content_table_data()
     rv <- input$r_versions
     pv <- input$py_versions
     qv <- input$quarto_versions
@@ -111,38 +130,61 @@ server <- function(input, output, session) {
       filter(
         (length(rv) > 0 & r_version %in% rv) |
           (length(pv) > 0 & py_version %in% pv) |
-          (length(qv) > 0 & quarto_version %in% qv) |
-          (length(rv) == 0 & length(pv) == 0 & length(qv) == 0)
+          (length(qv) > 0 & quarto_version %in% qv)
       )
   })
 
-  content_table_data <- reactive({
-    content_filtered() |>
-      select(
-        guid,
-        title,
-        app_mode,
-        r_version,
-        py_version,
-        quarto_version,
-        dashboard_url
-      ) |>
-      left_join(usage(), by = c("guid" = "content_guid"))
+  output$selected_versions_text <- renderText({
+    rv <- input$r_versions
+    pv <- input$py_versions
+    qv <- input$quarto_versions
+
+    if (length(rv) == 0 & length(pv) == 0 & length(qv) == 0) {
+      paste0(
+        "Please select the versions of R, Python, and Quarto you ",
+        "wish to scan for."
+      )
+    } else {
+      parts <- c(
+        if (length(rv) > 0) glue::glue("R: {paste(rv, collapse = ', ')}"),
+        if (length(pv) > 0) glue::glue("Python: {paste(pv, collapse = ', ')}"),
+        if (length(qv) > 0) glue::glue("Quarto: {paste(qv, collapse = ', ')}")
+      )
+      glue::glue("Selected runtimes: {paste(parts, collapse = '; ')}.")
+    }
+  })
+
+  output$n_eol_content_text <- renderText({
+    rv <- input$r_versions
+    pv <- input$py_versions
+    qv <- input$quarto_versions
+
+    n_eol_content <- nrow(content_eol())
+
+    if (length(rv) == 0 & length(pv) == 0 & length(qv) == 0) {
+      NULL
+    } else if (n_eol_content == 0) {
+      "You don't have any content using the selected end-of-life runtimes."
+    } else {
+      glue::glue(
+        "You have {n_eol_content} ",
+        "{ifelse(n_eol_content == 1, 'piece', 'pieces')} ",
+        "of content using the selected end-of-life runtimes."
+      )
+    }
   })
 
   output$content_table <- renderReactable({
-    data <- content_table_data()
+    data <- content_eol()
+    rv <- input$r_versions
+    pv <- input$py_versions
+    qv <- input$quarto_versions
 
     reactable(
       data,
-      defaultPageSize = 25,
+      pagination = FALSE,
       columns = list(
-        guid = colDef(name = "GUID"),
         title = colDef(name = "Title"),
-        app_mode = colDef(name = "App Mode"),
-        r_version = colDef(name = "R Version"),
-        py_version = colDef(name = "Python Version"),
-        quarto_version = colDef(name = "Quarto Version"),
         dashboard_url = colDef(
           name = "",
           width = 32,
@@ -160,6 +202,41 @@ server <- function(input, output, session) {
           },
           html = TRUE
         ),
+        app_mode = colDef(name = "App Mode"),
+        r_version = colDef(
+          name = "R Version",
+          style = function(value) {
+            if (!is.null(rv) && value %in% rv) {
+              list(
+                color = "#7D1A03",
+                fontWeight = "bold"
+              )
+            }
+          }
+        ),
+        py_version = colDef(
+          name = "Python Version",
+          style = function(value) {
+            if (!is.null(pv) && value %in% pv) {
+              list(
+                color = "#7D1A03",
+                fontWeight = "bold"
+              )
+            }
+          }
+        ),
+        quarto_version = colDef(
+          name = "Quarto Version",
+          style = function(value) {
+            if (!is.null(qv) && value %in% qv) {
+              list(
+                color = "#7D1A03",
+                fontWeight = "bold"
+              )
+            }
+          }
+        ),
+
         hits = colDef(name = "Hits in Last Week")
       )
     )
