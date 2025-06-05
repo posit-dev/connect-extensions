@@ -16,6 +16,28 @@ options(
   spinner.color = "#7494b1"
 )
 
+app_mode_groups <- list(
+  "API" = c("api", "python-fastapi", "python-api", "tensorflow-saved-model"),
+  "Application" = c(
+    "shiny",
+    "python-shiny",
+    "python-dash",
+    "python-gradio",
+    "python-streamlit",
+    "python-bokeh"
+  ),
+  "Jupyter" = c("jupyter-static", "jupyter-voila"),
+  "Quarto" = c("quarto-shiny", "quarto-static"),
+  "R Markdown" = c("rmd-shiny", "rmd-static"),
+  "Pin" = c("pin"),
+  "Other" = c("unknown")
+)
+
+app_mode_lookup <- with(
+  stack(app_mode_groups),
+  setNames(as.character(ind), values)
+)
+
 # Shiny app definition
 
 ui <- page_sidebar(
@@ -46,6 +68,16 @@ ui <- page_sidebar(
       label = "Quarto Versions",
       choices = NULL,
       multiple = TRUE
+    ),
+
+    h5("Filters"),
+
+    selectizeInput(
+      "content_type_filter",
+      label = "Content Type",
+      options = list(placeholder = "All Content Types"),
+      choices = names(app_mode_groups),
+      multiple = TRUE,
     )
   ),
 
@@ -61,6 +93,7 @@ server <- function(input, output, session) {
     return()
   }
 
+  # User-scoped content data frame
   content <- reactive({
     content <- get_content(client) |>
       filter(app_role %in% c("owner", "editor"))
@@ -106,12 +139,20 @@ server <- function(input, output, session) {
   })
 
   content_table_data <- reactive({
+    content_type_mask <- if (length(input$content_type_filter) == 0) {
+      names(app_mode_groups)
+    } else {
+      input$content_type_filter
+    }
+
     content() |>
+      mutate(content_type = app_mode_lookup[app_mode]) |>
+      filter(content_type %in% content_type_mask) |>
       left_join(usage(), by = c("guid" = "content_guid")) |>
       select(
         title,
         dashboard_url,
-        app_mode,
+        content_type,
         r_version,
         py_version,
         quarto_version,
@@ -202,7 +243,7 @@ server <- function(input, output, session) {
           },
           html = TRUE
         ),
-        app_mode = colDef(name = "App Mode"),
+        content_type = colDef(name = "Content Type"),
         r_version = colDef(
           name = "R Version",
           style = function(value) {
