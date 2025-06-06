@@ -54,7 +54,24 @@ ordered_version_levels <- function(versions) {
 
 # turns a character vector of version numbers into an ordered factor
 as_ordered_version_factor <- function(versions) {
-  factor(versions, levels = ordered_version_levels(versions), ordered = TRUE)
+  # Safely coerce versions, invalid ones become NA.
+  # (Some versions on Dogfood were malformed as "", and this caused crashes.)
+  safe_versions <- vapply(
+    versions,
+    function(v) {
+      tryCatch(
+        as.character(as.numeric_version(v)),
+        error = function(e) NA_character_
+      )
+    },
+    character(1)
+  )
+
+  factor(
+    safe_versions,
+    levels = ordered_version_levels(safe_versions),
+    ordered = TRUE
+  )
 }
 
 # Shiny app definition
@@ -251,22 +268,22 @@ server <- function(input, output, session) {
       li_items <- list()
       if (input$use_r_cutoff) {
         li_items[[length(li_items) + 1]] <- tags$li(glue::glue(
-          "R {rv} and below"
+          "R {rv} or older"
         ))
       }
       if (input$use_py_cutoff) {
         li_items[[length(li_items) + 1]] <- tags$li(glue::glue(
-          "Python {pv} and below"
+          "Python {pv} or older"
         ))
       }
       if (input$use_quarto_cutoff) {
         li_items[[length(li_items) + 1]] <- tags$li(glue::glue(
-          "Quarto {qv} and below"
+          "Quarto {qv} or older"
         ))
       }
 
       tagList(
-        tags$p("Showing content using the following runtimes:"),
+        tags$p("Showing content with any runtimes matching:"),
         tags$ul(
           style = "margin-top: 0.25rem; margin-bottom: 0.5rem;",
           tagList(li_items)
@@ -283,7 +300,7 @@ server <- function(input, output, session) {
 
     reactable(
       data,
-      pagination = FALSE,
+      defaultPageSize = 500,
       columns = list(
         title = colDef(name = "Title"),
         dashboard_url = colDef(
