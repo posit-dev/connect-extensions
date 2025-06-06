@@ -7,6 +7,7 @@ library(shinycssloaders)
 library(lubridate)
 library(bsicons)
 library(tidyr)
+library(shinyWidgets)
 
 source("get_usage.R")
 source("connect_module.R")
@@ -38,36 +39,82 @@ app_mode_lookup <- with(
   setNames(as.character(ind), values)
 )
 
+# Functions to handle versions
+
+# Takes a column from a data frame and returns a character vector sorted as
+# version numbers.
+ordered_version_levels <- function(versions) {
+  rv <- versions |>
+    na.omit() |>
+    unique() |>
+    as.numeric_version() |>
+    sort() |>
+    as.character()
+}
+
+# turns a character vector of version numbers into an ordered factor
+as_ordered_version_factor <- function(versions) {
+  factor(versions, levels = ordered_version_levels(versions), ordered = TRUE)
+}
+
 # Shiny app definition
 
 ui <- page_sidebar(
-  title = "End-of-Life Runtime Scanner",
+  tags$head(
+    tags$link(rel = "stylesheet", type = "text/css", href = "styles.css")
+  ),
+
+  title = "Runtime Version Scanner",
 
   sidebar = sidebar(
     open = TRUE,
     width = 275,
 
-    h5("Select EOL Versions"),
+    h5("Scan for Runtimes"),
 
-    selectizeInput(
-      "r_versions",
-      label = "R Versions",
-      choices = NULL,
-      multiple = TRUE
+    checkboxInput(
+      "use_r_cutoff",
+      "Match R versions…",
+      value = FALSE
+    ),
+    conditionalPanel(
+      condition = "input.use_r_cutoff == true",
+      sliderTextInput(
+        "min_r_version",
+        label = NULL,
+        choices = "...",
+        pre = "≤ "
+      )
     ),
 
-    selectizeInput(
-      "py_versions",
-      label = "Python Versions",
-      choices = NULL,
-      multiple = TRUE
+    checkboxInput(
+      "use_py_cutoff",
+      "Match Python versions…",
+      value = FALSE
+    ),
+    conditionalPanel(
+      condition = "input.use_py_cutoff == true",
+      sliderTextInput(
+        "min_py_version",
+        label = NULL,
+        choices = "...",
+        pre = "≤ "
+      )
     ),
 
-    selectizeInput(
-      "quarto_versions",
-      label = "Quarto Versions",
-      choices = NULL,
-      multiple = TRUE
+    checkboxInput(
+      "use_quarto_cutoff",
+      "Match Quarto versions…",
+      value = FALSE
+    ),
+    conditionalPanel(
+      condition = "input.use_quarto_cutoff == true",
+      sliderTextInput(
+        "min_quarto_version",
+        label = NULL,
+        choices = "...",
+        pre = "≤ "
+      )
     ),
 
     h5("Filters"),
@@ -81,8 +128,7 @@ ui <- page_sidebar(
     )
   ),
 
-  textOutput("selected_versions_text"),
-  textOutput("n_eol_content_text"),
+  uiOutput("selected_versions_html"),
 
   withSpinner(reactableOutput("content_table"))
 )
@@ -96,33 +142,37 @@ server <- function(input, output, session) {
   # User-scoped content data frame
   content <- reactive({
     content <- get_content(client) |>
-      filter(app_role %in% c("owner", "editor"))
+      filter(app_role %in% c("owner", "editor")) |>
+      mutate(
+        r_version = as_ordered_version_factor(r_version),
+        py_version = as_ordered_version_factor(py_version),
+        quarto_version = as_ordered_version_factor(quarto_version),
+      )
   })
 
   observeEvent(
     content(),
     {
-      rv <- sort(unique(content()$r_version))
-      pv <- sort(unique(content()$py_version))
-      qv <- sort(unique(content()$quarto_version))
+      rv <- levels(content()$r_version)
+      pv <- levels(content()$py_version)
+      qv <- levels(content()$quarto_version)
 
-      updateSelectizeInput(
+      updateSliderTextInput(
         session,
-        "r_versions",
-        choices = rv,
-        selected = character(0)
+        "min_r_version",
+        choices = rv
       )
-      updateSelectizeInput(
+
+      updateSliderTextInput(
         session,
-        "py_versions",
-        choices = pv,
-        selected = character(0)
+        "min_py_version",
+        choices = pv
       )
-      updateSelectizeInput(
+
+      updateSliderTextInput(
         session,
-        "quarto_versions",
-        choices = qv,
-        selected = character(0)
+        "min_quarto_version",
+        choices = qv
       )
     },
     ignoreNULL = TRUE
@@ -161,62 +211,72 @@ server <- function(input, output, session) {
       replace_na(list(hits = 0))
   })
 
-  content_eol <- reactive({
-    df <- content_table_data()
-    rv <- input$r_versions
-    pv <- input$py_versions
-    qv <- input$quarto_versions
-
-    df |>
-      filter(
-        (length(rv) > 0 & r_version %in% rv) |
-          (length(pv) > 0 & py_version %in% pv) |
-          (length(qv) > 0 & quarto_version %in% qv)
-      )
-  })
-
-  output$selected_versions_text <- renderText({
-    rv <- input$r_versions
-    pv <- input$py_versions
-    qv <- input$quarto_versions
-
-    if (length(rv) == 0 & length(pv) == 0 & length(qv) == 0) {
-      paste0(
-        "Please select the versions of R, Python, and Quarto you ",
-        "wish to scan for."
-      )
+  content_matching <- reactive({
+    # If no filters enabled, return all content
+    if (
+      all(!input$use_r_cutoff, !input$use_py_cutoff, !input$use_quarto_cutoff)
+    ) {
+      content_table_data()
     } else {
-      parts <- c(
-        if (length(rv) > 0) glue::glue("R: {paste(rv, collapse = ', ')}"),
-        if (length(pv) > 0) glue::glue("Python: {paste(pv, collapse = ', ')}"),
-        if (length(qv) > 0) glue::glue("Quarto: {paste(qv, collapse = ', ')}")
-      )
-      glue::glue("Selected runtimes: {paste(parts, collapse = '; ')}.")
+      content_table_data() |>
+        # fmt: skip
+        filter(
+          (input$use_r_cutoff &
+            r_version <= input$min_r_version) |
+          (input$use_py_cutoff &
+            py_version <= input$min_py_version) |
+          (input$use_quarto_cutoff &
+            quarto_version <= input$min_quarto_version)
+        )
     }
   })
 
-  output$n_eol_content_text <- renderText({
-    rv <- input$r_versions
-    pv <- input$py_versions
-    qv <- input$quarto_versions
+  output$selected_versions_html <- renderUI({
+    rv <- input$min_r_version
+    pv <- input$min_py_version
+    qv <- input$min_quarto_version
 
-    n_eol_content <- nrow(content_eol())
-
-    if (length(rv) == 0 & length(pv) == 0 & length(qv) == 0) {
-      NULL
-    } else if (n_eol_content == 0) {
-      "You don't have any content using the selected end-of-life runtimes."
+    if (
+      all(!input$use_r_cutoff, !input$use_py_cutoff, !input$use_quarto_cutoff)
+    ) {
+      tagList(
+        tags$p(
+          "Showing all your content."
+        ),
+        tags$p(
+          "Please select the versions of R, Python, or Quarto you wish to scan for."
+        )
+      )
     } else {
-      glue::glue(
-        "You have {n_eol_content} ",
-        "{ifelse(n_eol_content == 1, 'piece', 'pieces')} ",
-        "of content using the selected end-of-life runtimes."
+      li_items <- list()
+      if (input$use_r_cutoff) {
+        li_items[[length(li_items) + 1]] <- tags$li(glue::glue(
+          "R {rv} and below"
+        ))
+      }
+      if (input$use_py_cutoff) {
+        li_items[[length(li_items) + 1]] <- tags$li(glue::glue(
+          "Python {pv} and below"
+        ))
+      }
+      if (input$use_quarto_cutoff) {
+        li_items[[length(li_items) + 1]] <- tags$li(glue::glue(
+          "Quarto {qv} and below"
+        ))
+      }
+
+      tagList(
+        tags$p("Showing content using the following runtimes:"),
+        tags$ul(
+          style = "margin-top: 0.25rem; margin-bottom: 0.5rem;",
+          tagList(li_items)
+        )
       )
     }
   })
 
   output$content_table <- renderReactable({
-    data <- content_eol()
+    data <- content_matching()
     rv <- input$r_versions
     pv <- input$py_versions
     qv <- input$quarto_versions

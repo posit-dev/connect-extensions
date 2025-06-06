@@ -1,0 +1,3 @@
+.form-group.shiny-input-container.checkbox+.shiny-panel-conditional>.form-group.shiny-input-container {
+    margin-top: 0 !important;
+}
