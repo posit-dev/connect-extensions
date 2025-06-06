@@ -334,7 +334,7 @@ package-extension:
 
 
 # Set admin email using API. This target is used to setup the bootstrap admin user properly.
-set-bootstrap-admin-email:
+set-admin-email:
 	@echo "Setting admin email in Connect..."
 	@$(UV) run tests/posit/connect/set_bootstrap_admin_email.py
 
@@ -382,11 +382,9 @@ help:
 # Run tests. This target is invoked by the Docker compose file and run inside the tests container.
 test:
 	mkdir -p logs reports
-	$(SHELL) -c "set -o pipefail; \
-	CONNECT_VERSION=$(CONNECT_VERSION) \
-	EXTENSION_NAME=$(EXTENSION_NAME) \
-	export CONNECT_API_KEY=\$$($(UV) run rsconnect bootstrap -i -s $(CONNECT_SERVER) --raw); \
-	$(MAKE) set-bootstrap-admin-email && \
-	$(UV) run pytest \$$(echo $(PYTEST_ARGS)) --junit-xml=./reports/$(CONNECT_VERSION).xml | \
-	tee ./logs/$(CONNECT_VERSION).log; \
-	exit \$${PIPESTATUS[0]}"
+	CONNECT_VERSION=${CONNECT_VERSION} EXTENSION_NAME=${EXTENSION_NAME} \
+	bash -c "set -o pipefail && \
+	export CONNECT_API_KEY=\"$$( $(UV) run rsconnect bootstrap -i -s ${CONNECT_SERVER} --raw )\" && \
+	$(MAKE) set-admin-email && \
+	$(UV) run pytest $(PYTEST_ARGS) --junit-xml=./reports/$(CONNECT_VERSION).xml" | \
+	tee ./logs/$(CONNECT_VERSION).log
