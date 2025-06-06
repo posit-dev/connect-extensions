@@ -26,6 +26,8 @@ EXTENSION_NAME ?=
 preview_DOCKER_CONNECT_IMAGE := rstudio/rstudio-connect-preview
 preview_DOCKER_CONNECT_IMAGE_TAG := dev-jammy-daily
 
+CONNECT_SERVER ?= http://connect:3939
+
 # Connect bootstrap secret key
 CONNECT_BOOTSTRAP_SECRETKEY ?= $(shell head -c 32 /dev/random | base64)
 
@@ -310,7 +312,7 @@ print-versions:
 	@printf "%s\n" $(strip $(CONNECT_VERSIONS))
 
 
-# Package an extension into a tar.gz file. This only works for simple extensions.
+# Package an extension into a tar.gz file and save it to the integrations bundles folder. This only works for simple extensions.
 # Usage: make package-extension EXTENSION_NAME=<extension-name>
 package-extension:
 	@if [ -z "$(EXTENSION_NAME)" ]; then \
@@ -326,8 +328,15 @@ package-extension:
 	fi
 	@mkdir -p ./integration/bundles
 	@echo "Packaging extension: $(EXTENSION_NAME)"
-	@tar -czf ./bundles/$(EXTENSION_NAME).tar.gz ../extensions/$(EXTENSION_NAME)
+	@# Change directory to the parent and create tarball with relative paths
+	@cd .. && tar -czf ./integration/bundles/$(EXTENSION_NAME).tar.gz -C ./extensions $(EXTENSION_NAME)
 	@echo "✅ Package created: ./bundles/$(EXTENSION_NAME).tar.gz"
+
+
+# Set admin email using API. This target is used to setup the bootstrap admin user properly.
+set-admin-email:
+	@echo "Setting admin email in Connect..."
+	@$(UV) run tests/posit/connect/set_bootstrap_admin_email.py
 
 
 # Show help message.
@@ -373,10 +382,9 @@ help:
 # Run tests. This target is invoked by the Docker compose file and run inside the tests container.
 test:
 	mkdir -p logs reports
-	set -o pipefail; \
-	CONNECT_VERSION=${CONNECT_VERSION} \
-	EXTENSION_NAME=${EXTENSION_NAME} \
-	CONNECT_API_KEY="$(shell $(UV) run rsconnect bootstrap -i -s http://connect:3939 --raw)" \
-	$(UV) run pytest $(PYTEST_ARGS) \
-					--junit-xml=./reports/$(CONNECT_VERSION).xml | \
+	CONNECT_VERSION=${CONNECT_VERSION} EXTENSION_NAME=${EXTENSION_NAME} \
+	bash -c "set -o pipefail && \
+	export CONNECT_API_KEY=\"$$( $(UV) run rsconnect bootstrap -i -s ${CONNECT_SERVER} --raw )\" && \
+	$(MAKE) set-admin-email && \
+	$(UV) run pytest $(PYTEST_ARGS) --junit-xml=./reports/$(CONNECT_VERSION).xml" | \
 	tee ./logs/$(CONNECT_VERSION).log
