@@ -4,7 +4,7 @@
   "platform": "4.4.3",
   "metadata": {
     "appmode": "rmd-static",
-    "primary_rmd": "does-not-exist.Rmd",
+    "primary_rmd": "portfolio-report.Rmd",
     "primary_html": null,
     "content_category": null,
     "has_parameters": false
