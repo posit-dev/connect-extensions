@@ -177,19 +177,19 @@ server <- function(input, output, session) {
       updateSliderTextInput(
         session,
         "min_r_version",
-        choices = rv
+        choices = I(rv)
       )
 
       updateSliderTextInput(
         session,
         "min_py_version",
-        choices = pv
+        choices = I(pv)
       )
 
       updateSliderTextInput(
         session,
         "min_quarto_version",
-        choices = qv
+        choices = I(qv)
       )
     },
     ignoreNULL = TRUE
@@ -308,7 +308,9 @@ server <- function(input, output, session) {
           width = 32,
           sortable = FALSE,
           cell = function(url) {
-            if (is.na(url) || url == "") return("")
+            if (is.na(url) || url == "") {
+              return("")
+            }
             HTML(as.character(tags$div(
               onclick = "event.stopPropagation()",
               tags$a(
