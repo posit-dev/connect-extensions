@@ -1,0 +1,47 @@
+{
+  "version": 1,
+  "locale": "en_US.UTF-8",
+  "metadata": {
+    "appmode": "quarto-static"
+  },
+    "extension": {
+    "name": "app-canary",
+    "title": "App Canary",
+    "description": "Provides a way to monitor deployed content and optionally email a report when any of the content has failed.",
+    "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/app-canary",
+    "category": "extension",
+    "tags": [],
+    "minimumConnectVersion": "2025.04.0",
+    "version": "0.0.0"
+  },
+  "environment": {
+    "python": {
+      "requires": "~=3.11"
+    },
+    "quarto": {
+      "requires": "~=1.4"
+    }
+  },
+  "quarto": {
+    "version": "1.4.557",
+    "engines": [
+      "jupyter"
+    ]
+  },
+  "python": {
+    "version": "3.11.7",
+    "package_manager": {
+      "name": "pip",
+      "version": "23.2.1",
+      "package_file": "requirements.txt"
+    }
+  },
+  "files": {
+    "requirements.txt": {
+      "checksum": "09254fc2dfa7d869ffbc3da2abb1d224"
+    },
+    "app-canary.qmd": {
+      "checksum": "732af0f4ea846c37d3a7641c3bbd6ba3"
+    }
+  }
+}
