@@ -11,6 +11,7 @@ library(shinyWidgets)
 
 source("get_usage.R")
 source("connect_module.R")
+source("version_ordering.R")
 
 options(
   spinner.type = 1,
@@ -38,41 +39,6 @@ app_mode_lookup <- with(
   stack(app_mode_groups),
   setNames(as.character(ind), values)
 )
-
-# Functions to handle versions
-
-# Takes a column from a data frame and returns a character vector sorted as
-# version numbers.
-ordered_version_levels <- function(versions) {
-  rv <- versions |>
-    na.omit() |>
-    unique() |>
-    as.numeric_version() |>
-    sort() |>
-    as.character()
-}
-
-# turns a character vector of version numbers into an ordered factor
-as_ordered_version_factor <- function(versions) {
-  # Safely coerce versions, invalid ones become NA.
-  # (Some versions on Dogfood were malformed as "", and this caused crashes.)
-  safe_versions <- vapply(
-    versions,
-    function(v) {
-      tryCatch(
-        as.character(as.numeric_version(v)),
-        error = function(e) NA_character_
-      )
-    },
-    character(1)
-  )
-
-  factor(
-    safe_versions,
-    levels = ordered_version_levels(safe_versions),
-    ordered = TRUE
-  )
-}
 
 # Shiny app definition
 
