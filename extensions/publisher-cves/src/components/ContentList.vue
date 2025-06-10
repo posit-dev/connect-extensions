@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, ref, computed } from "vue";
+import { onMounted, ref } from "vue";
 import { usePackagesStore } from "../stores/packages";
 import { useContentStore } from "../stores/content";
 import StatusMessage from "./ui/StatusMessage.vue";
@@ -8,15 +8,6 @@ import ContentCard from "./ContentCard.vue";
 const packagesStore = usePackagesStore();
 const contentStore = useContentStore();
 const isInitialLoad = ref(true);
-
-// Count how many content items still need their packages fetched
-const contentItemsNeedingFetch = computed(() => {
-  if (contentStore.contentList.length === 0) return 0;
-
-  return contentStore.contentList.filter(
-    (content) => !packagesStore.contentItems[content.guid]?.isFetched,
-  ).length;
-});
 
 // Load content list and automatically fetch packages in batches
 async function loadContentList(fetchAllPackages = false) {
@@ -44,7 +35,7 @@ async function fetchPackagesInBatches(batchSize = 3) {
   const contentToFetch = contentStore.contentList.filter(
     (content) =>
       !packagesStore.contentItems[content.guid]?.isFetched &&
-      !packagesStore.contentItems[content.guid]?.isLoading,
+      !packagesStore.contentItems[content.guid]?.isLoading
   );
 
   // Process in batches
@@ -56,7 +47,7 @@ async function fetchPackagesInBatches(batchSize = 3) {
       return packagesStore
         .fetchPackagesForContent(content.guid)
         .catch((err) =>
-          console.error(`Error fetching packages for ${content.guid}:`, err),
+          console.error(`Error fetching packages for ${content.guid}:`, err)
         );
     });
 
@@ -67,7 +58,7 @@ async function fetchPackagesInBatches(batchSize = 3) {
 // Fetch packages for all remaining unfetched content items
 async function fetchAllRemainingPackages() {
   const contentToFetch = contentStore.contentList.filter(
-    (content) => !packagesStore.contentItems[content.guid]?.isFetched,
+    (content) => !packagesStore.contentItems[content.guid]?.isFetched
   );
 
   if (contentToFetch.length === 0) return;
@@ -76,7 +67,7 @@ async function fetchAllRemainingPackages() {
     return packagesStore
       .fetchPackagesForContent(content.guid)
       .catch((err) =>
-        console.error(`Error fetching packages for ${content.guid}:`, err),
+        console.error(`Error fetching packages for ${content.guid}:`, err)
       );
   });
 
@@ -113,18 +104,9 @@ onMounted(async () => {
         Your Connect Content
       </h2>
 
-      <div class="flex justify-between items-center mb-6">
-        <p class="text-gray-600">
-          Select a content item to check for package vulnerabilities.
-        </p>
-
-        <p
-          class="px-3 py-1 bg-blue-50 hover:bg-blue-100 text-blue-600 text-sm rounded-md transition-colors"
-          v-if="contentItemsNeedingFetch > 0"
-        >
-          Loading...
-        </p>
-      </div>
+      <p class="text-gray-600 mb-6">
+        Select a content item to check for package vulnerabilities.
+      </p>
 
       <div class="grid gap-4 md:grid-cols-2">
         <ContentCard
