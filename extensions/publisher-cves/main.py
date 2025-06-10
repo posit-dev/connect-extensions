@@ -6,6 +6,10 @@ app = FastAPI()
 
 client = connect.Client()
 
+@app.get("/api/content")
+async def search_content(query: str = None):
+    return client.me.content.find()
+
 @app.get("/api/packages/{guid}")
 async def get_packages(guid: str):
     try:
