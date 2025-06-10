@@ -25,3 +25,6 @@ dist-ssr
 
 # Posit Publisher files
 .posit/*
+
+# Claude
+.claude/settings.local.json
