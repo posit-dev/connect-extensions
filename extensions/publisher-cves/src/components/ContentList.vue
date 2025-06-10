@@ -112,10 +112,8 @@ async function selectContent(contentGuid: string) {
   emit('content-selected', contentGuid);
 }
 
-// Handle content card selection
-function handleContentSelect(contentGuid: string) {
-  selectContent(contentGuid);
-}
+// This function is redundant and can be removed
+// handleContentSelect was just a passthrough to selectContent
 
 // Load content on component mount
 onMounted(async () => {
@@ -162,7 +160,7 @@ onMounted(async () => {
           v-for="content in contentStore.contentList" 
           :key="content.guid" 
           :content="content"
-          @select="handleContentSelect"
+          @select="selectContent"
         />
       </div>
     </div>

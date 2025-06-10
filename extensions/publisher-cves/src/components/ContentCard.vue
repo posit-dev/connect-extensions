@@ -2,7 +2,6 @@
 import { computed, defineProps, defineEmits } from 'vue';
 import { usePackagesStore } from '../stores/packages';
 import { useVulnsStore } from '../stores/vulns';
-import { useContentStore } from '../stores/content';
 
 const props = defineProps<{
   content: {

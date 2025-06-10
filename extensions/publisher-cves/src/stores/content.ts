@@ -63,10 +63,8 @@ export const useContentStore = defineStore("content", () => {
     currentContentId.value = contentId;
   }
 
-  // Get content by ID
-  function getContentById(contentId: string): ContentListItem | null {
-    return contentList.value.find(content => content.guid === contentId) || null;
-  }
+  // We can remove the getContentById function since it's not used anywhere
+  // and currentContent computed property provides the same functionality
 
   // Reset store state
   function reset() {
@@ -91,7 +89,7 @@ export const useContentStore = defineStore("content", () => {
     // Actions
     fetchContentList,
     setCurrentContentId,
-    getContentById,
+    // getContentById removed (unused)
     reset
   };
 });
