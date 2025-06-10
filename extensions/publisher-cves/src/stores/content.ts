@@ -21,31 +21,35 @@ export const useContentStore = defineStore("content", () => {
   const isLoading = ref(false);
   const error = ref<Error | null>(null);
   const currentContentId = ref<string | null>(null);
-  
+
   // Track if content has been loaded
   const isContentLoaded = ref(false);
 
   // Get the current content item
   const currentContent = computed(() => {
     if (!currentContentId.value) return null;
-    return contentList.value.find(content => content.guid === currentContentId.value) || null;
+    return (
+      contentList.value.find(
+        (content) => content.guid === currentContentId.value,
+      ) || null
+    );
   });
 
   // Fetch all available content items
   async function fetchContentList() {
     // Skip if content is already loaded
     if (isContentLoaded.value && contentList.value.length > 0) return;
-    
+
     isLoading.value = true;
     error.value = null;
-    
+
     try {
       const response = await fetch("/api/content");
-      
+
       if (!response.ok) {
         throw new Error(`HTTP error! Status: ${response.status}`);
       }
-      
+
       const data = await response.json();
       contentList.value = data;
       isContentLoaded.value = true;
@@ -82,14 +86,14 @@ export const useContentStore = defineStore("content", () => {
     error,
     currentContentId,
     isContentLoaded,
-    
+
     // Computed getters
     currentContent,
-    
+
     // Actions
     fetchContentList,
     setCurrentContentId,
-    // getContentById removed (unused)
-    reset
+    getContentById,
+    reset,
   };
 });

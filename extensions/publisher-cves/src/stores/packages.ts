@@ -27,7 +27,10 @@ export const usePackagesStore = defineStore("packages", () => {
 
   // Get the current content packages based on currentContentId
   const currentContent = computed(() => {
-    if (!currentContentId.value || !contentItems.value[currentContentId.value]) {
+    if (
+      !currentContentId.value ||
+      !contentItems.value[currentContentId.value]
+    ) {
       return null;
     }
     return contentItems.value[currentContentId.value];
@@ -40,7 +43,7 @@ export const usePackagesStore = defineStore("packages", () => {
 
   // Track if any packages are currently being fetched
   const isFetchingAny = computed(() => {
-    return Object.values(contentItems.value).some(item => item.isLoading);
+    return Object.values(contentItems.value).some((item) => item.isLoading);
   });
 
   // Check if the current content has been fetched
@@ -56,9 +59,9 @@ export const usePackagesStore = defineStore("packages", () => {
   // Computed properties for status info for the current content
   const packagesByLanguage = computed(() => {
     const result: Record<string, Package[]> = {};
-    
+
     if (!packages.value) return result;
-    
+
     for (const pkg of packages.value) {
       const language = pkg.language.toLowerCase();
       if (!result[language]) {
@@ -66,7 +69,7 @@ export const usePackagesStore = defineStore("packages", () => {
       }
       result[language].push(pkg);
     }
-    
+
     return result;
   });
 
@@ -79,10 +82,10 @@ export const usePackagesStore = defineStore("packages", () => {
   async function fetchPackagesForContent(contentId: string) {
     // Set this as the current content ID
     currentContentId.value = contentId;
-    
+
     // Get the content info from the content store
     const contentStore = useContentStore();
-    
+
     // Initialize or update the content item
     if (!contentItems.value[contentId]) {
       // Initialize content item
@@ -92,7 +95,7 @@ export const usePackagesStore = defineStore("packages", () => {
         isLoading: true,
         error: null,
         isFetched: false,
-        lastFetchTime: null
+        lastFetchTime: null,
       };
     } else {
       // Update existing content item loading state
@@ -102,14 +105,16 @@ export const usePackagesStore = defineStore("packages", () => {
 
     try {
       const response = await fetch(`/api/packages/${contentId}`);
-      
+
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.detail || `HTTP error! Status: ${response.status}`);
+        throw new Error(
+          errorData.detail || `HTTP error! Status: ${response.status}`,
+        );
       }
-      
+
       const data = await response.json();
-      
+
       // Update the content item with the fetched packages
       contentItems.value[contentId].packages = data;
       contentItems.value[contentId].isFetched = true;
@@ -138,7 +143,7 @@ export const usePackagesStore = defineStore("packages", () => {
     currentContentId,
     isLoading,
     error,
-    
+
     // Computed getters
     packages,
     currentContent,
@@ -146,10 +151,10 @@ export const usePackagesStore = defineStore("packages", () => {
     lastFetchTime,
     isFetchingAny,
     packagesByLanguage,
-    
+
     // Actions
     fetchPackagesForContent,
     setCurrentContentId,
-    reset
+    reset,
   };
 });

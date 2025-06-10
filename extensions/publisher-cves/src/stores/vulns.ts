@@ -27,7 +27,7 @@ export const useVulnsStore = defineStore("vulns", () => {
   const cran = ref<VulnerabilityMap>({});
   const isLoading = ref(false);
   const error = ref<Error | null>(null);
-  
+
   // Track fetch status
   const isFetched = ref(false);
   const lastFetchTime = ref<Date | null>(null);
@@ -35,17 +35,17 @@ export const useVulnsStore = defineStore("vulns", () => {
   // Computed properties
   const totalVulns = computed(() => {
     let count = 0;
-    
+
     // Count vulnerabilities in pypi
     for (const packageName in pypi.value) {
       count += pypi.value[packageName].length;
     }
-    
+
     // Count vulnerabilities in cran
     for (const packageName in cran.value) {
       count += cran.value[packageName].length;
     }
-    
+
     return count;
   });
 
@@ -60,11 +60,11 @@ export const useVulnsStore = defineStore("vulns", () => {
 
     try {
       const response = await fetch("/api/vulns");
-      
+
       if (!response.ok) {
         throw new Error(`HTTP error! Status: ${response.status}`);
       }
-      
+
       const data = await response.json();
 
       pypi.value = data.pypi || {};
@@ -97,13 +97,13 @@ export const useVulnsStore = defineStore("vulns", () => {
     error,
     isFetched,
     lastFetchTime,
-    
+
     // Getters
     totalVulns,
     affectedPackageCount,
-    
+
     // Actions
     fetchVulns,
-    reset
+    reset,
   };
 });
