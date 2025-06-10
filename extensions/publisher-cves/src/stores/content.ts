@@ -30,7 +30,7 @@ export const useContentStore = defineStore("content", () => {
     if (!currentContentId.value) return null;
     return (
       contentList.value.find(
-        (content) => content.guid === currentContentId.value,
+        (content) => content.guid === currentContentId.value
       ) || null
     );
   });
@@ -93,7 +93,6 @@ export const useContentStore = defineStore("content", () => {
     // Actions
     fetchContentList,
     setCurrentContentId,
-    getContentById,
     reset,
   };
 });
