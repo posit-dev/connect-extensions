@@ -15,3 +15,5 @@ if (nzchar(system.file(package = "box.lsp"))) {
     )
   )
 }
+
+options(repos = c(CRAN = "https://packagemanager.posit.co/cran/latest"))
