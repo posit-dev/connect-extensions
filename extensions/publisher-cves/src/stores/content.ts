@@ -7,7 +7,6 @@ export interface ContentListItem {
   app_mode?: string;
   content_url?: string;
   dashboard_url?: string;
-  // Add more properties as needed from the API response
   name?: string;
   description?: string;
   last_deployed_time?: string;
@@ -16,11 +15,10 @@ export interface ContentListItem {
 }
 
 export const useContentStore = defineStore("content", () => {
-  // Content list state
   const contentList = ref<ContentListItem[]>([]);
   const isLoading = ref(false);
   const error = ref<Error | null>(null);
-  const currentContentId = ref<string | null>(null);
+  const currentContentId = ref<string>();
 
   // Track if content has been loaded
   const isContentLoaded = ref(false);
@@ -62,23 +60,6 @@ export const useContentStore = defineStore("content", () => {
     }
   }
 
-  // Set current content ID
-  function setCurrentContentId(contentId: string) {
-    currentContentId.value = contentId;
-  }
-
-  // We can remove the getContentById function since it's not used anywhere
-  // and currentContent computed property provides the same functionality
-
-  // Reset store state
-  function reset() {
-    contentList.value = [];
-    isLoading.value = false;
-    error.value = null;
-    currentContentId.value = null;
-    isContentLoaded.value = false;
-  }
-
   return {
     // State
     contentList,
@@ -92,7 +73,5 @@ export const useContentStore = defineStore("content", () => {
 
     // Actions
     fetchContentList,
-    setCurrentContentId,
-    reset,
   };
 });

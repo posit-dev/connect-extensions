@@ -79,16 +79,6 @@ export const useVulnsStore = defineStore("vulns", () => {
     }
   }
 
-  // Reset store state
-  function reset() {
-    pypi.value = {};
-    cran.value = {};
-    isLoading.value = false;
-    error.value = null;
-    isFetched.value = false;
-    lastFetchTime.value = null;
-  }
-
   return {
     // State
     pypi,
@@ -104,6 +94,5 @@ export const useVulnsStore = defineStore("vulns", () => {
 
     // Actions
     fetchVulns,
-    reset,
   };
 });

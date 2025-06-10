@@ -23,7 +23,7 @@ const contentItemsNeedingFetch = computed(() => {
   if (contentStore.contentList.length === 0) return 0;
 
   return contentStore.contentList.filter(
-    (content) => !packagesStore.contentItems[content.guid]?.isFetched,
+    (content) => !packagesStore.contentItems[content.guid]?.isFetched
   ).length;
 });
 
@@ -66,7 +66,7 @@ async function fetchPackagesInBatches(batchSize = 3) {
   const contentToFetch = contentStore.contentList.filter(
     (content) =>
       !packagesStore.contentItems[content.guid]?.isFetched &&
-      !packagesStore.contentItems[content.guid]?.isLoading,
+      !packagesStore.contentItems[content.guid]?.isLoading
   );
 
   // Process in batches
@@ -78,7 +78,7 @@ async function fetchPackagesInBatches(batchSize = 3) {
       return packagesStore
         .fetchPackagesForContent(content.guid)
         .catch((err) =>
-          console.error(`Error fetching packages for ${content.guid}:`, err),
+          console.error(`Error fetching packages for ${content.guid}:`, err)
         );
     });
 
@@ -89,7 +89,7 @@ async function fetchPackagesInBatches(batchSize = 3) {
 // Fetch packages for all remaining unfetched content items
 async function fetchAllRemainingPackages() {
   const contentToFetch = contentStore.contentList.filter(
-    (content) => !packagesStore.contentItems[content.guid]?.isFetched,
+    (content) => !packagesStore.contentItems[content.guid]?.isFetched
   );
 
   if (contentToFetch.length === 0) return;
@@ -98,7 +98,7 @@ async function fetchAllRemainingPackages() {
     return packagesStore
       .fetchPackagesForContent(content.guid)
       .catch((err) =>
-        console.error(`Error fetching packages for ${content.guid}:`, err),
+        console.error(`Error fetching packages for ${content.guid}:`, err)
       );
   });
 
@@ -108,8 +108,7 @@ async function fetchAllRemainingPackages() {
 // Select a content item to view its details
 async function selectContent(contentGuid: string) {
   // Set the current content ID in both stores
-  contentStore.setCurrentContentId(contentGuid);
-  packagesStore.setCurrentContentId(contentGuid);
+  contentStore.currentContentId = contentGuid;
 
   // If packages haven't been fetched for this content yet, fetch them
   const contentItem = packagesStore.contentItems[contentGuid];
@@ -163,18 +162,12 @@ onMounted(async () => {
           Select a content item to check for package vulnerabilities.
         </p>
 
-        <button
-          @click="loadContentList(true)"
+        <p
           class="px-3 py-1 bg-blue-50 hover:bg-blue-100 text-blue-600 text-sm rounded-md transition-colors"
-          :disabled="packagesStore.isFetchingAny"
           v-if="contentItemsNeedingFetch > 0"
         >
-          {{
-            packagesStore.isFetchingAny
-              ? "Loading..."
-              : `Analyze Remaining (${contentItemsNeedingFetch})`
-          }}
-        </button>
+          Loading...
+        </p>
       </div>
 
       <div class="grid gap-4 md:grid-cols-2">
