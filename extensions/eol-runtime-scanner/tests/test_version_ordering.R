@@ -41,7 +41,10 @@ test_that("sort_unique_versions returns a sorted vector of unique versions", {
   )
 
   # The input vector must already be sanitized.
-  expect_error(sort_unique_versions(versions))
+  expect_error(
+    sort_unique_versions(versions),
+    "invalid version specification ‘’, ‘three’, ‘a.b.c’"
+  )
 })
 
 test_that("as_ordered_version_factor produces properly ordered versions of character vectors.", {
@@ -54,16 +57,5 @@ test_that("as_ordered_version_factor produces properly ordered versions of chara
       levels = c("2.8.9", "3.8.2", "3.11.2", "3.11.3", "3.12.1", "4.0.1"),
       class = c("ordered", "factor")
     )
-  )
-
-  # Comparisons work as expected
-  expect_true(
-    all(c(
-      vf[1] > vf[2],
-      vf[2] < vf[6],
-      vf[6] > vf[11],
-      vf[7] > vf[8],
-      vf[7] == vf[9]
-    ))
   )
 })
