@@ -4,13 +4,20 @@ import ContentList from './components/ContentList.vue'
 import PoweredByFooter from './components/PoweredByFooter.vue'
 import { useVulnsStore } from './stores/vulns';
 import { usePackagesStore } from './stores/packages';
-import { ref, onMounted } from 'vue';
+import { useContentStore } from './stores/content';
+import { ref, onMounted, computed } from 'vue';
 
 const vulnStore = useVulnsStore();
 const packagesStore = usePackagesStore();
+const contentStore = useContentStore();
 
 // Manage application state
 const activeView = ref('list'); // 'list' or 'detail'
+
+// Use the content store to determine view state
+const isDetailView = computed(() => {
+  return !!contentStore.currentContentId && contentStore.currentContentId !== '';
+});
 
 // Load vulnerabilities on mount
 onMounted(async () => {
@@ -23,6 +30,7 @@ onMounted(async () => {
 // Return to content list
 function handleBack() {
   activeView.value = 'list';
+  contentStore.setCurrentContentId('');
   packagesStore.setCurrentContentId('');
 }
 
@@ -30,6 +38,7 @@ function handleBack() {
 function handleContentSelected(contentId: string) {
   if (contentId) {
     activeView.value = 'detail';
+    contentStore.setCurrentContentId(contentId);
   }
 }
 

@@ -1,5 +1,6 @@
 import { defineStore } from "pinia";
 import { ref, computed } from "vue";
+import { useContentStore } from "./content";
 
 export interface Package {
   hash: string | null;
@@ -8,11 +9,8 @@ export interface Package {
   version: string;
 }
 
-export interface ContentItem {
+export interface ContentPackages {
   guid: string;
-  title: string;
-  content_url?: string;
-  dashboard_url?: string;
   packages: Package[];
   isLoading: boolean;
   error: Error | null;
@@ -21,16 +19,13 @@ export interface ContentItem {
 }
 
 export const usePackagesStore = defineStore("packages", () => {
-  // Map of content items by GUID
-  const contentItems = ref<Record<string, ContentItem>>({});
+  // Map of content packages by GUID
+  const contentItems = ref<Record<string, ContentPackages>>({});
   const isLoading = ref(false);
   const error = ref<Error | null>(null);
   const currentContentId = ref<string | null>(null);
-  const contentList = ref<Array<{guid: string; title: string; app_mode?: string; content_url?: string; dashboard_url?: string}>>([]);
-  const contentListLoading = ref(false);
-  const contentListError = ref<Error | null>(null);
 
-  // Get the current content item based on currentContentId
+  // Get the current content packages based on currentContentId
   const currentContent = computed(() => {
     if (!currentContentId.value || !contentItems.value[currentContentId.value]) {
       return null;
@@ -75,29 +70,6 @@ export const usePackagesStore = defineStore("packages", () => {
     return result;
   });
 
-  // Fetch all available content items
-  async function fetchContentList() {
-    contentListLoading.value = true;
-    contentListError.value = null;
-    
-    try {
-      const response = await fetch("/api/content");
-      
-      if (!response.ok) {
-        throw new Error(`HTTP error! Status: ${response.status}`);
-      }
-      
-      const data = await response.json();
-      contentList.value = data;
-    } catch (err) {
-      console.error("Error fetching content list:", err);
-      contentListError.value = err as Error;
-      throw err;
-    } finally {
-      contentListLoading.value = false;
-    }
-  }
-
   // Set current content ID
   function setCurrentContentId(contentId: string) {
     currentContentId.value = contentId;
@@ -108,17 +80,14 @@ export const usePackagesStore = defineStore("packages", () => {
     // Set this as the current content ID
     currentContentId.value = contentId;
     
+    // Get the content info from the content store
+    const contentStore = useContentStore();
+    
     // Initialize or update the content item
     if (!contentItems.value[contentId]) {
-      // Find content info from the content list
-      const contentInfo = contentList.value.find(item => item.guid === contentId);
-      
       // Initialize content item
       contentItems.value[contentId] = {
         guid: contentId,
-        title: contentInfo?.title || contentId,
-        content_url: contentInfo?.content_url,
-        dashboard_url: contentInfo?.dashboard_url,
         packages: [],
         isLoading: true,
         error: null,
@@ -155,27 +124,17 @@ export const usePackagesStore = defineStore("packages", () => {
   }
 
   // Reset store state
-  function reset(preserveContentList = true) {
-    // Reset content-specific state
+  function reset() {
+    // Reset packages state
     contentItems.value = {};
     isLoading.value = false;
     error.value = null;
     currentContentId.value = null;
-    
-    // Optionally reset content list (usually preserve it)
-    if (!preserveContentList) {
-      contentList.value = [];
-      contentListLoading.value = false;
-      contentListError.value = null;
-    }
   }
 
   return {
     // State
     contentItems,
-    contentList,
-    contentListLoading,
-    contentListError,
     currentContentId,
     isLoading,
     error,
@@ -189,7 +148,6 @@ export const usePackagesStore = defineStore("packages", () => {
     packagesByLanguage,
     
     // Actions
-    fetchContentList,
     fetchPackagesForContent,
     setCurrentContentId,
     reset

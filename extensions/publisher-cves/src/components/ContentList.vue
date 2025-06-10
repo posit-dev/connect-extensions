@@ -1,9 +1,11 @@
 <script setup lang="ts">
 import { onMounted, ref, defineEmits, computed } from 'vue';
 import { usePackagesStore } from '../stores/packages';
+import { useContentStore } from '../stores/content';
 import { useVulnsStore } from '../stores/vulns';
 import LoadingSpinner from './ui/LoadingSpinner.vue';
 import StatusMessage from './ui/StatusMessage.vue';
+import ContentCard from './ContentCard.vue';
 
 // Define emits
 const emit = defineEmits<{
@@ -11,15 +13,16 @@ const emit = defineEmits<{
 }>();
 
 const packagesStore = usePackagesStore();
+const contentStore = useContentStore();
 const vulnStore = useVulnsStore();
 const loadingMessage = ref('Loading content list...');
 const isInitialLoad = ref(true);
 
 // Count how many content items still need their packages fetched
 const contentItemsNeedingFetch = computed(() => {
-  if (packagesStore.contentList.length === 0) return 0;
+  if (contentStore.contentList.length === 0) return 0;
   
-  return packagesStore.contentList.filter(content => 
+  return contentStore.contentList.filter(content => 
     !packagesStore.contentItems[content.guid]?.isFetched
   ).length;
 });
@@ -40,12 +43,12 @@ async function loadContentList(fetchAllPackages = false) {
     await ensureVulnsLoaded();
 
     // Only fetch the content list if it hasn't been loaded yet or is empty
-    if (packagesStore.contentList.length === 0 || isInitialLoad.value) {
-      await packagesStore.fetchContentList();
+    if (contentStore.contentList.length === 0 || isInitialLoad.value) {
+      await contentStore.fetchContentList();
       isInitialLoad.value = false;
       
       // Start automatically fetching packages in batches
-      if (packagesStore.contentList.length > 0) {
+      if (contentStore.contentList.length > 0) {
         await fetchPackagesInBatches();
       }
     } else if (fetchAllPackages) {
@@ -60,7 +63,7 @@ async function loadContentList(fetchAllPackages = false) {
 
 // Fetch packages in batches to avoid overwhelming the server
 async function fetchPackagesInBatches(batchSize = 3) {
-  const contentToFetch = packagesStore.contentList
+  const contentToFetch = contentStore.contentList
     .filter(content => !packagesStore.contentItems[content.guid]?.isFetched && 
                      !packagesStore.contentItems[content.guid]?.isLoading);
   
@@ -80,7 +83,7 @@ async function fetchPackagesInBatches(batchSize = 3) {
 
 // Fetch packages for all remaining unfetched content items
 async function fetchAllRemainingPackages() {
-  const contentToFetch = packagesStore.contentList
+  const contentToFetch = contentStore.contentList
     .filter(content => !packagesStore.contentItems[content.guid]?.isFetched);
   
   if (contentToFetch.length === 0) return;
@@ -95,7 +98,8 @@ async function fetchAllRemainingPackages() {
 
 // Select a content item to view its details
 async function selectContent(contentGuid: string) {
-  // Set the current content ID in the store
+  // Set the current content ID in both stores
+  contentStore.setCurrentContentId(contentGuid);
   packagesStore.setCurrentContentId(contentGuid);
   
   // If packages haven't been fetched for this content yet, fetch them
@@ -108,24 +112,9 @@ async function selectContent(contentGuid: string) {
   emit('content-selected', contentGuid);
 }
 
-// Count vulnerable packages in a content item
-function countVulnerablePackages(contentGuid: string): number {
-  const content = packagesStore.contentItems[contentGuid];
-  if (!content || !content.packages.length) return 0;
-
-  let count = 0;
-  for (const pkg of content.packages) {
-    const repo = pkg.language.toLowerCase() === 'python' ? 'pypi' : 'cran';
-    const vulnerabilityMap = repo === 'pypi' ? vulnStore.pypi : vulnStore.cran;
-    const packageName = pkg.name.toLowerCase();
-
-    if (vulnerabilityMap[packageName] &&
-      vulnerabilityMap[packageName].some(vuln => vuln.versions && vuln.versions[pkg.version])) {
-      count++;
-    }
-  }
-
-  return count;
+// Handle content card selection
+function handleContentSelect(contentGuid: string) {
+  selectContent(contentGuid);
 }
 
 // Load content on component mount
@@ -137,15 +126,15 @@ onMounted(async () => {
 
 <template>
   <div class="mb-10 p-5 bg-white rounded-lg shadow-md">
-    <div v-if="packagesStore.contentListLoading || isInitialLoad">
+    <div v-if="contentStore.isLoading || isInitialLoad">
       <LoadingSpinner :message="loadingMessage" size="md" />
     </div>
 
-    <div v-else-if="packagesStore.contentListError">
-      <StatusMessage type="error" message="Error loading content" :details="packagesStore.contentListError.message" />
+    <div v-else-if="contentStore.error">
+      <StatusMessage type="error" message="Error loading content" :details="contentStore.error.message" />
     </div>
 
-    <div v-else-if="packagesStore.contentList.length === 0">
+    <div v-else-if="contentStore.contentList.length === 0">
       <StatusMessage type="warning" message="No content found"
         details="No published content was found on this Connect server." />
     </div>
@@ -169,45 +158,12 @@ onMounted(async () => {
       </div>
 
       <div class="grid gap-4 md:grid-cols-2">
-        <div v-for="content in packagesStore.contentList" :key="content.guid"
-          class="border rounded-lg p-4 shadow-sm hover:shadow-md transition-shadow cursor-pointer bg-white"
-          @click="selectContent(content.guid)">
-          <div class="flex justify-between items-start mb-2">
-            <h3 class="font-medium text-blue-600 truncate">{{ content.title || 'Unnamed Content' }}</h3>
-            <span v-if="packagesStore.contentItems[content.guid]?.isFetched" class="text-xs px-2 py-1 rounded-full"
-              :class="countVulnerablePackages(content.guid) > 0 ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800'">
-              {{ countVulnerablePackages(content.guid) > 0
-                ? `${countVulnerablePackages(content.guid)} vulnerable packages`
-                : 'No vulnerabilities' }}
-            </span>
-            <span v-else-if="packagesStore.contentItems[content.guid]?.isLoading"
-              class="text-xs px-2 py-1 rounded-full bg-gray-100 text-gray-600">
-              Loading...
-            </span>
-          </div>
-
-          <div class="text-xs text-gray-500 truncate">
-            {{ content.app_mode || 'Unknown type' }} · ID: {{ content.guid }}
-          </div>
-
-          <div class="mt-2 text-sm">
-            <span v-if="packagesStore.contentItems[content.guid]?.packages.length">
-              {{ packagesStore.contentItems[content.guid].packages.length }} packages
-            </span>
-            <span v-else-if="packagesStore.contentItems[content.guid]?.error" class="text-red-600">
-              Error loading packages
-            </span>
-            <span v-else-if="!packagesStore.contentItems[content.guid]" class="text-gray-400">
-              Click to load packages
-            </span>
-            <span v-else-if="packagesStore.contentItems[content.guid]?.isLoading" class="text-gray-400">
-              Loading packages...
-            </span>
-            <span v-else class="text-gray-400">
-              No packages found
-            </span>
-          </div>
-        </div>
+        <ContentCard 
+          v-for="content in contentStore.contentList" 
+          :key="content.guid" 
+          :content="content"
+          @select="handleContentSelect"
+        />
       </div>
     </div>
   </div>
