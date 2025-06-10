@@ -6,24 +6,4 @@ default:
   agg_levels: "start_date" # can be a combination of content_guid,user_guid,start_date
   agg_time: "day" # can be one of day,week,month
   min_time: "00:00:00"
-  unique_users_goal: # optional. can be unspecified or a single value for all instances
-      - freq: "day"
-        per: "start_date"
-        goal: "7"
-      - freq: "day"
-        per: "start_date,content_guid"
-        goal: "14"
-      - freq: "week"
-        per: "start_date"
-        goal: "10"
-  sessions_goal: # optional. can be unspecified or a single value for all instances
-      - freq: "day"
-        per: "start_date"
-        goal: "27"
-      - freq: "day"
-        per: "start_date,content_guid"
-        goal: "84"
-      - freq: "week"
-        per: "start_date"
-        goal: "30"
   week_start: "monday"
