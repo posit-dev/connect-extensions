@@ -11,3 +11,5 @@ app-canary.html
 preview.html
 
 /.posit/
+
+.env
