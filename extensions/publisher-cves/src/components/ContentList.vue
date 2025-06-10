@@ -1,21 +1,12 @@
 <script setup lang="ts">
-import { onMounted, ref, defineEmits, computed } from "vue";
+import { onMounted, ref, computed } from "vue";
 import { usePackagesStore } from "../stores/packages";
 import { useContentStore } from "../stores/content";
-import { useVulnsStore } from "../stores/vulns";
-import LoadingSpinner from "./ui/LoadingSpinner.vue";
 import StatusMessage from "./ui/StatusMessage.vue";
 import ContentCard from "./ContentCard.vue";
 
-// Define emits
-const emit = defineEmits<{
-  "content-selected": [contentId: string];
-}>();
-
 const packagesStore = usePackagesStore();
 const contentStore = useContentStore();
-const vulnStore = useVulnsStore();
-const loadingMessage = ref("Loading content list...");
 const isInitialLoad = ref(true);
 
 // Count how many content items still need their packages fetched
@@ -23,25 +14,13 @@ const contentItemsNeedingFetch = computed(() => {
   if (contentStore.contentList.length === 0) return 0;
 
   return contentStore.contentList.filter(
-    (content) => !packagesStore.contentItems[content.guid]?.isFetched
+    (content) => !packagesStore.contentItems[content.guid]?.isFetched,
   ).length;
 });
-
-// Ensure vulnerabilities are loaded once
-async function ensureVulnsLoaded() {
-  if (!vulnStore.isFetched && !vulnStore.isLoading) {
-    loadingMessage.value = "Loading vulnerability database...";
-    await vulnStore.fetchVulns();
-    loadingMessage.value = "Loading content list...";
-  }
-}
 
 // Load content list and automatically fetch packages in batches
 async function loadContentList(fetchAllPackages = false) {
   try {
-    // First ensure vulnerabilities are loaded
-    await ensureVulnsLoaded();
-
     // Only fetch the content list if it hasn't been loaded yet or is empty
     if (contentStore.contentList.length === 0 || isInitialLoad.value) {
       await contentStore.fetchContentList();
@@ -53,7 +32,6 @@ async function loadContentList(fetchAllPackages = false) {
       }
     } else if (fetchAllPackages) {
       // Manual trigger to fetch any remaining packages
-      loadingMessage.value = "Loading package data for all content...";
       await fetchAllRemainingPackages();
     }
   } catch (error) {
@@ -66,7 +44,7 @@ async function fetchPackagesInBatches(batchSize = 3) {
   const contentToFetch = contentStore.contentList.filter(
     (content) =>
       !packagesStore.contentItems[content.guid]?.isFetched &&
-      !packagesStore.contentItems[content.guid]?.isLoading
+      !packagesStore.contentItems[content.guid]?.isLoading,
   );
 
   // Process in batches
@@ -78,7 +56,7 @@ async function fetchPackagesInBatches(batchSize = 3) {
       return packagesStore
         .fetchPackagesForContent(content.guid)
         .catch((err) =>
-          console.error(`Error fetching packages for ${content.guid}:`, err)
+          console.error(`Error fetching packages for ${content.guid}:`, err),
         );
     });
 
@@ -89,7 +67,7 @@ async function fetchPackagesInBatches(batchSize = 3) {
 // Fetch packages for all remaining unfetched content items
 async function fetchAllRemainingPackages() {
   const contentToFetch = contentStore.contentList.filter(
-    (content) => !packagesStore.contentItems[content.guid]?.isFetched
+    (content) => !packagesStore.contentItems[content.guid]?.isFetched,
   );
 
   if (contentToFetch.length === 0) return;
@@ -98,30 +76,12 @@ async function fetchAllRemainingPackages() {
     return packagesStore
       .fetchPackagesForContent(content.guid)
       .catch((err) =>
-        console.error(`Error fetching packages for ${content.guid}:`, err)
+        console.error(`Error fetching packages for ${content.guid}:`, err),
       );
   });
 
   await Promise.all(fetchPromises);
 }
-
-// Select a content item to view its details
-async function selectContent(contentGuid: string) {
-  // Set the current content ID in both stores
-  contentStore.currentContentId = contentGuid;
-
-  // If packages haven't been fetched for this content yet, fetch them
-  const contentItem = packagesStore.contentItems[contentGuid];
-  if (!contentItem?.isFetched && !contentItem?.isLoading) {
-    await packagesStore.fetchPackagesForContent(contentGuid);
-  }
-
-  // Emit event for parent components
-  emit("content-selected", contentGuid);
-}
-
-// This function is redundant and can be removed
-// handleContentSelect was just a passthrough to selectContent
 
 // Load content on component mount
 onMounted(async () => {
@@ -132,11 +92,7 @@ onMounted(async () => {
 
 <template>
   <div class="mb-10 p-5 bg-white rounded-lg shadow-md">
-    <div v-if="contentStore.isLoading || isInitialLoad">
-      <LoadingSpinner :message="loadingMessage" size="md" />
-    </div>
-
-    <div v-else-if="contentStore.error">
+    <div v-if="contentStore.error">
       <StatusMessage
         type="error"
         message="Error loading content"
@@ -175,7 +131,6 @@ onMounted(async () => {
           v-for="content in contentStore.contentList"
           :key="content.guid"
           :content="content"
-          @select="selectContent"
         />
       </div>
     </div>

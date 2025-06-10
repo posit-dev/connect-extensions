@@ -4,20 +4,26 @@ import ContentList from "./components/ContentList.vue";
 import PoweredByFooter from "./components/PoweredByFooter.vue";
 import { useVulnsStore } from "./stores/vulns";
 import { useContentStore } from "./stores/content";
+import LoadingSpinner from "./components/ui/LoadingSpinner.vue";
 
 const vulnStore = useVulnsStore();
 const contentStore = useContentStore();
 
-if (!vulnStore.isFetched && !vulnStore.isLoading) {
-  vulnStore.fetchVulns();
-}
+vulnStore.fetchVulns();
+contentStore.fetchContentList();
+
+const loadingMessage = "Fetching content and vulnerabilities...";
 </script>
 
 <template>
   <div class="flex flex-col min-h-svh">
-    <main class="flex-1 p-4 md:p-8 bg-gray-100">
+    <LoadingSpinner
+      v-if="vulnStore.isLoading || contentStore.isLoading"
+      class="grow bg-gray-100"
+      :message="loadingMessage"
+    />
+    <main v-else class="flex-1 p-4 md:p-8 bg-gray-100">
       <div class="max-w-4xl mx-auto">
-        <!-- Toggle between list and detail view -->
         <ContentList v-if="!contentStore.currentContentId" />
         <VulnerabilityChecker v-else />
       </div>

@@ -1,7 +1,8 @@
 <script setup lang="ts">
-import { computed, defineProps, defineEmits } from "vue";
+import { computed, defineProps } from "vue";
 import { usePackagesStore } from "../stores/packages";
 import { useVulnsStore } from "../stores/vulns";
+import { useContentStore } from "../stores/content";
 
 const props = defineProps<{
   content: {
@@ -13,11 +14,8 @@ const props = defineProps<{
   };
 }>();
 
-const emit = defineEmits<{
-  select: [contentId: string];
-}>();
-
 const packagesStore = usePackagesStore();
+const contentStore = useContentStore();
 const vulnStore = useVulnsStore();
 
 // Compute if this content has been fetched
@@ -67,7 +65,7 @@ const vulnerabilityText = computed(() => {
 
 // Handle card click
 function handleClick() {
-  emit("select", props.content.guid);
+  contentStore.currentContentId = props.content.guid;
 }
 </script>
 
