@@ -1,8 +1,20 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from fastapi.staticfiles import StaticFiles
+from posit import connect
 
 app = FastAPI()
 
+client = connect.Client()
+
+@app.get("/api/packages/{guid}")
+async def get_packages(guid: str):
+    try:
+        content = client.content.get(guid)
+        packages = list(content.packages)
+        return packages
+    except Exception as e:
+        raise HTTPException(status_code=404, detail=f"Content not found or error fetching packages: {str(e)}")
+    
 @app.get("/api/vulns")
 async def get_vulnerabilities():
     import httpx
