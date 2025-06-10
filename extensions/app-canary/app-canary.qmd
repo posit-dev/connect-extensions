@@ -1,0 +1,222 @@
+---
+title: "App Canary - Application Health Monitor"
+format: email
+---
+
+```{python}
+#| echo: false
+
+import os
+import requests
+import datetime
+import pandas as pd
+from great_tables import GT, style, loc, exibble, html
+
+# Used to display on-screen setup instructions if environment variables are missing
+show_instructions = False
+instructions = []
+gt_tbl = None
+
+# Read CONNECT_SERVER from environment, should be configured automatically when run on Connect
+connect_server = os.environ.get("CONNECT_SERVER", "")
+if not connect_server:
+    show_instructions = True
+    instructions.append("Please set the CONNECT_SERVER environment variable.")
+
+# Read CONNECT_API_KEY from environment, should be configured automatically when run on Connect
+api_key = os.environ.get("CONNECT_API_KEY", "")
+if not api_key:
+    show_instructions = True
+    instructions.append("Please set the CONNECT_API_KEY environment variable.")
+
+# Read CANARY_GUIDS from environment, needs to be manually configured on Connect
+app_guid_str = os.environ.get("CANARY_GUIDS", "")
+if not app_guid_str:
+    show_instructions = True
+    instructions.append("Please set the CANARY_GUIDS environment variable. It should be a comma separated list of GUID you wish to monitor.")
+    app_guids = []
+else:
+    # Clean up the GUIDs
+    app_guids = [guid.strip() for guid in app_guid_str.split(',') if guid.strip()]
+    if not app_guids:
+        show_instructions = True
+        instructions.append("CANARY_GUIDS environment variable is empty or contains only whitespace. It should be a comma separated list of GUID you wish to monitor. Raw CANARY_GUIDS value: '{app_guid_str}'")
+
+if show_instructions:
+    # We'll use this flag later to display instructions instead of results
+    results = []
+    df = pd.DataFrame()  # Empty DataFrame
+    check_time = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+else:
+    # Continue with normal execution
+    # Headers for Connect API
+    headers = {"Authorization": f"Key {api_key}"}
+
+    # Check if server is reachable
+    try:
+        server_check = requests.get(
+            f"{connect_server}/__ping__", 
+            headers=headers, 
+            timeout=5
+        )
+        server_check.raise_for_status()
+    except requests.exceptions.RequestException as e:
+        raise RuntimeError(f"Connect server at {connect_server} is unavailable: {str(e)}")
+
+    # Function to get app details from Connect API
+    def get_app_details(guid):
+        try:
+            # Get app details from Connect API
+            app_details_url = f"{connect_server}/__api__/v1/content/{guid}"
+            app_details_response = requests.get(
+                app_details_url,
+                headers=headers,
+                timeout=5
+            )
+            app_details_response.raise_for_status()
+            return app_details_response.json()
+        except Exception:
+            return {"title": "Unknown", "guid": guid}
+
+    # Function to validate app health (simple HTTP 200 check)
+    def validate_app(guid):
+        # Get app details
+        app_details = get_app_details(guid)
+        app_name = app_details.get("title", "Unknown")
+        
+        # Extract content_url if available
+        dashboard_url = app_details.get("dashboard_url", "")
+        
+        try:
+            app_url = f"{connect_server}/content/{guid}"
+            app_response = requests.get(
+                app_url, 
+                headers=headers,
+                timeout=60, # Max time to wait for a response from the content
+                allow_redirects=True  # Enabled by default in Python requests, included for clarity
+            )
+            
+            return {
+                "guid": guid,
+                "name": app_name,
+                "dashboard_url": dashboard_url,
+                "status": "PASS" if app_response.status_code >= 200 and app_response.status_code < 300 else "FAIL",
+                "http_code": app_response.status_code
+            }
+
+        except Exception as e:
+            return {
+                "guid": guid,
+                "name": app_name,
+                "dashboard_url": dashboard_url,
+                "status": "FAIL",
+                "http_code": str(e)
+            }
+
+    # Check all apps and collect results
+    results = []
+    for guid in app_guids:
+        results.append(validate_app(guid))
+
+    # Convert results to DataFrame for easy display
+    df = pd.DataFrame(results)
+
+    # Reorder columns to put name first
+    # Create a dynamic column order with name first, status and http_code last
+    if 'name' in df.columns:
+        cols = ['name']  # Start with name
+        # Add any other columns except name, status, and http_code
+        middle_cols = [col for col in df.columns if col not in ['name', 'status', 'http_code']]
+        cols.extend(middle_cols)
+        # Add status and http_code at the end
+        if 'status' in df.columns:
+            cols.append('status')
+        if 'http_code' in df.columns:
+            cols.append('http_code')
+        # Reorder the DataFrame
+        df = df[cols]
+
+    # Store the current time
+    check_time = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+```
+
+
+```{python}
+#| echo: false
+
+# Create a table with basic styling
+if not show_instructions and not df.empty:
+    
+    # First create links for name and guid columns
+    df_display = df.copy()
+    
+    # Process the DataFrame rows to add HTML links
+    for i in range(len(df_display)):
+        if not pd.isna(df_display.loc[i, 'dashboard_url']) and df_display.loc[i, 'dashboard_url']:
+            url = df_display.loc[i, 'dashboard_url']
+            df_display.loc[i, 'name'] = f"<a href='{url}' target='_blank'>{df_display.loc[i, 'name']}</a>"
+            df_display.loc[i, 'guid'] = f"<a href='{url}' target='_blank'>{df_display.loc[i, 'guid']}</a>"
+    
+    # Remove dashboard_url column since the links are embedded in the other columns
+    if 'dashboard_url' in df_display.columns:
+        df_display = df_display.drop(columns=['dashboard_url'])
+    
+    # Create GT table
+    gt_tbl = GT(df_display)
+    
+    # Apply styling to status column
+    gt_tbl = (gt_tbl
+              .tab_style(
+                  style.fill("green"),
+                  locations=loc.body(columns="status", rows=lambda df: df["status"] == "PASS")
+              )
+              .tab_style(
+                  style.fill("red"),
+                  locations=loc.body(columns="status", rows=lambda df: df["status"] == "FAIL")
+              ))
+
+# Display instructions if setup failed
+if show_instructions:
+    # Create a DataFrame with instructions
+    instructions_df = pd.DataFrame({
+        "Setup has failed": instructions
+    })
+    
+    # Create a GT table for instructions
+    gt_tbl = GT(instructions_df)
+    gt_tbl = (gt_tbl
+        .tab_source_note(
+            source_note=html("See Posit Connect documentation for <a href='https://docs.posit.co/connect/user/content-settings/#content-vars' target='_blank'>Vars (environment variables)</a>")
+        ))
+
+# Compute if we should send an email, only send if at least one app has a failure
+if 'df' in locals() and 'status' in df.columns:
+    send_email = bool(not df.empty and (df['status'] == 'FAIL').any())
+else:
+    send_email = False
+```
+
+
+```{python}
+#| echo: false
+
+# Display the table in the rendered document HTML, email is handled separately below
+gt_tbl
+```
+
+
+::: {.email}
+
+::: {.email-scheduled}
+`{python} send_email`
+:::
+
+::: {.subject}
+App Canary - ❌ one or more apps have failed monitoring
+:::
+
+```{python}
+#| echo: false
+gt_tbl
+```
+:::

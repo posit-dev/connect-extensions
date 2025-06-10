@@ -1,0 +1,5 @@
+ipython
+great_tables
+pandas
+requests
+css-inline
