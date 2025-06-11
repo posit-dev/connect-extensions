@@ -40,6 +40,27 @@ app_mode_lookup <- with(
   setNames(as.character(ind), values)
 )
 
+# Helper function to style versions based on server availability
+style_version_by_availability <- function(server_versions) {
+  function(value) {
+    value_str <- as.character(value)
+    if (!is.na(value_str)) {
+      # Check if version doesn't exist in server versions
+      if (!(value_str %in% server_versions)) {
+        return(list(
+          color = "#7D1A03", # Red color for versions not on server
+          fontWeight = "bold",
+          background = "#FFF0F0" # Light red background
+        ))
+      } else {
+        return(list(
+          color = "#276749" # Green color for versions on server
+        ))
+      }
+    }
+  }
+}
+
 # Shiny app definition
 
 ui <- page_sidebar(
@@ -108,6 +129,14 @@ ui <- page_sidebar(
       options = list(placeholder = "All Content Types"),
       choices = names(app_mode_groups),
       multiple = TRUE,
+    ),
+
+    h5("View"),
+
+    checkboxInput(
+      "highlight_server_availability",
+      "Highlight content that has not been built against a runtime currently on the server",
+      value = FALSE
     )
   ),
 
@@ -169,6 +198,10 @@ server <- function(input, output, session) {
     ) |>
       group_by(content_guid) |>
       summarize(hits = n())
+  })
+
+  server_versions <- reactive({
+    get_runtimes(client)
   })
 
   content_table_data <- reactive({
@@ -260,9 +293,18 @@ server <- function(input, output, session) {
 
   output$content_table <- renderReactable({
     data <- content_matching()
-    rv <- input$r_versions
-    pv <- input$py_versions
-    qv <- input$quarto_versions
+
+    # Extract available server runtime versions by type
+    server_vers <- server_versions()
+    r_server_vers <- server_vers |> filter(runtime == "r") |> pull(version)
+    py_server_vers <- server_vers |>
+      filter(runtime == "python") |>
+      pull(version)
+    quarto_server_vers <- server_vers |>
+      filter(runtime == "quarto") |>
+      pull(version)
+
+    # Extract server versions for styling
 
     reactable(
       data,
@@ -291,35 +333,26 @@ server <- function(input, output, session) {
         content_type = colDef(name = "Content Type"),
         r_version = colDef(
           name = "R Version",
-          style = function(value) {
-            if (!is.null(rv) && value %in% rv) {
-              list(
-                color = "#7D1A03",
-                fontWeight = "bold"
-              )
-            }
+          style = if (input$highlight_server_availability) {
+            style_version_by_availability(r_server_vers)
+          } else {
+            NULL
           }
         ),
         py_version = colDef(
           name = "Python Version",
-          style = function(value) {
-            if (!is.null(pv) && value %in% pv) {
-              list(
-                color = "#7D1A03",
-                fontWeight = "bold"
-              )
-            }
+          style = if (input$highlight_server_availability) {
+            style_version_by_availability(py_server_vers)
+          } else {
+            NULL
           }
         ),
         quarto_version = colDef(
           name = "Quarto Version",
-          style = function(value) {
-            if (!is.null(qv) && value %in% qv) {
-              list(
-                color = "#7D1A03",
-                fontWeight = "bold"
-              )
-            }
+          style = if (input$highlight_server_availability) {
+            style_version_by_availability(quarto_server_vers)
+          } else {
+            NULL
           }
         ),
 
