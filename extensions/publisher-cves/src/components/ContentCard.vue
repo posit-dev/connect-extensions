@@ -84,14 +84,17 @@ function handleClick() {
       <h3 class="font-medium text-blue-600 truncate group-hover:underline">
         {{ content.title || "Unnamed Content" }}
       </h3>
-      <ColorBadge
-        v-if="isFetched"
-        :type="hasVulnerabilities ? 'error' : 'success'"
-      >
-        {{ vulnerabilityText }}
-      </ColorBadge>
 
-      <ColorBadge v-else-if="isLoading" type="neutral">Loading...</ColorBadge>
+      <template v-if="!hasError">
+        <ColorBadge
+          v-if="isFetched"
+          :type="hasVulnerabilities ? 'error' : 'success'"
+        >
+          {{ vulnerabilityText }}
+        </ColorBadge>
+
+        <ColorBadge v-else-if="isLoading" type="neutral">Loading...</ColorBadge>
+      </template>
     </div>
 
     <div class="text-xs text-gray-500 truncate">
