@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { onMounted, ref } from "vue";
 import { usePackagesStore } from "../stores/packages";
 import { useContentStore } from "../stores/content";
 import StatusMessage from "./ui/StatusMessage.vue";
@@ -7,34 +6,12 @@ import ContentCard from "./ContentCard.vue";
 
 const packagesStore = usePackagesStore();
 const contentStore = useContentStore();
-const isInitialLoad = ref(true);
-
-// Load content list and automatically fetch packages in batches
-async function loadContentList(fetchAllPackages = false) {
-  try {
-    // Only fetch the content list if it hasn't been loaded yet or is empty
-    if (contentStore.contentList.length === 0 || isInitialLoad.value) {
-      await contentStore.fetchContentList();
-      isInitialLoad.value = false;
-
-      // Start automatically fetching packages in batches
-      if (contentStore.contentList.length > 0) {
-        await fetchPackagesInBatches();
-      }
-    } else if (fetchAllPackages) {
-      // Manual trigger to fetch any remaining packages
-      await fetchAllRemainingPackages();
-    }
-  } catch (error) {
-    console.error("Error loading content:", error);
-  }
-}
 
 // Fetch packages in batches to avoid overwhelming the server
 async function fetchPackagesInBatches(batchSize = 3) {
   const contentToFetch = contentStore.contentList.filter(
     (content) =>
-      !packagesStore.contentItems[content.guid]?.isFetched &&
+      !packagesStore.contentItems[content.guid]?.isFetched ||
       !packagesStore.contentItems[content.guid]?.isLoading,
   );
 
@@ -55,30 +32,7 @@ async function fetchPackagesInBatches(batchSize = 3) {
   }
 }
 
-// Fetch packages for all remaining unfetched content items
-async function fetchAllRemainingPackages() {
-  const contentToFetch = contentStore.contentList.filter(
-    (content) => !packagesStore.contentItems[content.guid]?.isFetched,
-  );
-
-  if (contentToFetch.length === 0) return;
-
-  const fetchPromises = contentToFetch.map((content) => {
-    return packagesStore
-      .fetchPackagesForContent(content.guid)
-      .catch((err) =>
-        console.error(`Error fetching packages for ${content.guid}:`, err),
-      );
-  });
-
-  await Promise.all(fetchPromises);
-}
-
-// Load content on component mount
-onMounted(async () => {
-  // Only load content list initially, don't fetch all packages
-  await loadContentList(false);
-});
+fetchPackagesInBatches();
 </script>
 
 <template>
