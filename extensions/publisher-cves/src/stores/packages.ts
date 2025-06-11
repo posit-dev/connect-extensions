@@ -61,6 +61,7 @@ export const usePackagesStore = defineStore("packages", () => {
     } catch (err) {
       console.error("Error fetching packages:", err);
       contentItems.value[contentId].error = err as Error;
+      contentItems.value[contentId].isFetched = true;
       throw err;
     } finally {
       contentItems.value[contentId].isLoading = false;
