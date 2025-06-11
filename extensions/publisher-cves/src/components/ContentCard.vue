@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, defineProps } from "vue";
+import ColorBadge from "./ui/ColorBadge.vue";
 import { usePackagesStore } from "../stores/packages";
 import { useVulnsStore } from "../stores/vulns";
 import { useContentStore } from "../stores/content";
@@ -60,7 +61,12 @@ function countVulnerablePackages(): number {
 const hasVulnerabilities = computed(() => countVulnerablePackages() > 0);
 const vulnerabilityText = computed(() => {
   const count = countVulnerablePackages();
-  return count > 0 ? `${count} vulnerable packages` : "No vulnerabilities";
+  if (count > 0) {
+    return count === 1
+      ? "1 vulnerable package"
+      : `${count} vulnerable packages`;
+  }
+  return "No vulnerabilities";
 });
 
 // Handle card click
@@ -71,43 +77,31 @@ function handleClick() {
 
 <template>
   <div
-    class="border rounded-lg p-4 shadow-sm hover:shadow-md transition-shadow cursor-pointer bg-white"
+    class="border border-gray-300 hover:border-gray-400 rounded-lg p-4 shadow-sm hover:shadow-md transition-shadow cursor-pointer bg-white group"
     @click="handleClick"
   >
     <div class="flex justify-between items-start mb-2">
-      <h3 class="font-medium text-blue-600 truncate">
+      <h3 class="font-medium text-blue-600 truncate group-hover:underline">
         {{ content.title || "Unnamed Content" }}
       </h3>
-      <span
+      <ColorBadge
         v-if="isFetched"
-        class="text-xs px-2 py-1 rounded-full"
-        :class="
-          hasVulnerabilities
-            ? 'bg-red-100 text-red-800'
-            : 'bg-green-100 text-green-800'
-        "
+        :type="hasVulnerabilities ? 'error' : 'success'"
       >
         {{ vulnerabilityText }}
-      </span>
-      <span
-        v-else-if="isLoading"
-        class="text-xs px-2 py-1 rounded-full bg-gray-100 text-gray-600"
-      >
-        Loading...
-      </span>
+      </ColorBadge>
+
+      <ColorBadge v-else-if="isLoading" type="neutral">Loading...</ColorBadge>
     </div>
 
     <div class="text-xs text-gray-500 truncate">
-      {{ content.app_mode || "Unknown type" }} · ID: {{ content.guid }}
+      Type: {{ content.app_mode || "Unknown type" }} · GUID: {{ content.guid }}
     </div>
 
     <div class="mt-2 text-sm">
       <span v-if="packageCount > 0"> {{ packageCount }} packages </span>
       <span v-else-if="hasError" class="text-red-600">
         Error loading packages
-      </span>
-      <span v-else-if="!isFetched && !isLoading" class="text-gray-400">
-        Click to load packages
       </span>
       <span v-else-if="isLoading" class="text-gray-400">
         Loading packages...
