@@ -11,7 +11,7 @@ const contentStore = useContentStore();
 async function fetchPackagesInBatches(batchSize = 3) {
   const contentToFetch = contentStore.contentList.filter(
     (content) =>
-      !packagesStore.contentItems[content.guid]?.isFetched ||
+      !packagesStore.contentItems[content.guid]?.isFetched &&
       !packagesStore.contentItems[content.guid]?.isLoading,
   );
 
