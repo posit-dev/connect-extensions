@@ -5578,10 +5578,9 @@
   "extension": {
     "name": "connect-user-metrics",
     "title": "Connect User Metrics Insights",
-    "description": "A dashboard to explore the usage of Shiny applications deployed on Connect",
+    "description": "Dashboard for presenting the adoption data for the content deployed on Posit Connect.",
     "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/connect-user-metrics",
     "category": "extension",
-    "tags": ["r", "shiny"],
     "minimumConnectVersion": "2025.04.0",
     "version": "0.0.0"
   }
