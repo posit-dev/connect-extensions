@@ -1,5 +1,5 @@
 import { defineStore } from "pinia";
-import { ref, computed } from "vue";
+import { ref } from "vue";
 
 export interface Vulnerability {
   id: string;
@@ -31,27 +31,6 @@ export const useVulnsStore = defineStore("vulns", () => {
   // Track fetch status
   const isFetched = ref(false);
   const lastFetchTime = ref<Date | null>(null);
-
-  // Computed properties
-  const totalVulns = computed(() => {
-    let count = 0;
-
-    // Count vulnerabilities in pypi
-    for (const packageName in pypi.value) {
-      count += pypi.value[packageName].length;
-    }
-
-    // Count vulnerabilities in cran
-    for (const packageName in cran.value) {
-      count += cran.value[packageName].length;
-    }
-
-    return count;
-  });
-
-  const affectedPackageCount = computed(() => {
-    return Object.keys(pypi.value).length + Object.keys(cran.value).length;
-  });
 
   // Actions
   async function fetchVulns() {
@@ -87,10 +66,6 @@ export const useVulnsStore = defineStore("vulns", () => {
     error,
     isFetched,
     lastFetchTime,
-
-    // Getters
-    totalVulns,
-    affectedPackageCount,
 
     // Actions
     fetchVulns,
