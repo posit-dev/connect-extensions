@@ -7,7 +7,6 @@ library(shinycssloaders)
 library(lubridate)
 library(bsicons)
 library(tidyr)
-library(shinyWidgets)
 
 source("get_usage.R")
 source("connect_module.R")
@@ -304,23 +303,23 @@ server <- function(input, output, session) {
 
       li_items <- list()
       if (input$use_r_cutoff) {
-        li_items[[length(li_items) + 1]] <- tags$li(glue::glue(
-          "R older than {rv} ({r_count} items)"
-        ))
+        li_items[[length(li_items) + 1]] <- tags$li(HTML(glue::glue(
+          "R older than <span class='number-pre'>{rv}</span> ({r_count} items)"
+        )))
       }
       if (input$use_py_cutoff) {
-        li_items[[length(li_items) + 1]] <- tags$li(glue::glue(
-          "Python older than {pv} ({py_count} items)"
-        ))
+        li_items[[length(li_items) + 1]] <- tags$li(HTML(glue::glue(
+          "Python older than <span class='number-pre'>{pv}</span> ({py_count} items)"
+        )))
       }
       if (input$use_quarto_cutoff) {
-        li_items[[length(li_items) + 1]] <- tags$li(glue::glue(
-          "Quarto older than {qv} ({quarto_count} items)"
-        ))
+        li_items[[length(li_items) + 1]] <- tags$li(HTML(glue::glue(
+          "Quarto older than <span class='number-pre'>{qv}</span> ({quarto_count} items)"
+        )))
       }
 
       tagList(
-        tags$p(glue::glue("Showing {total_count} items meeting any of:")),
+        tags$p(glue::glue("Showing {total_count} items with any of:")),
         tags$ul(
           style = "margin-top: 0.25rem; margin-bottom: 0.5rem;",
           tagList(li_items)
