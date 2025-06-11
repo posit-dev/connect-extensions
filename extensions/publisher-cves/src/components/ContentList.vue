@@ -105,7 +105,7 @@ onMounted(async () => {
       </h2>
 
       <p class="text-gray-600 mb-6">
-        Select a content item to check for package vulnerabilities.
+        Select a content item to see details on package vulnerabilities.
       </p>
 
       <div class="grid gap-4">
