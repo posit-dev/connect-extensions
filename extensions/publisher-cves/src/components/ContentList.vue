@@ -35,7 +35,7 @@ async function fetchPackagesInBatches(batchSize = 3) {
   const contentToFetch = contentStore.contentList.filter(
     (content) =>
       !packagesStore.contentItems[content.guid]?.isFetched &&
-      !packagesStore.contentItems[content.guid]?.isLoading
+      !packagesStore.contentItems[content.guid]?.isLoading,
   );
 
   // Process in batches
@@ -47,7 +47,7 @@ async function fetchPackagesInBatches(batchSize = 3) {
       return packagesStore
         .fetchPackagesForContent(content.guid)
         .catch((err) =>
-          console.error(`Error fetching packages for ${content.guid}:`, err)
+          console.error(`Error fetching packages for ${content.guid}:`, err),
         );
     });
 
@@ -58,7 +58,7 @@ async function fetchPackagesInBatches(batchSize = 3) {
 // Fetch packages for all remaining unfetched content items
 async function fetchAllRemainingPackages() {
   const contentToFetch = contentStore.contentList.filter(
-    (content) => !packagesStore.contentItems[content.guid]?.isFetched
+    (content) => !packagesStore.contentItems[content.guid]?.isFetched,
   );
 
   if (contentToFetch.length === 0) return;
@@ -67,7 +67,7 @@ async function fetchAllRemainingPackages() {
     return packagesStore
       .fetchPackagesForContent(content.guid)
       .catch((err) =>
-        console.error(`Error fetching packages for ${content.guid}:`, err)
+        console.error(`Error fetching packages for ${content.guid}:`, err),
       );
   });
 
@@ -108,7 +108,7 @@ onMounted(async () => {
         Select a content item to check for package vulnerabilities.
       </p>
 
-      <div class="grid gap-4 md:grid-cols-2">
+      <div class="grid gap-4">
         <ContentCard
           v-for="content in contentStore.contentList"
           :key="content.guid"
