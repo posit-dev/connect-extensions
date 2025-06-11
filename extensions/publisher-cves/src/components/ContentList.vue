@@ -20,12 +20,15 @@ async function fetchPackagesInBatches(batchSize = 3) {
     const batch = contentToFetch.slice(i, i + batchSize);
 
     // Fetch packages for this batch in parallel
-    const fetchPromises = batch.map((content) => {
-      return packagesStore
-        .fetchPackagesForContent(content.guid)
-        .catch((err) =>
-          console.error(`Error fetching packages for ${content.guid}:`, err),
+    const fetchPromises = batch.map(async (content) => {
+      try {
+        return await packagesStore.fetchPackagesForContent(content.guid);
+      } catch (err) {
+        return console.error(
+          `Error fetching packages for ${content.guid}:`,
+          err,
         );
+      }
     });
 
     await Promise.all(fetchPromises);
