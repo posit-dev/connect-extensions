@@ -38,7 +38,7 @@ export const useVulnsStore = defineStore("vulns", () => {
     error.value = null;
 
     try {
-      const response = await fetch("/api/vulns");
+      const response = await fetch("api/vulns");
 
       if (!response.ok) {
         throw new Error(`HTTP error! Status: ${response.status}`);

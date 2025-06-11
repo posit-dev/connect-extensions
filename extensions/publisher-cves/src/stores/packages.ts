@@ -43,7 +43,7 @@ export const usePackagesStore = defineStore("packages", () => {
     }
 
     try {
-      const response = await fetch(`/api/packages/${contentId}`);
+      const response = await fetch(`api/packages/${contentId}`);
 
       if (!response.ok) {
         throw new Error(`HTTP error - Status: ${response.status}`);
