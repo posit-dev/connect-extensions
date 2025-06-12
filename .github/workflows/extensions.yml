@@ -185,6 +185,7 @@ jobs:
       # e.g. `extension-name: ${{ steps.changes.outputs.extension-name }}`
       # Be sure the extension name and directory name it is in are the same
       publisher-command-center: ${{ steps.changes.outputs.publisher-command-center }}
+      publisher-cves: ${{ steps.changes.outputs.publisher-cves }}
 
     steps:
       - uses: actions/checkout@v4
@@ -198,6 +199,7 @@ jobs:
           # e.g. `extension-name: extensions/extension-name/**`
           filters: |
             publisher-command-center: extensions/publisher-command-center/**
+            publisher-cves: extensions/publisher-cves/**
 
   # Creates and releases the Publisher Command Center extension using a custom
   # workflow
@@ -207,6 +209,15 @@ jobs:
     # publisher-command-center extension directory
     if: ${{ needs.complex-extension-changes.outputs.publisher-command-center == 'true' }}
     uses: ./.github/workflows/publisher-command-center.yml
+    secrets: inherit
+
+  # Creates and releases the Publisher CVEs extension using a custom workflow
+  publisher-cves:
+    needs: [complex-extension-changes]
+    # Only runs if the `complex-extension-changes` job detects changes in the
+    # publisher-cves extension directory
+    if: ${{ needs.complex-extension-changes.outputs.publisher-cves == 'true' }}
+    uses: ./.github/workflows/publisher-cves.yml
     secrets: inherit
 
   # All extensions have been linted, packaged, and released, if necessary
@@ -219,7 +230,7 @@ jobs:
     runs-on: ubuntu-latest
     # Requires that the `simple-extensions` and all custom workflow jobs are
     # completed before running this job
-    needs: [simple-extension-release, publisher-command-center]
+    needs: [simple-extension-release, publisher-command-center, publisher-cves]
     if: ${{ always() }}
     outputs:
       releases: ${{ steps.fetch-releases.outputs.releases }}

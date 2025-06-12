@@ -1,0 +1,77 @@
+<script setup lang="ts">
+import { usePackagesStore } from "../stores/packages";
+import { useContentStore } from "../stores/content";
+import StatusMessage from "./ui/StatusMessage.vue";
+import ContentCard from "./ContentCard.vue";
+
+const packagesStore = usePackagesStore();
+const contentStore = useContentStore();
+
+// Fetch packages in batches to avoid overwhelming the server
+async function fetchPackagesInBatches(batchSize = 3) {
+  const contentToFetch = contentStore.contentList.filter(
+    (content) =>
+      !packagesStore.contentItems[content.guid]?.isFetched &&
+      !packagesStore.contentItems[content.guid]?.isLoading,
+  );
+
+  // Process in batches
+  for (let i = 0; i < contentToFetch.length; i += batchSize) {
+    const batch = contentToFetch.slice(i, i + batchSize);
+
+    // Fetch packages for this batch in parallel
+    const fetchPromises = batch.map(async (content) => {
+      try {
+        return await packagesStore.fetchPackagesForContent(content.guid);
+      } catch (err) {
+        return console.error(
+          `Error fetching packages for ${content.guid}:`,
+          err,
+        );
+      }
+    });
+
+    await Promise.all(fetchPromises);
+  }
+}
+
+fetchPackagesInBatches();
+</script>
+
+<template>
+  <div class="mb-10 p-5 bg-white rounded-lg shadow-md">
+    <div v-if="contentStore.error">
+      <StatusMessage
+        type="error"
+        message="Error loading content"
+        :details="contentStore.error.message"
+      />
+    </div>
+
+    <div v-else-if="contentStore.contentList.length === 0">
+      <StatusMessage
+        type="warning"
+        message="No content found"
+        details="No published content was found on this Connect server."
+      />
+    </div>
+
+    <div v-else class="space-y-4">
+      <h2 class="text-xl font-semibold text-gray-800 mb-4">
+        Your Connect Content
+      </h2>
+
+      <p class="text-gray-600 mb-6">
+        Select a content item to see details on package vulnerabilities.
+      </p>
+
+      <div class="grid gap-4">
+        <ContentCard
+          v-for="content in contentStore.contentList"
+          :key="content.guid"
+          :content="content"
+        />
+      </div>
+    </div>
+  </div>
+</template>

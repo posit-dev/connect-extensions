@@ -1,0 +1,6 @@
+@import "tailwindcss";
+
+@theme {
+  --color-pypi: #0073b7;
+  --color-cran: #2c3e50;
+}

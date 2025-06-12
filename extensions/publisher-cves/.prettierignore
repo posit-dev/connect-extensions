@@ -1,0 +1,7 @@
+# Ignore artifacts:
+dist
+build
+coverage
+
+# Ignore virtual environments:
+.venv
