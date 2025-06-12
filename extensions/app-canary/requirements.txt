@@ -1,5 +1,5 @@
 ipython
 great_tables
 pandas
-posit
+posit-sdk
 requests

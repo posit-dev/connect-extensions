@@ -6,57 +6,54 @@ format: email
 ```{python}
 #| echo: false
 
+import json
 import os
 import requests
 import datetime
 import pandas as pd
 from posit import connect
 from great_tables import GT, style, loc, html
+from IPython.display import HTML, display
 
 # Used to display on-screen setup instructions if environment variables are missing
 show_instructions = False
 instructions = []
 gt_tbl = None
 
-# Read CONNECT_SERVER from environment, should be configured automatically when run on Connect
+# Read CONNECT_SERVER from environment, this is automatically configured on Connect, set manually for local dev
 connect_server = os.environ.get("CONNECT_SERVER", "")
 if not connect_server:
     show_instructions = True
     instructions.append("Please set the CONNECT_SERVER environment variable.")
 
-# Read CONNECT_API_KEY from environment, should be configured automatically when run on Connect
+# Read CONNECT_API_KEY from environment, this is automatically configured on Connect, set manually for local dev
 api_key = os.environ.get("CONNECT_API_KEY", "")
 if not api_key:
     show_instructions = True
     instructions.append("Please set the CONNECT_API_KEY environment variable.")
 
-# Read CANARY_GUIDS from environment, needs to be manually configured on Connect
-app_guid_str = os.environ.get("CANARY_GUIDS", "")
-if not app_guid_str:
+# Read CANARY_GUIDS from environment, needs to be manually configured on Connect and for local dev
+canary_guids_str = os.environ.get("CANARY_GUIDS", "")
+if not canary_guids_str:
     show_instructions = True
     instructions.append("Please set the CANARY_GUIDS environment variable. It should be a comma separated list of GUID you wish to monitor.")
-    app_guids = []
+    canary_guids = []
 else:
     # Clean up the GUIDs
-    app_guids = [guid.strip() for guid in app_guid_str.split(',') if guid.strip()]
-    if not app_guids:
+    canary_guids = [guid.strip() for guid in canary_guids_str.split(',') if guid.strip()]
+    if not canary_guids:
         show_instructions = True
-        instructions.append("CANARY_GUIDS environment variable is empty or contains only whitespace. It should be a comma separated list of GUID you wish to monitor. Raw CANARY_GUIDS value: '{app_guid_str}'")
+        instructions.append(f"CANARY_GUIDS environment variable is set but is empty or contains only whitespace. It should be a comma separated list of GUID you wish to monitor. Raw CANARY_GUIDS value: '{canary_guids_str}'")
 
 # Instantiate a Connect client using posit-sdk where api_key and url are automatically read from our environment vars
 client = connect.Client()
 
-if show_instructions:
-    # We'll use this flag later to display instructions instead of results
-    results = []
-    df = pd.DataFrame()  # Empty DataFrame
-    check_time = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-else:
-    # Continue with normal execution
+if not show_instructions:
+    # Proceed to validate our monitored GUIDS
     # Headers for Connect API
     headers = {"Authorization": f"Key {api_key}"}
 
-    # Check if server is reachable
+    # Check if server is reachable, would only be a potential problem during local dev
     try:
         server_check = requests.get(
             f"{connect_server}/__ping__", 
@@ -74,7 +71,30 @@ else:
             content = client.content.get(guid)
             return content
         except Exception as e:
-            return {"title": e, "guid": guid}
+            # Initialize default error message
+            error_message = str(e)
+            
+            # posit-sdk will return a ClientError if there is a problem getting the guid, parse the error message
+            if isinstance(e, connect.errors.ClientError):
+                try:
+                    # ClientError from posit-connect SDK stores error as string that contains JSON
+                    # Convert the string representation to a dict
+                    error_data = json.loads(str(e))
+                    if isinstance(error_data, dict):
+                        # Extract the specific error message
+                        if "error_message" in error_data:
+                            error_message = error_data["error_message"]
+                        elif "error" in error_data:
+                            error_message = error_data["error"]
+                except json.JSONDecodeError:
+                    # If parsing fails, keep the original error message
+                    pass
+            
+            # Return content with error in title
+            return {
+                "title": f"ERROR: {error_message}", 
+                "guid": guid
+            }
 
     # Function to validate app health (simple HTTP 200 check)
     def validate_app(guid):
@@ -113,7 +133,7 @@ else:
 
     # Check all apps and collect results
     results = []
-    for guid in app_guids:
+    for guid in canary_guids:
         results.append(validate_app(guid))
 
     # Convert results to DataFrame for easy display
@@ -145,6 +165,17 @@ else:
 # Create a table with basic styling
 if not show_instructions and not df.empty:
     
+    # Format the canary_guids as a string for display
+    canary_guids_str = ", ".join(canary_guids)
+    
+    # Use HTML to create a callout box
+    display(HTML(f"""
+    <div style="border: 1px solid #ccc; border-radius: 8px; padding: 10px; margin-bottom: 15px; background-color: #f8f9fa;">
+        <div style="margin-top: 0; padding-bottom: 8px; border-bottom: 1px solid #eaecef; font-weight: bold; font-size: 1.2em;">Monitored GUIDs</div>
+        <div style="padding: 5px 0;">{canary_guids_str}</div>
+    </div>
+    """))
+    
     # First create links for name and guid columns
     df_display = df.copy()
     
@@ -172,20 +203,43 @@ if not show_instructions and not df.empty:
                   style.fill("red"),
                   locations=loc.body(columns="status", rows=lambda df: df["status"] == "FAIL")
               ))
-
-# Display instructions if setup failed
-if show_instructions:
-    # Create a DataFrame with instructions
-    instructions_df = pd.DataFrame({
-        "Setup has failed": instructions
-    })
+elif show_instructions:
+    # Create a callout box for instructions
+    instructions_html = ""
+    for instruction in instructions:
+        instructions_html += f"<div style='margin-bottom: 10px;'>{instruction}</div>"
     
-    # Create a GT table for instructions
-    gt_tbl = GT(instructions_df)
-    gt_tbl = (gt_tbl
-        .tab_source_note(
-            source_note=html("See Posit Connect documentation for <a href='https://docs.posit.co/connect/user/content-settings/#content-vars' target='_blank'>Vars (environment variables)</a>")
-        ))
+    display(HTML(f"""
+    <div style="border: 1px solid #cc0000; border-radius: 8px; padding: 10px; margin-bottom: 15px; background-color: #fff8f8;">
+        <div style="margin-top: 0; padding-bottom: 8px; border-bottom: 1px solid #eaecef; color: #cc0000; font-weight: bold; font-size: 1.2em;">⚠️ Setup Instructions</div>
+        {instructions_html}
+        <div style="padding-top: 8px; font-size: 0.9em; border-top: 1px solid #eaecef;">
+            See Posit Connect documentation for <a href='https://docs.posit.co/connect/user/content-settings/#content-vars' target='_blank'>Vars (environment variables)</a>
+        </div>
+    </div>
+    """))
+    
+    # Set gt_tbl to None since we're using HTML display instead
+    gt_tbl = None
+else:
+    # We should only hit this catchall if the dataframe is empty (a likely error) and there are no instructions
+    display(HTML(f"""
+    <div style="border: 1px solid #f0ad4e; border-radius: 8px; padding: 10px; margin-bottom: 15px; background-color: #fcf8e3;">
+        <div style="margin-top: 0; padding-bottom: 8px; border-bottom: 1px solid #eaecef; color: #cc0000; font-weight: bold; font-size: 1.2em;">⚠️ No results available</div>
+        <div style="padding: 5px 0;">
+            No monitoring results were found. This could be because:
+            <ul>
+                <li>No valid GUIDs were provided</li>
+                <li>There was an issue connecting to the specified content</li>
+                <li>The environment is properly configured but there was an error that caused no data to be returned</li>
+            </ul>
+            <p>Please check your CANARY_GUIDS environment variable and ensure it contains valid content identifiers.</p>
+        </div>
+    </div>
+    """))
+    
+    # Set gt_tbl to None since we're using HTML display instead
+    gt_tbl = None
 
 # Compute if we should send an email, only send if at least one app has a failure
 if 'df' in locals() and 'status' in df.columns:
