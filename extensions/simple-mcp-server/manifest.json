@@ -25,6 +25,9 @@
     "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/simple-mcp-server",
     "category": "example",
     "tags": ["python", "fastapi", "mcp"],
+    "requiredFeatures": [
+      "API Publishing"
+    ],
     "minimumConnectVersion": "2025.04.0",
     "version": "0.0.0"
   },
