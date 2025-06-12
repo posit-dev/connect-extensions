@@ -68,12 +68,14 @@ connect_server = os.getenv("CONNECT_SERVER")
 
 def server(input: Inputs, output: Outputs, app_session: AppSession):
     client = Client(url=connect_server, api_key=api_key)
-    user_session_token = app_session.http_conn.headers.get(
-        "Posit-Connect-User-Session-Token"
-    )
-    if user_session_token:
-        client = client.with_user_session_token(user_session_token)
-    visitor_api_key = client.cfg.api_key
+    
+    # This is not possible until Posit Connect supports multiple integrations per application.
+    # user_session_token = app_session.http_conn.headers.get(
+    #     "Posit-Connect-User-Session-Token"
+    # )
+    # if user_session_token:
+    #     client = client.with_user_session_token(user_session_token)
+    # visitor_api_key = client.cfg.api_key
 
     if os.getenv("POSIT_PRODUCT") == "CONNECT":
         aws_creds = aws.get_content_credentials(client)
@@ -167,8 +169,8 @@ If a user's request would require multiple tool calls, create a plan of action f
                 ready_event,
                 server_url=url,
                 headers={
-                    "Authorization": f"Key {visitor_api_key}",  # to call the MCP Server
-                    "X-MCP-Authorization": f"Key {visitor_api_key}",  # passed to the MCP server to use
+                    "Authorization": f"Key {api_key}",  # to authenticate with the MCP Server
+                    # "X-MCP-Authorization": f"Key {api_key}",  # passed to the MCP server to use
                 },
             ))
             # Wait for the client to be ready

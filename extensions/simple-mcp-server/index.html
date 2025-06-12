@@ -108,7 +108,7 @@
         
         <p>The MCP endpoint is available at:</p>
         <div class="mcp-endpoint-section">
-            <input type="text" id="mcpEndpointUrl" value="{{ request.url_for('get_index_page').scheme }}://{{ request.url_for('get_index_page').netloc }}{{ mcp_endpoint }}" readonly>
+            <input type="text" id="mcpEndpointUrl" value="{{ endpoint }}" readonly>
             <button class="copy-button" onclick="copyToClipboard()">Copy</button>
             <span id="copyStatus"></span>
         </div>

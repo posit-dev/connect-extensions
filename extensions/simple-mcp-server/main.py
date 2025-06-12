@@ -7,6 +7,7 @@ from fastapi.templating import Jinja2Templates
 from mcp.server.fastmcp import FastMCP, Context
 from mcp.server.fastmcp.exceptions import ToolError
 from posit.connect.client import Client as ConnectClient
+import urllib
 
 # --- FastMCP Server Initialization ---
 mcp = FastMCP(
@@ -47,38 +48,39 @@ def calculate_summary_statistics(dataset_name: str) -> str:
         raise ToolError(f"Error processing dataset '{dataset_name}': {str(e)}")
 
 
-@mcp.tool()
-async def connect_whoami(context: Context) -> str:
-    """
-    Calls the Posit Connect /me endpoint using an API key from the Authorization header.
-    The Authorization header should be in the format: 'Key YOUR_API_KEY'.
-    """
+# This tool is unable to be used in conjunction with the Simple Shiny Chat app 
+# @mcp.tool()
+# async def connect_whoami(context: Context) -> str:
+#     """
+#     Calls the Posit Connect /me endpoint using an API key from the Authorization header.
+#     The Authorization header should be in the format: 'Key YOUR_API_KEY'.
+#     """
 
-    # context.request is a starlette.requests.Request
-    http_request = context.request_context.request
-    if http_request is None:
-        raise ToolError(
-            "Request context not available. This tool requires an HTTP-based transport."
-        )
+#     # context.request is a starlette.requests.Request
+#     http_request = context.request_context.request
+#     if http_request is None:
+#         raise ToolError(
+#             "Request context not available. This tool requires an HTTP-based transport."
+#         )
 
-    auth_header = http_request.headers.get("x-mcp-authorization")
+#     auth_header = http_request.headers.get("x-mcp-authorization")
 
-    if not auth_header:
-        raise ToolError("Authorization header is missing.")
+#     if not auth_header:
+#         raise ToolError("Authorization header is missing.")
 
-    parts = auth_header.split()
-    if len(parts) != 2 or parts[0].lower() != "key":
-        raise ToolError(
-            "Invalid Authorization header format. Expected 'Key YOUR_API_KEY'."
-        )
+#     parts = auth_header.split()
+#     if len(parts) != 2 or parts[0].lower() != "key":
+#         raise ToolError(
+#             "Invalid Authorization header format. Expected 'Key YOUR_API_KEY'."
+#         )
 
-    api_key = parts[1]
+#     api_key = parts[1]
 
-    try:
-        connect_client = ConnectClient(api_key=api_key)
-        return json.dumps(connect_client.me)
-    except Exception as e:
-        raise ToolError(f"Error calling Connect API: {str(e)}")
+#     try:
+#         connect_client = ConnectClient(api_key=api_key)
+#         return json.dumps(connect_client.me)
+#     except Exception as e:
+#         raise ToolError(f"Error calling Connect API: {str(e)}")
 
 
 @contextlib.asynccontextmanager
@@ -117,12 +119,13 @@ async def get_index_page(request: Request):
                 "parameters": parameters,
             }
         )
+    endpoint = urllib.parse.urljoin(request.url._url, "mcp")
     return templates.TemplateResponse(
         "index.html",
         {
             "request": request,
             "server_name": mcp.name,
-            "mcp_endpoint": "/mcp",
+            "endpoint": endpoint,
             "tools": tools_info,
         },
     )
