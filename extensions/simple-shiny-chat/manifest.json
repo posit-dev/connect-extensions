@@ -23,6 +23,7 @@
     "title": "Simple Shiny Chat",
     "description": "A simple Shiny chat application that demonstrates how to use the MCP client to facilitate remote tool calls.",
     "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/simple-shiny-chat",
+    "category": "example",
     "tags": ["python", "shiny", "mcp", "llm"],
     "minimumConnectVersion": "2025.04.0",
     "version": "0.0.0"

@@ -23,6 +23,7 @@
     "title": "Simple MCP Server",
     "description": "A simple example of a Connect extension that serves tools via the MCP protocol.",
     "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/simple-mcp-server",
+    "category": "example",
     "tags": ["python", "fastapi", "mcp"],
     "minimumConnectVersion": "2025.04.0",
     "version": "0.0.0"
