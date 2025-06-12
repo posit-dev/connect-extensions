@@ -48,7 +48,7 @@ jobs:
           path: |
             extensions/${{ env.EXTENSION_NAME }}/dist/
             extensions/${{ env.EXTENSION_NAME }}/requirements.txt
-            extensions/${{ env.EXTENSION_NAME }}/app.py
+            extensions/${{ env.EXTENSION_NAME }}/main.py
             extensions/${{ env.EXTENSION_NAME }}/manifest.json
 
       # Package up the extension into a TAR using the generalized
