@@ -100,7 +100,7 @@ card <- function(href_link, img_link, card_header, card_text) {
     ),
     a(
       class = "card-link technologies",
-      href = "https://www.appsilon.com/rhinoverse/rhino",
+      href = "https://go.appsilon.com/rhino-user-metrics-app",
       target = "_blank",
       rel = "noopener noreferrer",
       "More Appsilon Technologies"

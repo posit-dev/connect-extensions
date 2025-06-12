@@ -6,11 +6,11 @@ meta:
       references:
         homepage:
           name: "Link to Appsilon"
-          link: "https://www.appsilon.com"
+          link: "https://go.appsilon.com/appsilon-user-metrics-app"
       powered_by:
         rhino:
           name: "Rhino"
-          link: "https://appsilon.github.io/rhino/"
+          link: "https://go.appsilon.com/github-rhino-user-metrics-app"
           img_name: "rhino.png"
           desc: "Rhino is an Open-Source Package developed by Appsilon to
                  help the R community make more professional Shiny Apps. Rhino allows you to
@@ -30,7 +30,7 @@ meta:
       text: "Designed and developed with 💙 by"
       link:
         label: "Appsilon"
-        url: "https://www.appsilon.com"
+        url: "https://go.appsilon.com/appsilon-user-metrics-app"
 
 logo: "appsilon-logo.png"
 
