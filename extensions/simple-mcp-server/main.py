@@ -10,27 +10,26 @@ from posit.connect.client import Client as ConnectClient
 
 # --- FastMCP Server Initialization ---
 mcp = FastMCP(
-    server_name="SimpleDataServer",
-    description="MCP server for dataset operations and Connect 'whoami' via FastAPI.",
-    # version="0.1.0" # Optional: specify server version
+    name="SimpleDataServer",
+    instructions="MCP server for dataset operations and Connect 'whoami' via FastAPI.",
 )
 
 # --- Datasets ---
 # Simple in-memory datasets for demonstration
 _datasets_store = {
     "iris": lambda: pd.DataFrame(data=load_iris(as_frame=True).frame),
-    "sample_data": lambda: pd.DataFrame({
-        'A': [1, 2, 3, 4, 5],
-        'B': [5, 4, 3, 2, 1],
-        'C': ['x', 'y', 'x', 'z', 'y']
-    })
+    "sample_data": lambda: pd.DataFrame(
+        {"A": [1, 2, 3, 4, 5], "B": [5, 4, 3, 2, 1], "C": ["x", "y", "x", "z", "y"]}
+    ),
 }
+
 
 # --- MCP Tool Implementations ---
 @mcp.tool()
 def list_known_datasets() -> str:
     """Lists available dataset names."""
     return str(list(_datasets_store.keys()))
+
 
 @mcp.tool()
 def calculate_summary_statistics(dataset_name: str) -> str:
@@ -42,10 +41,11 @@ def calculate_summary_statistics(dataset_name: str) -> str:
         raise ToolError(f"Dataset '{dataset_name}' not found.")
     try:
         df = _datasets_store[dataset_name]()
-        summary = df.describe(include='all').to_string()
+        summary = df.describe(include="all").to_string()
         return summary
     except Exception as e:
         raise ToolError(f"Error processing dataset '{dataset_name}': {str(e)}")
+
 
 @mcp.tool()
 async def connect_whoami(context: Context) -> str:
@@ -57,7 +57,9 @@ async def connect_whoami(context: Context) -> str:
     # context.request is a starlette.requests.Request
     http_request = context.request_context.request
     if http_request is None:
-        raise ToolError("Request context not available. This tool requires an HTTP-based transport.")
+        raise ToolError(
+            "Request context not available. This tool requires an HTTP-based transport."
+        )
 
     auth_header = http_request.headers.get("x-mcp-authorization")
 
@@ -66,8 +68,10 @@ async def connect_whoami(context: Context) -> str:
 
     parts = auth_header.split()
     if len(parts) != 2 or parts[0].lower() != "key":
-        raise ToolError("Invalid Authorization header format. Expected 'Key YOUR_API_KEY'.")
-    
+        raise ToolError(
+            "Invalid Authorization header format. Expected 'Key YOUR_API_KEY'."
+        )
+
     api_key = parts[1]
 
     try:
@@ -87,34 +91,41 @@ async def lifespan(app: FastAPI):
 app = FastAPI(title="Simple MCP Server with FastAPI", lifespan=lifespan)
 templates = Jinja2Templates(directory=".")
 
+
 @app.get("/")
 async def get_index_page(request: Request):
     """Serves the HTML index page using a Jinja2 template."""
     tools_info = []
     for tool_name, tool_def in mcp._tool_manager._tools.items():
         parameters = {}
-        for prop_name, prop in tool_def.parameters['properties'].items():
+        for prop_name, prop in tool_def.parameters["properties"].items():
             parameters[prop_name] = {
-                "name": prop['title'],
-                "type": prop['type'],
+                "name": prop["title"],
+                "type": prop["type"],
                 "required": False,
             }
-        
-        if 'required' in tool_def.parameters:
-            for required_prop_name in tool_def.parameters['required']:
-                if required_prop_name in parameters:
-                    parameters[required_prop_name]['required'] = True
 
-        tools_info.append({
-            "name": tool_name,
-            "description": tool_def.description or "No description available.",
-        })
-    return templates.TemplateResponse("index.html", {
-        "request": request,
-        "server_name": mcp.name,
-        "mcp_endpoint": "/mcp",
-        "tools": tools_info
-    })
+        if "required" in tool_def.parameters:
+            for required_prop_name in tool_def.parameters["required"]:
+                if required_prop_name in parameters:
+                    parameters[required_prop_name]["required"] = True
+
+        tools_info.append(
+            {
+                "name": tool_name,
+                "description": tool_def.description or "No description available.",
+            }
+        )
+    return templates.TemplateResponse(
+        "index.html",
+        {
+            "request": request,
+            "server_name": mcp.name,
+            "mcp_endpoint": "/mcp",
+            "tools": tools_info,
+        },
+    )
+
 
 app.mount("/", mcp.streamable_http_app())
 
@@ -128,5 +139,5 @@ if __name__ == "__main__":
     print("Registered MCP Tools:")
     for tool_name in mcp._tool_manager._tools:
         print(f"  - {tool_name}")
-    
-    uvicorn.run(app, host="0.0.0.0", port=8001)
+
+    uvicorn.run(app, host="127.0.0.1", port=8001)

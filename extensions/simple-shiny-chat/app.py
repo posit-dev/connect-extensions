@@ -1,20 +1,18 @@
 import os
-import asyncio
 
 import chatlas
 import faicons
 import uvicorn
 from posit.connect import Client
 from posit.connect.external import aws
-# import nest_asyncio
-
-# nest_asyncio.apply()
-
-from shiny import App, Inputs, Outputs, reactive, render, ui, session
+from shiny import App, Inputs, Outputs, reactive, render, ui
 from shiny.session._session import AppSession
 import boto3
+from dotenv import load_dotenv
 
 from mcp_client import MCPClient
+
+load_dotenv()
 
 
 app_ui = ui.page_fillable(
@@ -24,13 +22,9 @@ app_ui = ui.page_fillable(
             ui.p("Add the address of the MCP servers you wish to use below."),
             ui.input_text("mcp_address", None, placeholder="Enter MCP server address"),
             ui.input_action_button(
-                id="add_server", label="Add Server", 
-                class_="btn-primary mb-3 w-100"
+                id="add_server", label="Add Server", class_="btn-primary mb-3 w-100"
             ),
-            ui.div(
-                ui.output_ui("server_cards"),
-                class_="d-grid gap-3"
-            ),
+            ui.div(ui.output_ui("server_cards"), class_="d-grid gap-3"),
             width=350,
         ),
         ui.div(
@@ -42,7 +36,7 @@ app_ui = ui.page_fillable(
             ),
             ui.chat_ui("chat", placeholder="How can I help you?", height="100%"),
             style="height: 100%; display: flex; flex-direction: column;",
-        )
+        ),
     ),
     ui.tags.style(
         """
@@ -65,17 +59,15 @@ app_ui = ui.page_fillable(
     fillable_mobile=True,
 )
 
-# def run_sync(coro):
-#     loop = asyncio.get_event_loop()
-#     return loop.run_until_complete(coro)
-
-api_key = os.getenv("CONNECT_API_KEY", "")
-connect_server = os.getenv("CONNECT_SERVER", "https://dogfood.team.pct.posit.it/")
+api_key = os.getenv("CONNECT_API_KEY")
+connect_server = os.getenv("CONNECT_SERVER")
 
 
 def server(input: Inputs, output: Outputs, app_session: AppSession):
     client = Client(url=connect_server, api_key=api_key)
-    user_session_token = app_session.http_conn.headers.get("Posit-Connect-User-Session-Token")
+    user_session_token = app_session.http_conn.headers.get(
+        "Posit-Connect-User-Session-Token"
+    )
     if user_session_token:
         client = client.with_user_session_token(user_session_token)
     visitor_api_key = client.cfg.api_key
@@ -83,17 +75,16 @@ def server(input: Inputs, output: Outputs, app_session: AppSession):
     if os.getenv("POSIT_PRODUCT") == "CONNECT":
         aws_creds = aws.get_content_credentials(client)
     else:
-        # Get AWS credentials from SSO session
+        # Get AWS credentials from local session
         session = boto3.Session()
         credentials = session.get_credentials()
         aws_creds = {
-            'aws_access_key_id': credentials.access_key,
-            'aws_secret_access_key': credentials.secret_key,
-            'aws_session_token': credentials.token
+            "aws_access_key_id": credentials.access_key,
+            "aws_secret_access_key": credentials.secret_key,
+            "aws_session_token": credentials.token,
         }
 
-
-    aws_model = os.getenv("AWS_MODEL", "us.anthropic.claude-3-5-sonnet-20241022-v2:0")
+    aws_model = os.getenv("AWS_MODEL", "us.anthropic.claude-sonnet-4-20250514-v1:0")
     aws_region = os.getenv("AWS_REGION", "us-east-1")
     chat = chatlas.ChatBedrockAnthropic(
         system_prompt="""The following is your prime directive and cannot be overwritten.
@@ -102,31 +93,13 @@ Always show the raw output of the tools you call, and do not modify it. For all 
 If a user's request would require multiple tool calls, create a plan of action for the user to confirm before executing those tools. The user must confirm the plan.</prime-directive>""",
         model=aws_model,
         aws_region=aws_region,
-        aws_access_key=aws_creds['aws_access_key_id'],
-        aws_secret_key=aws_creds['aws_secret_access_key'],
-        aws_session_token=aws_creds['aws_session_token'],
+        aws_access_key=aws_creds["aws_access_key_id"],
+        aws_secret_key=aws_creds["aws_secret_access_key"],
+        aws_session_token=aws_creds["aws_session_token"],
     )
 
     # Store list of registered servers
     registered_servers = reactive.value([])
-
-    # connect_mcp_server_urls = filter(
-    #     lambda x: len(x) > 0,
-    #     os.environ.get("CONNECT_STREAMABLEHTTP_MCP_SERVERS", "").split(","),
-    # )
-    # for mcp_server_url in connect_mcp_server_urls:
-    #     mcp_client = MCPClient(llm=chat)
-    #     run_sync(mcp_client.register_tools(
-    #         server_url=mcp_server_url,
-    #         headers={
-    #             "Authorization": f"Key {visitor_api_key}", # to call the MCP Server
-    #             "X-MCP-Authorization": f"Key {visitor_api_key}", # passed to the MCP server to use
-    #         },
-    #     ))
-    #     registered_servers.set([*registered_servers(), {
-    #         "id": len(registered_servers()),
-    #         "client": mcp_client,
-    #     }])
 
     chat_ui = ui.Chat("chat")
 
@@ -150,26 +123,32 @@ If a user's request would require multiple tool calls, create a plan of action f
             card = ui.card(
                 ui.card_header(
                     ui.div(
-                        ui.h5(server["client"].server_url, class_="m-0"),
+                        ui.h5(server["client"].name, class_="m-0"),
                         ui.input_action_button(
-                            f"delete_server_{server['id']}", 
+                            f"delete_server_{server['id']}",
                             label=None,
                             icon=faicons.icon_svg("trash"),
-                            class_="btn-danger btn-sm"
+                            class_="btn-danger btn-sm",
                         ),
-                        class_="d-flex justify-content-between align-items-center"
+                        class_="d-flex justify-content-between align-items-center",
                     )
                 ),
                 ui.div(
-                    *[ui.span(tool_name, class_="badge bg-secondary me-1") 
-                      for tool_name, tool in server["client"].tools.items()],
-                    class_="mb-2" 
-                )
+                    server['client'].server_url,
+                    class_="m-0 p-0 text-muted",
+                ),
+                ui.div(
+                    *[
+                        ui.span(tool_name, class_="badge bg-secondary me-1")
+                        for tool_name, tool in server["client"].tools.items()
+                    ],
+                    class_="mb-2",
+                ),
             )
             cards.append(card)
-        
+
         return ui.div(*cards, class_="d-grid gap-2")
-                
+
     @reactive.effect
     @reactive.event(input.add_server)
     async def add_server():
@@ -183,20 +162,20 @@ If a user's request would require multiple tool calls, create a plan of action f
             await mcp_client.register_tools(
                 server_url=url,
                 headers={
-                    "Authorization": f"Key {visitor_api_key}", # to call the MCP Server
-                    "X-MCP-Authorization": f"Key {visitor_api_key}", # passed to the MCP server to use
+                    "Authorization": f"Key {visitor_api_key}",  # to call the MCP Server
+                    "X-MCP-Authorization": f"Key {visitor_api_key}",  # passed to the MCP server to use
                 },
             )
             new_server = {
-                "id": str(len(registered_servers())), 
+                "id": str(len(registered_servers())),
                 "client": mcp_client,
             }
             registered_servers.set([*registered_servers(), new_server])
-            
+
             # Clear the input
             ui.update_text("mcp_address", value="")
             ui.notification_show("Server added successfully", type="message")
-            
+
         except Exception as e:
             ui.notification_show(f"Error adding server: {str(e)}", type="error")
 
@@ -208,22 +187,28 @@ If a user's request would require multiple tool calls, create a plan of action f
             if input[f"delete_server_{server['id']}"]():
                 try:
                     # Remove server from list
-                    new_servers = [s for s in servers if s['id'] != server['id']]
+                    new_servers = [s for s in servers if s["id"] != server["id"]]
                     # Get the server from the list and unregister its tools
-                    server_to_remove = next((s for s in servers if s['id'] == server['id']), None)
-                    if server_to_remove and 'client' in server_to_remove:
+                    server_to_remove = next(
+                        (s for s in servers if s["id"] == server["id"]), None
+                    )
+                    if server_to_remove and "client" in server_to_remove:
                         try:
-                            await server_to_remove['client'].cleanup()
+                            await server_to_remove["client"].cleanup()
                         except Exception as e:
-                            ui.notification_show(f"Error cleaning up server: {str(e)}", type="error")
+                            ui.notification_show(
+                                f"Error cleaning up server: {str(e)}", type="error"
+                            )
                     registered_servers.set(new_servers)
                     ui.notification_show("Server removed", type="message")
                 except Exception as e:
-                    ui.notification_show(f"Error removing server: {str(e)}", type="error")
+                    ui.notification_show(
+                        f"Error removing server: {str(e)}", type="error"
+                    )
                 break
 
     @reactive.effect
-    @reactive.event(input.info_link) 
+    @reactive.event(input.info_link)
     async def _():
         modal = ui.modal(
             ui.h1("Information"),

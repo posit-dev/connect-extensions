@@ -3,7 +3,6 @@ from typing import Any, Optional, Callable
 
 import chatlas
 from chatlas import Chat
-import mcp
 from mcp import ClientSession
 from mcp.client.streamable_http import streamablehttp_client
 
@@ -15,7 +14,9 @@ class MCPClient:
         self.llm: Chat = llm
         self.tools = {}
 
-    async def register_tools(self, server_url: str, headers: Optional[dict[str, str]] = None):
+    async def register_tools(
+        self, server_url: str, headers: Optional[dict[str, str]] = None
+    ):
         """
         Connect to an MCP server.
 
@@ -28,21 +29,27 @@ class MCPClient:
         """
         self.server_url = server_url
         try:
-            transport = await self.exit_stack.enter_async_context(streamablehttp_client(server_url, headers=headers))
+            transport = await self.exit_stack.enter_async_context(
+                streamablehttp_client(server_url, headers=headers)
+            )
             self.read, self.write, _ = transport
             self.session = await self.exit_stack.enter_async_context(
                 ClientSession(self.read, self.write)
             )
             assert isinstance(self.session, ClientSession)
 
-            await self.session.initialize()
+            server = await self.session.initialize()
+            self.name = server.serverInfo.name
         except Exception as e:
             raise RuntimeError(f"Failed to connect to MCP server at {server_url}: {e}")
 
         # List available tools
         response = await self.session.list_tools()
         tools = response.tools
-        print("\nConnected to server with tools:", [tool.name for tool in tools])
+        print(
+            f"\nConnected to server {self.name} ({self.server_url}) with tools:",
+            [tool.name for tool in tools],
+        )
 
         self_session = self.session
 
@@ -52,7 +59,9 @@ class MCPClient:
                 if result.content[0].type == "text":
                     return result.content[0].text
                 else:
-                    raise RuntimeError(f"Unexpected content type: {result.content[0].type}")
+                    raise RuntimeError(
+                        f"Unexpected content type: {result.content[0].type}"
+                    )
 
             tool = RawChatlasTool(
                 name=mcp_tool.name,
@@ -76,7 +85,13 @@ class MCPClient:
 
 class RawChatlasTool(chatlas.Tool):
     def __init__(
-        self, *, name: str, fn: Callable, description: str, input_schema: Any, model=None
+        self,
+        *,
+        name: str,
+        fn: Callable,
+        description: str,
+        input_schema: Any,
+        model=None,
     ):
         super().__init__(fn, model=model)
 

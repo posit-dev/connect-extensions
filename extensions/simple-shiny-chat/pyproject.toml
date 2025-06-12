@@ -8,6 +8,7 @@ dependencies = [
     "anthropic[bedrock]>=0.54.0",
     "boto3>=1.38.34",
     "chatlas>=0.8.1",
+    "dotenv>=0.9.9",
     "faicons>=0.2.2",
     "mcp>=1.9.3",
     "nest-asyncio>=1.6.0",
