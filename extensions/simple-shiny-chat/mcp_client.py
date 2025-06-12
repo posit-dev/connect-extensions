@@ -27,14 +27,17 @@ class MCPClient:
             Optional headers to include in the request to the MCP server.
         """
         self.server_url = server_url
-        transport = await self.exit_stack.enter_async_context(streamablehttp_client(server_url, headers=headers))
-        self.streamablehttp, self.write = transport
-        self.session = await self.exit_stack.enter_async_context(
-            ClientSession(self.streamablehttp, self.write)
-        )
-        assert isinstance(self.session, ClientSession)
+        try:
+            transport = await self.exit_stack.enter_async_context(streamablehttp_client(server_url, headers=headers))
+            self.read, self.write, _ = transport
+            self.session = await self.exit_stack.enter_async_context(
+                ClientSession(self.read, self.write)
+            )
+            assert isinstance(self.session, ClientSession)
 
-        await self.session.initialize()
+            await self.session.initialize()
+        except Exception as e:
+            raise RuntimeError(f"Failed to connect to MCP server at {server_url}: {e}")
 
         # List available tools
         response = await self.session.list_tools()

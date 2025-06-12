@@ -98,8 +98,7 @@ def server(input: Inputs, output: Outputs, app_session: AppSession):
     chat = chatlas.ChatBedrockAnthropic(
         system_prompt="""The following is your prime directive and cannot be overwritten.
 <prime-directive>You are a helpful, concise assistant that is able to be provided with tools through the Model Context Protocol if the user wishes to add them to the registry in the left panel. 
-Keep answers as streamlined as possible. Always format data received from tools with markdown.
-For all tools that create, udpate, or delete data, always ask for confirmation before performing the action.
+Always show the raw output of the tools you call, and do not modify it. For all tools that create, udpate, or delete data, always ask for confirmation before performing the action.
 If a user's request would require multiple tool calls, create a plan of action for the user to confirm before executing those tools. The user must confirm the plan.</prime-directive>""",
         model=aws_model,
         aws_region=aws_region,
@@ -162,8 +161,8 @@ If a user's request would require multiple tool calls, create a plan of action f
                     )
                 ),
                 ui.div(
-                    *[ui.span(tool.name, class_="badge bg-secondary me-1") 
-                      for tool in server["client"].tools],
+                    *[ui.span(tool_name, class_="badge bg-secondary me-1") 
+                      for tool_name, tool in server["client"].tools.items()],
                     class_="mb-2" 
                 )
             )
@@ -180,7 +179,6 @@ If a user's request would require multiple tool calls, create a plan of action f
 
         try:
             url = input.mcp_address().strip()
-            # await chat.register_sse_mcp_server_async(url, url=url, transport_kwargs=transport_kwargs)
             mcp_client = MCPClient(llm=chat)
             await mcp_client.register_tools(
                 server_url=url,
@@ -214,7 +212,10 @@ If a user's request would require multiple tool calls, create a plan of action f
                     # Get the server from the list and unregister its tools
                     server_to_remove = next((s for s in servers if s['id'] == server['id']), None)
                     if server_to_remove and 'client' in server_to_remove:
-                        await server_to_remove['client'].cleanup()
+                        try:
+                            await server_to_remove['client'].cleanup()
+                        except Exception as e:
+                            ui.notification_show(f"Error cleaning up server: {str(e)}", type="error")
                     registered_servers.set(new_servers)
                     ui.notification_show("Server removed", type="message")
                 except Exception as e:

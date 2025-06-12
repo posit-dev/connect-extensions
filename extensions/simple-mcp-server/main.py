@@ -28,9 +28,9 @@ _datasets_store = {
 
 # --- MCP Tool Implementations ---
 @mcp.tool()
-def list_known_datasets() -> list[str]:
+def list_known_datasets() -> str:
     """Lists available dataset names."""
-    return list(_datasets_store.keys())
+    return str(list(_datasets_store.keys()))
 
 @mcp.tool()
 def calculate_summary_statistics(dataset_name: str) -> str:
@@ -116,7 +116,7 @@ async def get_index_page(request: Request):
         "tools": tools_info
     })
 
-app.mount("/mcp", mcp.streamable_http_app())
+app.mount("/", mcp.streamable_http_app())
 
 
 # --- Uvicorn Runner (for local development) ---
