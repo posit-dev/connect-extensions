@@ -1,0 +1,51 @@
+{
+	"version": 1,
+	"metadata": {
+		"appmode": "python-fastapi",
+		"entrypoint": "main.py"
+	},
+	"python": {
+		"version": "3.9.6",
+		"package_manager": {
+			"name": "pip",
+			"package_file": "requirements.txt"
+		}
+	},
+	"environment": {
+		"image": "",
+		"prebuilt": false,
+		"python": {
+			"requires": "~=3.8"
+		}
+	},
+	"packages": {},
+	"files": {
+		"dist/assets/index-CteWUkOR.css": {
+			"checksum": "e26ddbd6163e429121aaac82256c8f53"
+		},
+		"dist/assets/index-DoJZlIxF.js": {
+			"checksum": "d5622297a6eb1c2a1c28f7a3491bb2dd"
+		},
+		"dist/index.html": {
+			"checksum": "9d29a579f2c6348f05b0548de36fecaa"
+		},
+		"main.py": {
+			"checksum": "f8385dbd8a8cd24204f1eb6209f8bb30"
+		},
+		"requirements.txt": {
+			"checksum": "3b9b57b849bc53863f92c720581ee6d8"
+		}
+	},
+	"extension": {
+		"name": "publisher-cves",
+		"title": "Publisher CVEs",
+		"description": "A dashboard for publishers to see vulnerabilities in their content.",
+		"homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/publisher-cves",
+		"category": "extension",
+		"minimumConnectVersion": "2025.04.0",
+		"requiredFeatures": [
+			"API Publishing"
+		],
+		"version": "0.0.0"
+	}
+}
