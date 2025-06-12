@@ -1,4 +1,7 @@
+import asyncio
 import os
+import traceback
+import uuid
 
 import chatlas
 import faicons
@@ -158,16 +161,20 @@ If a user's request would require multiple tool calls, create a plan of action f
 
         try:
             url = input.mcp_address().strip()
+            ready_event = asyncio.Event()
             mcp_client = MCPClient(llm=chat)
-            await mcp_client.register_tools(
+            asyncio.create_task(mcp_client.register_tools(
+                ready_event,
                 server_url=url,
                 headers={
                     "Authorization": f"Key {visitor_api_key}",  # to call the MCP Server
                     "X-MCP-Authorization": f"Key {visitor_api_key}",  # passed to the MCP server to use
                 },
-            )
+            ))
+            # Wait for the client to be ready
+            await ready_event.wait()
             new_server = {
-                "id": str(len(registered_servers())),
+                "id": uuid.uuid4().hex,
                 "client": mcp_client,
             }
             registered_servers.set([*registered_servers(), new_server])
@@ -196,14 +203,15 @@ If a user's request would require multiple tool calls, create a plan of action f
                         try:
                             await server_to_remove["client"].cleanup()
                         except Exception as e:
+                            traceback.print_exc()
                             ui.notification_show(
-                                f"Error cleaning up server: {str(e)}", type="error"
+                                f"Error cleaning up server {server['id']}: {str(e)}", type="error"
                             )
                     registered_servers.set(new_servers)
                     ui.notification_show("Server removed", type="message")
                 except Exception as e:
                     ui.notification_show(
-                        f"Error removing server: {str(e)}", type="error"
+                        f"Error removing server {server['id']}: {str(e)}", type="error"
                     )
                 break
 

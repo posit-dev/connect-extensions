@@ -114,6 +114,7 @@ async def get_index_page(request: Request):
             {
                 "name": tool_name,
                 "description": tool_def.description or "No description available.",
+                "parameters": parameters,
             }
         )
     return templates.TemplateResponse(

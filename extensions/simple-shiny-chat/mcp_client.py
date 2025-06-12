@@ -1,3 +1,4 @@
+import asyncio
 from contextlib import AsyncExitStack
 from typing import Any, Optional, Callable
 
@@ -15,10 +16,12 @@ class MCPClient:
         self.tools = {}
 
     async def register_tools(
-        self, server_url: str, headers: Optional[dict[str, str]] = None
+        self, ready_event: asyncio.Event, server_url: str, headers: Optional[dict[str, str]] = None
     ):
         """
-        Connect to an MCP server.
+        Connect to an MCP server. Due to the use of an exit stack, this method must be invoked within
+        asyncio.create_task and not awaited directly. Instead, pass it an asyncio.Event that will be set
+        when the connection is ready.
 
         Arguments
         ---------
@@ -40,6 +43,9 @@ class MCPClient:
 
             server = await self.session.initialize()
             self.name = server.serverInfo.name
+
+            self.stop_event = asyncio.Event()
+            self.current_task = asyncio.current_task()
         except Exception as e:
             raise RuntimeError(f"Failed to connect to MCP server at {server_url}: {e}")
 
@@ -75,12 +81,23 @@ class MCPClient:
         for tool in tools:
             register_mcp_tool(self.llm, tool)
 
+        ready_event.set()
+        # This weirdness is required due to python's async context management
+        # and how it requires the closing of an exit stack to be awaited within the
+        # same task that created it.
+        # See: https://github.com/Chainlit/chainlit/issues/2182#issuecomment-2900778547
+        await self.stop_event.wait()
+
+        await self.exit_stack.aclose()
+
     async def cleanup(self):
-        """Clean up resources."""
+        """Triggers clean up resources."""
         for tool_name in self.tools.keys():
             if tool_name in self.llm._tools:
                 del self.llm._tools[tool_name]
-        await self.exit_stack.aclose()
+
+        self.stop_event.set()
+        await self.current_task
 
 
 class RawChatlasTool(chatlas.Tool):
