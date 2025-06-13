@@ -14,11 +14,11 @@
     }
   },
   "environment": {
-    "python": {
-      "requires": "~=3.11.0"
-    }
-  },
-    "extension": {
+      "python": {
+        "requires": ">=3.10"
+      }
+    },
+  "extension": {
     "name": "simple-shiny-chat",
     "title": "Simple Shiny Chat",
     "description": "A simple Shiny chat application that demonstrates how to use the MCP client to facilitate remote tool calls.",
@@ -31,7 +31,7 @@
     "minimumConnectVersion": "2025.04.0",
     "environment": {
       "python": {
-        "requires": "~=3.12"
+        "requires": ">=3.10"
       }
     },
     "version": "0.0.1"
@@ -39,24 +39,6 @@
   "files": {
     "requirements.txt": {
       "checksum": "29cc272aac150ac0aee03574874b78cf"
-    },
-    ".env": {
-      "checksum": "a9a399b9b30b8818723be637d5ad18d3"
-    },
-    ".gitignore": {
-      "checksum": "a0613f61600cf063f62136a80e0a3c30"
-    },
-    ".python-version": {
-      "checksum": "c0479ff484dacd51dc5ba0461b16b9bf"
-    },
-    ".ruff_cache/.gitignore": {
-      "checksum": "07813ad49b7c958916325086d422ca91"
-    },
-    ".ruff_cache/0.11.13/8416530468044435524": {
-      "checksum": "aa9613f58cf55888c1c38d5d6b471624"
-    },
-    ".ruff_cache/CACHEDIR.TAG": {
-      "checksum": "4b50dc490ca121c935cec9c15273aa95"
     },
     "README.md": {
       "checksum": "d41d8cd98f00b204e9800998ecf8427e"
@@ -66,12 +48,6 @@
     },
     "mcp_client.py": {
       "checksum": "4705bcd135d94c9d2d9cf18af186d9d0"
-    },
-    "pyproject.toml": {
-      "checksum": "cc0633f5fe54a44e74b853c12fb0a0f4"
-    },
-    "uv.lock": {
-      "checksum": "d95ed7e4aecc3caab46ebee888ce9e57"
     }
   }
 }

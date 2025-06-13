@@ -121,7 +121,7 @@ async def get_index_page(request: Request):
         )
     endpoint = urllib.parse.urljoin(request.url._url, "mcp")
     return templates.TemplateResponse(
-        "index.html",
+        "index.html.jinja",
         {
             "request": request,
             "server_name": mcp.name,
