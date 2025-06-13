@@ -11,7 +11,13 @@
       "description": "Pre-built content to illustrate the types of content publishable on Posit Connect."
     }
   ],
-  "tags": [],
+  "tags": [
+    "python",
+    "shiny",
+    "fastapi",
+    "mcp",
+    "llm"
+  ],
   "requiredFeatures": [
     "API Publishing",
     "OAuth Integrations",
