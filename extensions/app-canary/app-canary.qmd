@@ -50,8 +50,13 @@ client = connect.Client()
 
 if not show_instructions:
     # Proceed to validate our monitored GUIDS
+
     # Headers for Connect API
-    headers = {"Authorization": f"Key {api_key}"}
+    headers = {
+        "Authorization": f"Key {api_key}",
+        # Set a custom user agent to enable filtering App Canary activity in Connect instrumentation data
+        "User-Agent": "AppCanary/1.0",
+    }
 
     # Check if server is reachable, would only be a potential problem during local dev
     try:
