@@ -1,10 +1,13 @@
 ---
 title: "App Canary - Application Health Monitor"
-format: email
+format: 
+    email:
+        html-table-processing: none
 ---
 
 ```{python}
 #| echo: false
+#| label: setup
 
 import json
 import os
@@ -47,6 +50,11 @@ else:
 
 # Instantiate a Connect client using posit-sdk where api_key and url are automatically read from our environment vars
 client = connect.Client()
+```
+
+```{python}
+#| echo: false
+#| label: data-gathering
 
 if not show_instructions:
     # Proceed to validate our monitored GUIDS
@@ -101,14 +109,50 @@ if not show_instructions:
                 "guid": guid
             }
 
+    def get_user(user_guid):
+        try:
+            user = client.users.get(user_guid)
+            return user
+        except Exception as e:
+            raise RuntimeError(f"Error getting user: {str(e)}")
+
     # Function to validate app health (simple HTTP 200 check)
     def validate_app(guid):
         # Get app details
         content = get_content(guid)
-        app_name = content.get("title", "Unknown")
+        app_name = content.get("name", "")
+        # Name is optional, if not set use title
+        if not app_name:
+            app_name = content.get("title", "")
         
-        # Extract content_url if available
+        # Ensure we have a valid URL
         dashboard_url = content.get("dashboard_url", "")
+        content_guid = content.get("guid", guid)  # Use the passed guid if not in content
+        
+        # If dashboard_url is empty or doesn't start with http, create a URL to the content
+        if not dashboard_url or not (dashboard_url.startswith("http://") or dashboard_url.startswith("https://")):
+            dashboard_url = f"{connect_server}/content/{content_guid}"
+
+        # Initialize default owner information
+        owner_email = ""
+        owner_full_name = ""
+        
+        # Only try to get owner details if we don't have an error in the content
+        if not str(app_name).startswith("ERROR:"):
+            try:
+                owner_guid = content.get("owner_guid")
+                if owner_guid:
+                    # Get owner details
+                    owner = get_user(owner_guid)
+                    owner_email = owner.get("email", "")
+                    owner_first_name = owner.get("first_name", "")
+                    owner_last_name = owner.get("last_name", "")
+                    owner_full_name = f"{owner_first_name} {owner_last_name}".strip()
+                    if not owner_full_name:  # Handle case where both names are empty
+                        owner_full_name = "Unknown"
+            except Exception as e:
+                # If there's an error getting the owner, keep the defaults
+                print(f"Warning: Could not retrieve owner for {guid}: {str(e)}")
         
         try:
             app_url = f"{connect_server}/content/{guid}"
@@ -120,18 +164,28 @@ if not show_instructions:
             )
             
             return {
+                # App details
                 "guid": guid,
                 "name": app_name,
                 "dashboard_url": dashboard_url,
+                # Owner details
+                "owner_name": owner_full_name,
+                "owner_email": owner_email,
+                # Monitoring status
                 "status": "PASS" if app_response.status_code >= 200 and app_response.status_code < 300 else "FAIL",
                 "http_code": app_response.status_code
             }
 
         except Exception as e:
             return {
+                # App details
                 "guid": guid,
                 "name": app_name,
                 "dashboard_url": dashboard_url,
+                # Owner details
+                "owner_name": owner_full_name,
+                "owner_email": owner_email,
+                # Monitoring status
                 "status": "FAIL",
                 "http_code": str(e)
             }
@@ -144,21 +198,6 @@ if not show_instructions:
     # Convert results to DataFrame for easy display
     df = pd.DataFrame(results)
 
-    # Reorder columns to put name first
-    # Create a dynamic column order with name first, status and http_code last
-    if 'name' in df.columns:
-        cols = ['name']  # Start with name
-        # Add any other columns except name, status, and http_code
-        middle_cols = [col for col in df.columns if col not in ['name', 'status', 'http_code']]
-        cols.extend(middle_cols)
-        # Add status and http_code at the end
-        if 'status' in df.columns:
-            cols.append('status')
-        if 'http_code' in df.columns:
-            cols.append('http_code')
-        # Reorder the DataFrame
-        df = df[cols]
-
     # Store the current time
     check_time = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
 ```
@@ -166,6 +205,7 @@ if not show_instructions:
 
 ```{python}
 #| echo: false
+#| label: display
 
 # Create a table with basic styling
 if not show_instructions and not df.empty:
@@ -180,26 +220,57 @@ if not show_instructions and not df.empty:
         <div style="padding: 5px 0;">{canary_guids_str}</div>
     </div>
     """))
-    
+
     # First create links for name and guid columns
     df_display = df.copy()
     
-    # Process the DataFrame rows to add HTML links
+    # Process the DataFrame rows to add HTML links and format owner info
     for i in range(len(df_display)):
-        if not pd.isna(df_display.loc[i, 'dashboard_url']) and df_display.loc[i, 'dashboard_url']:
+        # Format app name links only (not guid)
+        if 'dashboard_url' in df_display.columns and not pd.isna(df_display.loc[i, 'dashboard_url']) and df_display.loc[i, 'dashboard_url']:
             url = df_display.loc[i, 'dashboard_url']
-            df_display.loc[i, 'name'] = f"<a href='{url}' target='_blank'>{df_display.loc[i, 'name']}</a>"
-            df_display.loc[i, 'guid'] = f"<a href='{url}' target='_blank'>{df_display.loc[i, 'guid']}</a>"
+            app_name = df_display.loc[i, 'name']
+            app_guid = df_display.loc[i, 'guid']
+            
+            # Create simple markdown link for name only
+            df_display.loc[i, 'name'] = f"[{app_name}]({url})"
+        
+        # Format owner name with email icon link
+        owner_name = df_display.loc[i, 'owner_name'] if not pd.isna(df_display.loc[i, 'owner_name']) else "Unknown"
+        owner_email = df_display.loc[i, 'owner_email'] if not pd.isna(df_display.loc[i, 'owner_email']) else ""
+        
+        if owner_email:
+            # Create an HTML link for the email icon with no underline
+            email_icon = "✉️"  # Simple email icon using emoji
+            df_display.loc[i, 'owner_display'] = f"{owner_name} <a href='mailto:{owner_email}' style='text-decoration:none;'>{email_icon}</a>"
+        else:
+            df_display.loc[i, 'owner_display'] = owner_name
     
     # Remove dashboard_url column since the links are embedded in the other columns
     if 'dashboard_url' in df_display.columns:
         df_display = df_display.drop(columns=['dashboard_url'])
     
-    # Create GT table
+    # Remove raw owner columns in favor of our formatted display column
+    if 'owner_name' in df_display.columns:
+        df_display = df_display.drop(columns=['owner_name'])
+    if 'owner_email' in df_display.columns:
+        df_display = df_display.drop(columns=['owner_email'])
+    
+    # Reorder columns to match requested layout
+    column_order = ['name', 'guid', 'status', 'http_code', 'owner_display']
+    # Only include columns that exist in df_display
+    ordered_columns = [col for col in column_order if col in df_display.columns]
+    df_display = df_display[ordered_columns]
+    
+    # Create GT table with 90% width of screen
     gt_tbl = GT(df_display)
     
-    # Apply styling to status column
+    # Tell great_tables to render markdown content in these columns
+    gt_tbl = gt_tbl.fmt_markdown(columns=['name', 'owner_display'])
+    
+    # Apply styling to columns
     gt_tbl = (gt_tbl
+              # Status column styling - green for PASS, red for FAIL
               .tab_style(
                   style.fill("green"),
                   locations=loc.body(columns="status", rows=lambda df: df["status"] == "PASS")
@@ -207,7 +278,24 @@ if not show_instructions and not df.empty:
               .tab_style(
                   style.fill("red"),
                   locations=loc.body(columns="status", rows=lambda df: df["status"] == "FAIL")
-              ))
+              )
+              # Set column labels for better presentation
+              .cols_label(
+                  owner_display="Owner",
+                  name="Name",
+                  guid="Content GUID",
+                  status="Status",
+                  http_code="HTTP Code"
+              )
+              # Emphasize owner column with subtle styling
+              .tab_style(
+                  style.borders(sides="right", color="#e0e0e0", weight="1px"),
+                  locations=loc.body(columns="owner_display")
+              )
+              .tab_options(
+                container_width="90%"
+              )
+              )
 elif show_instructions:
     # Create a callout box for instructions
     instructions_html = ""
