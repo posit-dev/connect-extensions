@@ -128,10 +128,6 @@ if not show_instructions:
         # Ensure we have a valid URL
         dashboard_url = content.get("dashboard_url", "")
         content_guid = content.get("guid", guid)  # Use the passed guid if not in content
-        
-        # If dashboard_url is empty or doesn't start with http, create a URL to the content
-        if not dashboard_url or not (dashboard_url.startswith("http://") or dashboard_url.startswith("https://")):
-            dashboard_url = f"{connect_server}/content/{content_guid}"
 
         # Initialize default owner information
         owner_email = ""
