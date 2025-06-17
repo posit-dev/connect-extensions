@@ -43,17 +43,24 @@ PYTEST_ARGS ?= "-s"
 	all \
 	build \
 	clean \
+	debug-env \
+	dev \
+	docker-deps \
 	down \
 	down-% \
+	down-connect-only \
+	ensure-lockfile \
+	ensure-uv \
 	help \
 	latest \
+	package-extension \
 	preview \
 	print-versions \
+	set-bootstrap-admin-email \
 	test \
 	up \
 	up-% \
-	up-connect-only-% \
-	down-connect-only-% \
+	up-connect-only
 
 
 # All versions starting with the first Connect version that fully supports extensions and version matching
@@ -354,6 +361,8 @@ help:
 	@echo "  package-extension Package an extension into a tar.gz file."
 	@echo "  up-connect-only  Start only the Connect service (detached mode)."
 	@echo "  down-connect-only Stop only the Connect service."
+	@echo "  dev              Install dependencies for development"
+	@echo "  debug-env        Output environment debug information"
 	@echo "  help             Show this help message."
 	@echo
 	@echo "Required Parameters:"
@@ -370,6 +379,9 @@ help:
 	@echo "  # Run tests for latest version:"
 	@echo "  make -C ./integration latest \\"
 	@echo "    EXTENSION_NAME=publisher-command-center"
+	@echo
+	@echo "  # Start only Connect service in detached mode:"
+	@echo "  make -C ./integration up-connect-only VERSION=2025.04.0"
 	@echo
 	@echo "Environment Variables:"
 	@echo "  DOCKER_COMPOSE           Command to invoke Docker Compose. Default: docker compose"
