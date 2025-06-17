@@ -5,9 +5,9 @@ This script makes the following API requests to Posit Connect:
 1. Gets the current user (bootstrap admin) via the API
 2. Updates the admin user's email to 'admin@example.com'
 
-This allows deployment error emails to be sent to a valid address, otherwise 
-the send will fail and log an error in the Connect logs making it more 
-difficult to debug deployment issues.
+Setting an email for the bootstrap user prevents Connect from logging
+an error about the user having no email address when Connect attempts 
+to send an email to the user, such as a deployment failure notification.
 
 Environment Variables:
     CONNECT_API_KEY: API key for Posit Connect authentication
