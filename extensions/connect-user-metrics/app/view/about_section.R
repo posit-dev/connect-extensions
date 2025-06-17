@@ -14,17 +14,27 @@ box::use(
   ],
   app/view/ui_components[
     card,
-    link
   ],
 )
 
 about_credits <- brand$meta$credits$about
 
 about_section <- shiny$div(
-  class = "about-section",
+  class = "brand-section",
   shiny$div(
-    class = "about-links",
-    lapply(about_credits$references, \(x) link(x$name, x$link))
+    class = "brand-summary",
+    shiny$markdown("
+Posit Connect User Metrics makes it easy to monitor **application adoption**,
+track **user engagement** and access detailed **usage analytics**
+for all your Shiny applications deployed on Posit Connect.
+Some key features:
+
+- **Time-based analysis**: View data by day, week, or month across custom time periods
+- **Flexible grouping**: Combine metrics by application, user, and date for different perspectives
+- **Interactive charts**: Visualize session counts and unique users with dynamic filtering
+- **Smart filtering**: Set minimum session duration and filter by specific apps or users
+- **Data export**: Download raw and aggregated data as CSV files for further analysis
+")
   )
 )
 
@@ -58,7 +68,16 @@ brand_section <- shiny$div(
   ),
   shiny$p(
     class = "brand-summary",
-    about_credits$summary
+    shiny$span(
+      about_credits$summary,
+      shiny$a(
+        "Learn more about Appsilon",
+        href = about_credits$references$homepage$link,
+        target = "_blank",
+        rel = "noopener noreferrer",
+        class = "brand-link"
+      )
+    )
   )
 )
 
@@ -89,7 +108,8 @@ server <- function(id) {
           shiny$modalDialog(
             easyClose = TRUE,
             title = brand$meta$app_title,
-            size = "l",
+            size = "xl",
+            h4(class = "brand-heading", "About this app"),
             about_section,
             tech_section,
             brand_section
