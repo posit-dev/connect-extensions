@@ -152,7 +152,7 @@ if not show_instructions:
                 print(f"Warning: Could not retrieve owner for {guid}: {str(e)}")
         
         # Compose URL to logs if we have a dashboard URL, only owner/editor have access
-        if dashboard_url and content.get("app_role") in ["owner", "editor"]:
+        if dashboard_url and content.get("app_role") != "viewer":
             logs_url = f"{dashboard_url}/logs"
         else:
             logs_url = ""
