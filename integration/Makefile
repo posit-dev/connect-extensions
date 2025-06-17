@@ -243,31 +243,30 @@ up-%: build
 
 
 # Start just the Connect service without tests, useful for testing the infrastructure and containers.
-# Usage: make up-connect-only VERSION=2025.04.0
+# Usage: make up-connect-only CONNECT_VERSION=2025.04.0
 up-connect-only:
-	@if [ -z "$(VERSION)" ]; then \
-		echo "Error: VERSION is required."; \
-		echo "Usage: make up-connect-only VERSION=<version>"; \
+	@if [ -z "$(CONNECT_VERSION)" ]; then \
+		echo "Error: CONNECT_VERSION is required."; \
+		echo "Usage: make up-connect-only CONNECT_VERSION=<version>"; \
 		exit 1; \
 	fi
-	@echo "Starting only Connect $(VERSION) in detached mode..."
+	@echo "Starting only Connect $(CONNECT_VERSION) in detached mode..."
 	@# Set appropriate image tag based on version
-	@if [ "$(VERSION)" = "preview" ] || [ "$(VERSION)" = "connect-preview" ]; then \
+	@if [ "$(CONNECT_VERSION)" = "preview" ] || [ "$(CONNECT_VERSION)" = "connect-preview" ]; then \
 		DOCKER_CONNECT_IMAGE_TO_USE="$(preview_DOCKER_CONNECT_IMAGE)"; \
 		DOCKER_CONNECT_IMAGE_TAG_TO_USE="$(preview_DOCKER_CONNECT_IMAGE_TAG)"; \
 	else \
 		DOCKER_CONNECT_IMAGE_TO_USE="$(DOCKER_CONNECT_IMAGE)"; \
-		DOCKER_CONNECT_IMAGE_TAG_TO_USE="jammy-$(VERSION)"; \
+		DOCKER_CONNECT_IMAGE_TAG_TO_USE="jammy-$(CONNECT_VERSION)"; \
 	fi; \
 	\
 	EXTENSION_NAME=dummy \
 	PYTEST_ARGS="$(PYTEST_ARGS)" \
 	DOCKER_PROJECT_IMAGE_TAG="$(DOCKER_PROJECT_IMAGE_TAG)" \
 	CONNECT_BOOTSTRAP_SECRETKEY="$(CONNECT_BOOTSTRAP_SECRETKEY)" \
-	CONNECT_VERSION="$(VERSION)" \
 	DOCKER_CONNECT_IMAGE=$$DOCKER_CONNECT_IMAGE_TO_USE \
 	DOCKER_CONNECT_IMAGE_TAG=$$DOCKER_CONNECT_IMAGE_TAG_TO_USE \
-	$(DOCKER_COMPOSE) -f compose.yaml -p $(PROJECT_NAME)-$(subst .,-,$(VERSION)) \
+	$(DOCKER_COMPOSE) -f compose.yaml -p $(PROJECT_NAME)-$(subst .,-,$(CONNECT_VERSION)) \
 		up -d connect mailhog
 	
 	@echo "Connect is now running!"
@@ -275,34 +274,33 @@ up-connect-only:
 	@echo "- Admin: http://localhost:3939/__admin__"
 	@echo "- Mail UI: http://localhost:8025"
 	@echo ""
-	@echo "To stop it: make down-connect-only VERSION=$(VERSION)"
+	@echo "To stop it: make down-connect-only VERSION=$(CONNECT_VERSION)"
 
 
 # Stop just the Connect service
-# Usage: make down-connect-only VERSION=2025.04.0
+# Usage: make down-connect-only CONNECT_VERSION=2025.04.0
 down-connect-only:
-	@if [ -z "$(VERSION)" ]; then \
-			echo "Error: VERSION is required."; \
-			echo "Usage: make down-connect-only VERSION=<version>"; \
+	@if [ -z "$(CONNECT_VERSION)" ]; then \
+			echo "Error: CONNECT_VERSION is required."; \
+			echo "Usage: make down-connect-only CONNECT_VERSION=<version>"; \
 			exit 1; \
 	fi
-	@echo "Stopping Connect $(VERSION)..."
+	@echo "Stopping Connect $(CONNECT_VERSION)..."
 	@# Set appropriate image tag based on version
-	@if [ "$(VERSION)" = "preview" ] || [ "$(VERSION)" = "connect-preview" ]; then \
+	@if [ "$(CONNECT_VERSION)" = "preview" ] || [ "$(CONNECT_VERSION)" = "connect-preview" ]; then \
 			DOCKER_CONNECT_IMAGE_TO_USE="$(preview_DOCKER_CONNECT_IMAGE)"; \
 			DOCKER_CONNECT_IMAGE_TAG_TO_USE="$(preview_DOCKER_CONNECT_IMAGE_TAG)"; \
 	else \
 			DOCKER_CONNECT_IMAGE_TO_USE="$(DOCKER_CONNECT_IMAGE)"; \
-			DOCKER_CONNECT_IMAGE_TAG_TO_USE="jammy-$(VERSION)"; \
+			DOCKER_CONNECT_IMAGE_TAG_TO_USE="jammy-$(CONNECT_VERSION)"; \
 	fi; \
 	\
 	CONNECT_BOOTSTRAP_SECRETKEY="$(CONNECT_BOOTSTRAP_SECRETKEY)" \
-	CONNECT_VERSION="$(VERSION)" \
 	DOCKER_CONNECT_IMAGE=$$DOCKER_CONNECT_IMAGE_TO_USE \
 	DOCKER_CONNECT_IMAGE_TAG=$$DOCKER_CONNECT_IMAGE_TAG_TO_USE \
-	$(DOCKER_COMPOSE) -p $(PROJECT_NAME)-$(subst .,-,$(VERSION)) down -v connect mailhog
+	$(DOCKER_COMPOSE) -p $(PROJECT_NAME)-$(subst .,-,$(CONNECT_VERSION)) down -v connect mailhog
 	
-	@echo "Connect $(VERSION) stopped."
+	@echo "Connect $(CONNECT_VERSION) stopped."
 
 
 # Show available versions
@@ -372,7 +370,7 @@ help:
 	@echo "    EXTENSION_NAME=publisher-command-center"
 	@echo
 	@echo "  # Start only Connect service in detached mode:"
-	@echo "  make -C ./integration up-connect-only VERSION=2025.04.0"
+	@echo "  make -C ./integration up-connect-only CONNECT_VERSION=2025.04.0"
 	@echo
 	@echo "Environment Variables:"
 	@echo "  DOCKER_COMPOSE           Command to invoke Docker Compose. Default: docker compose"
