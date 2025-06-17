@@ -120,7 +120,6 @@ ensure-uv:
 		$(PYTHON) -m ensurepip && $(PYTHON) -m pip install "uv == $(UV_VERSION)"; \
 	fi
 	
-	echo "=== DEBUG before VENV creation ==="
 	$(MAKE) debug-env
 	
 	@echo "Creating virtual environment without redirection..."
@@ -139,7 +138,6 @@ ensure-uv:
 		ls -la $(VIRTUAL_ENV)/bin/python3; \
 	fi
 	
-	@echo "=== DEBUG after VENV creation ==="
 	@$(MAKE) debug-env
 	
 	echo "Installing UV in virtualenv"; \
@@ -148,7 +146,6 @@ ensure-uv:
 
 # Install dependencies in Docker for Connect integration tests
 docker-deps: ensure-uv ensure-lockfile
-	@echo "=== DEBUG before uv sync ==="
 	@$(MAKE) debug-env
 
 	# Sync given the `uv.lock` file
