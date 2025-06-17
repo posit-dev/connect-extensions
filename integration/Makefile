@@ -322,10 +322,10 @@ package-extension:
 			ls -1 ../extensions/; \
 			exit 1; \
 	fi
-	@mkdir -p ./integration/bundles
+	@mkdir -p ./bundles
 	@echo "Packaging extension: $(EXTENSION_NAME)"
 	@# Change directory to the parent and create tarball with relative paths
-	@cd .. && tar -czf ./integration/bundles/$(EXTENSION_NAME).tar.gz -C ./extensions $(EXTENSION_NAME)
+	@pushd .. > /dev/null && tar -czf ./integration/bundles/$(EXTENSION_NAME).tar.gz -C ./extensions $(EXTENSION_NAME) && popd > /dev/null
 	@echo "✅ Package created: ./bundles/$(EXTENSION_NAME).tar.gz"
 
 
