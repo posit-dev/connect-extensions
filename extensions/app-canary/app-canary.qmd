@@ -120,10 +120,10 @@ if not show_instructions:
     def validate_app(guid):
         # Get app details
         content = get_content(guid)
-        app_name = content.get("name", "")
+        app_name = content.get("title", "")
         # Name is optional, if not set use title
         if not app_name:
-            app_name = content.get("title", "")
+            app_name = content.get("name", "")
         
         # Ensure we have a valid URL
         dashboard_url = content.get("dashboard_url", "")
@@ -133,8 +133,9 @@ if not show_instructions:
         owner_email = ""
         owner_full_name = ""
         
-        # Only try to get owner details if we don't have an error in the content
+        # Get additional data if we don't have an error when attempting to get the content details
         if not str(app_name).startswith("ERROR:"):
+            # Get content owner details
             try:
                 owner_guid = content.get("owner_guid")
                 if owner_guid:
@@ -150,6 +151,12 @@ if not show_instructions:
                 # If there's an error getting the owner, keep the defaults
                 print(f"Warning: Could not retrieve owner for {guid}: {str(e)}")
         
+        # Compose URL to logs if we have a dashboard URL, only owner/editor have access
+        if dashboard_url and content.get("app_role") in ["owner", "editor"]:
+            logs_url = f"{dashboard_url}/logs"
+        else:
+            logs_url = ""
+
         try:
             app_url = f"{connect_server}/content/{guid}"
             app_response = requests.get(
@@ -164,6 +171,7 @@ if not show_instructions:
                 "guid": guid,
                 "name": app_name,
                 "dashboard_url": dashboard_url,
+                "logs_url": logs_url,
                 # Owner details
                 "owner_name": owner_full_name,
                 "owner_email": owner_email,
@@ -178,6 +186,7 @@ if not show_instructions:
                 "guid": guid,
                 "name": app_name,
                 "dashboard_url": dashboard_url,
+                "logs_url": logs_url,
                 # Owner details
                 "owner_name": owner_full_name,
                 "owner_email": owner_email,
@@ -229,15 +238,25 @@ if not show_instructions and not df.empty:
             app_guid = df_display.loc[i, 'guid']
             
             # Create simple markdown link for name only
-            df_display.loc[i, 'name'] = f"[{app_name}]({url})"
+            df_display.loc[i, 'name'] = f"<a href='{url}' target='_blank'>{app_name}</a>"
         
+        # Format logs URL using markdown instead of HTML (similar to owner email)
+        if 'logs_url' in df_display.columns and df_display.loc[i, 'logs_url'] is not None and str(df_display.loc[i, 'logs_url']).strip():
+            # Use a simple icon since we can't use custom SVG in emails easily
+            logs_icon = "📋"
+            logs_url = df_display.loc[i, 'logs_url']
+            df_display.loc[i, 'logs'] = f"<a href='{logs_url}' target='_blank' style='text-decoration:none;'>{logs_icon}</a>"
+
+        else:
+            df_display.loc[i, 'logs'] = ""
+
         # Format owner name with email icon link
         owner_name = df_display.loc[i, 'owner_name'] if not pd.isna(df_display.loc[i, 'owner_name']) else "Unknown"
         owner_email = df_display.loc[i, 'owner_email'] if not pd.isna(df_display.loc[i, 'owner_email']) else ""
         
         if owner_email:
-            # Create an HTML link for the email icon with no underline
-            email_icon = "✉️"  # Simple email icon using emoji
+            # Use a simple icon since we can't use custom SVG in emails easily
+            email_icon = "✉️"
             df_display.loc[i, 'owner_display'] = f"{owner_name} <a href='mailto:{owner_email}' style='text-decoration:none;'>{email_icon}</a>"
         else:
             df_display.loc[i, 'owner_display'] = owner_name
@@ -253,16 +272,16 @@ if not show_instructions and not df.empty:
         df_display = df_display.drop(columns=['owner_email'])
     
     # Reorder columns to match requested layout
-    column_order = ['name', 'guid', 'status', 'http_code', 'owner_display']
+    column_order = ['name', 'guid', 'status', 'http_code', 'logs', 'owner_display']
     # Only include columns that exist in df_display
     ordered_columns = [col for col in column_order if col in df_display.columns]
     df_display = df_display[ordered_columns]
     
-    # Create GT table with 90% width of screen
+    # Create GT table
     gt_tbl = GT(df_display)
     
     # Tell great_tables to render markdown content in these columns
-    gt_tbl = gt_tbl.fmt_markdown(columns=['name', 'owner_display'])
+    gt_tbl = gt_tbl.fmt_markdown(columns=['name', 'owner_display', 'logs'])
     
     # Apply styling to columns
     gt_tbl = (gt_tbl
@@ -281,12 +300,13 @@ if not show_instructions and not df.empty:
                   name="Name",
                   guid="Content GUID",
                   status="Status",
-                  http_code="HTTP Code"
+                  http_code="HTTP Code",
+                  logs="Logs"
               )
-              # Emphasize owner column with subtle styling
-              .tab_style(
-                  style.borders(sides="right", color="#e0e0e0", weight="1px"),
-                  locations=loc.body(columns="owner_display")
+              # Override default column alignment for better presentation
+              .cols_align(
+                align='center', 
+                columns=["status", "http_code", "logs"]
               )
               .tab_options(
                 container_width="100%"
