@@ -17,33 +17,17 @@ Returns:
     0 on success, 1 on failure
 """
 
-import requests
-import os
+from posit import connect
 import sys
 
 try:
-    # Get environment variables
-    base_url = os.environ["CONNECT_SERVER"]
-    api_key = os.environ["CONNECT_API_KEY"]
-    headers = {"Authorization": f"Key {api_key}"}
+    # Instantiate a Connect client using posit-sdk where api_key and url are automatically read from our environment vars
+    client = connect.Client()
     
-    # Get current user (this will be the bootstrap admin since we only use the bootstrap user in these tests)
-    user_resp = requests.get(f"{base_url}/__api__/v1/user", headers=headers)
-    user_resp.raise_for_status()
-    current_user = user_resp.json()
+    # Set the current user's email (this will be the bootstrap admin since we only use the bootstrap user in these tests)
+    current_user = client.me.UpdateUser({"email": "admin@example.com"})
     
-    # Get admin GUID from the response
-    current_user_guid = current_user["guid"]
-    
-    # Update admin email
-    update_resp = requests.put(
-        f"{base_url}/__api__/v1/users/{current_user_guid}", 
-        headers=headers, 
-        json={"email": "admin@example.com"}
-    )
-    update_resp.raise_for_status()
-    
-    print("✅ Admin email set to admin@example.com")
+    print(f"✅ Admin email set to {current_user}")
 except Exception as e:
     print(f"Error: {e}")
     sys.exit(1)
