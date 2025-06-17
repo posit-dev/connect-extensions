@@ -129,7 +129,7 @@ ui <- page_sidebar(
 
     numericInput(
       "min_hits_filter",
-      label = "Minimum Hits",
+      label = "Minimum Views",
       value = 0,
       min = 0,
       step = 1
@@ -139,7 +139,7 @@ ui <- page_sidebar(
 
     checkboxInput(
       "show_guid",
-      label = "Show GUID"
+      label = "Show GUIDs"
     ),
 
     checkboxInput(
@@ -419,7 +419,7 @@ server <- function(input, output, session) {
         ),
 
         hits = colDef(
-          name = "Hits (1 Week)",
+          name = "Views (Last Week)",
           width = 125,
           class = "number-pre",
         )
