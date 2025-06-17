@@ -1,3 +1,33 @@
+/* Reduce spacing between checkbox and conditional panel */
 .form-group.shiny-input-container.checkbox+.shiny-panel-conditional>.form-group.shiny-input-container {
-    margin-top: 0 !important;
+  margin-top: 0 !important;
+}
+
+/* Adjust the spacing for selectize inputs in conditional panels */
+.form-group.shiny-input-container.checkbox+.shiny-panel-conditional .selectize-control {
+  margin-top: -10px;
+}
+
+/* Compact selectizeInput in conditional panels */
+.shiny-panel-conditional .selectize-input {
+  margin-top: -10px;
+}
+
+/* Table styles */
+
+/* Styles used by the Most Used Content table */
+.content-tbl {
+  font-size: 0.875rem;
+  line-height: 1.125rem;
+}
+
+.content-tbl a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.number-pre {
+  font-family: "Fira Mono", Consolas, Monaco, monospace;
+  white-space: pre;
+  font-size: 96%;
 }
