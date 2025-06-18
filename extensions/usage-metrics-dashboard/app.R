@@ -765,7 +765,9 @@ server <- function(input, output, session) {
       const savedSearch = window.currentSessionSearches[tableId];
       if (savedSearch) {
         searchInput.value = savedSearch;
-        searchInput.dispatchEvent(new Event('input', {bubbles: true}));
+        if (window.Reactable && typeof window.Reactable.setSearch === 'function') {
+          window.Reactable.setSearch(tableId, savedSearch);
+        }
       }
 
       // Save search terms as they're entered
