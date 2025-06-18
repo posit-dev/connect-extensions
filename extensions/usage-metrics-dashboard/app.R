@@ -898,7 +898,7 @@ server <- function(input, output, session) {
     )
 
     # Apply any onRender JS for capturing search value
-    onRender(table, table_js)
+    htmlwidgets::onRender(table, table_js)
   })
 
   output$export_raw_visits <- downloadHandler(
