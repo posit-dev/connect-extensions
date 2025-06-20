@@ -5,7 +5,7 @@
 		"entrypoint": "main.py"
 	},
 	"python": {
-		"version": "3.9.6",
+		"version": "3.13.5",
 		"package_manager": {
 			"name": "pip",
 			"package_file": "requirements.txt"
@@ -23,11 +23,11 @@
 		"dist/assets/index-CteWUkOR.css": {
 			"checksum": "e26ddbd6163e429121aaac82256c8f53"
 		},
-		"dist/assets/index-DoJZlIxF.js": {
-			"checksum": "d5622297a6eb1c2a1c28f7a3491bb2dd"
+		"dist/assets/index-D9njY8KV.js": {
+			"checksum": "ed84b7e7f30da13f30b2d2022e2dffcc"
 		},
 		"dist/index.html": {
-			"checksum": "9d29a579f2c6348f05b0548de36fecaa"
+			"checksum": "0db7cc766b97ee12ea2a91470ea5a36e"
 		},
 		"main.py": {
 			"checksum": "f8385dbd8a8cd24204f1eb6209f8bb30"
