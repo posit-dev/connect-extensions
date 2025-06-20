@@ -57,11 +57,15 @@ ui <- page_sidebar(
       "Scan for Runtimes",
       tooltip(
         bsicons::bs_icon("question-circle-fill"),
-        paste0(
-          "Enable a runtime filter and select a version to show ",
-          "items using that version or earlier."
-        ),
-        placement = "right"
+        tagList(
+          p(
+            "Enable a runtime filter and select a version to show ",
+            "items using that version or earlier.",
+          ),
+          p(
+            "Versions in italic are no longer available on the server."
+          )
+        )
       )
     ),
 

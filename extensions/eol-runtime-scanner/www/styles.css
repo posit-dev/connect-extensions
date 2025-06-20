@@ -36,7 +36,7 @@
 
 /* Server version styling */
 .btn-version.server-version {
-  font-weight: bold;
+  /* Regular font weight for server versions */
 }
 
 /* Non-server version styling - make it italic */
@@ -72,6 +72,16 @@
 .btn-version.selected:hover {
   background-color: #385d7c;
   border-color: #385d7c;
+}
+
+/* Custom tooltip styling */
+.tooltip-inner {
+  text-align: left;
+}
+
+/* Keep spacing between paragraphs but remove extra space at the end */
+.tooltip-inner p:last-child {
+  margin-bottom: 0;
 }
 
 /* Table styles */
