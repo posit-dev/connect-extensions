@@ -40,8 +40,8 @@ function countVulnerablePackages(): number {
 
   let count = 0;
   for (const pkg of content.packages) {
-    const repo = pkg.language.toLowerCase() === "python" ? "pypi" : "cran";
-    const vulnerabilityMap = repo === "pypi" ? vulnStore.pypi : vulnStore.cran;
+    const vulnerabilityMap =
+      pkg.language.toLowerCase() === "python" ? vulnStore.pypi : vulnStore.cran;
     const packageName = pkg.name.toLowerCase();
 
     if (
