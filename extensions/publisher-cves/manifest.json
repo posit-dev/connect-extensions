@@ -20,14 +20,14 @@
 	},
 	"packages": {},
 	"files": {
+		"dist/assets/index-B41wDw7-.js": {
+			"checksum": "6f226fcbe63e27f856c8755bfa5f2cdc"
+		},
 		"dist/assets/index-CteWUkOR.css": {
 			"checksum": "e26ddbd6163e429121aaac82256c8f53"
 		},
-		"dist/assets/index-vlEy0F6m.js": {
-			"checksum": "da2cb1d917ec752760f9186b7d02d185"
-		},
 		"dist/index.html": {
-			"checksum": "0fed520b0a89f55e25e1bbce548aa482"
+			"checksum": "69a4a2125195046f07166dbdd55fcf8b"
 		},
 		"main.py": {
 			"checksum": "f8385dbd8a8cd24204f1eb6209f8bb30"

@@ -1,16 +1,20 @@
 import { defineStore } from "pinia";
 import { ref } from "vue";
 
+export interface VulnerabilityEvent {
+  introduced?: string;
+  fixed?: string;
+}
+
+export interface VulnerabilityRange {
+  type: string;
+  events: VulnerabilityEvent[];
+}
+
 export interface Vulnerability {
   id: string;
   versions: Record<string, any>;
-  ranges: Array<{
-    type: string;
-    events: Array<{
-      introduced?: string;
-      fixed?: string;
-    }>;
-  }>;
+  ranges: VulnerabilityRange[];
   summary: string;
   details: string;
   modified: string;
