@@ -75,6 +75,8 @@ ui <- page_sidebar(
 
     h5("Scan for Runtimes"),
 
+    p("Select a version to filter for content using that version or earlier."),
+
     checkboxInput(
       "use_r_cutoff",
       label = "R Versions",
@@ -148,14 +150,25 @@ server <- function(input, output, session) {
     return()
   }
 
+  # Server runtime versions
+  server_versions <- reactive({
+    get_runtimes(client)
+  })
+
   # User-scoped content data frame
   content <- reactive({
+    # Extract server runtime versions by type
+    server_vers <- server_versions()
+    r_server_vers <- server_vers |> filter(runtime == "r") |> pull(version)
+    py_server_vers <- server_vers |> filter(runtime == "python") |> pull(version)
+    quarto_server_vers <- server_vers |> filter(runtime == "quarto") |> pull(version)
+
     content <- get_content(client) |>
       filter(app_role %in% c("owner", "editor")) |>
       mutate(
-        r_version = as_ordered_version_factor(r_version),
-        py_version = as_ordered_version_factor(py_version),
-        quarto_version = as_ordered_version_factor(quarto_version),
+        r_version = as_ordered_version_factor(r_version, r_server_vers),
+        py_version = as_ordered_version_factor(py_version, py_server_vers),
+        quarto_version = as_ordered_version_factor(quarto_version, quarto_server_vers),
       )
   })
 
@@ -287,9 +300,6 @@ server <- function(input, output, session) {
       summarize(hits = n())
   })
 
-  server_versions <- reactive({
-    get_runtimes(client)
-  })
 
   content_table_data <- reactive({
     # Filter by content type
