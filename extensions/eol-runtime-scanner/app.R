@@ -73,9 +73,18 @@ ui <- page_sidebar(
     open = TRUE,
     width = 275,
 
-    h5("Scan for Runtimes"),
-
-    p("Select a version to filter for content using that version or earlier."),
+    tags$div(
+      style = "display: flex; align-items: center; gap: 0.25rem;",
+      h5("Scan for Runtimes", style = "margin: 0;"),
+      tooltip(
+        bsicons::bs_icon("question-circle-fill"),
+        paste0(
+          "Enable a runtime filter and select a version to show ",
+          "items using that version or earlier."
+        ),
+        placement = "right"
+      )
+    ),
 
     checkboxInput(
       "use_r_cutoff",
@@ -160,15 +169,22 @@ server <- function(input, output, session) {
     # Extract server runtime versions by type
     server_vers <- server_versions()
     r_server_vers <- server_vers |> filter(runtime == "r") |> pull(version)
-    py_server_vers <- server_vers |> filter(runtime == "python") |> pull(version)
-    quarto_server_vers <- server_vers |> filter(runtime == "quarto") |> pull(version)
+    py_server_vers <- server_vers |>
+      filter(runtime == "python") |>
+      pull(version)
+    quarto_server_vers <- server_vers |>
+      filter(runtime == "quarto") |>
+      pull(version)
 
     content <- get_content(client) |>
       filter(app_role %in% c("owner", "editor")) |>
       mutate(
         r_version = as_ordered_version_factor(r_version, r_server_vers),
         py_version = as_ordered_version_factor(py_version, py_server_vers),
-        quarto_version = as_ordered_version_factor(quarto_version, quarto_server_vers),
+        quarto_version = as_ordered_version_factor(
+          quarto_version,
+          quarto_server_vers
+        ),
       )
   })
 
@@ -299,7 +315,6 @@ server <- function(input, output, session) {
       group_by(content_guid) |>
       summarize(hits = n())
   })
-
 
   content_table_data <- reactive({
     # Filter by content type
