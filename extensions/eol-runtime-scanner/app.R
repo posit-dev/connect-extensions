@@ -188,7 +188,6 @@ server <- function(input, output, session) {
         # Check if this version is available on server
         is_server_version <- version %in% server_versions_for_runtime
 
-        # Use proper version comparison instead of string comparison
         is_selected <- !is.null(selected_version) &&
           as.numeric_version(version) <= as.numeric_version(selected_version)
         is_max <- !is.null(selected_version) &&
