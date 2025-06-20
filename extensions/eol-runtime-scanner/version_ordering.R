@@ -2,11 +2,12 @@
 
 # Turns a character vector of version numbers into a factor with levels
 # appropriately ordered.
-as_ordered_version_factor <- function(versions) {
+as_ordered_version_factor <- function(versions, additional_versions = NULL) {
   sanitized <- sanitize_versions(versions)
+  sanitized_additional <- sanitize_versions(additional_versions)
   factor(
     sanitized,
-    levels = sort_unique_versions(sanitized),
+    levels = sort_unique_versions(c(sanitized, sanitized_additional)),
     ordered = TRUE
   )
 }

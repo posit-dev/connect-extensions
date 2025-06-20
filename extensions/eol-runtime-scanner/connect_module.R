@@ -102,7 +102,7 @@ connectVisitorClient <- function(
 }
 
 # ----
-# Your existing helper functions, unchanged:
+
 get_eligible_integrations <- function(client) {
   tryCatch(
     {
