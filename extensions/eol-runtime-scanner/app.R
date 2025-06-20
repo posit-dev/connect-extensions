@@ -77,7 +77,7 @@ ui <- page_sidebar(
 
     checkboxInput(
       "use_r_cutoff",
-      label = "R versions",
+      label = "R Versions",
       value = FALSE
     ),
     conditionalPanel(
@@ -87,30 +87,22 @@ ui <- page_sidebar(
 
     checkboxInput(
       "use_py_cutoff",
-      label = "Python older than…",
+      label = "Python Versions",
       value = FALSE
     ),
     conditionalPanel(
       condition = "input.use_py_cutoff == true",
-      selectizeInput(
-        "py_version_cutoff",
-        label = NULL,
-        choices = NULL
-      )
+      uiOutput("py_version_selector")
     ),
 
     checkboxInput(
       "use_quarto_cutoff",
-      label = "Quarto older than…",
+      label = "Quarto Versions",
       value = FALSE
     ),
     conditionalPanel(
       condition = "input.use_quarto_cutoff == true",
-      selectizeInput(
-        "quarto_version_cutoff",
-        label = NULL,
-        choices = NULL
-      )
+      uiOutput("quarto_version_selector")
     ),
 
     h5("Filters"),
@@ -167,11 +159,13 @@ server <- function(input, output, session) {
       )
   })
 
-  # Reactive value to store selected R version
+  # Reactive values to store selected versions
   selected_r_version <- reactiveVal()
+  selected_py_version <- reactiveVal()
+  selected_quarto_version <- reactiveVal()
 
   # Version selector helpers
-  create_r_version_buttons <- function(versions, selected_version) {
+  create_version_buttons <- function(runtime, versions, selected_version) {
     if (length(versions) == 0) {
       return(NULL)
     }
@@ -179,8 +173,11 @@ server <- function(input, output, session) {
     div(
       class = "version-selector",
       lapply(versions, function(version) {
-        is_selected <- !is.null(selected_version) && version <= selected_version
-        is_max <- !is.null(selected_version) && version == selected_version
+        # Use proper version comparison instead of string comparison
+        is_selected <- !is.null(selected_version) &&
+                      as.numeric_version(version) <= as.numeric_version(selected_version)
+        is_max <- !is.null(selected_version) &&
+                 as.numeric_version(version) == as.numeric_version(selected_version)
 
         # Three possible states: not selected, selected below max, or the max version
         btn_class <- if (!is_selected) {
@@ -192,7 +189,7 @@ server <- function(input, output, session) {
         }
 
         actionButton(
-          inputId = paste0("r_version_", gsub("\\.", "_", version)),
+          inputId = paste0(runtime, "_version_", gsub("\\.", "_", version)),
           label = version,
           class = btn_class
         )
@@ -203,7 +200,15 @@ server <- function(input, output, session) {
   # Generate the version selector UI
   output$r_version_selector <- renderUI({
     rv <- levels(content()$r_version)
-    create_r_version_buttons(rv, selected_r_version())
+    create_version_buttons("r", rv, selected_r_version())
+  })
+  output$py_version_selector <- renderUI({
+    pv <- levels(content()$py_version)
+    create_version_buttons("py", pv, selected_py_version())
+  })
+  output$quarto_version_selector <- renderUI({
+    qv <- levels(content()$quarto_version)
+    create_version_buttons("quarto", qv, selected_quarto_version())
   })
 
   # Initialize with content and set default selected versions
@@ -214,30 +219,21 @@ server <- function(input, output, session) {
       pv <- levels(content()$py_version)
       qv <- levels(content()$quarto_version)
 
-      # Set initial R version (highest available)
+      # Set initial versions (highest available)
       if (length(rv) > 0) {
         selected_r_version(rv[length(rv)])
       }
-
-      # Use the highest version for Python and Quarto (still using selectizeInput)
-      updateSelectizeInput(
-        session,
-        "py_version_cutoff",
-        choices = I(pv),
-        selected = if (length(pv) > 0) pv[length(pv)] else NULL
-      )
-
-      updateSelectizeInput(
-        session,
-        "quarto_version_cutoff",
-        choices = I(qv),
-        selected = if (length(qv) > 0) qv[length(qv)] else NULL
-      )
+      if (length(pv) > 0) {
+        selected_py_version(pv[length(pv)])
+      }
+      if (length(qv) > 0) {
+        selected_quarto_version(qv[length(qv)])
+      }
     },
     ignoreNULL = TRUE
   )
 
-  # Handle button clicks for R version selection
+  # Create button click handlers for version selection
   observe({
     rv <- levels(content()$r_version)
 
@@ -247,6 +243,34 @@ server <- function(input, output, session) {
         input[[btn_id]],
         {
           selected_r_version(version)
+        },
+        ignoreInit = TRUE
+      )
+    })
+  })
+  observe({
+    pv <- levels(content()$py_version)
+
+    lapply(pv, function(version) {
+      btn_id <- paste0("py_version_", gsub("\\.", "_", version))
+      observeEvent(
+        input[[btn_id]],
+        {
+          selected_py_version(version)
+        },
+        ignoreInit = TRUE
+      )
+    })
+  })
+  observe({
+    qv <- levels(content()$quarto_version)
+
+    lapply(qv, function(version) {
+      btn_id <- paste0("quarto_version_", gsub("\\.", "_", version))
+      observeEvent(
+        input[[btn_id]],
+        {
+          selected_quarto_version(version)
         },
         ignoreInit = TRUE
       )
@@ -309,17 +333,17 @@ server <- function(input, output, session) {
           (input$use_r_cutoff &
             r_version <= selected_r_version()) |
           (input$use_py_cutoff &
-            py_version < input$py_version_cutoff) |
+            py_version <= selected_py_version()) |
           (input$use_quarto_cutoff &
-            quarto_version < input$quarto_version_cutoff)
+            quarto_version <= selected_quarto_version())
         )
     }
   })
 
   output$selected_versions_html <- renderUI({
     rv <- selected_r_version()
-    pv <- input$py_version_cutoff
-    qv <- input$quarto_version_cutoff
+    pv <- selected_py_version()
+    qv <- selected_quarto_version()
 
     # Get the total count of filtered content
     total_count <- nrow(content_matching())
@@ -345,7 +369,7 @@ server <- function(input, output, session) {
 
       py_count <- if (input$use_py_cutoff) {
         nrow(
-          content_table_data() |> filter(py_version < input$py_version_cutoff)
+          content_table_data() |> filter(py_version <= selected_py_version())
         )
       } else {
         0
@@ -354,7 +378,7 @@ server <- function(input, output, session) {
       quarto_count <- if (input$use_quarto_cutoff) {
         nrow(
           content_table_data() |>
-            filter(quarto_version < input$quarto_version_cutoff)
+            filter(quarto_version <= selected_quarto_version())
         )
       } else {
         0
@@ -363,17 +387,17 @@ server <- function(input, output, session) {
       li_items <- list()
       if (input$use_r_cutoff) {
         li_items[[length(li_items) + 1]] <- tags$li(HTML(glue::glue(
-          "R version {rv} and earlier ({r_count} items)"
+          "R version <span class='number-pre'>{rv}</span> and earlier ({r_count} items)"
         )))
       }
       if (input$use_py_cutoff) {
         li_items[[length(li_items) + 1]] <- tags$li(HTML(glue::glue(
-          "Python older than <span class='number-pre'>{pv}</span> ({py_count} items)"
+          "Python version <span class='number-pre'>{pv}</span> and earlier ({py_count} items)"
         )))
       }
       if (input$use_quarto_cutoff) {
         li_items[[length(li_items) + 1]] <- tags$li(HTML(glue::glue(
-          "Quarto older than <span class='number-pre'>{qv}</span> ({quarto_count} items)"
+          "Quarto version <span class='number-pre'>{qv}</span> and earlier ({quarto_count} items)"
         )))
       }
 
