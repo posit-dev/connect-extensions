@@ -16,7 +16,8 @@
     "shiny",
     "fastapi",
     "mcp",
-    "llm"
+    "llm",
+    "chat"
   ],
   "requiredFeatures": [
     "API Publishing",
