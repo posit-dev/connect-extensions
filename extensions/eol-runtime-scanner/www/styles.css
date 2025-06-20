@@ -34,6 +34,16 @@
   transition: all 0.15s ease-in-out;
 }
 
+/* Server version styling */
+.btn-version.server-version {
+  font-weight: bold;
+}
+
+/* Non-server version styling - make it italic */
+.btn-version:not(.server-version) {
+  font-style: italic;
+}
+
 /* Selected versions */
 .btn-version.selected {
   background-color: #447099; /* Posit Blue */

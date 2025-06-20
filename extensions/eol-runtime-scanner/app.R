@@ -39,26 +39,6 @@ app_mode_lookup <- with(
   setNames(as.character(ind), values)
 )
 
-# Helper function to style versions based on server availability
-style_version_by_availability <- function(server_versions) {
-  function(value) {
-    value_str <- as.character(value)
-    if (!is.na(value_str)) {
-      # Check if version doesn't exist in server versions
-      if (!(value_str %in% server_versions)) {
-        return(list(
-          color = "#7D1A03", # Red color for versions not on server
-          fontWeight = "bold",
-          background = "#FFF0F0" # Light red background
-        ))
-      } else {
-        return(list(
-          color = "#276749" # Green color for versions on server
-        ))
-      }
-    }
-  }
-}
 
 # Shiny app definition
 
@@ -73,9 +53,8 @@ ui <- page_sidebar(
     open = TRUE,
     width = 275,
 
-    tags$div(
-      style = "display: flex; align-items: center; gap: 0.25rem;",
-      h5("Scan for Runtimes", style = "margin: 0;"),
+    h5(
+      "Scan for Runtimes",
       tooltip(
         bsicons::bs_icon("question-circle-fill"),
         paste0(
@@ -140,12 +119,6 @@ ui <- page_sidebar(
       "show_guid",
       label = "Show GUIDs"
     ),
-
-    checkboxInput(
-      "highlight_stale_builds",
-      "Highlight stale builds",
-      value = FALSE
-    )
   ),
 
   uiOutput("selected_versions_html"),
@@ -199,22 +172,37 @@ server <- function(input, output, session) {
       return(NULL)
     }
 
+    # Get server versions for this runtime
+    server_vers <- server_versions()
+    server_versions_for_runtime <- server_vers |>
+      filter(runtime == ifelse(runtime == "py", "python", runtime)) |>
+      pull(version)
+
     div(
       class = "version-selector",
       lapply(versions, function(version) {
+        # Check if this version is available on server
+        is_server_version <- version %in% server_versions_for_runtime
+
         # Use proper version comparison instead of string comparison
         is_selected <- !is.null(selected_version) &&
           as.numeric_version(version) <= as.numeric_version(selected_version)
         is_max <- !is.null(selected_version) &&
           as.numeric_version(version) == as.numeric_version(selected_version)
 
+        # Determine button class based on selection state and server availability
+        base_class <- "btn-version"
+        if (is_server_version) {
+          base_class <- paste(base_class, "server-version")
+        }
+
         # Three possible states: not selected, selected below max, or the max version
         btn_class <- if (!is_selected) {
-          "btn-version"
+          base_class
         } else if (is_max) {
-          "btn-version selected max"
+          paste(base_class, "selected max")
         } else {
-          "btn-version selected"
+          paste(base_class, "selected")
         }
 
         actionButton(
@@ -521,31 +509,16 @@ server <- function(input, output, session) {
           name = "R",
           width = 100,
           class = "number-pre",
-          style = if (input$highlight_stale_builds) {
-            style_version_by_availability(r_server_vers)
-          } else {
-            NULL
-          }
         ),
         py_version = colDef(
           name = "Python",
           width = 100,
           class = "number-pre",
-          style = if (input$highlight_stale_builds) {
-            style_version_by_availability(py_server_vers)
-          } else {
-            NULL
-          }
         ),
         quarto_version = colDef(
           name = "Quarto",
           width = 100,
           class = "number-pre",
-          style = if (input$highlight_stale_builds) {
-            style_version_by_availability(quarto_server_vers)
-          } else {
-            NULL
-          }
         ),
 
         hits = colDef(
