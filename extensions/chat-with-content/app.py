@@ -7,10 +7,11 @@ import boto3
 import markdownify
 from shiny import App, Session, ui, reactive, render
 
+
 def fetch_connect_content_list():
     client = connect.Client()
     content_list: list[ContentItem] = client.content.find()
-    app_modes = [ 'jupyter-static', 'quarto-static', 'rmd-static', 'static' ]
+    app_modes = ["jupyter-static", "quarto-static", "rmd-static", "static"]
     filtered_content_list = []
     for content in content_list:
         if content.app_mode in app_modes and content.access_type == "all":
@@ -18,17 +19,15 @@ def fetch_connect_content_list():
 
     return filtered_content_list
 
+
 app_ui = ui.page_sidebar(
     # Sidebar with content selector and chat
     ui.sidebar(
         ui.panel_title("Chat with content"),
-        ui.p("Use this app to select content and ask questions about it. It currently supports public, static/rendered content."),
-        ui.input_select(
-            "content_selection",
-            "",
-            choices=[],
-            width="100%"
+        ui.p(
+            "Use this app to select content and ask questions about it. It currently supports public, static/rendered content."
         ),
+        ui.input_select("content_selection", "", choices=[], width="100%"),
         ui.output_ui("view_content"),
         ui.chat_ui(
             "chat",
@@ -36,7 +35,7 @@ app_ui = ui.page_sidebar(
             width="100%",
         ),
         width="33%",
-        style="height: 100vh; overflow-y: auto;"
+        style="height: 100vh; overflow-y: auto;",
     ),
     # Main panel with iframe
     ui.tags.iframe(
@@ -44,7 +43,7 @@ app_ui = ui.page_sidebar(
         src="about:blank",
         width="100%",
         height="100%",
-        style="border: none;"
+        style="border: none;",
     ),
     # Add JavaScript to handle iframe updates and content extraction
     ui.tags.script("""
@@ -59,8 +58,9 @@ app_ui = ui.page_sidebar(
             };
         });
     """),
-    fillable=True
+    fillable=True,
 )
+
 
 def server(input, output, session: Session):
     # Initialize chat and reactive values
@@ -72,13 +72,12 @@ def server(input, output, session: Session):
     @reactive.Effect
     def _():
         content_list = fetch_connect_content_list()
-        content_choices = {item.guid: f"{item.name} ({item.app_mode})" for item in content_list}
+        content_choices = {
+            item.guid: f"{item.name} ({item.app_mode})" for item in content_list
+        }
         ui.update_select(
             "content_selection",
-            choices={
-                "": "Select content",
-                **content_choices
-            },
+            choices={"": "Select content", **content_choices},
         )
 
     # Update iframe when content selection changes
@@ -86,9 +85,11 @@ def server(input, output, session: Session):
     @reactive.event(input.content_selection)
     async def _():
         if input.content_selection() and input.content_selection() != "":
-            content_url = f"{os.environ.get('CONNECT_SERVER')}content/{input.content_selection()}"
-            await session.send_custom_message('update-iframe', {'url': content_url})
-   
+            content_url = (
+                f"{os.environ.get('CONNECT_SERVER')}content/{input.content_selection()}"
+            )
+            await session.send_custom_message("update-iframe", {"url": content_url})
+
     # Update the view content button URL
     @render.ui
     @reactive.event(input.content_selection)
@@ -107,7 +108,9 @@ def server(input, output, session: Session):
     @reactive.event(input.iframe_content)
     async def _():
         if input.iframe_content():
-            markdown = markdownify.markdownify(input.iframe_content(), heading_style="atx")
+            markdown = markdownify.markdownify(
+                input.iframe_content(), heading_style="atx"
+            )
             current_markdown.set(markdown)
 
             chat._turns = [
@@ -115,7 +118,9 @@ def server(input, output, session: Session):
                 Turn(role="user", contents=f"<context>{markdown}</context>"),
             ]
 
-            response = await chat.stream_async("""Write a brief "### Summary" of the content.""")
+            response = await chat.stream_async(
+                """Write a brief "### Summary" of the content."""
+            )
             await chat_obj.append_message_stream(response)
 
     # Handle chat messages
@@ -123,6 +128,7 @@ def server(input, output, session: Session):
     async def _(message):
         response = await chat.stream_async(message)
         await chat_obj.append_message_stream(response)
+
 
 def init_chat() -> ChatBedrockAnthropic:
     """Initialize the ChatBedrockAnthropic instance with AWS credentials"""
@@ -167,5 +173,6 @@ def init_chat() -> ChatBedrockAnthropic:
         aws_secret_key=aws_creds["aws_secret_access_key"],
         aws_session_token=aws_creds["aws_session_token"],
     )
+
 
 app = App(app_ui, server)
