@@ -29,11 +29,6 @@
       "API Publishing"
     ],
     "minimumConnectVersion": "2025.04.0",
-    "environment": {
-      "python": {
-        "requires": ">=3.10"
-      }
-    },
     "version": "0.0.1"
   },
   "files": {
@@ -42,6 +37,9 @@
     },
     "main.py": {
       "checksum": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "index.html.jinja": {
+      "checksum": "eb078517ea04264c8578e0e55afb7685"
     }
   }
 }

@@ -109,14 +109,11 @@ If a user's request would require multiple tool calls, create a plan of action f
     chat_ui = ui.Chat("chat")
 
     @chat_ui.on_user_submit
-    async def _():
-        user_input = chat_ui.user_input()
-        if user_input is None:
-            return
+    async def _(user_input: str):
         await chat_ui.append_message_stream(
             await chat.stream_async(
                 user_input,
-                # echo="all",
+                content="all",
             )
         )
 
