@@ -33,6 +33,19 @@ services:
       - CONNECT_BOOTSTRAP_SECRETKEY=${CONNECT_BOOTSTRAP_SECRETKEY}
       - CONNECT_APPLICATIONS_PACKAGEAUDITINGENABLED=true
       - CONNECT_API_KEY  # The API key generated from the Makefile test target
+      # Connect configuration overrides https://docs.posit.co/connect/admin/appendix/configuration/#environment-variables
+      - CONNECT_SERVER_SENDEREMAIL=no-reply@example.com
+      - CONNECT_SERVER_EMAILPROVIDER=SMTP
+      - CONNECT_SMTP_HOST=mailhog
+      - CONNECT_SMTP_PORT=1025
+      - CONNECT_SMTP_TLS=false
+      - CONNECT_SMTP_USER=
+      - CONNECT_SMTP_PASSWORD=
+    depends_on:
+      mailhog:
+        condition: service_healthy
+    ports:
+      - "3939:3939"
     networks:
       - test
     privileged: true
@@ -41,10 +54,26 @@ services:
       - ./license.lic:/var/lib/rstudio-connect/rstudio-connect.lic:ro
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:3939"]
-      interval: 10s
+      interval: 5s
       timeout: 5s
       retries: 3
-      start_period: 30s
+      start_period: 5s
+
+  # Logs basic email envelope information to stdout, provides an optional UI if you need to read the full messages
+  mailhog:
+    image: mailhog/mailhog:latest
+    container_name: connect-extensions-mailhog
+    ports:
+      - "1025:1025"  # SMTP server port
+      - "8025:8025"  # Web UI port
+    networks:
+      - test
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "--quiet", "http://localhost:8025"]
+      interval: 5s
+      timeout: 5s
+      retries: 3
+      start_period: 5s
 
 networks:
   test:
