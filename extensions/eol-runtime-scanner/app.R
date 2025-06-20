@@ -175,9 +175,9 @@ server <- function(input, output, session) {
       lapply(versions, function(version) {
         # Use proper version comparison instead of string comparison
         is_selected <- !is.null(selected_version) &&
-                      as.numeric_version(version) <= as.numeric_version(selected_version)
+          as.numeric_version(version) <= as.numeric_version(selected_version)
         is_max <- !is.null(selected_version) &&
-                 as.numeric_version(version) == as.numeric_version(selected_version)
+          as.numeric_version(version) == as.numeric_version(selected_version)
 
         # Three possible states: not selected, selected below max, or the max version
         btn_class <- if (!is_selected) {
@@ -351,64 +351,86 @@ server <- function(input, output, session) {
     if (
       all(!input$use_r_cutoff, !input$use_py_cutoff, !input$use_quarto_cutoff)
     ) {
-      tagList(
-        tags$p(
-          glue::glue("Showing {total_count} items.")
-        ),
-        tags$p(
-          "Please select cutoff versions of R, Python, or Quarto."
-        )
-      )
-    } else {
-      # Calculate counts for each runtime version filter
-      r_count <- if (input$use_r_cutoff) {
-        nrow(content_table_data() |> filter(r_version <= selected_r_version()))
-      } else {
-        0
-      }
+      return(tagList(
+        tags$p(glue::glue("Showing {total_count} items.")),
+        tags$p("Please select cutoff versions of R, Python, or Quarto.")
+      ))
+    }
 
-      py_count <- if (input$use_py_cutoff) {
-        nrow(
-          content_table_data() |> filter(py_version <= selected_py_version())
-        )
-      } else {
-        0
-      }
+    # Count active filters
+    active_filters <- sum(
+      input$use_r_cutoff,
+      input$use_py_cutoff,
+      input$use_quarto_cutoff
+    )
 
-      quarto_count <- if (input$use_quarto_cutoff) {
-        nrow(
-          content_table_data() |>
-            filter(quarto_version <= selected_quarto_version())
-        )
-      } else {
-        0
-      }
-
-      li_items <- list()
+    # Single filter case
+    if (active_filters == 1) {
       if (input$use_r_cutoff) {
-        li_items[[length(li_items) + 1]] <- tags$li(HTML(glue::glue(
-          "R version <span class='number-pre'>{rv}</span> and earlier ({r_count} items)"
-        )))
+        return(tags$p(HTML(glue::glue(
+          "Showing {total_count} items using R version <span class='number-pre'>{rv}</span> and earlier."
+        ))))
       }
       if (input$use_py_cutoff) {
-        li_items[[length(li_items) + 1]] <- tags$li(HTML(glue::glue(
-          "Python version <span class='number-pre'>{pv}</span> and earlier ({py_count} items)"
-        )))
+        return(tags$p(HTML(glue::glue(
+          "Showing {total_count} items using Python version <span class='number-pre'>{pv}</span> and earlier."
+        ))))
       }
       if (input$use_quarto_cutoff) {
-        li_items[[length(li_items) + 1]] <- tags$li(HTML(glue::glue(
-          "Quarto version <span class='number-pre'>{qv}</span> and earlier ({quarto_count} items)"
-        )))
+        return(tags$p(HTML(glue::glue(
+          "Showing {total_count} items using Quarto version <span class='number-pre'>{qv}</span> and earlier."
+        ))))
       }
-
-      tagList(
-        tags$p(glue::glue("Showing {total_count} items with any of:")),
-        tags$ul(
-          style = "margin-top: 0.25rem; margin-bottom: 0.5rem;",
-          tagList(li_items)
-        )
-      )
     }
+
+    # Multiple filters case
+    # Calculate counts for each runtime version filter
+    r_count <- if (input$use_r_cutoff) {
+      nrow(content_table_data() |> filter(r_version <= selected_r_version()))
+    } else {
+      0
+    }
+
+    py_count <- if (input$use_py_cutoff) {
+      nrow(content_table_data() |> filter(py_version <= selected_py_version()))
+    } else {
+      0
+    }
+
+    quarto_count <- if (input$use_quarto_cutoff) {
+      nrow(
+        content_table_data() |>
+          filter(quarto_version <= selected_quarto_version())
+      )
+    } else {
+      0
+    }
+
+    # Create list items for multiple filters
+    li_items <- list()
+    if (input$use_r_cutoff) {
+      li_items[[length(li_items) + 1]] <- tags$li(HTML(glue::glue(
+        "R version <span class='number-pre'>{rv}</span> and earlier ({r_count} items)"
+      )))
+    }
+    if (input$use_py_cutoff) {
+      li_items[[length(li_items) + 1]] <- tags$li(HTML(glue::glue(
+        "Python version <span class='number-pre'>{pv}</span> and earlier ({py_count} items)"
+      )))
+    }
+    if (input$use_quarto_cutoff) {
+      li_items[[length(li_items) + 1]] <- tags$li(HTML(glue::glue(
+        "Quarto version <span class='number-pre'>{qv}</span> and earlier ({quarto_count} items)"
+      )))
+    }
+
+    tagList(
+      tags$p(glue::glue("Showing {total_count} items using any of:")),
+      tags$ul(
+        style = "margin-top: 0.25rem; margin-bottom: 0.5rem;",
+        tagList(li_items)
+      )
+    )
   })
 
   output$content_table <- renderReactable({
