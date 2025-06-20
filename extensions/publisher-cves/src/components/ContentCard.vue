@@ -72,6 +72,7 @@ const vulnerabilityText = computed(() => {
 // Handle card click
 function handleClick() {
   contentStore.currentContentId = props.content.guid;
+  scrollTo({ top: 0, left: 0, behavior: "instant" });
 }
 </script>
 
