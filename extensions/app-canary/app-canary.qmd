@@ -104,11 +104,17 @@ if not show_instructions:
         content = get_content(guid)
         app_name = content.get("title", "Unknown")
         
-        # Extract content_url if available
+        # Extract URLs
         dashboard_url = content.get("dashboard_url", "")
+        content_url = content.get("content_url", "")
         
         try:
-            app_url = f"{connect_server}/content/{guid}"
+            # Use the content_url if available, otherwise construct one so we get a proper status code
+            if content_url:
+                app_url = content_url
+            else:
+                # Likely hit error condition in get_content() thus no content_url available
+                app_url = f"{connect_server}/content/{guid}"
             app_response = requests.get(
                 app_url, 
                 headers=headers,
