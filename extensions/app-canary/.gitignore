@@ -1,15 +1,13 @@
+# Quarto
 /.quarto/
-
 /_*.local
-
 app-canary.html
-
 /email-preview
-
 .output_metadata.json
-
 preview.html
+*.quarto_ipynb
 
+# Local dev
 /.posit/
-
 .envrc
+.python-version
