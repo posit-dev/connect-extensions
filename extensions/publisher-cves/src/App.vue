@@ -24,8 +24,8 @@ const loadingMessage = "Fetching content and vulnerabilities...";
     />
     <main v-else class="flex-1 p-4 md:p-8 bg-gray-100">
       <div class="max-w-4xl mx-auto">
-        <ContentList v-if="!contentStore.currentContentId" />
-        <VulnerabilityChecker v-else />
+        <VulnerabilityChecker v-if="contentStore.currentContentId" />
+        <ContentList v-else />
       </div>
     </main>
 
