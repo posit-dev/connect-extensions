@@ -1,4 +1,15 @@
-# Connect Insights Dashboard
+# Connect User Metrics Dashboard
+
+Connect User Metrics makes it easy to monitor **application adoption**,
+track **user engagement** and access detailed **usage analytics**
+for all your Shiny applications deployed on Posit Connect.
+Some key features:
+
+- **Time-based analysis**: View data by day, week, or month across custom time periods
+- **Flexible grouping**: Combine metrics by application, user, and date for different perspectives
+- **Interactive charts**: Visualize session counts and unique users with dynamic filtering
+- **Smart filtering**: Set minimum session duration and filter by specific apps or users
+- **Data export**: Download raw and aggregated data as CSV files for further analysis
 
 ## Environment Variables
 
@@ -47,7 +58,7 @@ As with environment variables, the [Instrumentation] feature is also configurabl
 Confirm with your Posit Connect admin that instrumentation is enabled.
 
 <!-- Links -->
-[User Guide Vars]: https://docs.posit.com/connect/user/content-settings/#content-vars  
+[User Guide Vars]: https://docs.posit.co/connect/user/content-settings/#content-vars  
 [rsconnect-auth]: https://go.appsilon.com/why-use-rstudio-connect-authentication-user-metrics-app  
 [Configuration appendix]: https://docs.posit.co/connect/admin/appendix/configuration/  
 [DefaultServerEnv]: https://docs.posit.co/connect/admin/appendix/configuration/#Applications.DefaultServerEnv  
