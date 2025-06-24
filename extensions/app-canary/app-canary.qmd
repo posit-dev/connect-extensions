@@ -121,7 +121,7 @@ if not show_instructions:
         # Get app details
         content = get_content(guid)
         app_name = content.get("title", "")
-        # Name is optional, if not set use title
+        # Title is optional, if not set use name
         if not app_name:
             app_name = content.get("name", "")
         
