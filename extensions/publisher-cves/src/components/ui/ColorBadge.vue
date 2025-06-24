@@ -1,0 +1,18 @@
+<script setup lang="ts">
+defineProps<{
+  type: "success" | "error" | "neutral";
+}>();
+</script>
+
+<template>
+  <span
+    class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ring-1 ring-inset"
+    :class="{
+      'bg-red-50 text-red-700 ring-red-600/10': type === 'error',
+      'bg-green-50 text-green-700 ring-green-600/20': type === 'success',
+      'bg-gray-50 text-gray-600 ring-gray-500/10': type === 'neutral',
+    }"
+  >
+    <slot></slot>
+  </span>
+</template>

@@ -312,6 +312,7 @@ if not show_instructions and not df.empty:
                 container_width="100%"
               )
               )
+
 elif show_instructions:
     # Create a callout box for instructions
     instructions_html = ""
