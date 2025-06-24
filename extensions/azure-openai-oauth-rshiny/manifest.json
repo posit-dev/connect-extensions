@@ -10,10 +10,10 @@
     "has_parameters": false
   },
   "extension": {
-    "name": "rshiny-chat-app",
+    "name": "azure-openai-oauth-rshiny",
     "title": "R Shiny Azure OpenAI OAuth Integration Example",
-    "description": "An R Shiny app with a chat bar that answers questions about the Palmer Penguins dataset",
-    "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/rshiny-chat-app",
+    "description": "An R Shiny app with an Azure OpenAI OAuth Integration that answers questions about the Palmer Penguins dataset",
+    "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/azure-openai-oauth-rshiny",
     "category": "example",
     "tags": ["r", "shiny"],
     "minimumConnectVersion": "2025.06.0",

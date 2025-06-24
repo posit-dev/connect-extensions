@@ -1,4 +1,4 @@
-# R Shiny Chat App
+# R Shiny App using an Azure OpenAI OAuth Integration
 
 An R Shiny app that uses `ellmer` and `shinychat` to create an interactive chat interface that answers questions about the `palmerpenguins` dataset. The app demonstrates the OAuth credential handoff made possible by the Azure OpenAI OAuth integration which gives the shiny app access to Azure OpenAI resources.
 
