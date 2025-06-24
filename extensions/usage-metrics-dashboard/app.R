@@ -751,30 +751,30 @@ server <- function(input, output, session) {
   table_js <- "
   function(el, x) {
     const tableId = el.id;
+    const storageKey = 'search_' + tableId;
+    
+    // Clear search value when the page is refreshed
+    window.addEventListener('beforeunload', function() {
+      sessionStorage.removeItem(storageKey);
+    });
 
-    // Initialize global store for search terms if needed
-    if (!window.currentSessionSearches) {
-      window.currentSessionSearches = {};
+    const searchInput = el.querySelector('input.rt-search');
+    if (!searchInput) return;
+
+    // Restore previous search if available
+    const savedSearch = sessionStorage.getItem(storageKey);
+    
+    if (savedSearch) {
+      searchInput.value = savedSearch;
+      if (window.Reactable && typeof window.Reactable.setSearch === 'function') {
+        window.Reactable.setSearch(tableId, savedSearch);
+      }
     }
 
-    setTimeout(function() {
-      const searchInput = el.querySelector('input.rt-search');
-      if (!searchInput) return;
-
-      // Restore previous search if available
-      const savedSearch = window.currentSessionSearches[tableId];
-      if (savedSearch) {
-        searchInput.value = savedSearch;
-        if (window.Reactable && typeof window.Reactable.setSearch === 'function') {
-          window.Reactable.setSearch(tableId, savedSearch);
-        }
-      }
-
-      // Save search terms as they're entered
-      searchInput.addEventListener('input', function() {
-        window.currentSessionSearches[tableId] = this.value;
-      });
-    }, 100);
+    // Save search terms as they're entered
+    searchInput.addEventListener('input', function() {
+      sessionStorage.setItem(storageKey, this.value);
+    });
   }
   "
 
