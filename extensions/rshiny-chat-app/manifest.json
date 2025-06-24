@@ -15,9 +15,9 @@
     "description": "An R Shiny app with a chat bar that answers questions about the Palmer Penguins dataset",
     "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/rshiny-chat-app",
     "category": "example",
-    "tags": ["r", "shiny", "llm", "chat"],
+    "tags": ["r", "shiny"],
     "minimumConnectVersion": "2025.06.0",
-    "requiredFeatures": ["Azure OpenAI OAuth Integration"],
+    "requiredFeatures": ["OAuth Integrations"],
     "version": "0.0.0"
   },
   "environment": {
