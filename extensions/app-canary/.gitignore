@@ -1,5 +1,6 @@
 # Quarto
 /.quarto/
+*.quarto_ipynb
 /_*.local
 app-canary.html
 /email-preview

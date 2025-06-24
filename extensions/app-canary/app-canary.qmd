@@ -7,6 +7,7 @@ format:
 
 ```{python}
 #| echo: false
+#| label: setup
 
 import json
 import os
@@ -49,11 +50,21 @@ else:
 
 # Instantiate a Connect client using posit-sdk where api_key and url are automatically read from our environment vars
 client = connect.Client()
+```
+
+```{python}
+#| echo: false
+#| label: data-gathering
 
 if not show_instructions:
     # Proceed to validate our monitored GUIDS
+
     # Headers for Connect API
-    headers = {"Authorization": f"Key {api_key}"}
+    headers = {
+        "Authorization": f"Key {api_key}",
+        # Set a custom user agent to enable filtering App Canary activity in Connect instrumentation data
+        "User-Agent": "AppCanary/1.0",
+    }
 
     # Check if server is reachable, would only be a potential problem during local dev
     try:
@@ -98,16 +109,56 @@ if not show_instructions:
                 "guid": guid
             }
 
+    def get_user(user_guid):
+        try:
+            user = client.users.get(user_guid)
+            return user
+        except Exception as e:
+            raise RuntimeError(f"Error getting user: {str(e)}")
+
     # Function to validate app health (simple HTTP 200 check)
     def validate_app(guid):
         # Get app details
         content = get_content(guid)
-        app_name = content.get("title", "Unknown")
+
+        app_name = content.get("title", "")
+        # Title is optional, if not set use name
+        if not app_name:
+            app_name = content.get("name", "")
         
-        # Extract URLs
+        # Ensure we have a valid URL
         dashboard_url = content.get("dashboard_url", "")
         content_url = content.get("content_url", "")
+        content_guid = content.get("guid", guid)  # Use the passed guid if not in content
+
+        # Initialize default owner information
+        owner_email = ""
+        owner_full_name = ""
         
+        # Get additional data if we don't have an error when attempting to get the content details
+        if not str(app_name).startswith("ERROR:"):
+            # Get content owner details
+            try:
+                owner_guid = content.get("owner_guid")
+                if owner_guid:
+                    # Get owner details
+                    owner = get_user(owner_guid)
+                    owner_email = owner.get("email", "")
+                    owner_first_name = owner.get("first_name", "")
+                    owner_last_name = owner.get("last_name", "")
+                    owner_full_name = f"{owner_first_name} {owner_last_name}".strip()
+                    if not owner_full_name:  # Handle case where both names are empty
+                        owner_full_name = "Unknown"
+            except Exception as e:
+                # If there's an error getting the owner, keep the defaults
+                print(f"Warning: Could not retrieve owner for {guid}: {str(e)}")
+        
+        # Compose URL to logs if we have a dashboard URL, only owner/editor have access
+        if dashboard_url and content.get("app_role") != "viewer":
+            logs_url = f"{dashboard_url}/logs"
+        else:
+            logs_url = ""
+
         try:
             # Use the content_url if available, otherwise construct one so we get a proper status code
             if content_url:
@@ -123,18 +174,30 @@ if not show_instructions:
             )
             
             return {
+                # App details
                 "guid": guid,
                 "name": app_name,
                 "dashboard_url": dashboard_url,
+                "logs_url": logs_url,
+                # Owner details
+                "owner_name": owner_full_name,
+                "owner_email": owner_email,
+                # Monitoring status
                 "status": "PASS" if app_response.status_code >= 200 and app_response.status_code < 300 else "FAIL",
                 "http_code": app_response.status_code
             }
 
         except Exception as e:
             return {
+                # App details
                 "guid": guid,
                 "name": app_name,
                 "dashboard_url": dashboard_url,
+                "logs_url": logs_url,
+                # Owner details
+                "owner_name": owner_full_name,
+                "owner_email": owner_email,
+                # Monitoring status
                 "status": "FAIL",
                 "http_code": str(e)
             }
@@ -147,21 +210,6 @@ if not show_instructions:
     # Convert results to DataFrame for easy display
     df = pd.DataFrame(results)
 
-    # Reorder columns to put name first
-    # Create a dynamic column order with name first, status and http_code last
-    if 'name' in df.columns:
-        cols = ['name']  # Start with name
-        # Add any other columns except name, status, and http_code
-        middle_cols = [col for col in df.columns if col not in ['name', 'status', 'http_code']]
-        cols.extend(middle_cols)
-        # Add status and http_code at the end
-        if 'status' in df.columns:
-            cols.append('status')
-        if 'http_code' in df.columns:
-            cols.append('http_code')
-        # Reorder the DataFrame
-        df = df[cols]
-
     # Store the current time
     check_time = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
 ```
@@ -169,6 +217,7 @@ if not show_instructions:
 
 ```{python}
 #| echo: false
+#| label: display
 
 about = """<div style="margin-bottom: 10px;">
 This report uses the publisher's API key to monitor a list of application GUIDs, verifies each of the monitored apps are 
@@ -194,22 +243,63 @@ if not show_instructions and not df.empty:
     # First create links for name and guid columns
     df_display = df.copy()
     
-    # Process the DataFrame rows to add HTML links
+    # Process the DataFrame rows to add HTML links and format owner info
     for i in range(len(df_display)):
-        if not pd.isna(df_display.loc[i, 'dashboard_url']) and df_display.loc[i, 'dashboard_url']:
+        # Format app name links only (not guid)
+        if 'dashboard_url' in df_display.columns and not pd.isna(df_display.loc[i, 'dashboard_url']) and df_display.loc[i, 'dashboard_url']:
             url = df_display.loc[i, 'dashboard_url']
-            df_display.loc[i, 'name'] = f"<a href='{url}' target='_blank'>{df_display.loc[i, 'name']}</a>"
-            df_display.loc[i, 'guid'] = f"<a href='{url}' target='_blank'>{df_display.loc[i, 'guid']}</a>"
+            app_name = df_display.loc[i, 'name']
+            app_guid = df_display.loc[i, 'guid']
+            
+            # Create simple markdown link for name only
+            df_display.loc[i, 'name'] = f"<a href='{url}' target='_blank'>{app_name}</a>"
+        
+        # Format logs URL using markdown instead of HTML (similar to owner email)
+        if 'logs_url' in df_display.columns and df_display.loc[i, 'logs_url'] is not None and str(df_display.loc[i, 'logs_url']).strip():
+            # Use a simple icon since we can't use custom SVG in emails easily
+            logs_icon = "📋"
+            logs_url = df_display.loc[i, 'logs_url']
+            df_display.loc[i, 'logs'] = f"<a href='{logs_url}' target='_blank' style='text-decoration:none;'>{logs_icon}</a>"
+
+        else:
+            df_display.loc[i, 'logs'] = ""
+
+        # Format owner name with email icon link
+        owner_name = df_display.loc[i, 'owner_name'] if not pd.isna(df_display.loc[i, 'owner_name']) else "Unknown"
+        owner_email = df_display.loc[i, 'owner_email'] if not pd.isna(df_display.loc[i, 'owner_email']) else ""
+        
+        if owner_email:
+            # Use a simple icon since we can't use custom SVG in emails easily
+            email_icon = "✉️"
+            df_display.loc[i, 'owner_display'] = f"{owner_name} <a href='mailto:{owner_email}' style='text-decoration:none;'>{email_icon}</a>"
+        else:
+            df_display.loc[i, 'owner_display'] = owner_name
     
     # Remove dashboard_url column since the links are embedded in the other columns
     if 'dashboard_url' in df_display.columns:
         df_display = df_display.drop(columns=['dashboard_url'])
     
+    # Remove raw owner columns in favor of our formatted display column
+    if 'owner_name' in df_display.columns:
+        df_display = df_display.drop(columns=['owner_name'])
+    if 'owner_email' in df_display.columns:
+        df_display = df_display.drop(columns=['owner_email'])
+    
+    # Reorder columns to match requested layout
+    column_order = ['name', 'guid', 'status', 'http_code', 'logs', 'owner_display']
+    # Only include columns that exist in df_display
+    ordered_columns = [col for col in column_order if col in df_display.columns]
+    df_display = df_display[ordered_columns]
+    
     # Create GT table
     gt_tbl = GT(df_display)
     
-    # Apply styling to status column
+    # Tell great_tables to render markdown content in these columns
+    gt_tbl = gt_tbl.fmt_markdown(columns=['name', 'owner_display', 'logs'])
+    
+    # Apply styling to columns
     gt_tbl = (gt_tbl
+              # Status column styling - green for PASS, red for FAIL
               .tab_style(
                   style.fill("green"),
                   locations=loc.body(columns="status", rows=lambda df: df["status"] == "PASS")
@@ -217,10 +307,30 @@ if not show_instructions and not df.empty:
               .tab_style(
                   style.fill("red"),
                   locations=loc.body(columns="status", rows=lambda df: df["status"] == "FAIL")
-              ))
+              )
+              # Set column labels for better presentation
+              .cols_label(
+                  owner_display="Owner",
+                  name="Name",
+                  guid="Content GUID",
+                  status="Status",
+                  http_code="HTTP Code",
+                  logs="Logs"
+              )
+              # Override default column alignment for better presentation
+              .cols_align(
+                align='center', 
+                columns=["status", "http_code", "logs"]
+              )
+              .tab_options(
+                container_width="100%"
+              )
+              )
+
 elif show_instructions:
     # Create a callout box for instructions
     instructions_html = about  # Start with the about message
+
     for instruction in instructions:
         instructions_html += f"<div style='margin-bottom: 10px;'>{instruction}</div>"
     
