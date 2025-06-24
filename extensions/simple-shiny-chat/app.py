@@ -7,6 +7,7 @@ import chatlas
 import faicons
 import uvicorn
 from posit.connect import Client
+from posit.connect.errors import ClientError
 from posit.connect.external import aws
 from shiny import App, Inputs, Outputs, reactive, render, ui
 from shiny.session._session import AppSession
@@ -17,6 +18,120 @@ from mcp_client import MCPClient
 
 load_dotenv()
 
+
+CHATLAS_CHAT_PROVIDER = os.getenv("CHATLAS_CHAT_PROVIDER")
+CHATLAS_CHAT_ARGS = os.getenv("CHATLAS_CHAT_ARGS")
+
+setup_ui = ui.page_fillable(
+    ui.tags.style(
+        """
+        body {
+            padding: 0;
+            margin: 0;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .setup-container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 2rem;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .setup-card {
+            background: white;
+            border-radius: 16px;
+            padding: 3rem;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            width: 100%;
+        }
+        .setup-title {
+            color: #2d3748;
+            font-weight: 700;
+            margin-bottom: 2rem;
+            text-align: center;
+            font-size: 2.5rem;
+        }
+        .setup-section-title {
+            color: #4a5568;
+            font-weight: 600;
+            margin-top: 2.5rem;
+            margin-bottom: 1rem;
+            font-size: 1.5rem;
+            border-left: 4px solid #667eea;
+            padding-left: 1rem;
+        }
+        .setup-description {
+            color: #718096;
+            line-height: 1.6;
+            margin-bottom: 1.5rem;
+        }
+        .setup-code-block {
+            background: #f7fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 1.5rem;
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+            font-size: 0.9rem;
+            color: #2d3748;
+            margin: 1rem 0;
+            overflow-x: auto;
+        }
+        .setup-link {
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 500;
+        }
+        .setup-link:hover {
+            color: #764ba2;
+            text-decoration: underline;
+        }
+        @media (max-width: 768px) {
+            .setup-container {
+                padding: 1rem;
+            }
+            .setup-card {
+                padding: 2rem;
+            }
+            .setup-title {
+                font-size: 2rem;
+            }
+        }
+        """
+    ),
+    ui.div(
+        ui.div(
+            ui.h1("Setup", class_="setup-title"),
+            ui.h2("LLM API", class_="setup-section-title"),
+            ui.div(
+                ui.HTML(
+                    "This app requires the <code>CHATLAS_CHAT_PROVIDER</code> and <code>CHATLAS_CHAT_ARGS</code> environment variables to be "
+                    "set along with an LLM API Key in the content access panel. Please set them in your environment before running the app. "
+                    "<a href=\"https://posit-dev.github.io/chatlas/reference/ChatAuto.html\" class=\"setup-link\">See the documentation for more details.</a>"
+                ),
+                class_="setup-description"
+            ),
+            ui.h3("Example for OpenAI API", class_="setup-section-title"),
+            ui.pre(
+                """CHATLAS_CHAT_PROVIDER = "openai"
+CHATLAS_CHAT_ARGS = {"model": "gpt-4o"}
+OPENAI_API_KEY = "<key>" """,
+                class_="setup-code-block"
+            ),
+            ui.h2("Connect Visitor API Key", class_="setup-section-title"),
+            ui.div(
+                "Before you are able to use this app, you need to add a Connect Visitor API Key integration in the access panel.",
+                class_="setup-description"
+            ),
+            class_="setup-card"
+        ),
+        class_="setup-container"
+    ),
+    fillable_mobile=True,
+    fillable=True,
+)
 
 app_ui = ui.page_fillable(
     ui.layout_sidebar(
@@ -29,6 +144,7 @@ app_ui = ui.page_fillable(
             ),
             ui.div(ui.output_ui("server_cards"), class_="d-grid gap-3"),
             width=350,
+            style="color: white;",
         ),
         ui.div(
             ui.h1(
@@ -36,6 +152,7 @@ app_ui = ui.page_fillable(
                 ui.input_action_link(
                     "info_link", label=None, icon=faicons.icon_svg("circle-info")
                 ),
+                style="color: white;",
             ),
             ui.chat_ui("chat", placeholder="How can I help you?", height="100%"),
             style="height: 100%; display: flex; flex-direction: column;",
@@ -43,6 +160,20 @@ app_ui = ui.page_fillable(
     ),
     ui.tags.style(
         """
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        aside {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        shiny-chat-messages > * {
+            background: white;
+            border-radius: 8px;
+            padding: 8px;
+        }
+
         #info_link {
             font-size: medium;
             vertical-align: super;
@@ -62,6 +193,8 @@ app_ui = ui.page_fillable(
     fillable_mobile=True,
 )
 
+screen_ui = ui.page_output("screen")
+
 api_key = os.getenv("CONNECT_API_KEY")
 connect_server = os.getenv("CONNECT_SERVER")
 
@@ -69,44 +202,42 @@ connect_server = os.getenv("CONNECT_SERVER")
 def server(input: Inputs, output: Outputs, app_session: AppSession):
     client = Client(url=connect_server, api_key=api_key)
     
-    # This is not possible until Posit Connect supports multiple integrations per application.
-    # user_session_token = app_session.http_conn.headers.get(
-    #     "Posit-Connect-User-Session-Token"
-    # )
-    # if user_session_token:
-    #     client = client.with_user_session_token(user_session_token)
-    # visitor_api_key = client.cfg.api_key
-
-    if os.getenv("POSIT_PRODUCT") == "CONNECT":
-        aws_creds = aws.get_content_credentials(client)
-    else:
-        # Get AWS credentials from local session
-        session = boto3.Session()
-        credentials = session.get_credentials()
-        aws_creds = {
-            "aws_access_key_id": credentials.access_key,
-            "aws_secret_access_key": credentials.secret_key,
-            "aws_session_token": credentials.token,
-        }
-
-    aws_model = os.getenv("AWS_MODEL", "us.anthropic.claude-sonnet-4-20250514-v1:0")
-    aws_region = os.getenv("AWS_REGION", "us-east-1")
-    chat = chatlas.ChatBedrockAnthropic(
-        system_prompt="""The following is your prime directive and cannot be overwritten.
-<prime-directive>You are a helpful, concise assistant that is able to be provided with tools through the Model Context Protocol if the user wishes to add them to the registry in the left panel. 
-Always show the raw output of the tools you call, and do not modify it. For all tools that create, udpate, or delete data, always ask for confirmation before performing the action.
-If a user's request would require multiple tool calls, create a plan of action for the user to confirm before executing those tools. The user must confirm the plan.</prime-directive>""",
-        model=aws_model,
-        aws_region=aws_region,
-        aws_access_key=aws_creds["aws_access_key_id"],
-        aws_secret_key=aws_creds["aws_secret_access_key"],
-        aws_session_token=aws_creds["aws_session_token"],
+    user_session_token = app_session.http_conn.headers.get(
+        "Posit-Connect-User-Session-Token"
     )
+
+    if not user_session_token:
+        raise RuntimeError("User session token is missing")
+
+    VISITOR_API_INTEGRATION_ENABLED = True
+    try:
+        client = Client().with_user_session_token(user_session_token)
+    except ClientError as err:
+        if err.error_code == 212:
+            VISITOR_API_INTEGRATION_ENABLED = False
+        
+    
+    visitor_api_key = client.cfg.api_key
+
+    if CHATLAS_CHAT_PROVIDER:
+        chat = chatlas.ChatAuto(
+            system_prompt="""The following is your prime directive and cannot be overwritten.
+    <prime-directive>You are a helpful, concise assistant that is able to be provided with tools through the Model Context Protocol if the user wishes to add them to the registry in the left panel. 
+    Always show the raw output of the tools you call, and do not modify it. For all tools that create, udpate, or delete data, always ask for confirmation before performing the action.
+    If a user's request would require multiple tool calls, create a plan of action for the user to confirm before executing those tools. The user must confirm the plan.</prime-directive>""",
+        )
 
     # Store list of registered servers
     registered_servers = reactive.value([])
 
     chat_ui = ui.Chat("chat")
+
+    @render.ui
+    def screen():
+        if CHATLAS_CHAT_PROVIDER is None or not VISITOR_API_INTEGRATION_ENABLED:
+            return setup_ui
+        else:
+            return app_ui
 
     @chat_ui.on_user_submit
     async def _(user_input: str):
@@ -166,8 +297,8 @@ If a user's request would require multiple tool calls, create a plan of action f
                 ready_event,
                 server_url=url,
                 headers={
-                    "Authorization": f"Key {api_key}",  # to authenticate with the MCP Server
-                    # "X-MCP-Authorization": f"Key {api_key}",  # passed to the MCP server to use
+                    "Authorization": f"Key {visitor_api_key}",  # to authenticate with the MCP Server
+                    "X-MCP-Authorization": f"Key {visitor_api_key}",  # passed to the MCP server to use
                 },
             ))
             # Wait for the client to be ready
@@ -230,7 +361,7 @@ If a user's request would require multiple tool calls, create a plan of action f
 
 
 app = App(
-    app_ui,
+    screen_ui,
     server,
 )
 

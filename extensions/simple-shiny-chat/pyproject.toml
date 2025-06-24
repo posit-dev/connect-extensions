@@ -15,3 +15,6 @@ dependencies = [
     "posit-sdk>=0.10.0",
     "shiny>=1.4.0",
 ]
+
+[tool.uv.sources]
+chatlas = { git = "https://github.com/posit-dev/chatlas", rev = "main" }

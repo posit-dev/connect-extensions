@@ -49,38 +49,38 @@ def calculate_summary_statistics(dataset_name: str) -> str:
 
 
 # This tool is unable to be used in conjunction with the Simple Shiny Chat app 
-# @mcp.tool()
-# async def connect_whoami(context: Context) -> str:
-#     """
-#     Calls the Posit Connect /me endpoint using an API key from the Authorization header.
-#     The Authorization header should be in the format: 'Key YOUR_API_KEY'.
-#     """
+@mcp.tool()
+async def connect_whoami(context: Context) -> str:
+    """
+    Calls the Posit Connect /me endpoint using an API key from the Authorization header.
+    The Authorization header should be in the format: 'Key YOUR_API_KEY'.
+    """
 
-#     # context.request is a starlette.requests.Request
-#     http_request = context.request_context.request
-#     if http_request is None:
-#         raise ToolError(
-#             "Request context not available. This tool requires an HTTP-based transport."
-#         )
+    # context.request is a starlette.requests.Request
+    http_request = context.request_context.request
+    if http_request is None:
+        raise ToolError(
+            "Request context not available. This tool requires an HTTP-based transport."
+        )
 
-#     auth_header = http_request.headers.get("x-mcp-authorization")
+    auth_header = http_request.headers.get("x-mcp-authorization")
 
-#     if not auth_header:
-#         raise ToolError("Authorization header is missing.")
+    if not auth_header:
+        raise ToolError("Authorization header is missing.")
 
-#     parts = auth_header.split()
-#     if len(parts) != 2 or parts[0].lower() != "key":
-#         raise ToolError(
-#             "Invalid Authorization header format. Expected 'Key YOUR_API_KEY'."
-#         )
+    parts = auth_header.split()
+    if len(parts) != 2 or parts[0].lower() != "key":
+        raise ToolError(
+            "Invalid Authorization header format. Expected 'Key YOUR_API_KEY'."
+        )
 
-#     api_key = parts[1]
+    api_key = parts[1]
 
-#     try:
-#         connect_client = ConnectClient(api_key=api_key)
-#         return json.dumps(connect_client.me)
-#     except Exception as e:
-#         raise ToolError(f"Error calling Connect API: {str(e)}")
+    try:
+        connect_client = ConnectClient(api_key=api_key)
+        return json.dumps(connect_client.me)
+    except Exception as e:
+        raise ToolError(f"Error calling Connect API: {str(e)}")
 
 
 @contextlib.asynccontextmanager
