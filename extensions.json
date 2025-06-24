@@ -111,6 +111,48 @@
       "tags": []
     },
     {
+      "name": "package-vulnerability-scanner",
+      "title": "Package Vulnerability Scanner",
+      "description": "Scan for security vulnerabilities in your published content on Connect using Posit Package Manager. View an overview of CVEs (Common Vulnerabilities and Exposures) across all your apps, and get guidance on upgrading affected packages.",
+      "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/package-vulnerability-scanner",
+      "latestVersion": {
+        "version": "1.0.0",
+        "released": "2025-06-24T22:14:31Z",
+        "url": "https://github.com/posit-dev/connect-extensions/releases/download/package-vulnerability-scanner%40v1.0.0/package-vulnerability-scanner.tar.gz",
+        "minimumConnectVersion": "2025.04.0",
+        "requiredFeatures": [
+          "API Publishing"
+        ],
+        "requiredEnvironment": {
+          "image": "",
+          "prebuilt": false,
+          "python": {
+            "requires": "~=3.8"
+          }
+        }
+      },
+      "versions": [
+        {
+          "version": "1.0.0",
+          "released": "2025-06-24T22:14:31Z",
+          "url": "https://github.com/posit-dev/connect-extensions/releases/download/package-vulnerability-scanner%40v1.0.0/package-vulnerability-scanner.tar.gz",
+          "minimumConnectVersion": "2025.04.0",
+          "requiredFeatures": [
+            "API Publishing"
+          ],
+          "requiredEnvironment": {
+            "image": "",
+            "prebuilt": false,
+            "python": {
+              "requires": "~=3.8"
+            }
+          }
+        }
+      ],
+      "tags": [],
+      "category": "extension"
+    },
+    {
       "name": "plumbertableau-example",
       "title": "plumbertableau example",
       "description": "plumbertableau is an R package that enables R developers to build Plumber APIs that function as Tableau Analytics Extensions. These extensions can be leveraged from Tableau workbooks to allow real time requests from Tableau to R. This extension builds on top of Tableau's example Superstore dataset.",
