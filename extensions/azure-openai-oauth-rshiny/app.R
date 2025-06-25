@@ -8,7 +8,29 @@ library(bslib)
 
 data(penguins)
 
-ui <- bslib::page_fluid(
+setup_ui <- bslib::page_fluid(
+      theme = bslib::bs_theme(bootswatch = "flatly"),
+      bslib::layout_columns(
+        col_widths = c(2, 8, 2),
+        NULL,
+        bslib::card(
+          bslib::card_header("Azure OpenAI OAuth Setup Instructions"),
+          bslib::card_body(
+            tags$h4("Configuration Required"),
+            tags$p("This application requires Azure OpenAI OAuth integration to be properly configured."),
+            tags$p("For more detailed instructions, please refer to the ",
+                   tags$a(href="https://docs.posit.co/connect/admin/integration-azure-openai/",
+                          "Posit Connect Azure OpenAI integration documentation",
+                          target="_blank"))
+          ),
+          width = "100%",
+          class = "shadow"
+        ),
+        NULL
+      )
+    )
+
+app_ui <- bslib::page_fluid(
     theme = bslib::bs_theme(bootswatch = "flatly"),
     bslib::layout_columns(
       col_widths = c(2, 8, 2),
@@ -22,6 +44,9 @@ ui <- bslib::page_fluid(
       NULL   
     )
   )
+
+screen_ui <- uiOutput("screen")
+
 
 server <- function(input, output, session) {
 
@@ -51,6 +76,26 @@ server <- function(input, output, session) {
     credentials
 
   }
+
+  OAUTH_INTEGRATION_ENABLED <- TRUE
+
+  # Capture any messages that might contain the error code
+  msg <- capture.output(
+    try(connectapi::connect(token = session$request$HTTP_POSIT_CONNECT_USER_SESSION_TOKEN)),
+    type = "message"
+  )
+  
+  if (any(grepl("212", msg))) {
+    OAUTH_INTEGRATION_ENABLED <- FALSE
+  }
+
+  output$screen <- shiny::renderUI({
+    if (OAUTH_INTEGRATION_ENABLED) {
+      app_ui
+    } else {
+      setup_ui
+    }
+  })
 
   # Create Azure OpenAI chat function
   penguin_chat <- function() {
@@ -84,4 +129,4 @@ server <- function(input, output, session) {
 
 }
 
-shiny::shinyApp(ui, server)
+shiny::shinyApp(screen_ui, server)
