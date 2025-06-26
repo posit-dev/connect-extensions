@@ -4,14 +4,14 @@ import pandas as pd
 from sklearn.datasets import load_iris
 from fastapi import FastAPI, Request
 from fastapi.templating import Jinja2Templates
-from mcp.server.fastmcp import FastMCP, Context
-from mcp.server.fastmcp.exceptions import ToolError
+from fastmcp import FastMCP, Context
+from fastmcp.exceptions import ToolError
 from posit.connect.client import Client as ConnectClient
 import urllib
 
 # --- FastMCP Server Initialization ---
 mcp = FastMCP(
-    name="SimpleDataServer",
+    name="Simple MCP Server",
     instructions="MCP server for dataset operations and Connect 'whoami' via FastAPI.",
 )
 
@@ -48,7 +48,6 @@ def calculate_summary_statistics(dataset_name: str) -> str:
         raise ToolError(f"Error processing dataset '{dataset_name}': {str(e)}")
 
 
-# This tool is unable to be used in conjunction with the Simple Shiny Chat app 
 @mcp.tool()
 async def connect_whoami(context: Context) -> str:
     """
@@ -83,21 +82,8 @@ async def connect_whoami(context: Context) -> str:
         raise ToolError(f"Error calling Connect API: {str(e)}")
 
 
-@contextlib.asynccontextmanager
-async def lifespan(app: FastAPI):
-    async with contextlib.AsyncExitStack() as stack:
-        await stack.enter_async_context(mcp.session_manager.run())
-        yield
-
-
-app = FastAPI(title="Simple MCP Server with FastAPI", lifespan=lifespan)
-templates = Jinja2Templates(directory=".")
-
-
-@app.get("/")
-async def get_index_page(request: Request):
-    """Serves the HTML index page using a Jinja2 template."""
-    tools_info = []
+def get_tools_info():
+    tools = []
     for tool_name, tool_def in mcp._tool_manager._tools.items():
         parameters = {}
         for prop_name, prop in tool_def.parameters["properties"].items():
@@ -112,13 +98,32 @@ async def get_index_page(request: Request):
                 if required_prop_name in parameters:
                     parameters[required_prop_name]["required"] = True
 
-        tools_info.append(
+        tools.append(
             {
                 "name": tool_name,
                 "description": tool_def.description or "No description available.",
                 "parameters": parameters,
             }
         )
+    return tools
+
+
+@contextlib.asynccontextmanager
+async def lifespan(app: FastAPI):
+    async with contextlib.AsyncExitStack() as stack:
+        await stack.enter_async_context(mcp.session_manager.run())
+        yield
+
+
+mcp_app = mcp.http_app(path="/mcp")
+app = FastAPI(title="Simple MCP Server with FastAPI", lifespan=mcp_app.lifespan)
+templates = Jinja2Templates(directory=".")
+
+
+@app.get("/")
+async def get_index_page(request: Request):
+    """Serves the HTML index page using a Jinja2 template."""
+    tools = get_tools_info()
     endpoint = urllib.parse.urljoin(request.url._url, "mcp")
     return templates.TemplateResponse(
         "index.html.jinja",
@@ -126,12 +131,12 @@ async def get_index_page(request: Request):
             "request": request,
             "server_name": mcp.name,
             "endpoint": endpoint,
-            "tools": tools_info,
+            "tools": tools,
         },
     )
 
 
-app.mount("/", mcp.streamable_http_app())
+app.mount("/", mcp_app)
 
 
 # --- Uvicorn Runner (for local development) ---

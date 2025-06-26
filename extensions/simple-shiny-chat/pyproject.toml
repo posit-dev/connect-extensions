@@ -7,11 +7,13 @@ requires-python = ">=3.11"
 dependencies = [
     "anthropic[bedrock]>=0.54.0",
     "boto3>=1.38.34",
-    "chatlas>=0.8.1",
+    "chatlas",
     "dotenv>=0.9.9",
     "faicons>=0.2.2",
+    "google-genai>=1.21.1",
     "mcp>=1.9.3",
     "nest-asyncio>=1.6.0",
+    "openai>=1.86.0",
     "posit-sdk>=0.10.0",
     "shiny>=1.4.0",
 ]

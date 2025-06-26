@@ -1,4 +1,3 @@
-import asyncio
 import os
 import traceback
 import uuid
@@ -8,13 +7,9 @@ import faicons
 import uvicorn
 from posit.connect import Client
 from posit.connect.errors import ClientError
-from posit.connect.external import aws
 from shiny import App, Inputs, Outputs, reactive, render, ui
 from shiny.session._session import AppSession
-import boto3
 from dotenv import load_dotenv
-
-from mcp_client import MCPClient
 
 load_dotenv()
 
@@ -109,25 +104,25 @@ setup_ui = ui.page_fillable(
                 ui.HTML(
                     "This app requires the <code>CHATLAS_CHAT_PROVIDER</code> and <code>CHATLAS_CHAT_ARGS</code> environment variables to be "
                     "set along with an LLM API Key in the content access panel. Please set them in your environment before running the app. "
-                    "<a href=\"https://posit-dev.github.io/chatlas/reference/ChatAuto.html\" class=\"setup-link\">See the documentation for more details.</a>"
+                    '<a href="https://posit-dev.github.io/chatlas/reference/ChatAuto.html" class="setup-link">See the documentation for more details.</a>'
                 ),
-                class_="setup-description"
+                class_="setup-description",
             ),
             ui.h3("Example for OpenAI API", class_="setup-section-title"),
             ui.pre(
                 """CHATLAS_CHAT_PROVIDER = "openai"
 CHATLAS_CHAT_ARGS = {"model": "gpt-4o"}
 OPENAI_API_KEY = "<key>" """,
-                class_="setup-code-block"
+                class_="setup-code-block",
             ),
             ui.h2("Connect Visitor API Key", class_="setup-section-title"),
             ui.div(
                 "Before you are able to use this app, you need to add a Connect Visitor API Key integration in the access panel.",
-                class_="setup-description"
+                class_="setup-description",
             ),
-            class_="setup-card"
+            class_="setup-card",
         ),
-        class_="setup-container"
+        class_="setup-container",
     ),
     fillable_mobile=True,
     fillable=True,
@@ -201,22 +196,19 @@ connect_server = os.getenv("CONNECT_SERVER")
 
 def server(input: Inputs, output: Outputs, app_session: AppSession):
     client = Client(url=connect_server, api_key=api_key)
-    
+
     user_session_token = app_session.http_conn.headers.get(
         "Posit-Connect-User-Session-Token"
     )
 
-    if not user_session_token:
-        raise RuntimeError("User session token is missing")
-
     VISITOR_API_INTEGRATION_ENABLED = True
-    try:
-        client = Client().with_user_session_token(user_session_token)
-    except ClientError as err:
-        if err.error_code == 212:
-            VISITOR_API_INTEGRATION_ENABLED = False
-        
-    
+    if user_session_token:
+        try:
+            client = Client().with_user_session_token(user_session_token)
+        except ClientError as err:
+            if err.error_code == 212:
+                VISITOR_API_INTEGRATION_ENABLED = False
+
     visitor_api_key = client.cfg.api_key
 
     if CHATLAS_CHAT_PROVIDER:
@@ -256,7 +248,7 @@ def server(input: Inputs, output: Outputs, app_session: AppSession):
             card = ui.card(
                 ui.card_header(
                     ui.div(
-                        ui.h5(server["client"].name, class_="m-0"),
+                        ui.h5(server["name"], class_="m-0"),
                         ui.input_action_button(
                             f"delete_server_{server['id']}",
                             label=None,
@@ -267,13 +259,13 @@ def server(input: Inputs, output: Outputs, app_session: AppSession):
                     )
                 ),
                 ui.div(
-                    server['client'].server_url,
+                    server["url"],
                     class_="m-0 p-0 text-muted",
                 ),
                 ui.div(
                     *[
                         ui.span(tool_name, class_="badge bg-secondary me-1")
-                        for tool_name, tool in server["client"].tools.items()
+                        for tool_name in server["tools"].keys()
                     ],
                     class_="mb-2",
                 ),
@@ -291,23 +283,26 @@ def server(input: Inputs, output: Outputs, app_session: AppSession):
 
         try:
             url = input.mcp_address().strip()
-            ready_event = asyncio.Event()
-            mcp_client = MCPClient(llm=chat)
-            asyncio.create_task(mcp_client.register_tools(
-                ready_event,
-                server_url=url,
-                headers={
-                    "Authorization": f"Key {visitor_api_key}",  # to authenticate with the MCP Server
-                    "X-MCP-Authorization": f"Key {visitor_api_key}",  # passed to the MCP server to use
+            await chat.register_mcp_tools_http_stream_async(
+                url=url,
+                transport_kwargs={
+                    "headers": {
+                        "Authorization": f"Key {visitor_api_key}",  # to authenticate with the MCP Server
+                        "X-MCP-Authorization": f"Key {visitor_api_key}",  # passed to the MCP server to use
+                    }
                 },
-            ))
-            # Wait for the client to be ready
-            await ready_event.wait()
-            new_server = {
-                "id": uuid.uuid4().hex,
-                "client": mcp_client,
-            }
-            registered_servers.set([*registered_servers(), new_server])
+            )
+
+            sessions = chat._mcp_manager._mcp_sessions
+            servers = []
+            for session_name, session in sessions.items():
+                servers.append({
+                    "id": hash(session_name),
+                    "name": session_name,
+                    "url": url,
+                    "tools": session.tools,
+                })
+            registered_servers.set(servers)
 
             # Clear the input
             ui.update_text("mcp_address", value="")
@@ -329,13 +324,16 @@ def server(input: Inputs, output: Outputs, app_session: AppSession):
                     server_to_remove = next(
                         (s for s in servers if s["id"] == server["id"]), None
                     )
-                    if server_to_remove and "client" in server_to_remove:
+                    if server_to_remove:
                         try:
-                            await server_to_remove["client"].cleanup()
+                            await chat.cleanup_mcp_tools(
+                                names=[server_to_remove["name"]]
+                            )
                         except Exception as e:
                             traceback.print_exc()
                             ui.notification_show(
-                                f"Error cleaning up server {server['id']}: {str(e)}", type="error"
+                                f"Error cleaning up server {server['id']}: {str(e)}",
+                                type="error",
                             )
                     registered_servers.set(new_servers)
                     ui.notification_show("Server removed", type="message")
