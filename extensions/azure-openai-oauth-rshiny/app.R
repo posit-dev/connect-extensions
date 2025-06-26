@@ -3,7 +3,6 @@ library(shinychat)
 library(ellmer)
 library(palmerpenguins)
 library(connectapi)
-library(ggplot2)
 library(bslib)
 
 data(penguins)
@@ -17,10 +16,10 @@ setup_ui <- bslib::page_fluid(
           bslib::card_header("Azure OpenAI OAuth Setup Instructions"),
           bslib::card_body(
             tags$h4("Configuration Required"),
-            tags$p("This application requires Azure OpenAI OAuth integration to be properly configured."),
+            tags$p("This application requires an Azure OpenAI OAuth integration to be properly configured."),
             tags$p("For more detailed instructions, please refer to the ",
-                   tags$a(href="https://docs.posit.co/connect/admin/integration-azure-openai/",
-                          "Posit Connect Azure OpenAI integration documentation",
+                   tags$a(href="https://docs.posit.co/connect/admin/integrations/oauth-integrations/azure-openai/",
+                          "Posit Connect Azure OpenAI OAuth integration documentation",
                           target="_blank"))
           ),
           width = "100%",
@@ -45,7 +44,7 @@ app_ui <- bslib::page_fluid(
     )
   )
 
-screen_ui <- uiOutput("screen")
+screen_ui <- shiny::uiOutput("screen")
 
 
 server <- function(input, output, session) {
@@ -78,16 +77,20 @@ server <- function(input, output, session) {
   }
 
   OAUTH_INTEGRATION_ENABLED <- TRUE
+  user_session_token <- session$request$HTTP_POSIT_CONNECT_USER_SESSION_TOKEN
 
-  # Capture any messages that might contain the error code
-  msg <- capture.output(
-    try(connectapi::connect(token = session$request$HTTP_POSIT_CONNECT_USER_SESSION_TOKEN)),
-    type = "message"
-  )
-  
-  if (any(grepl("212", msg))) {
-    OAUTH_INTEGRATION_ENABLED <- FALSE
+  if (!is.null(user_session_token)) {
+    # Capture any messages that might contain the error code
+    msg <- capture.output(
+      try(connectapi::connect(token = user_session_token)),
+      type = "message"
+    )
+    
+    if (any(grepl("212", msg))) {
+      OAUTH_INTEGRATION_ENABLED <- FALSE
+    }
   }
+  
 
   output$screen <- shiny::renderUI({
     if (OAUTH_INTEGRATION_ENABLED) {
