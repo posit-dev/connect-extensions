@@ -7,8 +7,13 @@ requires-python = ">=3.10"
 dependencies = [
     "anthropic[bedrock]>=0.54.0",
     "boto3>=1.38.40",
-    "chatlas>=0.8.1",
+    "chatlas",
+    "google-genai>=1.22.0",
     "markdownify>=1.1.0",
+    "openai>=1.91.0",
     "posit-sdk>=0.10.0",
     "shiny>=1.4.0",
 ]
+
+[tool.uv.sources]
+chatlas = { git = "https://github.com/posit-dev/chatlas", rev = "8871240172dd470f7eee10028c3be8ac9f64a5eb" }
