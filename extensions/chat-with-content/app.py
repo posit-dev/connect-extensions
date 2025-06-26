@@ -183,7 +183,7 @@ def server(input: Inputs, output: Outputs, session: Session):
     current_markdown = reactive.Value("")
 
     VISITOR_API_INTEGRATION_ENABLED = True
-    if os.getenv("POSIT_PRODUCT") == "connect":
+    if os.getenv("POSIT_PRODUCT") == "CONNECT":
         user_session_token = session.http_conn.headers.get(
             "Posit-Connect-User-Session-Token"
         )
