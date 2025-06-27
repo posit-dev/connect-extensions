@@ -1,58 +1,72 @@
 ---
 title: "App Canary - Application Health Monitor"
-format: email
+format: 
+    email:
+        page-layout: full
 ---
 
 ```{python}
 #| echo: false
+#| label: setup
 
+import json
 import os
 import requests
 import datetime
 import pandas as pd
-from great_tables import GT, style, loc, exibble, html
+from posit import connect
+from great_tables import GT, style, loc, html
+from IPython.display import HTML, display
 
 # Used to display on-screen setup instructions if environment variables are missing
 show_instructions = False
 instructions = []
 gt_tbl = None
 
-# Read CONNECT_SERVER from environment, should be configured automatically when run on Connect
+# Read CONNECT_SERVER from environment, this is automatically configured on Connect, set manually for local dev
 connect_server = os.environ.get("CONNECT_SERVER", "")
 if not connect_server:
     show_instructions = True
-    instructions.append("Please set the CONNECT_SERVER environment variable.")
+    instructions.append("Please set the <b>CONNECT_SERVER</b> environment variable.")
 
-# Read CONNECT_API_KEY from environment, should be configured automatically when run on Connect
+# Read CONNECT_API_KEY from environment, this is automatically configured on Connect, set manually for local dev
 api_key = os.environ.get("CONNECT_API_KEY", "")
 if not api_key:
     show_instructions = True
-    instructions.append("Please set the CONNECT_API_KEY environment variable.")
+    instructions.append("Please set the <b>CONNECT_API_KEY</b> environment variable.")
 
-# Read CANARY_GUIDS from environment, needs to be manually configured on Connect
-app_guid_str = os.environ.get("CANARY_GUIDS", "")
-if not app_guid_str:
+# Read CANARY_GUIDS from environment, needs to be manually configured on Connect and for local dev
+canary_guids_str = os.environ.get("CANARY_GUIDS", "")
+if not canary_guids_str:
     show_instructions = True
-    instructions.append("Please set the CANARY_GUIDS environment variable. It should be a comma separated list of GUID you wish to monitor.")
-    app_guids = []
+    instructions.append("Please set the <b>CANARY_GUIDS</b> environment variable. It should be a comma separated list of GUID you wish to monitor.")
+    canary_guids = []
 else:
     # Clean up the GUIDs
-    app_guids = [guid.strip() for guid in app_guid_str.split(',') if guid.strip()]
-    if not app_guids:
+    canary_guids = [guid.strip() for guid in canary_guids_str.split(',') if guid.strip()]
+    if not canary_guids:
         show_instructions = True
-        instructions.append("CANARY_GUIDS environment variable is empty or contains only whitespace. It should be a comma separated list of GUID you wish to monitor. Raw CANARY_GUIDS value: '{app_guid_str}'")
+        instructions.append(f"CANARY_GUIDS environment variable is set but is empty or contains only whitespace. It should be a comma separated list of GUID you wish to monitor. Raw CANARY_GUIDS value: '{canary_guids_str}'")
 
-if show_instructions:
-    # We'll use this flag later to display instructions instead of results
-    results = []
-    df = pd.DataFrame()  # Empty DataFrame
-    check_time = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-else:
-    # Continue with normal execution
+# Instantiate a Connect client using posit-sdk where api_key and url are automatically read from our environment vars
+client = connect.Client()
+```
+
+```{python}
+#| echo: false
+#| label: data-gathering
+
+if not show_instructions:
+    # Proceed to validate our monitored GUIDS
+
     # Headers for Connect API
-    headers = {"Authorization": f"Key {api_key}"}
+    headers = {
+        "Authorization": f"Key {api_key}",
+        # Set a custom user agent to enable filtering App Canary activity in Connect instrumentation data
+        "User-Agent": "AppCanary/1.0",
+    }
 
-    # Check if server is reachable
+    # Check if server is reachable, would only be a potential problem during local dev
     try:
         server_check = requests.get(
             f"{connect_server}/__ping__", 
@@ -64,31 +78,94 @@ else:
         raise RuntimeError(f"Connect server at {connect_server} is unavailable: {str(e)}")
 
     # Function to get app details from Connect API
-    def get_app_details(guid):
+    def get_content(guid):
         try:
             # Get app details from Connect API
-            app_details_url = f"{connect_server}/__api__/v1/content/{guid}"
-            app_details_response = requests.get(
-                app_details_url,
-                headers=headers,
-                timeout=5
-            )
-            app_details_response.raise_for_status()
-            return app_details_response.json()
-        except Exception:
-            return {"title": "Unknown", "guid": guid}
+            content = client.content.get(guid)
+            return content
+        except Exception as e:
+            # Initialize default error message
+            error_message = str(e)
+            
+            # posit-sdk will return a ClientError if there is a problem getting the guid, parse the error message
+            if isinstance(e, connect.errors.ClientError):
+                try:
+                    # ClientError from posit-connect SDK stores error as string that contains JSON
+                    # Convert the string representation to a dict
+                    error_data = json.loads(str(e))
+                    if isinstance(error_data, dict):
+                        # Extract the specific error message
+                        if "error_message" in error_data:
+                            error_message = error_data["error_message"]
+                        elif "error" in error_data:
+                            error_message = error_data["error"]
+                except json.JSONDecodeError:
+                    # If parsing fails, keep the original error message
+                    pass
+            
+            # Return content with error in title
+            return {
+                "title": f"ERROR: {error_message}", 
+                "guid": guid
+            }
+
+    def get_user(user_guid):
+        try:
+            user = client.users.get(user_guid)
+            return user
+        except Exception as e:
+            raise RuntimeError(f"Error getting user: {str(e)}")
 
     # Function to validate app health (simple HTTP 200 check)
     def validate_app(guid):
         # Get app details
-        app_details = get_app_details(guid)
-        app_name = app_details.get("title", "Unknown")
+        content = get_content(guid)
+
+        app_name = content.get("title", "")
+        # Title is optional, if not set use name
+        if not app_name:
+            app_name = content.get("name", "")
         
-        # Extract content_url if available
-        dashboard_url = app_details.get("dashboard_url", "")
+        # Ensure we have a valid URL
+        dashboard_url = content.get("dashboard_url", "")
+        content_url = content.get("content_url", "")
+        content_guid = content.get("guid", guid)  # Use the passed guid if not in content
+
+        # Initialize default owner information
+        owner_email = ""
+        owner_full_name = ""
         
+        # Get additional data if we don't have an error when attempting to get the content details
+        if not str(app_name).startswith("ERROR:"):
+            # Get content owner details
+            try:
+                owner_guid = content.get("owner_guid")
+                if owner_guid:
+                    # Get owner details
+                    owner = get_user(owner_guid)
+                    owner_email = owner.get("email", "")
+                    owner_first_name = owner.get("first_name", "")
+                    owner_last_name = owner.get("last_name", "")
+                    owner_full_name = f"{owner_first_name} {owner_last_name}".strip()
+                    if not owner_full_name:  # Handle case where both names are empty
+                        owner_full_name = "Unknown"
+            except Exception as e:
+                # If there's an error getting the owner, keep the defaults
+                print(f"Warning: Could not retrieve owner for {guid}: {str(e)}")
+        
+        # Compose URL to logs if we have a dashboard URL, only owner/editor have access
+        if dashboard_url and content.get("app_role") != "viewer":
+            logs_url = f"{dashboard_url}/logs"
+        else:
+            logs_url = ""
+
         try:
-            app_url = f"{connect_server}/content/{guid}"
+            # Use the content_url if available, otherwise construct one so we get a proper status code
+            if content_url:
+                app_url = content_url
+            else:
+                # Likely hit error condition in get_content() thus no content_url available
+                app_url = f"{connect_server}/content/{guid}"
             app_response = requests.get(
                 app_url, 
                 headers=headers,
@@ -97,44 +174,41 @@ else:
             )
             
             return {
+                # App details
                 "guid": guid,
                 "name": app_name,
                 "dashboard_url": dashboard_url,
+                "logs_url": logs_url,
+                # Owner details
+                "owner_name": owner_full_name,
+                "owner_email": owner_email,
+                # Monitoring status
                 "status": "PASS" if app_response.status_code >= 200 and app_response.status_code < 300 else "FAIL",
                 "http_code": app_response.status_code
             }
 
         except Exception as e:
             return {
+                # App details
                 "guid": guid,
                 "name": app_name,
                 "dashboard_url": dashboard_url,
+                "logs_url": logs_url,
+                # Owner details
+                "owner_name": owner_full_name,
+                "owner_email": owner_email,
+                # Monitoring status
                 "status": "FAIL",
                 "http_code": str(e)
             }
 
     # Check all apps and collect results
     results = []
-    for guid in app_guids:
+    for guid in canary_guids:
         results.append(validate_app(guid))
 
     # Convert results to DataFrame for easy display
     df = pd.DataFrame(results)
-
-    # Reorder columns to put name first
-    # Create a dynamic column order with name first, status and http_code last
-    if 'name' in df.columns:
-        cols = ['name']  # Start with name
-        # Add any other columns except name, status, and http_code
-        middle_cols = [col for col in df.columns if col not in ['name', 'status', 'http_code']]
-        cols.extend(middle_cols)
-        # Add status and http_code at the end
-        if 'status' in df.columns:
-            cols.append('status')
-        if 'http_code' in df.columns:
-            cols.append('http_code')
-        # Reorder the DataFrame
-        df = df[cols]
 
     # Store the current time
     check_time = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
@@ -143,29 +217,89 @@ else:
 
 ```{python}
 #| echo: false
+#| label: display
 
-# Create a table with basic styling
+about = """<div style="margin-bottom: 10px;">
+This report uses the publisher's API key to monitor a list of application GUIDs, verifies each of the monitored apps are 
+reachable at their content URL, and reports the results. If run on a schedule, reports will be emailed when any monitored 
+application reports a failure.
+</div>"""
+
 if not show_instructions and not df.empty:
+    
+    # Format the canary_guids as a string for display
+    canary_guids_str = ", ".join(canary_guids)
+    
+    # Use HTML to create a callout box
+    display(HTML(f"""
+    <div style="border: 1px solid #ccc; border-radius: 8px; padding: 10px; margin-bottom: 15px; background-color: #f8f9fa;">
+        <div style="margin-top: 0; padding-bottom: 8px; border-bottom: 1px solid #eaecef; font-weight: bold; font-size: 1.2em;">App Canary Monitor</div>
+        <div style="padding: 5px 0;">{about}</div>
+        <div style="margin-top: 10px; padding-top: 8px; border-top: 1px solid #eaecef; font-weight: bold;">Monitored GUIDs:</div>
+        <div style="padding: 5px 0;">{canary_guids_str}</div>
+    </div>
+    """))
     
     # First create links for name and guid columns
     df_display = df.copy()
     
-    # Process the DataFrame rows to add HTML links
+    # Process the DataFrame rows to add HTML links and format owner info
     for i in range(len(df_display)):
-        if not pd.isna(df_display.loc[i, 'dashboard_url']) and df_display.loc[i, 'dashboard_url']:
+        # Format app name links only (not guid)
+        if 'dashboard_url' in df_display.columns and not pd.isna(df_display.loc[i, 'dashboard_url']) and df_display.loc[i, 'dashboard_url']:
             url = df_display.loc[i, 'dashboard_url']
-            df_display.loc[i, 'name'] = f"<a href='{url}' target='_blank'>{df_display.loc[i, 'name']}</a>"
-            df_display.loc[i, 'guid'] = f"<a href='{url}' target='_blank'>{df_display.loc[i, 'guid']}</a>"
+            app_name = df_display.loc[i, 'name']
+            app_guid = df_display.loc[i, 'guid']
+            
+            # Create simple markdown link for name only
+            df_display.loc[i, 'name'] = f"<a href='{url}' target='_blank'>{app_name}</a>"
+        
+        # Format logs URL using markdown instead of HTML (similar to owner email)
+        if 'logs_url' in df_display.columns and df_display.loc[i, 'logs_url'] is not None and str(df_display.loc[i, 'logs_url']).strip():
+            # Use a simple icon since we can't use custom SVG in emails easily
+            logs_icon = "📋"
+            logs_url = df_display.loc[i, 'logs_url']
+            df_display.loc[i, 'logs'] = f"<a href='{logs_url}' target='_blank' style='text-decoration:none;'>{logs_icon}</a>"
+
+        else:
+            df_display.loc[i, 'logs'] = ""
+
+        # Format owner name with email icon link
+        owner_name = df_display.loc[i, 'owner_name'] if not pd.isna(df_display.loc[i, 'owner_name']) else "Unknown"
+        owner_email = df_display.loc[i, 'owner_email'] if not pd.isna(df_display.loc[i, 'owner_email']) else ""
+        
+        if owner_email:
+            # Use a simple icon since we can't use custom SVG in emails easily
+            email_icon = "✉️"
+            df_display.loc[i, 'owner_display'] = f"{owner_name} <a href='mailto:{owner_email}' style='text-decoration:none;'>{email_icon}</a>"
+        else:
+            df_display.loc[i, 'owner_display'] = owner_name
     
     # Remove dashboard_url column since the links are embedded in the other columns
     if 'dashboard_url' in df_display.columns:
         df_display = df_display.drop(columns=['dashboard_url'])
     
+    # Remove raw owner columns in favor of our formatted display column
+    if 'owner_name' in df_display.columns:
+        df_display = df_display.drop(columns=['owner_name'])
+    if 'owner_email' in df_display.columns:
+        df_display = df_display.drop(columns=['owner_email'])
+    
+    # Reorder columns to match requested layout
+    column_order = ['name', 'guid', 'status', 'http_code', 'logs', 'owner_display']
+    # Only include columns that exist in df_display
+    ordered_columns = [col for col in column_order if col in df_display.columns]
+    df_display = df_display[ordered_columns]
+    
     # Create GT table
     gt_tbl = GT(df_display)
     
-    # Apply styling to status column
+    # Tell great_tables to render markdown content in these columns
+    gt_tbl = gt_tbl.fmt_markdown(columns=['name', 'owner_display', 'logs'])
+    
+    # Apply styling to columns
     gt_tbl = (gt_tbl
+              # Status column styling - green for PASS, red for FAIL
               .tab_style(
                   style.fill("green"),
                   locations=loc.body(columns="status", rows=lambda df: df["status"] == "PASS")
@@ -173,21 +307,64 @@ if not show_instructions and not df.empty:
               .tab_style(
                   style.fill("red"),
                   locations=loc.body(columns="status", rows=lambda df: df["status"] == "FAIL")
-              ))
+              )
+              # Set column labels for better presentation
+              .cols_label(
+                  owner_display="Owner",
+                  name="Name",
+                  guid="Content GUID",
+                  status="Status",
+                  http_code="HTTP Code",
+                  logs="Logs"
+              )
+              # Override default column alignment for better presentation
+              .cols_align(
+                align='center', 
+                columns=["status", "http_code", "logs"]
+              )
+              .tab_options(
+                container_width="100%"
+              )
+              )
 
-# Display instructions if setup failed
-if show_instructions:
-    # Create a DataFrame with instructions
-    instructions_df = pd.DataFrame({
-        "Setup has failed": instructions
-    })
+elif show_instructions:
+    # Create a callout box for instructions
+    instructions_html = about  # Start with the about message
+
+    for instruction in instructions:
+        instructions_html += f"<div style='margin-bottom: 10px;'>{instruction}</div>"
     
-    # Create a GT table for instructions
-    gt_tbl = GT(instructions_df)
-    gt_tbl = (gt_tbl
-        .tab_source_note(
-            source_note=html("See Posit Connect documentation for <a href='https://docs.posit.co/connect/user/content-settings/#content-vars' target='_blank'>Vars (environment variables)</a>")
-        ))
+    display(HTML(f"""
+    <div style="border: 1px solid #cc0000; border-radius: 8px; padding: 10px; margin-bottom: 15px; background-color: #fff8f8;">
+        <div style="margin-top: 0; padding-bottom: 8px; border-bottom: 1px solid #eaecef; color: #cc0000; font-weight: bold; font-size: 1.2em;">⚠️ Setup Instructions</div>
+        {instructions_html}
+        <div style="padding-top: 8px; font-size: 0.9em; border-top: 1px solid #eaecef;">
+            See Posit Connect documentation for <a href='https://docs.posit.co/connect/user/content-settings/#content-vars' target='_blank'>Vars (environment variables)</a>
+        </div>
+    </div>
+    """))
+    
+    # Set gt_tbl to None since we're using HTML display instead
+    gt_tbl = None
+else:
+    # We should only hit this catchall if the dataframe is empty (a likely error) and there are no instructions
+    display(HTML(f"""
+    <div style="border: 1px solid #f0ad4e; border-radius: 8px; padding: 10px; margin-bottom: 15px; background-color: #fcf8e3;">
+        <div style="margin-top: 0; padding-bottom: 8px; border-bottom: 1px solid #eaecef; color: #cc0000; font-weight: bold; font-size: 1.2em;">⚠️ No results available</div>
+        <div style="padding: 5px 0;">
+            No monitoring results were found. This could be because:
+            <ul>
+                <li>No valid GUIDs were provided</li>
+                <li>There was an issue connecting to the specified content</li>
+                <li>The environment is properly configured but there was an error that caused no data to be returned</li>
+            </ul>
+            <p>Please check your CANARY_GUIDS environment variable and ensure it contains valid content identifiers.</p>
+        </div>
+    </div>
+    """))
+    
+    # Set gt_tbl to None since we're using HTML display instead
+    gt_tbl = None
 
 # Compute if we should send an email, only send if at least one app has a failure
 if 'df' in locals() and 'status' in df.columns:

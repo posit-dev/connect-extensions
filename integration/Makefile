@@ -26,6 +26,8 @@ EXTENSION_NAME ?=
 preview_DOCKER_CONNECT_IMAGE := rstudio/rstudio-connect-preview
 preview_DOCKER_CONNECT_IMAGE_TAG := dev-jammy-daily
 
+CONNECT_SERVER ?= http://connect:3939
+
 # Connect bootstrap secret key
 CONNECT_BOOTSTRAP_SECRETKEY ?= $(shell head -c 32 /dev/random | base64)
 
@@ -41,15 +43,24 @@ PYTEST_ARGS ?= "-s"
 	all \
 	build \
 	clean \
+	debug-env \
+	dev \
+	docker-deps \
 	down \
 	down-% \
+	down-connect-only \
+	ensure-lockfile \
+	ensure-uv \
 	help \
 	latest \
+	package-extension \
 	preview \
 	print-versions \
+	set-bootstrap-admin-email \
 	test \
 	up \
-	up-%
+	up-% \
+	up-connect-only
 
 
 # All versions starting with the first Connect version that fully supports extensions and version matching
@@ -57,6 +68,8 @@ PYTEST_ARGS ?= "-s"
 # possible versions to test against in CI or when using the `all` target.
 CONNECT_VERSIONS := \
 	connect-preview \
+	2025.06.0 \
+	2025.05.0 \
 	2025.04.0
 
 
@@ -108,10 +121,7 @@ ensure-uv:
 	@if ! command -v $(UV) >/dev/null; then \
 		$(PYTHON) -m ensurepip && $(PYTHON) -m pip install "uv == $(UV_VERSION)"; \
 	fi
-	
-	echo "=== DEBUG before VENV creation ==="
-	$(MAKE) debug-env
-	
+		
 	@echo "Creating virtual environment without redirection..."
 	@$(MAKE) $(VIRTUAL_ENV)
 	
@@ -127,19 +137,13 @@ ensure-uv:
 		chmod +x $(VIRTUAL_ENV)/bin/*; \
 		ls -la $(VIRTUAL_ENV)/bin/python3; \
 	fi
-	
-	@echo "=== DEBUG after VENV creation ==="
-	@$(MAKE) debug-env
-	
+		
 	echo "Installing UV in virtualenv"; \
 	$(UV) pip install "uv == $(UV_VERSION)" --quiet; \
 
 
 # Install dependencies in Docker for Connect integration tests
 docker-deps: ensure-uv ensure-lockfile
-	@echo "=== DEBUG before uv sync ==="
-	@$(MAKE) debug-env
-
 	# Sync given the `uv.lock` file
 	$(UV) sync --frozen --no-install-project
 
@@ -240,12 +244,73 @@ up-%: build
 	$(DOCKER_COMPOSE) -p $(PROJECT_NAME)-$(subst .,-,$(CONNECT_VERSION)) up -V --abort-on-container-exit --no-build
 
 
+# Start just the Connect service without tests, useful for testing the infrastructure and containers.
+# Usage: make up-connect-only CONNECT_VERSION=2025.04.0
+up-connect-only:
+	@if [ -z "$(CONNECT_VERSION)" ]; then \
+		echo "Error: CONNECT_VERSION is required."; \
+		echo "Usage: make up-connect-only CONNECT_VERSION=<version>"; \
+		exit 1; \
+	fi
+	@echo "Starting only Connect $(CONNECT_VERSION) in detached mode..."
+	@# Set appropriate image tag based on version
+	@if [ "$(CONNECT_VERSION)" = "preview" ] || [ "$(CONNECT_VERSION)" = "connect-preview" ]; then \
+		DOCKER_CONNECT_IMAGE_TO_USE="$(preview_DOCKER_CONNECT_IMAGE)"; \
+		DOCKER_CONNECT_IMAGE_TAG_TO_USE="$(preview_DOCKER_CONNECT_IMAGE_TAG)"; \
+	else \
+		DOCKER_CONNECT_IMAGE_TO_USE="$(DOCKER_CONNECT_IMAGE)"; \
+		DOCKER_CONNECT_IMAGE_TAG_TO_USE="jammy-$(CONNECT_VERSION)"; \
+	fi; \
+	\
+	EXTENSION_NAME=dummy \
+	PYTEST_ARGS="$(PYTEST_ARGS)" \
+	DOCKER_PROJECT_IMAGE_TAG="$(DOCKER_PROJECT_IMAGE_TAG)" \
+	CONNECT_BOOTSTRAP_SECRETKEY="$(CONNECT_BOOTSTRAP_SECRETKEY)" \
+	DOCKER_CONNECT_IMAGE=$$DOCKER_CONNECT_IMAGE_TO_USE \
+	DOCKER_CONNECT_IMAGE_TAG=$$DOCKER_CONNECT_IMAGE_TAG_TO_USE \
+	$(DOCKER_COMPOSE) -f compose.yaml -p $(PROJECT_NAME)-$(subst .,-,$(CONNECT_VERSION)) \
+		up -d connect mailhog
+	
+	@echo "Connect is now running!"
+	@echo "- Web UI: http://localhost:3939"
+	@echo "- Admin: http://localhost:3939/__admin__"
+	@echo "- Mail UI: http://localhost:8025"
+	@echo ""
+	@echo "To stop it: make down-connect-only VERSION=$(CONNECT_VERSION)"
+
+
+# Stop just the Connect service
+# Usage: make down-connect-only CONNECT_VERSION=2025.04.0
+down-connect-only:
+	@if [ -z "$(CONNECT_VERSION)" ]; then \
+			echo "Error: CONNECT_VERSION is required."; \
+			echo "Usage: make down-connect-only CONNECT_VERSION=<version>"; \
+			exit 1; \
+	fi
+	@echo "Stopping Connect $(CONNECT_VERSION)..."
+	@# Set appropriate image tag based on version
+	@if [ "$(CONNECT_VERSION)" = "preview" ] || [ "$(CONNECT_VERSION)" = "connect-preview" ]; then \
+			DOCKER_CONNECT_IMAGE_TO_USE="$(preview_DOCKER_CONNECT_IMAGE)"; \
+			DOCKER_CONNECT_IMAGE_TAG_TO_USE="$(preview_DOCKER_CONNECT_IMAGE_TAG)"; \
+	else \
+			DOCKER_CONNECT_IMAGE_TO_USE="$(DOCKER_CONNECT_IMAGE)"; \
+			DOCKER_CONNECT_IMAGE_TAG_TO_USE="jammy-$(CONNECT_VERSION)"; \
+	fi; \
+	\
+	CONNECT_BOOTSTRAP_SECRETKEY="$(CONNECT_BOOTSTRAP_SECRETKEY)" \
+	DOCKER_CONNECT_IMAGE=$$DOCKER_CONNECT_IMAGE_TO_USE \
+	DOCKER_CONNECT_IMAGE_TAG=$$DOCKER_CONNECT_IMAGE_TAG_TO_USE \
+	$(DOCKER_COMPOSE) -p $(PROJECT_NAME)-$(subst .,-,$(CONNECT_VERSION)) down -v connect mailhog
+	
+	@echo "Connect $(CONNECT_VERSION) stopped."
+
+
 # Show available versions
 print-versions:
 	@printf "%s\n" $(strip $(CONNECT_VERSIONS))
 
 
-# Package an extension into a tar.gz file. This only works for simple extensions.
+# Package an extension into a tar.gz file and save it to the integrations bundles folder. This only works for simple extensions.
 # Usage: make package-extension EXTENSION_NAME=<extension-name>
 package-extension:
 	@if [ -z "$(EXTENSION_NAME)" ]; then \
@@ -259,10 +324,17 @@ package-extension:
 			ls -1 ../extensions/; \
 			exit 1; \
 	fi
-	@mkdir -p ./integration/bundles
+	@mkdir -p ./bundles
 	@echo "Packaging extension: $(EXTENSION_NAME)"
-	@tar -czf ./bundles/$(EXTENSION_NAME).tar.gz ../extensions/$(EXTENSION_NAME)
+	@# Change directory to the parent and create tarball with relative paths
+	@pushd .. > /dev/null && tar -czf ./integration/bundles/$(EXTENSION_NAME).tar.gz -C ./extensions $(EXTENSION_NAME) && popd > /dev/null
 	@echo "✅ Package created: ./bundles/$(EXTENSION_NAME).tar.gz"
+
+
+# Set admin email using API. This target is used to setup the bootstrap admin user properly.
+set-bootstrap-admin-email:
+	@echo "Setting admin email in Connect..."
+	@$(UV) run tests/posit/connect/set_bootstrap_admin_email.py
 
 
 # Show help message.
@@ -278,6 +350,10 @@ help:
 	@echo "  clean            Clean up the project directory."
 	@echo "  print-versions   Show the available Connect versions."
 	@echo "  package-extension Package an extension into a tar.gz file."
+	@echo "  up-connect-only  Start only the Connect service (detached mode)."
+	@echo "  down-connect-only Stop only the Connect service."
+	@echo "  dev              Install dependencies for development"
+	@echo "  debug-env        Output environment debug information"
 	@echo "  help             Show this help message."
 	@echo
 	@echo "Required Parameters:"
@@ -295,6 +371,9 @@ help:
 	@echo "  make -C ./integration latest \\"
 	@echo "    EXTENSION_NAME=publisher-command-center"
 	@echo
+	@echo "  # Start only Connect service in detached mode:"
+	@echo "  make -C ./integration up-connect-only CONNECT_VERSION=2025.04.0"
+	@echo
 	@echo "Environment Variables:"
 	@echo "  DOCKER_COMPOSE           Command to invoke Docker Compose. Default: docker compose"
 	@echo "  DOCKER_CONNECT_IMAGE     Docker image name for Connect. Default: rstudio/rstudio-connect"
@@ -306,10 +385,11 @@ help:
 # Run tests. This target is invoked by the Docker compose file and run inside the tests container.
 test:
 	mkdir -p logs reports
-	set -o pipefail; \
-	CONNECT_VERSION=${CONNECT_VERSION} \
-	EXTENSION_NAME=${EXTENSION_NAME} \
-	CONNECT_API_KEY="$(shell $(UV) run rsconnect bootstrap -i -s http://connect:3939 --raw)" \
-	$(UV) run pytest $(PYTEST_ARGS) \
-					--junit-xml=./reports/$(CONNECT_VERSION).xml | \
-	tee ./logs/$(CONNECT_VERSION).log
+	$(SHELL) -c "set -o pipefail; \
+	CONNECT_VERSION=$(CONNECT_VERSION) \
+	EXTENSION_NAME=$(EXTENSION_NAME) \
+	export CONNECT_API_KEY=\$$($(UV) run rsconnect bootstrap -i -s $(CONNECT_SERVER) --raw); \
+	$(MAKE) set-bootstrap-admin-email && \
+	$(UV) run pytest \$$(echo $(PYTEST_ARGS)) --junit-xml=./reports/$(CONNECT_VERSION).xml | \
+	tee ./logs/$(CONNECT_VERSION).log; \
+	exit \$${PIPESTATUS[0]}"

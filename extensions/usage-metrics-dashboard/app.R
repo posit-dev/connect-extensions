@@ -60,8 +60,9 @@ full_url <- function(session) {
     session$clientData$url_protocol,
     "//",
     session$clientData$url_hostname,
-    if (nzchar(session$clientData$url_port))
-      paste0(":", session$clientData$url_port),
+    if (nzchar(session$clientData$url_port)) {
+      paste0(":", session$clientData$url_port)
+    },
     session$clientData$url_pathname
   )
 }
@@ -746,10 +747,41 @@ server <- function(input, output, session) {
     paste0("Updated ", format(usage_last_updated(), fmt))
   })
 
+  # JavaScript for persisting search terms across table rerenders
+  table_js <- "
+  function(el, x) {
+    const tableId = el.id;
+    const storageKey = 'search_' + tableId;
+    
+    // Clear search value when the page is refreshed
+    window.addEventListener('beforeunload', function() {
+      sessionStorage.removeItem(storageKey);
+    });
+
+    const searchInput = el.querySelector('input.rt-search');
+    if (!searchInput) return;
+
+    // Restore previous search if available
+    const savedSearch = sessionStorage.getItem(storageKey);
+    
+    if (savedSearch) {
+      searchInput.value = savedSearch;
+      if (window.Reactable && typeof window.Reactable.setSearch === 'function') {
+        window.Reactable.setSearch(tableId, savedSearch);
+      }
+    }
+
+    // Save search terms as they're entered
+    searchInput.addEventListener('input', function() {
+      sessionStorage.setItem(storageKey, this.value);
+    });
+  }
+  "
+
   output$content_usage_table <- renderReactable({
     data <- multi_content_table_data()
 
-    reactable(
+    table <- reactable(
       data,
       defaultSortOrder = "desc",
       onClick = JS(
@@ -792,7 +824,9 @@ server <- function(input, output, session) {
           width = 32,
           sortable = FALSE,
           cell = function(url) {
-            if (is.na(url) || url == "") return("")
+            if (is.na(url) || url == "") {
+              return("")
+            }
             HTML(as.character(tags$div(
               onclick = "event.stopPropagation()",
               tags$a(
@@ -864,6 +898,9 @@ server <- function(input, output, session) {
         )
       )
     )
+
+    # Apply any onRender JS for capturing search value
+    htmlwidgets::onRender(table, table_js)
   })
 
   output$export_raw_visits <- downloadHandler(
@@ -964,7 +1001,9 @@ server <- function(input, output, session) {
           width = 32,
           sortable = FALSE,
           cell = function(url) {
-            if (is.na(url) || url == "") return("")
+            if (is.na(url) || url == "") {
+              return("")
+            }
             subject <- glue::glue(
               "\"{selected_content_info()$title}\" on Posit Connect"
             )
@@ -1020,8 +1059,11 @@ server <- function(input, output, session) {
       users <- aggregated_visits_data() |>
         filter(user_guid %in% input$selected_users) |>
         pull(display_name)
-      user_string <- if (length(users) == 1) users else
+      user_string <- if (length(users) == 1) {
+        users
+      } else {
         "multiple selected users"
+      }
       tagList(
         HTML(glue::glue(
           "{nrow(hits)} visits from <b>{user_string}</b> between ",
@@ -1121,8 +1163,11 @@ server <- function(input, output, session) {
       type = "button",
       class = "btn btn-sm btn-outline-secondary",
       disabled = disabled,
-      onclick = if (is.null(disabled))
-        sprintf("window.location.href='%s'", mailto) else NULL,
+      onclick = if (is.null(disabled)) {
+        sprintf("window.location.href='%s'", mailto)
+      } else {
+        NULL
+      },
       tagList(icon("envelope"), "Email Selected Visitors")
     )
   })
