@@ -1,0 +1,35 @@
+// COLORS
+
+// Base colors
+$base-colors: (
+  gray-lighter: #f2f4f8,
+  gray-light: #dde1e6,
+  gray: #c5c8ca,
+);
+
+// Credit colors
+$credit-colors: (
+  blue-gray: #517287,
+  blue-gray-dark: #15354a,
+  blue-light: #ccebff,
+  blue: #0099f9,
+  blue-dark: #008de7,
+  rhino: #4747b1
+);
+
+// Branding colors
+$brand-colors: (
+  white: var(--bs-white),
+  black: var(--bs-black),
+  foreground: var(--bs-body-color),
+  background: var(--bs-body-bg),
+  gray-light-75: color-mix(in srgb, var(--brand-gray), white 75%),
+  gray-light-30: color-mix(in srgb, var(--brand-gray), white 30%),
+  gray: var(--brand-gray),
+  gray-dark: var(--bs-gray-700),
+  primary-light-80: color-mix(in srgb, var(--bs-primary), white 80%),
+  primary-light-60: color-mix(in srgb, var(--bs-primary), white 60%),
+  primary-light-20: color-mix(in srgb, var(--bs-primary), white 20%),
+  primary: var(--bs-primary),
+  primary-dark-90: color-mix(in srgb, var(--bs-primary), black 10%)
+);

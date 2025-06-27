@@ -1,0 +1,195 @@
+// ABOUT SECTION
+
+.info-btns {
+  display: contents;
+
+  .btn.action-button.info-btn {
+    border: none;
+    background-color: map.get($brand-colors, background);
+    color: map.get($credit-colors, blue);
+    cursor: pointer;
+    font-size: 1.2em;
+    flex: 0;
+    min-width: 24px;
+    padding: 0;
+    transition: background-color 0.2s, color 0.2s;
+    z-index: 1;
+
+    &:hover,
+    &:focus {
+      background: none;
+      box-shadow: none;
+      color: map.get($credit-colors, blue-dark);
+      outline: none;
+    }
+
+    i {
+      padding-top: 5px;
+      font-size: 1.3em;
+    }
+  }
+}
+
+.modal-header {
+  .modal-title {
+    color: map.get($credit-colors, blue-gray-dark);
+    font-size: 1.2em;
+    font-weight: 600;
+  }
+}
+
+.modal-content {
+  .about-section {
+    display: flex;
+    flex-direction: column;
+    gap: 1.6em;
+
+    .about-links {
+      display: flex;
+      gap: 0.5em;
+      padding-bottom: 1em;
+
+      .link {
+        align-items: center;
+        background-color: map.get($credit-colors, blue-light);
+        border-radius: 4em;
+        color: map.get($credit-colors, blue-gray-dark);
+        cursor: pointer;
+        display: flex;
+        gap: 0.5em;
+        padding: 0.5em 1em;
+        text-decoration: none;
+
+        &:hover {
+          background-color: map.get($credit-colors, blue);
+          color: map.get($credit-colors, blue-gray-dark);
+          text-decoration: none;
+        }
+      }
+    }
+  }
+
+  .brand-heading {
+    font-weight: bold;
+    font-size: 1.2em;
+    margin-bottom: 10px;
+  }
+
+  .brand-section {
+    align-items: center;
+    border: 1px solid map.get($credit-colors, blue-gray-dark);
+    border-radius: 10px;
+    display: flex;
+    gap: 10px;
+    padding: 20px;
+    margin-bottom: 20px;
+
+    .brand-logo {
+      width: 150px;
+
+      img {
+        width: 100%;
+      }
+    }
+
+    .brand-summary {
+      color: map.get($credit-colors, blue-gray-dark);
+      font-size: 0.9em;
+      line-height: 1.4;
+      width: 100%;
+      margin-bottom: 0;
+    }
+  }
+
+  .tech-section {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 10px 0;
+
+    .tech-heading {
+      font-weight: bold;
+      font-size: 1.2em;
+      color: map.get($credit-colors, blue-gray-dark);
+    }
+
+    .card-package {
+      align-items: center;
+      background-color: map.get($credit-colors, blue-gray-dark);
+      border-radius: 1em;
+      display: grid;
+      gap: 20px;
+      grid-template-columns: 130px auto 1fr;
+      grid-template-rows: repeat(3, auto);
+      justify-items: start;
+      padding: 20px;
+
+      .card-logo {
+        grid-row: 1 / 4;
+
+        img {
+          width: 100%;
+        }
+      }
+
+      .card-heading {
+        color: map.get($brand-colors, white);
+        font-size: 1.1em;
+        font-weight: 600;
+        grid-column: 2 / 4;
+        margin: 0;
+      }
+
+      .card-content {
+        color: map.get($brand-colors, white);
+        font-size: 0.9em;
+        grid-column: 2 / 4;
+        line-height: 1.4;
+      }
+
+      .card-link {
+        border-radius: 10px;
+        font-weight: bold;
+        padding: 10px 20px;
+        text-decoration: none;
+        transition: background-color 0.2s, color 0.2s;
+
+        &.rhino,
+        &.blog-link {
+          background-color: map.get($credit-colors, rhino);
+          color: map.get($brand-colors, white);
+          grid-column: 2 / 3;
+        }
+
+        &.technologies,
+        &.marketing-link {
+          background-color: map.get($brand-colors, white);
+          color: map.get($credit-colors, blue-gray-dark);
+          grid-column: 3 / 4;
+        }
+
+        &:hover {
+          background-color: map.get($credit-colors, blue);
+          color: map.get($brand-colors, white);
+        }
+      }
+    }
+  }
+
+  .btn-default,
+  .btn:disabled,
+  .btn.disabled,
+  fieldset:disabled .btn {
+    background-color: map.get($credit-colors, blue);
+  }
+
+  .btn-default:hover,
+  .btn-default:focus,
+  :not(.btn-check) + .btn:active {
+    background-color: map.get($credit-colors, blue-dark);
+  }
+}
+
+.modal-dialog.modal-xl {
+  margin-top: 12vh;
+}

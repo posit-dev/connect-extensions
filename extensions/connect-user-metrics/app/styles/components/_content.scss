@@ -1,0 +1,55 @@
+// CONTENT
+
+.bslib-sidebar-layout > .main {
+  padding: 0;
+
+  .bslib-card {
+    box-shadow: none;
+    border-bottom-width: 1px;
+    border-bottom-style: solid;
+    margin-bottom: 0;
+    padding: 26px 24px 24px;
+
+    .card-header {
+      align-content: center;
+      display: inline-block !important;
+      background-color: map.get($base-colors, gray-lighter);
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 16px;
+      min-height: 60px;
+      color: map.get($brand-colors, gray-dark);
+      border-bottom-color: map.get($brand-colors, white);
+      border-radius: 7px;
+
+      h5 {
+        font-size: 20px;
+      }
+
+      div.card-header-with-content {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+
+        div.card-header-content {
+          display: flex;
+          align-items: center;
+
+          div.inline-info-wrapper {
+            display: flex;
+            gap: 4px;
+            font-weight: 500;
+          }
+        }
+      }
+    }
+
+    .card-body {
+      padding: 16px 0 0;
+    }
+  }
+
+  hr {
+    margin-bottom: 0;
+  }
+}
