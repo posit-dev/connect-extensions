@@ -1,0 +1,50 @@
+{
+  "version": 1,
+  "locale": "en_US.UTF-8",
+  "metadata": {
+    "appmode": "python-shiny",
+    "entrypoint": "app"
+  },
+  "python": {
+    "version": "3.11.3",
+    "package_manager": {
+      "name": "pip",
+      "version": "22.3.1",
+      "package_file": "requirements.txt"
+    }
+  },
+  "environment": {
+      "python": {
+        "requires": ">=3.10"
+      }
+    },
+  "extension": {
+    "name": "azure-openai-oauth-pyshiny",
+    "title": "Python Shiny Azure OpenAI OAuth Integration Example",
+    "description": "A Python Shiny app with an Azure OpenAI OAuth Integration that answers questions about the Palmer Penguins dataset",
+    "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/azure-openai-oauth-pyshiny",
+    "category": "example",
+    "tags": ["python", "shiny"],
+    "requiredFeatures": [
+      "OAuth Integrations"
+    ],
+    "minimumConnectVersion": "2025.04.0",
+    "environment": {
+      "python": {
+        "requires": ">=3.10"
+      }
+    },
+    "version": "0.0.1"
+  },
+  "files": {
+    "requirements.txt": {
+      "checksum": "29cc272aac150ac0aee03574874b78cf"
+    },
+    "README.md": {
+      "checksum": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "app.py": {
+      "checksum": "61ea50f9418a4aaa6d56d566175f2dd7"
+    }
+  }
+}
