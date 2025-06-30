@@ -13,6 +13,77 @@
   margin-top: -10px;
 }
 
+/* Version selector styles */
+.version-selector {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  padding-top: 5px;
+}
+
+/* ActionButton version */
+.btn-version {
+  padding: 2px 6px;
+  font-size: 0.8rem;
+  font-family: "Fira Mono", Consolas, Monaco, monospace;
+  border: 1px solid #ddd;
+  background: #f8f9fa;
+  border-radius: 3px;
+  margin-right: 0;
+  margin-bottom: 4px;
+  transition: all 0.15s ease-in-out;
+}
+
+/* Server version styling */
+.btn-version.server-version {
+  /* Regular font weight for server versions */
+}
+
+/* Non-server version styling - make it italic */
+.btn-version:not(.server-version) {
+  font-style: italic;
+}
+
+/* Selected versions */
+.btn-version.selected {
+  background-color: #447099; /* Posit Blue */
+  color: white;
+  border-color: #447099;
+}
+
+/* The specifically selected version */
+.btn-version.selected.max {
+  text-decoration: underline; /* Underline the max version */
+  text-underline-offset: 2px; /* Add some space between text and underline */
+}
+
+/* Add cursor pointer to btn-version for better UX */
+.btn-version {
+  cursor: pointer;
+}
+
+/* Hover effect for unselected buttons */
+.btn-version:hover:not(.selected) {
+  background-color: #e9ecef;
+  border-color: #ced4da;
+}
+
+/* Hover effect for selected buttons */
+.btn-version.selected:hover {
+  background-color: #385d7c;
+  border-color: #385d7c;
+}
+
+/* Custom tooltip styling */
+.tooltip-inner {
+  text-align: left;
+}
+
+/* Remove extra space at the end */
+.tooltip-inner p:last-child {
+  margin-bottom: 0;
+}
+
 /* Table styles */
 
 /* Styles used by the Most Used Content table */
