@@ -39,6 +39,9 @@ jobs:
         with:
           working-directory: extensions/${{ env.EXTENSION_NAME }}
 
+      - run: Rscript -e 'install.packages("testthat")'
+        working-directory: extensions/${{ env.EXTENSION_NAME }}
+
       - run: Rscript -e 'testthat::test_dir("tests/testthat")'
         working-directory: extensions/${{ env.EXTENSION_NAME }}
 
