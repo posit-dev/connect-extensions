@@ -70,7 +70,7 @@ jobs:
     uses: ./.github/workflows/connect-integration-tests.yml
     secrets: inherit
     with:
-      extensions: '["publisher-command-center"]'  # JSON array format to match the workflow input schema
+      extensions: '["runtime-version-scanner"]'  # JSON array format to match the workflow input schema
 
   release:
     runs-on: ubuntu-latest
