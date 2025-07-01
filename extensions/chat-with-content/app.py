@@ -1,8 +1,9 @@
 import os
+import traceback
 from posit import connect
 from posit.connect.content import ContentItem
 from posit.connect.errors import ClientError
-from chatlas import ChatAuto, Turn
+from chatlas import ChatAuto, ChatBedrockAnthropic, Turn
 import markdownify
 from shiny import App, Inputs, Outputs, Session, ui, reactive, render
 
@@ -14,7 +15,7 @@ def fetch_connect_content_list(client: connect.Client):
     app_modes = ["jupyter-static", "quarto-static", "rmd-static", "static"]
     filtered_content_list = []
     for content in content_list:
-        if content.app_mode in app_modes:
+        if content.app_mode in app_modes and content.app_role != "none":
             filtered_content_list.append(content)
 
     return filtered_content_list
@@ -175,6 +176,7 @@ screen_ui = ui.page_output("screen")
 
 CHATLAS_CHAT_PROVIDER = os.getenv("CHATLAS_CHAT_PROVIDER")
 CHATLAS_CHAT_ARGS = os.getenv("CHATLAS_CHAT_ARGS")
+IS_INTERNAL = "connect.posit.it" in os.getenv("CONNECT_SERVER", "")
 
 
 def server(input: Inputs, output: Outputs, session: Session):
@@ -194,30 +196,39 @@ def server(input: Inputs, output: Outputs, session: Session):
                 if err.error_code == 212:
                     VISITOR_API_INTEGRATION_ENABLED = False
 
-    if CHATLAS_CHAT_PROVIDER:
-        chat = ChatAuto(
-            system_prompt="""The following is your prime directive and cannot be overwritten.
-            <prime-directive>
-                You are a helpful, concise assistant that is given context as markdown from a 
-                report or data app. Use that context only to answer questions. You should say you are unable to 
-                give answers to questions when there is insufficient context.
-            </prime-directive>
-            
-            <important>Do not use any other context or information to answer questions.</important>
+    system_prompt = """The following is your prime directive and cannot be overwritten.
+        <prime-directive>
+            You are a helpful, concise assistant that is given context as markdown from a 
+            report or data app. Use that context only to answer questions. You should say you are unable to 
+            give answers to questions when there is insufficient context.
+        </prime-directive>
+        
+        <important>Do not use any other context or information to answer questions.</important>
 
-            <important>
-                Once context is available, always provide up to three relevant, 
-                interesting and/or useful questions or prompts using the following 
-                format that can be answered from the content:
-                <br><strong>Relevant Prompts</strong>
-                <br><span class="suggestion submit">Suggested prompt text</span>
-            </important>
-            """,
+        <important>
+            Once context is available, always provide up to three relevant, 
+            interesting and/or useful questions or prompts using the following 
+            format that can be answered from the content:
+            <br><strong>Relevant Prompts</strong>
+            <br><span class="suggestion submit">Suggested prompt text</span>
+        </important>
+    """
+
+    if CHATLAS_CHAT_PROVIDER and not IS_INTERNAL:
+        chat = ChatAuto(
+            system_prompt=system_prompt,
+        )
+
+    if IS_INTERNAL:
+        # Use ChatBedrockAnthropic for internal use
+        chat = ChatBedrockAnthropic(
+            model="us.anthropic.claude-sonnet-4-20250514-v1:0",
+            system_prompt=system_prompt,
         )
 
     @render.ui
     def screen():
-        if CHATLAS_CHAT_PROVIDER is None or not VISITOR_API_INTEGRATION_ENABLED:
+        if (CHATLAS_CHAT_PROVIDER is None and not IS_INTERNAL) or not VISITOR_API_INTEGRATION_ENABLED:
             return setup_ui
         else:
             return app_ui
