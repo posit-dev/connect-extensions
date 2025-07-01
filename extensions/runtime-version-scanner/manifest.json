@@ -2433,7 +2433,6 @@
       "checksum": "da523c0b62ffb128eecf0eebe3b190af"
     }
   },
-  "users": null,
   "extension": {
     "name": "runtime-version-scanner",
     "title": "Runtime Version Scanner",

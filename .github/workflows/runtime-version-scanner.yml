@@ -62,6 +62,7 @@ jobs:
             extensions/${{ env.EXTENSION_NAME }}/renv.lock
             extensions/${{ env.EXTENSION_NAME }}/version_ordering.R
             extensions/${{ env.EXTENSION_NAME }}/www/styles.css
+            extensions/${{ env.EXTENSION_NAME }}/manifest.json
 
       # Package up the extension into a TAR using the package-extension action
       - uses: ./.github/actions/package-extension
