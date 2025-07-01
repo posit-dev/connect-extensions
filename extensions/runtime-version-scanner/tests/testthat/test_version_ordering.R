@@ -1,4 +1,4 @@
-source("../version_ordering.R")
+source("../../version_ordering.R")
 
 versions <- c(
   "3.8.2",
@@ -64,13 +64,13 @@ test_that("as_ordered_version_factor includes additional_versions in factor leve
   # Test with additional versions that don't exist in the main versions
   additional_vers <- c("3.9.0", "4.1.0")
   vf <- as_ordered_version_factor(versions, additional_vers)
-  
+
   # Check that levels include both the original versions and the additional ones
   expect_equal(
     levels(vf),
     c("2.8.9", "3.8.2", "3.9.0", "3.11.2", "3.11.3", "3.12.1", "4.0.1", "4.1.0")
   )
-  
+
   # Check that the original values are assigned the correct factor levels
   expect_equal(
     as.character(vf)[!is.na(vf)],
