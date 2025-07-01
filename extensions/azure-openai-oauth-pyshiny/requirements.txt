@@ -19,7 +19,7 @@ certifi==2025.6.15
     #   requests
 charset-normalizer==3.4.2
     # via requests
-chatlas @ git+https://github.com/posit-dev/chatlas@8871240172dd470f7eee10028c3be8ac9f64a5eb
+chatlas @ git+https://github.com/posit-dev/chatlas@65d58aa03ab5d8822612104d7675586b6491d95f
     # via py-chat-app
 click==8.2.1 ; sys_platform != 'emscripten'
     # via
@@ -63,9 +63,9 @@ mdit-py-plugins==0.4.2
     # via shiny
 mdurl==0.1.2
     # via markdown-it-py
-narwhals==1.44.0
+narwhals==1.45.0
     # via shiny
-openai==1.92.2
+openai==1.93.0
     # via chatlas
 orjson==3.10.18
     # via
@@ -129,7 +129,7 @@ uc-micro-py==1.0.3
     # via linkify-it-py
 urllib3==2.5.0
     # via requests
-uvicorn==0.34.3 ; sys_platform != 'emscripten'
+uvicorn==0.35.0 ; sys_platform != 'emscripten'
     # via shiny
 watchfiles==1.1.0 ; sys_platform != 'emscripten'
     # via shiny
