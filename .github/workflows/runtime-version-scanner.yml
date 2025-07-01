@@ -40,7 +40,7 @@ jobs:
           working-directory: extensions/${{ env.EXTENSION_NAME }}
 
       - run: Rscript -e 'testthat::test_dir("tests/testthat")'
-         working-directory: extensions/${{ env.EXTENSION_NAME }}
+        working-directory: extensions/${{ env.EXTENSION_NAME }}
 
       # Now that the extension is built we need to upload an artifact to pass
       # to the package-extension action that contains the files we want to be
