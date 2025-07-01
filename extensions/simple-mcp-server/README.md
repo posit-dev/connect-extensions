@@ -4,7 +4,7 @@ A FastAPI-based Model Context Protocol (MCP) server that demonstrates how to dep
 
 ## Overview
 
-This extension demonstrates Connect's capability to host Model Context Protocol servers, enabling LLMs to access and execute tools remotely. The Simple MCP Server provides a collection of data analysis tools and Connect integration capabilities, making it an ideal companion for AI-powered applications like the [Simple Shiny Chat](../simple-shiny-chat/README.md) extension.
+This extension demonstrates Connect's capability to host Model Context Protocol servers, enabling LLMs to access and execute tools remotely. The Simple MCP Server provides a collection of data analysis tools and Connect integration capabilities, making it an ideal companion for AI-powered applications like the [Simple Shiny Chat](../simple-shiny-chat-with-mcp/README.md) extension.
 
 ![MCP Server Landing Page](./images/demo.png)
 
@@ -50,7 +50,7 @@ Once deployed, the extension provides:
 
 ### 3. Use with MCP Clients
 The server can be consumed by any MCP-compatible client, including:
-- [Simple Shiny Chat](../simple-shiny-chat/README.md) extension
+- [Simple Shiny Chat](../simple-shiny-chat-with-mcp/README.md) extension
 - Local MCP clients
 - AI development environments that support MCP
 
@@ -125,20 +125,6 @@ The server supports Connect API key authentication for tools that interact with 
 x-mcp-authorization: Key YOUR_API_KEY
 ```
 
-## Local Development
-
-For local testing and development:
-
-```bash
-# Install dependencies
-pip install -r requirements.txt
-
-# Run the server locally
-python main.py
-```
-
-The server will start on `http://127.0.0.1:8001` with the MCP endpoint at `/mcp`.
-
 ## Troubleshooting
 
 ### Deployment Issues
@@ -158,7 +144,7 @@ The server will start on `http://127.0.0.1:8001` with the MCP endpoint at `/mcp`
 
 ## Integration with Simple Shiny Chat
 
-This MCP server is designed to work seamlessly with the [Simple Shiny Chat](../simple-shiny-chat/README.md) extension:
+This MCP server is designed to work seamlessly with the [Simple Shiny Chat](../simple-shiny-chat-with-mcp/README.md) extension:
 
 1. Deploy both extensions to your Connect server
 2. Configure the chat application with appropriate LLM credentials
@@ -171,7 +157,7 @@ This MCP server is designed to work seamlessly with the [Simple Shiny Chat](../s
 - [FastMCP Framework](https://github.com/jlowin/fastmcp)
 - [MCP Framework](https://github.com/modelcontextprotocol/python-sdk)
 - [FastAPI Documentation](https://fastapi.tiangolo.com/)
-- [Simple Shiny Chat Extension](../simple-shiny-chat/README.md)
+- [Simple Shiny Chat Extension](../simple-shiny-chat-with-mcp/README.md)
 - [Posit Connect Extension Gallery Guide](https://docs.posit.co/connect/admin/connect-gallery/index.html)
 
 ## Support
