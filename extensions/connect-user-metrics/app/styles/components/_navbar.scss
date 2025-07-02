@@ -1,0 +1,134 @@
+// NAVBAR
+
+div.app-header {
+  height: 50px;
+  padding: 20px 20px 20px 0;
+  z-index: 1;
+
+  .logo-link {
+    border-right: 1px solid map.get($base-colors, gray);
+    flex: 0;
+    padding: 0 10px 0 0;
+    width: auto;
+    z-index: 1;
+
+    .logo {
+      width: 100px;
+    }
+  }
+
+  .title {
+    color: map.get($brand-colors, gray-dark);
+    flex: 1;
+    font-size: 1.15em;
+    font-weight: 600;
+    margin: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    z-index: 1;
+  }
+
+  .navigation {
+    flex: 0;
+
+    .btn-nav-menu {
+      background: transparent;
+      border: none;
+      border-radius: 20px;
+      color: map.get($credit-colors, blue-gray-dark);
+      font-weight: normal;
+      font-size: 1em;
+      height: auto;
+      outline: none !important;
+      transition: color 0.2s, background-color 0.2s;
+
+      &.selected {
+        background-color: rgba(map.get($credit-colors, blue), $alpha: 0.1);
+        border-bottom: none;
+        color: map.get($credit-colors, blue);
+        outline: 0;
+      }
+
+      &:hover,
+      &:active {
+        background-color: rgba(map.get($credit-colors, blue-gray-dark), $alpha: 0.05);
+      }
+    }
+  }
+
+  .btn-cta {
+    border-radius: 4px;
+    background-color: map.get($credit-colors, blue);
+    color: map.get($brand-colors, white);
+    cursor: pointer;
+    flex: 0;
+    padding: 8px 16px;
+    text-decoration: none;
+    transition: color 0.2s, background-color 0.2s;
+    white-space: nowrap;
+    width: auto;
+    z-index: 1;
+
+    &:hover {
+      background-color: map.get($credit-colors, blue-dark);
+      color: map.get($brand-colors, white);
+      background-image: none;
+    }
+  }
+
+  .burger-btn {
+    background: none;
+    border: none;
+    display: none;
+    flex: 0;
+    font-size: 1.5em;
+    transition: color 0.2s;
+    min-width: 30px;
+    z-index: 1;
+
+    &:hover {
+      color: map.get($credit-colors, blue);
+    }
+  }
+
+  @media screen and (max-width: 1024px) {
+    padding: 0;
+
+    .burger-btn {
+      display: flex;
+    }
+
+    .navigation {
+      background-color: map.get($brand-colors, white);
+      height: auto;
+      left: 0;
+      padding: 80px 20px 40px;
+      position: fixed;
+      top: 0;
+      transform: translateY(-100%);
+      transition: transform 0.2s, visibility 0s 0.2s;
+      visibility: hidden;
+      width: 100%;
+      z-index: 0;
+
+      &.visible {
+        transition: transform 0.2s, visibility 0s;
+        transform: translateY(0);
+        visibility: visible;
+      }
+
+      .btn-nav-menu {
+        background: transparent;
+        border: none;
+        border-radius: 20px;
+        color: map.get($credit-colors, blue-gray-dark);
+        font-weight: normal;
+        font-size: 1em;
+        height: auto;
+        outline: none !important;
+        transition: color 0.2s, background-color 0.2s;
+      }
+    }
+  }
+}

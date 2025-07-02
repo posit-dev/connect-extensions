@@ -1,0 +1,27 @@
+// TABLE
+
+.rt-pagination {
+  .rt-page-button {
+    font-weight: 400;
+  }
+
+  .rt-page-button-current {
+    background-color: map.get($brand-colors, gray);
+    color: map.get($brand-colors, white);
+  }
+}
+
+.rt-table {
+  .rt-tbody .rt-tr:hover {
+    background-color: map.get($brand-colors, primary-light-80);
+    transition: background-color 0.3s ease 0s, color 0.3s ease 0s;
+  }
+
+  .rt-sort-header {
+    font-weight: 500;
+  }
+
+  .rt-page-button:disabled:hover {
+    color: map.get($brand-colors, gray-dark);
+  }
+}
