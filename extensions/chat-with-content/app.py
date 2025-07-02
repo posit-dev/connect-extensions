@@ -1,5 +1,4 @@
 import os
-import traceback
 from posit import connect
 from posit.connect.content import ContentItem
 from posit.connect.errors import ClientError
@@ -19,6 +18,7 @@ def fetch_connect_content_list(client: connect.Client):
             filtered_content_list.append(content)
 
     return filtered_content_list
+
 
 setup_ui = ui.page_fillable(
     ui.tags.style(
@@ -228,7 +228,9 @@ def server(input: Inputs, output: Outputs, session: Session):
 
     @render.ui
     def screen():
-        if (CHATLAS_CHAT_PROVIDER is None and not IS_INTERNAL) or not VISITOR_API_INTEGRATION_ENABLED:
+        if (
+            CHATLAS_CHAT_PROVIDER is None and not IS_INTERNAL
+        ) or not VISITOR_API_INTEGRATION_ENABLED:
             return setup_ui
         else:
             return app_ui
@@ -238,7 +240,8 @@ def server(input: Inputs, output: Outputs, session: Session):
     def _():
         content_list = fetch_connect_content_list(client)
         content_choices = {
-            item.guid: f"{item.title or item.name} - {item.owner.first_name} {item.owner.last_name} {time_since_deployment(item.last_deployed_time)}" for item in content_list
+            item.guid: f"{item.title or item.name} - {item.owner.first_name} {item.owner.last_name} {time_since_deployment(item.last_deployed_time)}"
+            for item in content_list
         }
         ui.update_select(
             "content_selection",
@@ -251,8 +254,12 @@ def server(input: Inputs, output: Outputs, session: Session):
     async def _():
         if input.content_selection() and input.content_selection() != "":
             content = client.content.get(input.content_selection())
-            print(f"Selected content: {content.last_deployed_time} {content.title} {content.name} ({content.app_mode}) - {content.owner.first_name} {content.owner.last_name} => {content.content_url}")
-            await session.send_custom_message("update-iframe", {"url": content.content_url})
+            print(
+                f"Selected content: {content.last_deployed_time} {content.title} {content.name} ({content.app_mode}) - {content.owner.first_name} {content.owner.last_name} => {content.content_url}"
+            )
+            await session.send_custom_message(
+                "update-iframe", {"url": content.content_url}
+            )
 
     # Update the view content button URL
     @render.ui
