@@ -363,18 +363,7 @@ server <- function(input, output, session) {
   })
 
   output$content_table <- renderReactable({
-    data <- content_matching()
-
-    # Extract available server runtime versions by type
-    server_vers <- server_versions()
-    r_server_vers <- server_vers |> filter(runtime == "r") |> pull(version)
-    py_server_vers <- server_vers |>
-      filter(runtime == "python") |>
-      pull(version)
-    quarto_server_vers <- server_vers |>
-      filter(runtime == "quarto") |>
-      pull(version)
-
+    data <- isolate(content_matching())
 
     reactable(
       data,
@@ -443,6 +432,10 @@ server <- function(input, output, session) {
         )
       )
     )
+  })
+
+  observe({
+    updateReactable("content_table", data = content_matching())
   })
 }
 
