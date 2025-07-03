@@ -7,6 +7,7 @@ library(shinycssloaders)
 library(lubridate)
 library(bsicons)
 library(tidyr)
+library(future)
 
 source("get_usage.R")
 source("connect_module.R")
@@ -118,6 +119,17 @@ ui <- page_sidebar(
       multiple = TRUE,
     ),
 
+    selectizeInput(
+      "views_window",
+      label = "Views Window",
+      choices = c(
+        "Last Week" = 7,
+        "Last Month" = 30,
+        "Last Quarter" = 90
+      ),
+      selected = 7
+    ),
+
     numericInput(
       "min_hits_filter",
       label = "Minimum Views",
@@ -137,6 +149,8 @@ ui <- page_sidebar(
   uiOutput("selected_versions_html"),
 
   withSpinner(reactableOutput("content_table")),
+
+  uiOutput("usage_loading_message"),
 
   tags$script(HTML(
     "
@@ -221,15 +235,27 @@ server <- function(input, output, session) {
     ignoreNULL = TRUE
   )
 
-  # Version selection is handled via the selectize inputs initialized in the observeEvent above
-  usage <- reactive({
-    get_usage(
-      client,
-      from = today() - days(6),
-      to = today()
-    ) |>
-      group_by(content_guid) |>
-      summarize(hits = n())
+  usage_task <- ExtendedTask$new(function(window_days) {
+    future({
+      get_usage(client, from = today() - days(window_days), to = today()) |>
+        group_by(content_guid) |>
+        summarize(hits = n(), .groups = "drop")
+    })
+  })
+
+  observeEvent(input$views_window, {
+    usage_task$invoke(as.integer(input$views_window))
+  })
+
+  output$usage_loading_message <- renderUI({
+    if (usage_task$status() %in% c("initial", "pending", "running")) {
+      div(
+        style = "font-style: italic;",
+        "Loading usage..."
+      )
+    } else {
+      NULL
+    }
   })
 
   content_table_data <- reactive({
@@ -240,13 +266,9 @@ server <- function(input, output, session) {
       input$content_type_filter
     }
 
-    # Get min hits for filtering
-    min_hits <- input$min_hits_filter
-
     content() |>
       mutate(content_type = app_mode_lookup[app_mode]) |>
       filter(content_type %in% content_type_mask) |>
-      left_join(usage(), by = c("guid" = "content_guid")) |>
       select(
         title,
         dashboard_url,
@@ -255,31 +277,33 @@ server <- function(input, output, session) {
         content_type,
         r_version,
         py_version,
-        quarto_version,
-        hits
-      ) |>
-      replace_na(list(hits = 0)) |>
-      filter(hits >= min_hits)
+        quarto_version
+      )
   })
 
   content_matching <- reactive({
-    # If no filters enabled, return all content
-    if (
-      all(!input$use_r_cutoff, !input$use_py_cutoff, !input$use_quarto_cutoff)
-    ) {
-      content_table_data()
+    base <- content_table_data()
+
+    if (usage_task$status() != "success") {
+      base <- base |> mutate(hits = NA_integer_)
     } else {
-      content_table_data() |>
-        # fmt: skip
-        filter(
-          (input$use_r_cutoff &
-            r_version < input$r_version_cutoff) |
-          (input$use_py_cutoff &
-            py_version < input$py_version_cutoff) |
+      base <- base |>
+        left_join(usage_task$result(), by = c("guid" = "content_guid")) |>
+        mutate(hits = replace_na(hits, 0))
+    }
+
+    # fmt: skip
+    if (all(!input$use_r_cutoff, !input$use_py_cutoff, !input$use_quarto_cutoff)) {
+    return(base)
+  }
+
+    base |>
+      filter(
+        (input$use_r_cutoff & r_version < input$r_version_cutoff) |
+          (input$use_py_cutoff & py_version < input$py_version_cutoff) |
           (input$use_quarto_cutoff &
             quarto_version < input$quarto_version_cutoff)
-        )
-    }
+      )
   })
 
   output$selected_versions_html <- renderUI({
