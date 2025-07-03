@@ -490,7 +490,8 @@ server <- function(input, output, session) {
 
         views = colDef(
           name = "Views",
-          width = 100,
+          minWidth = 75,
+          maxWidth = 100,
           class = "number-pre",
           defaultSortOrder = "desc"
         ),
