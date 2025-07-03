@@ -136,7 +136,18 @@ ui <- page_sidebar(
 
   uiOutput("selected_versions_html"),
 
-  withSpinner(reactableOutput("content_table"))
+  withSpinner(reactableOutput("content_table")),
+
+  tags$script(HTML(
+    "
+  Shiny.addCustomMessageHandler('setGuidVisible', function(visible) {
+    Reactable.setHiddenColumns('content_table', prev => {
+      const cols = prev.filter(c => c !== 'guid');
+      return visible ? cols : [...cols, 'guid'];
+    });
+  });
+"
+  ))
 )
 
 server <- function(input, output, session) {
@@ -165,6 +176,7 @@ server <- function(input, output, session) {
     content <- get_content(client) |>
       filter(app_role %in% c("owner", "editor")) |>
       mutate(
+        owner_username = map_chr(owner, "username"),
         r_version = as_ordered_version_factor(r_version, r_server_vers),
         py_version = as_ordered_version_factor(py_version, py_server_vers),
         quarto_version = as_ordered_version_factor(
@@ -187,7 +199,7 @@ server <- function(input, output, session) {
         session,
         "r_version_cutoff",
         choices = I(rv),
-        selected = if(length(rv) > 0) rv[length(rv)] else NULL
+        selected = if (length(rv) > 0) rv[length(rv)] else NULL
       )
 
       # Update the Python version input
@@ -195,7 +207,7 @@ server <- function(input, output, session) {
         session,
         "py_version_cutoff",
         choices = I(pv),
-        selected = if(length(pv) > 0) pv[length(pv)] else NULL
+        selected = if (length(pv) > 0) pv[length(pv)] else NULL
       )
 
       # Update the Quarto version input
@@ -203,7 +215,7 @@ server <- function(input, output, session) {
         session,
         "quarto_version_cutoff",
         choices = I(qv),
-        selected = if(length(qv) > 0) qv[length(qv)] else NULL
+        selected = if (length(qv) > 0) qv[length(qv)] else NULL
       )
     },
     ignoreNULL = TRUE
@@ -239,6 +251,7 @@ server <- function(input, output, session) {
         title,
         dashboard_url,
         guid,
+        owner_username,
         content_type,
         r_version,
         py_version,
@@ -363,9 +376,10 @@ server <- function(input, output, session) {
   })
 
   output$content_table <- renderReactable({
+    # Only actually *render* the reactable once.
     data <- isolate(content_matching())
 
-    reactable(
+    tbl <- reactable(
       data,
       defaultPageSize = 15,
       showPageSizeOptions = TRUE,
@@ -397,7 +411,7 @@ server <- function(input, output, session) {
 
         guid = colDef(
           name = "GUID",
-          show = input$show_guid,
+          show = FALSE,
           class = "number-pre",
           cell = function(value) {
             div(
@@ -405,6 +419,13 @@ server <- function(input, output, session) {
               value
             )
           }
+        ),
+
+        owner_username = colDef(
+          name = "Owner",
+          defaultSortOrder = "asc",
+          minWidth = 75,
+          maxWidth = 175
         ),
 
         content_type = colDef(name = "Content Type", width = 125),
@@ -426,16 +447,28 @@ server <- function(input, output, session) {
         ),
 
         hits = colDef(
-          name = "Views (Last Week)",
-          width = 125,
+          name = "Views \n(Last Week)",
+          width = 135,
           class = "number-pre",
+          defaultSortOrder = "desc"
         )
       )
+    )
+
+    htmlwidgets::onRender(
+      tbl,
+      "() => {
+        Shiny.setInputValue('content_table_ready', Math.random())
+      }"
     )
   })
 
   observe({
     updateReactable("content_table", data = content_matching())
+  })
+  observe({
+    req(input$content_table_ready)
+    session$sendCustomMessage("setGuidVisible", input$show_guid)
   })
 }
 
