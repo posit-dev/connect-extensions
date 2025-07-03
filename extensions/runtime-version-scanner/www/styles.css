@@ -102,3 +102,7 @@
   white-space: pre;
   font-size: 96%;
 }
+
+.sidebar hr {
+  margin: 0.25rem 0;
+}
