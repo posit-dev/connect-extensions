@@ -54,8 +54,10 @@ ui <- page_sidebar(
     open = TRUE,
     width = 275,
 
-    h5(
-      "Scan for Runtimes",
+    title = "Filters",
+
+    div(
+      "Runtimes",
       tooltip(
         bsicons::bs_icon("question-circle-fill"),
         tagList(
@@ -109,7 +111,8 @@ ui <- page_sidebar(
       )
     ),
 
-    h5("Filters"),
+    # h5("Filters"),
+    tags$hr(),
 
     selectizeInput(
       "content_type_filter",
@@ -131,19 +134,23 @@ ui <- page_sidebar(
     ),
 
     numericInput(
-      "min_hits_filter",
+      "min_views_filter",
       label = "Minimum Views",
       value = 0,
       min = 0,
       step = 1
     ),
 
-    h5("View"),
-
     checkboxInput(
       "show_guid",
       label = "Show GUIDs"
     ),
+
+    downloadButton(
+      "export_data",
+      class = "btn-sm",
+      label = "Download Filtered Data"
+    )
   ),
 
   uiOutput("selected_versions_html"),
@@ -239,7 +246,7 @@ server <- function(input, output, session) {
     future({
       get_usage(client, from = today() - days(window_days), to = today()) |>
         group_by(content_guid) |>
-        summarize(hits = n(), .groups = "drop")
+        summarize(views = n(), .groups = "drop")
     })
   })
 
@@ -285,24 +292,26 @@ server <- function(input, output, session) {
     base <- content_table_data()
 
     if (usage_task$status() != "success") {
-      base <- base |> mutate(hits = NA_integer_)
+      base <- base |> mutate(views = NA_integer_)
     } else {
       base <- base |>
         left_join(usage_task$result(), by = c("guid" = "content_guid")) |>
-        mutate(hits = replace_na(hits, 0))
+        mutate(views = replace_na(views, 0)) |>
+        filter(views >= input$min_views_filter)
     }
 
-    # fmt: skip
-    if (all(!input$use_r_cutoff, !input$use_py_cutoff, !input$use_quarto_cutoff)) {
-    return(base)
-  }
+    if (
+      all(!input$use_r_cutoff, !input$use_py_cutoff, !input$use_quarto_cutoff)
+    ) {
+      return(base)
+    }
 
     base |>
+      # fmt: skip
       filter(
         (input$use_r_cutoff & r_version < input$r_version_cutoff) |
-          (input$use_py_cutoff & py_version < input$py_version_cutoff) |
-          (input$use_quarto_cutoff &
-            quarto_version < input$quarto_version_cutoff)
+        (input$use_py_cutoff & py_version < input$py_version_cutoff) |
+        (input$use_quarto_cutoff & quarto_version < input$quarto_version_cutoff)
       )
   })
 
@@ -476,9 +485,9 @@ server <- function(input, output, session) {
           class = "number-pre",
         ),
 
-        hits = colDef(
-          name = "Views \n(Last Week)",
-          width = 135,
+        views = colDef(
+          name = "Views",
+          width = 100,
           class = "number-pre",
           defaultSortOrder = "desc"
         )
@@ -500,6 +509,16 @@ server <- function(input, output, session) {
     req(input$content_table_ready)
     session$sendCustomMessage("setGuidVisible", input$show_guid)
   })
+
+  # Download handler
+  output$export_data <- downloadHandler(
+    filename = function() {
+      paste0("connect_content_runtimes_filtered", Sys.Date(), ".csv")
+    },
+    content = function(file) {
+      write.csv(content_matching(), file, row.names = FALSE)
+    }
+  )
 }
 
 shinyApp(ui, server)
