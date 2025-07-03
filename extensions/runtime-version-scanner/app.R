@@ -384,8 +384,14 @@ server <- function(input, output, session) {
       defaultPageSize = 15,
       showPageSizeOptions = TRUE,
       pageSizeOptions = c(15, 50, 100),
-      wrap = FALSE,
       class = "content-tbl",
+      defaultColDef = colDef(
+        headerVAlign = "bottom",
+        headerStyle = list(
+          whiteSpace = "normal"
+        ),
+        style = list(whiteSpace = "nowrap")
+      ),
       columns = list(
         title = colDef(name = "Title"),
 
