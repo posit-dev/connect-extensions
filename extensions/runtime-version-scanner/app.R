@@ -284,7 +284,8 @@ server <- function(input, output, session) {
         content_type,
         r_version,
         py_version,
-        quarto_version
+        quarto_version,
+        last_deployed_time
       )
   })
 
@@ -299,6 +300,8 @@ server <- function(input, output, session) {
         mutate(views = replace_na(views, 0)) |>
         filter(views >= input$min_views_filter)
     }
+
+    base <- relocate(base, last_deployed_time, .after = last_col())
 
     if (
       all(!input$use_r_cutoff, !input$use_py_cutoff, !input$use_quarto_cutoff)
@@ -489,6 +492,13 @@ server <- function(input, output, session) {
           name = "Views",
           width = 100,
           class = "number-pre",
+          defaultSortOrder = "desc"
+        ),
+
+        last_deployed_time = colDef(
+          name = "Last Published",
+          width = 155,
+          format = colFormat(datetime = TRUE),
           defaultSortOrder = "desc"
         )
       )
