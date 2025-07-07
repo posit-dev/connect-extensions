@@ -41,6 +41,9 @@ As a Posit Connect administrator, you need to configure the environment for this
 
     If the Connect server is running on an EC2 instance with an IAM role that grants access to Bedrock, no environment variables are needed. The application will automatically detect and use AWS credentials. It defaults to the `us.anthropic.claude-sonnet-4-20250514-v1:0` model.
 
+    -   `CHATLAS_CHAT_PROVIDER`: `bedrock-anthropic`
+    -   `CHATLAS_CHAT_ARGS`: `{"model": "us.anthropic.claude-sonnet-4-20250514-v1:0", "aws_access_key": "...", "aws_secret_key": "...", "aws_session_token": "..."}` (if not using IAM roles)
+
     For more details on supported providers and their arguments, see the [Chatlas documentation](https://posit-dev.github.io/chatlas/reference/ChatAuto.html).
 
 3.  **Enable Visitor API Key Integration**: This extension requires access to the Connect API on behalf of the visiting user to list their available content. In the "Access" pane of the content settings, add a "Connect Visitor API Key" integration.
