@@ -1,4 +1,5 @@
 import os
+import re
 from posit import connect
 from posit.connect.content import ContentItem
 from posit.connect.errors import ClientError
@@ -9,12 +10,30 @@ from shiny import App, Inputs, Outputs, Session, ui, reactive, render
 from helpers import time_since_deployment
 
 
+def check_aws_bedrock_credentials():
+    # Check if AWS credentials are available in the environment
+    # that can be used to access Bedrock
+    try:
+        chat = ChatBedrockAnthropic(
+            model="us.anthropic.claude-sonnet-4-20250514-v1:0",
+        )
+        chat.chat("test", echo="none")
+        return True
+    except Exception as e:
+        print(f"AWS Bedrock credentials check failed and will fallback to checking for values for the CHATLAS_CHAT_PROVIDER and CHATLAS_CHAT_ARGS env vars. Err: {e}")
+        return False
+
+
 def fetch_connect_content_list(client: connect.Client):
     content_list: list[ContentItem] = client.content.find(include=["owner", "tags"])
     app_modes = ["jupyter-static", "quarto-static", "rmd-static", "static"]
     filtered_content_list = []
     for content in content_list:
-        if content.app_mode in app_modes and content.app_role != "none":
+        if (
+            content.app_mode in app_modes and 
+            content.app_role != "none" and
+            content.content_category != "pin"
+        ):
             filtered_content_list.append(content)
 
     return filtered_content_list
@@ -107,7 +126,7 @@ setup_ui = ui.page_fillable(
                 ui.HTML(
                     "This app requires the <code>CHATLAS_CHAT_PROVIDER</code> and <code>CHATLAS_CHAT_ARGS</code> environment variables to be "
                     "set along with an LLM API Key in the content access panel. Please set them in your environment before running the app. "
-                    '<a href="https://posit-dev.github.io/chatlas/reference/ChatAuto.html" class="setup-link">See the documentation for more details.</a>'
+                    'See the <a href="https://posit-dev.github.io/chatlas/reference/ChatAuto.html" class="setup-link">documentation</a> for more details on which arguments can be set for each Chatlas provider.'
                 ),
                 class_="setup-description",
             ),
@@ -176,7 +195,7 @@ screen_ui = ui.page_output("screen")
 
 CHATLAS_CHAT_PROVIDER = os.getenv("CHATLAS_CHAT_PROVIDER")
 CHATLAS_CHAT_ARGS = os.getenv("CHATLAS_CHAT_ARGS")
-IS_INTERNAL = "connect.posit.it" in os.getenv("CONNECT_SERVER", "")
+HAS_AWS_CREDENTIALS = check_aws_bedrock_credentials()
 
 
 def server(input: Inputs, output: Outputs, session: Session):
@@ -214,12 +233,14 @@ def server(input: Inputs, output: Outputs, session: Session):
         </important>
     """
 
-    if CHATLAS_CHAT_PROVIDER and not IS_INTERNAL:
+    if CHATLAS_CHAT_PROVIDER and not HAS_AWS_CREDENTIALS:
+        # This will pull its configuration from environment variables
+        # CHATLAS_CHAT_PROVIDER and CHATLAS_CHAT_ARGS
         chat = ChatAuto(
             system_prompt=system_prompt,
         )
 
-    if IS_INTERNAL:
+    if HAS_AWS_CREDENTIALS:
         # Use ChatBedrockAnthropic for internal use
         chat = ChatBedrockAnthropic(
             model="us.anthropic.claude-sonnet-4-20250514-v1:0",
@@ -229,7 +250,7 @@ def server(input: Inputs, output: Outputs, session: Session):
     @render.ui
     def screen():
         if (
-            CHATLAS_CHAT_PROVIDER is None and not IS_INTERNAL
+            CHATLAS_CHAT_PROVIDER is None and not HAS_AWS_CREDENTIALS
         ) or not VISITOR_API_INTEGRATION_ENABLED:
             return setup_ui
         else:
@@ -254,9 +275,6 @@ def server(input: Inputs, output: Outputs, session: Session):
     async def _():
         if input.content_selection() and input.content_selection() != "":
             content = client.content.get(input.content_selection())
-            print(
-                f"Selected content: {content.last_deployed_time} {content.title} {content.name} ({content.app_mode}) - {content.owner.first_name} {content.owner.last_name} => {content.content_url}"
-            )
             await session.send_custom_message(
                 "update-iframe", {"url": content.content_url}
             )
