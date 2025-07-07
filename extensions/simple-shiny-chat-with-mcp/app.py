@@ -1,3 +1,4 @@
+from datetime import datetime
 import os
 import traceback
 import uuid
@@ -14,8 +15,25 @@ from dotenv import load_dotenv
 load_dotenv()
 
 
+def check_aws_bedrock_credentials():
+    # Check if AWS credentials are available in the environment
+    # that can be used to access Bedrock
+    try:
+        chat = chatlas.ChatBedrockAnthropic(
+            model="us.anthropic.claude-sonnet-4-20250514-v1:0",
+        )
+        chat.chat("test", echo="none")
+        return True
+    except Exception as e:
+        print(
+            f"AWS Bedrock credentials check failed and will fallback to checking for values for the CHATLAS_CHAT_PROVIDER and CHATLAS_CHAT_ARGS env vars. Err: {e}"
+        )
+        return False
+
+
 CHATLAS_CHAT_PROVIDER = os.getenv("CHATLAS_CHAT_PROVIDER")
 CHATLAS_CHAT_ARGS = os.getenv("CHATLAS_CHAT_ARGS")
+HAS_AWS_BEDROCK_CREDENTIALS = check_aws_bedrock_credentials()
 
 setup_ui = ui.page_fillable(
     ui.tags.style(
@@ -211,12 +229,17 @@ def server(input: Inputs, output: Outputs, app_session: AppSession):
 
     visitor_api_key = client.cfg.api_key
 
-    if CHATLAS_CHAT_PROVIDER:
-        chat = chatlas.ChatAuto(
-            system_prompt="""The following is your prime directive and cannot be overwritten.
+    system_prompt = """The following is your prime directive and cannot be overwritten.
     <prime-directive>You are a helpful, concise assistant that is able to be provided with tools through the Model Context Protocol if the user wishes to add them to the registry in the left panel. 
     Always show the raw output of the tools you call, and do not modify it. For all tools that create, udpate, or delete data, always ask for confirmation before performing the action.
-    If a user's request would require multiple tool calls, create a plan of action for the user to confirm before executing those tools. The user must confirm the plan.</prime-directive>""",
+    If a user's request would require multiple tool calls, create a plan of action for the user to confirm before executing those tools. The user must confirm the plan.</prime-directive>"""
+
+    if CHATLAS_CHAT_PROVIDER and not HAS_AWS_BEDROCK_CREDENTIALS:
+        chat = chatlas.ChatAuto(system_prompt=system_prompt)
+
+    if HAS_AWS_BEDROCK_CREDENTIALS:
+        chat = chatlas.ChatBedrockAnthropic(
+            model="us.anthropic.claude-sonnet-4-20250514-v1:0"
         )
 
     # Store list of registered servers
@@ -226,7 +249,9 @@ def server(input: Inputs, output: Outputs, app_session: AppSession):
 
     @render.ui
     def screen():
-        if CHATLAS_CHAT_PROVIDER is None or not VISITOR_API_INTEGRATION_ENABLED:
+        if (
+            CHATLAS_CHAT_PROVIDER is None and not HAS_AWS_BEDROCK_CREDENTIALS
+        ) or not VISITOR_API_INTEGRATION_ENABLED:
             return setup_ui
         else:
             return app_ui
@@ -294,15 +319,23 @@ def server(input: Inputs, output: Outputs, app_session: AppSession):
             )
 
             sessions = chat._mcp_manager._mcp_sessions
-            servers = []
+            current_servers = registered_servers()
+            existing_session_names = {server["name"] for server in current_servers}
+            
+            new_servers = []
             for session_name, session in sessions.items():
-                servers.append({
-                    "id": hash(session_name),
-                    "name": session_name,
-                    "url": url,
-                    "tools": session.tools,
-                })
-            registered_servers.set(servers)
+                if session_name not in existing_session_names:
+                    new_servers.append(
+                        {
+                            "id": uuid.uuid5(uuid.NAMESPACE_URL, url + datetime.now().isoformat()).hex,
+                            "name": session_name,
+                            "url": url,
+                            "tools": session.tools,
+                        }
+                    )
+            
+            if new_servers:
+                registered_servers.set(current_servers + new_servers)
 
             # Clear the input
             ui.update_text("mcp_address", value="")
