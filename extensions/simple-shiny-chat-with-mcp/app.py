@@ -321,19 +321,21 @@ def server(input: Inputs, output: Outputs, app_session: AppSession):
             sessions = chat._mcp_manager._mcp_sessions
             current_servers = registered_servers()
             existing_session_names = {server["name"] for server in current_servers}
-            
+
             new_servers = []
             for session_name, session in sessions.items():
                 if session_name not in existing_session_names:
                     new_servers.append(
                         {
-                            "id": uuid.uuid5(uuid.NAMESPACE_URL, url + datetime.now().isoformat()).hex,
+                            "id": uuid.uuid5(
+                                uuid.NAMESPACE_URL, url + datetime.now().isoformat()
+                            ).hex,
                             "name": session_name,
                             "url": url,
                             "tools": session.tools,
                         }
                     )
-            
+
             if new_servers:
                 registered_servers.set(current_servers + new_servers)
 
