@@ -159,7 +159,6 @@ app_ui = ui.page_sidebar(
             "Use this app to select content and ask questions about it. It currently supports static/rendered content."
         ),
         ui.input_selectize("content_selection", "", choices=[], width="100%"),
-        ui.output_ui("view_content"),
         ui.chat_ui(
             "chat",
             placeholder="Type your question here...",
@@ -278,19 +277,6 @@ def server(input: Inputs, output: Outputs, session: Session):
             content = client.content.get(input.content_selection())
             await session.send_custom_message(
                 "update-iframe", {"url": content.content_url}
-            )
-
-    # Update the view content button URL
-    @render.ui
-    @reactive.event(input.content_selection)
-    def view_content():
-        if input.content_selection() and input.content_selection() != "":
-            content = client.content.get(input.content_selection())
-            return ui.a(
-                "Go to content ⤴",
-                href=content.content_url,
-                target="_blank",
-                class_="btn btn-primary",
             )
 
     # Process iframe content when it changes
