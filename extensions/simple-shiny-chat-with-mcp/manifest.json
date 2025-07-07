@@ -29,11 +29,6 @@
       "OAuth Integrations"
     ],
     "minimumConnectVersion": "2025.04.0",
-    "environment": {
-      "python": {
-        "requires": ">=3.10"
-      }
-    },
     "version": "0.0.1"
   },
   "files": {
