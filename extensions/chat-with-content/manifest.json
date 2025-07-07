@@ -21,7 +21,7 @@
   "extension": {
     "name": "chat-with-content",
     "title": "Chat with Content",
-    "description": "Provides a way to interact with and query content using a chat interface.",
+    "description": "Provides a way to interact with and query content using an LLM chat interface.",
     "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/chat-with-content",
     "category": "extension",
     "tags": ["llm", "shiny", "chat", "python"],
