@@ -1,5 +1,4 @@
 import os
-import re
 from posit import connect
 from posit.connect.content import ContentItem
 from posit.connect.errors import ClientError
@@ -20,7 +19,9 @@ def check_aws_bedrock_credentials():
         chat.chat("test", echo="none")
         return True
     except Exception as e:
-        print(f"AWS Bedrock credentials check failed and will fallback to checking for values for the CHATLAS_CHAT_PROVIDER and CHATLAS_CHAT_ARGS env vars. Err: {e}")
+        print(
+            f"AWS Bedrock credentials check failed and will fallback to checking for values for the CHATLAS_CHAT_PROVIDER and CHATLAS_CHAT_ARGS env vars. Err: {e}"
+        )
         return False
 
 
@@ -30,9 +31,9 @@ def fetch_connect_content_list(client: connect.Client):
     filtered_content_list = []
     for content in content_list:
         if (
-            content.app_mode in app_modes and 
-            content.app_role != "none" and
-            content.content_category != "pin"
+            content.app_mode in app_modes
+            and content.app_role != "none"
+            and content.content_category != "pin"
         ):
             filtered_content_list.append(content)
 
