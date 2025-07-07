@@ -48,6 +48,8 @@ Once deployed, the extension provides:
 - **Web Interface**: Visit the content URL to see available tools and copy the MCP endpoint
 - **MCP Endpoint**: Located at `{direct-content-url}/mcp` for MCP client connections
 
+Please note that in order for this endpoint to be reliable, it is recommended to set the minimum number of instances/processes to 1 in the content settings.
+
 ### 3. Use with MCP Clients
 The server can be consumed by any MCP-compatible client, including:
 - [Simple Shiny Chat](../simple-shiny-chat-with-mcp/README.md) extension
