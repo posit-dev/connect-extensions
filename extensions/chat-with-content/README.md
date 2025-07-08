@@ -39,7 +39,7 @@ As a Posit Connect administrator, you need to configure the environment for this
 
     **Example for Anthropic on AWS Bedrock:**
 
-    If the Connect server is running on an EC2 instance with an IAM role that grants access to Bedrock, no environment variables are needed. The application will automatically detect and use AWS credentials. It defaults to the `us.anthropic.claude-sonnet-4-20250514-v1:0` model.
+    If the Connect server is running on an EC2 instance with an IAM role that grants access to Bedrock, no environment variables are needed. The application will automatically detect and use AWS credentials. It defaults to the `us.anthropic.claude-sonnet-4-20250514-v1:0` model. Otherwise, you can set the following environment variables with your AWS credentials:
 
     -   `CHATLAS_CHAT_PROVIDER`: `bedrock-anthropic`
     -   `CHATLAS_CHAT_ARGS`: `{"model": "us.anthropic.claude-sonnet-4-20250514-v1:0", "aws_access_key": "...", "aws_secret_key": "...", "aws_session_token": "..."}` (if not using IAM roles)
