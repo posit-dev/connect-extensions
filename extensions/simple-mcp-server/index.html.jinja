@@ -105,10 +105,12 @@
 <body>
     <div class="container">
         <h1>{{ server_name }}</h1>
-        <p>This server provides data-related tools via the Model Context Protocol (MCP). 
-        Please note that in order for this endpoint to be reliable, it is recommended to set the minimum 
-        number of instances/processes to 1 in the content settings.</p>
-        
+        <p>This server provides sample data-related tools via the Model Context Protocol (MCP).</p>
+
+        <p>Please note that it is recommended to set the minimum number of instances/processes for 
+        this application to >= 1 in the content settings. This will ensure that the MCP server is 
+        always available for clients to connect. See the <a href="https://docs.posit.co/connect/user/content-settings/index.html#process-configurations" target="_blank">content process configuration documentation</a>.</p>
+
         <p>The MCP endpoint is available at:</p>
         <div class="mcp-endpoint-section">
             <input type="text" id="mcpEndpointUrl" value="{{ endpoint }}" readonly>

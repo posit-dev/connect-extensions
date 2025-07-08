@@ -21,7 +21,7 @@
   "extension": {
     "name": "simple-mcp-server",
     "title": "Simple MCP Server",
-    "description": "A simple example of a Connect extension that serves tools via the MCP protocol.",
+    "description": "A simple example of a Connect extension that serves tools via the MCP protocol. This is meant to be used with the Simple Shiny Chat with MCP Support extension.",
     "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/simple-mcp-server",
     "category": "example",
     "tags": ["python", "fastapi", "mcp"],
@@ -29,7 +29,7 @@
       "API Publishing"
     ],
     "minimumConnectVersion": "2025.04.0",
-    "version": "0.0.1"
+    "version": "0.0.2"
   },
   "files": {
     "requirements.txt": {
