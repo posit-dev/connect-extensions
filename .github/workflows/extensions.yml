@@ -56,6 +56,8 @@ jobs:
             app-canary: extensions/app-canary/**
             voila-example: extensions/voila-example/**
             stock-report: extensions/stock-report/**
+            simple-mcp-server: extensions/simple-mcp-server/**
+            simple-shiny-chat-with-mcp: extensions/simple-shiny-chat-with-mcp/**
 
   # Runs for each extension that has changed from `simple-extension-changes`
   # Lints and packages in preparation for tests and and release.

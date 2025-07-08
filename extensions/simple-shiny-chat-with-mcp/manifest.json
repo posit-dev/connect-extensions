@@ -1,0 +1,48 @@
+{
+  "version": 1,
+  "locale": "en_US.UTF-8",
+  "metadata": {
+    "appmode": "python-shiny",
+    "entrypoint": "app"
+  },
+  "python": {
+    "version": "3.11.3",
+    "package_manager": {
+      "name": "pip",
+      "version": "22.3.1",
+      "package_file": "requirements.txt"
+    }
+  },
+  "environment": {
+      "python": {
+        "requires": ">=3.10"
+      }
+    },
+  "extension": {
+    "name": "simple-shiny-chat-with-mcp",
+    "title": "Simple Shiny Chat with MCP Support",
+    "description": "A simple Shiny chat application that demonstrates how to use the MCP client to facilitate remote tool calls.",
+    "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/simple-shiny-chat-with-mcp",
+    "category": "example",
+    "tags": ["python", "shiny", "mcp", "llm"],
+    "requiredFeatures": [
+      "OAuth Integrations"
+    ],
+    "minimumConnectVersion": "2025.04.0",
+    "version": "0.0.1"
+  },
+  "files": {
+    "requirements.txt": {
+      "checksum": "29cc272aac150ac0aee03574874b78cf"
+    },
+    "README.md": {
+      "checksum": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "app.py": {
+      "checksum": "61ea50f9418a4aaa6d56d566175f2dd7"
+    },
+    "mcp_client.py": {
+      "checksum": "4705bcd135d94c9d2d9cf18af186d9d0"
+    }
+  }
+}
