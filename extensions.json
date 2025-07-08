@@ -26,6 +26,49 @@
   ],
   "extensions": [
     {
+      "name": "chat-with-content",
+      "title": "Chat with Content",
+      "description": "Provides a way to interact with and query content using an LLM chat interface.",
+      "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/chat-with-content",
+      "latestVersion": {
+        "version": "0.0.1",
+        "released": "2025-07-08T15:18:27Z",
+        "url": "https://github.com/posit-dev/connect-extensions/releases/download/chat-with-content%40v0.0.1/chat-with-content.tar.gz",
+        "minimumConnectVersion": "2025.04.0",
+        "requiredFeatures": [
+          "OAuth Integrations"
+        ],
+        "requiredEnvironment": {
+          "python": {
+            "requires": ">=3.10.0"
+          }
+        }
+      },
+      "versions": [
+        {
+          "version": "0.0.1",
+          "released": "2025-07-08T15:18:27Z",
+          "url": "https://github.com/posit-dev/connect-extensions/releases/download/chat-with-content%40v0.0.1/chat-with-content.tar.gz",
+          "minimumConnectVersion": "2025.04.0",
+          "requiredFeatures": [
+            "OAuth Integrations"
+          ],
+          "requiredEnvironment": {
+            "python": {
+              "requires": ">=3.10.0"
+            }
+          }
+        }
+      ],
+      "tags": [
+        "llm",
+        "shiny",
+        "chat",
+        "python"
+      ],
+      "category": "extension"
+    },
+    {
       "name": "connectwidgets-example",
       "title": "Connect Widgets Example",
       "description": "connectwidgets is an R package that can be used to query for a subset of your existing content items, then organize them within htmlwidget components in an R Markdown document or Shiny application.",
