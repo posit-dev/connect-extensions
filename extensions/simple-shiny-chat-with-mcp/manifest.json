@@ -21,7 +21,7 @@
   "extension": {
     "name": "simple-shiny-chat-with-mcp",
     "title": "Simple Shiny Chat with MCP Support",
-    "description": "A simple Shiny chat application that demonstrates how to use the MCP client to facilitate remote tool calls.",
+    "description": "A simple Shiny chat application that demonstrates how to use the MCP client to facilitate remote tool calls. This is meant to be used with the Simple MCP Server extension.",
     "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/simple-shiny-chat-with-mcp",
     "category": "example",
     "tags": ["python", "shiny", "mcp", "llm"],
@@ -29,7 +29,7 @@
       "OAuth Integrations"
     ],
     "minimumConnectVersion": "2025.04.0",
-    "version": "0.0.1"
+    "version": "0.0.2"
   },
   "files": {
     "requirements.txt": {
