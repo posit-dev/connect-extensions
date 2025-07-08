@@ -41,7 +41,7 @@ This extension demonstrates Connect's capability to host Model Context Protocol 
 ## Deployment
 
 ### 1. Deploy the Extension
-Deploy this extension to your Connect server. If you are deploying through the Connect gallery, see the documentation detailed [here](https://docs.posit.co/connect/user/publishing-connect-gallery/).
+Deploy this extension to your Connect server. If you are deploying through the Connect Gallery, see the [Gallery documentation](https://docs.posit.co/connect/user/publishing-connect-gallery/).
 
 ### 2. Access the Server
 Once deployed, the extension provides:
