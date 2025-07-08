@@ -36,7 +36,7 @@ This extension demonstrates Connect's capability to host Model Context Protocol 
 
 1. **Minimum Connect Version**: 2025.04.0 or later
 2. **API Publishing**: Must be enabled on your Connect server
-3. **Python 3.10+**: Required for the FastAPI application
+3. **Python 3.10+**: Required for the MCP SDK
 
 ## Deployment
 
@@ -48,7 +48,7 @@ Once deployed, the extension provides:
 - **Web Interface**: Visit the content URL to see available tools and copy the MCP endpoint
 - **MCP Endpoint**: Located at `{direct-content-url}/mcp` for MCP client connections
 
-Please note that in order for this endpoint to be reliable, it is recommended to set the minimum number of instances/processes to 1 in the content settings.
+Please note that it is recommended to set the minimum number of instances/processes for this application to >= 1 in the content settings. This will ensure that the MCP server is always available for clients to connect. See the [content process configuration documentation](https://docs.posit.co/connect/user/content-settings/index.html#process-configurations).
 
 ### 3. Use with MCP Clients
 The server can be consumed by any MCP-compatible client, including:
@@ -82,50 +82,6 @@ The application consists of several key components:
 - **Tool Implementations**: Individual functions that implement business logic
 - **Template Engine**: Jinja2 templates for the documentation interface
 - **Dataset Storage**: In-memory storage for demonstration datasets
-
-## Tool Development
-
-### Adding New Tools
-
-To add new MCP tools, use the `@mcp.tool()` decorator:
-
-```python
-@mcp.tool()
-def your_new_tool(parameter: str) -> str:
-    """
-    Description of what your tool does.
-    
-    Args:
-        parameter: Description of the parameter
-        
-    Returns:
-        Description of the return value
-    """
-    # Your tool implementation
-    return "result"
-```
-
-### Error Handling
-
-Use `ToolError` for proper error handling:
-
-```python
-from mcp.server.fastmcp.exceptions import ToolError
-
-@mcp.tool()
-def example_tool(input_value: str) -> str:
-    if not input_value:
-        raise ToolError("Input value cannot be empty")
-    return f"Processed: {input_value}"
-```
-
-## Authentication
-
-The server supports Connect API key authentication for tools that interact with Connect services. API keys should be passed in the `x-mcp-authorization` header in the format:
-
-```
-x-mcp-authorization: Key YOUR_API_KEY
-```
 
 ## Troubleshooting
 

@@ -24,8 +24,10 @@ This extension showcases Connect's ability to take full advantage of the Model C
 Before deploying this extension, you must configure the following environment variables:
 
 #### LLM Provider Configuration
-- `CHATLAS_CHAT_PROVIDER`: The LLM provider to use (e.g., "openai", "anthropic", "google")
+- `CHATLAS_CHAT_PROVIDER`: The LLM provider to use (e.g., "openai", "anthropic", "google") 
 - `CHATLAS_CHAT_ARGS`: JSON string with provider-specific arguments (e.g., `{"model": "gpt-4o"}`)
+
+For more details on supported providers and their arguments, see the [Chatlas documentation](https://posit-dev.github.io/chatlas/reference/ChatAuto.html).
 
 #### API Keys
 Set the appropriate API key for your chosen provider:
@@ -36,8 +38,9 @@ Set the appropriate API key for your chosen provider:
 ### Connect Requirements
 
 1. **Minimum Connect Version**: 2025.04.0 or later
-2. **OAuth Integrations**: Must be enabled on your Connect server
-3. **Connect Visitor API Key**: Must be configured in the content access panel
+2. **Minimum Python Version**: 3.10 or later
+3. **OAuth Integrations**: Must be enabled on your Connect server
+4. **Connect Visitor API Key**: This extension requires access to the Connect API on behalf of the visiting user to list their available content. In the "Access" pane of the content settings, add a "Connect Visitor API Key" integration.
 
 ## Setup Examples
 
@@ -61,6 +64,13 @@ CHATLAS_CHAT_PROVIDER="google"
 CHATLAS_CHAT_ARGS='{"model": "gemini-1.5-pro"}'
 GOOGLE_API_KEY="AI..."
 ```
+
+### Anthropic on AWS Bedrock
+
+If the Connect server is running on an EC2 instance with an IAM role that grants access to Bedrock, no environment variables are needed. The application will automatically detect and use AWS credentials. It defaults to the `us.anthropic.claude-sonnet-4-20250514-v1:0` model. Otherwise, you can set the following environment variables with your AWS credentials:
+
+-   `CHATLAS_CHAT_PROVIDER`: `bedrock-anthropic`
+-   `CHATLAS_CHAT_ARGS`: `{"model": "us.anthropic.claude-sonnet-4-20250514-v1:0", "aws_access_key": "...", "aws_secret_key": "...", "aws_session_token": "..."}` (if not using IAM roles)
 
 ## Usage
 
