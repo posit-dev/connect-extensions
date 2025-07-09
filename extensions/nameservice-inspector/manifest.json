@@ -1,0 +1,49 @@
+{
+  "version": 1,
+  "locale": "en_US.UTF-8",
+  "metadata": {
+    "appmode": "python-streamlit",
+    "entrypoint": "main"
+  },
+  "extension": {
+    "name": "nameservice-inspector",
+    "title": "Nameservice Inspector",
+    "description": "A simple extension to inspect the nameservice users and groups in Posit Connect.",
+    "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/nameservice-inspector",
+    "category": "",
+    "tags": [],
+    "minimumConnectVersion": "2025.06.0",
+    "version": "0.0.0"
+  },
+  "python": {
+    "version": "3.11.3",
+    "package_manager": {
+      "name": "pip",
+      "version": "24.3.1",
+      "package_file": "requirements.txt"
+    }
+  },
+  "files": {
+    "requirements.txt": {
+      "checksum": "2b49861a6d9371710955aca23f39e467"
+    },
+    ".gitignore": {
+      "checksum": "b138f14957efecc69df2976ccdc3ab65"
+    },
+    ".python-version": {
+      "checksum": "789ee353b44223a8ed8031aa190631dd"
+    },
+    "README.md": {
+      "checksum": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "main.py": {
+      "checksum": "7bb8b531f6ac2d228625124bc478344b"
+    },
+    "pyproject.toml": {
+      "checksum": "ece9f38054d0a788da7c61b80d1b8c77"
+    },
+    "uv.lock": {
+      "checksum": "3ed51c4e76039c4af17288137fac0941"
+    }
+  }
+}
