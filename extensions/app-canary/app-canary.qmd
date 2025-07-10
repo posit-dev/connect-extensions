@@ -226,7 +226,67 @@ if not show_instructions:
 #| echo: false
 #| label: display
 
-# Define a function to create the report display for a result
+# Define helper functions for generating HTML components
+
+def create_about_box(about_content):
+    """Creates the About callout box HTML"""
+    return f"""
+    <div style="border: 1px solid #ccc; border-radius: 8px; padding: 10px; margin-bottom: 15px; background-color: #f8f9fa;">
+        <div style="margin-top: 0; padding-bottom: 8px; border-bottom: 1px solid #eaecef; font-weight: bold; font-size: 1.2em;">ℹ️ About</div>
+        <div style="padding: 5px 0;">{about_content}</div>
+    </div>
+    """
+
+def create_error_box(guid, error_msg):
+    """Creates the Error callout box HTML"""
+    return f"""
+    <div style="border: 1px solid #cc0000; border-radius: 8px; padding: 10px; margin-bottom: 15px; background-color: #fff8f8;">
+        <div style="margin-top: 0; padding-bottom: 8px; border-bottom: 1px solid #eaecef; color: #cc0000; font-weight: bold; font-size: 1.2em;">⚠️ Error Monitoring Content</div>
+        
+        <div style="display: grid; grid-template-columns: 150px auto; grid-gap: 8px; margin-top: 10px; padding-bottom: 8px; border-bottom: 1px solid #eaecef;">
+            <div style="font-weight: bold;">Content GUID:</div>
+            <div>{guid}</div>
+            
+            <div style="font-weight: bold;">Error:</div>
+            <div style="color: #cc0000;">{error_msg}</div>
+        </div>
+        
+        <div style="padding-top: 8px; font-size: 0.9em;">
+            Please check that your CANARY_GUID environment variable contains a valid content identifier.
+        </div>
+    </div>
+    """
+
+def create_no_results_box():
+    """Creates the No Results callout box HTML"""
+    return f"""
+    <div style="border: 1px solid #f0ad4e; border-radius: 8px; padding: 10px; margin-bottom: 15px; background-color: #fcf8e3;">
+        <div style="margin-top: 0; padding-bottom: 8px; border-bottom: 1px solid #eaecef; color: #cc0000; font-weight: bold; font-size: 1.2em;">⚠️ No results available</div>
+        <div style="padding: 5px 0;">
+            No monitoring results were found. This could be because:
+            <ul>
+                <li>No valid GUID was provided</li>
+                <li>There was an issue connecting to the specified content</li>
+                <li>The environment is properly configured but there was an error that caused no data to be returned</li>
+            </ul>
+            <p>Please check your CANARY_GUID environment variable and ensure it contains a valid content identifier.</p>
+        </div>
+    </div>
+    """
+
+def create_instructions_box(instructions_html_content):
+    """Creates the Setup Instructions callout box HTML"""
+    return f"""
+    <div style="border: 1px solid #cc0000; border-radius: 8px; padding: 10px; margin-bottom: 15px; background-color: #fff8f8;">
+        <div style="margin-top: 0; padding-bottom: 8px; border-bottom: 1px solid #eaecef; color: #cc0000; font-weight: bold; font-size: 1.2em;">⚠️ Setup Instructions</div>
+        {instructions_html_content}
+        <div style="padding-top: 8px; font-size: 0.9em; border-top: 1px solid #eaecef;">
+            See Posit Connect documentation for <a href='https://docs.posit.co/connect/user/content-settings/#content-vars' target='_blank'>Vars (environment variables)</a>
+        </div>
+    </div>
+    """
+
+# Function to create the report display for a result
 def create_report_display(result_data, check_time_value):
     # Format app name with link if dashboard_url is available
     app_name = result_data.get('name', 'Unknown')
@@ -311,12 +371,7 @@ application reports a failure.
 </div>"""
 
 # Always display the About callout box
-display(HTML(f"""
-<div style="border: 1px solid #ccc; border-radius: 8px; padding: 10px; margin-bottom: 15px; background-color: #f8f9fa;">
-    <div style="margin-top: 0; padding-bottom: 8px; border-bottom: 1px solid #eaecef; font-weight: bold; font-size: 1.2em;">ℹ️ About</div>
-    <div style="padding: 5px 0;">{about}</div>
-</div>
-"""))
+display(HTML(create_about_box(about)))
 
 if not show_instructions and 'df' in locals() and not df.empty and not show_error:
     # We're working with a single result since we only monitor a single GUID
@@ -330,23 +385,7 @@ if not show_instructions and 'df' in locals() and not df.empty and not show_erro
 
 elif show_error:
     # Create a callout box for API errors
-    display(HTML(f"""
-    <div style="border: 1px solid #cc0000; border-radius: 8px; padding: 10px; margin-bottom: 15px; background-color: #fff8f8;">
-        <div style="margin-top: 0; padding-bottom: 8px; border-bottom: 1px solid #eaecef; color: #cc0000; font-weight: bold; font-size: 1.2em;">⚠️ Error Monitoring Content</div>
-        
-        <div style="display: grid; grid-template-columns: 150px auto; grid-gap: 8px; margin-top: 10px; padding-bottom: 8px; border-bottom: 1px solid #eaecef;">
-            <div style="font-weight: bold;">Content GUID:</div>
-            <div>{error_guid}</div>
-            
-            <div style="font-weight: bold;">Error:</div>
-            <div style="color: #cc0000;">{error_message}</div>
-        </div>
-        
-        <div style="padding-top: 8px; font-size: 0.9em;">
-            Please check that your CANARY_GUID environment variable contains a valid content identifier.
-        </div>
-    </div>
-    """))
+    display(HTML(create_error_box(error_guid, error_message)))
     
     # Using HTML display instead of tables
     
@@ -357,33 +396,12 @@ elif show_instructions:
     for instruction in instructions:
         instructions_html += f"<div style='margin-bottom: 10px;'>{instruction}</div>"
     
-    display(HTML(f"""
-    <div style="border: 1px solid #cc0000; border-radius: 8px; padding: 10px; margin-bottom: 15px; background-color: #fff8f8;">
-        <div style="margin-top: 0; padding-bottom: 8px; border-bottom: 1px solid #eaecef; color: #cc0000; font-weight: bold; font-size: 1.2em;">⚠️ Setup Instructions</div>
-        {instructions_html}
-        <div style="padding-top: 8px; font-size: 0.9em; border-top: 1px solid #eaecef;">
-            See Posit Connect documentation for <a href='https://docs.posit.co/connect/user/content-settings/#content-vars' target='_blank'>Vars (environment variables)</a>
-        </div>
-    </div>
-    """))
+    display(HTML(create_instructions_box(instructions_html)))
     
     # Using HTML display instead of tables
 else:
     # We should only hit this catchall if the dataframe is empty (a likely error) and there are no instructions
-    display(HTML(f"""
-    <div style="border: 1px solid #f0ad4e; border-radius: 8px; padding: 10px; margin-bottom: 15px; background-color: #fcf8e3;">
-        <div style="margin-top: 0; padding-bottom: 8px; border-bottom: 1px solid #eaecef; color: #cc0000; font-weight: bold; font-size: 1.2em;">⚠️ No results available</div>
-        <div style="padding: 5px 0;">
-            No monitoring results were found. This could be because:
-            <ul>
-                <li>No valid GUID was provided</li>
-                <li>There was an issue connecting to the specified content</li>
-                <li>The environment is properly configured but there was an error that caused no data to be returned</li>
-            </ul>
-            <p>Please check your CANARY_GUID environment variable and ensure it contains a valid content identifier.</p>
-        </div>
-    </div>
-    """))
+    display(HTML(create_no_results_box()))
     
     # Using HTML display instead of tables
 
@@ -420,32 +438,11 @@ App Canary - ❌ one or more apps have failed monitoring
 #| echo: false
 
 # Always show the about section in the email
-display(HTML(f"""
-<div style="border: 1px solid #ccc; border-radius: 8px; padding: 10px; margin-bottom: 15px; background-color: #f8f9fa;">
-    <div style="margin-top: 0; padding-bottom: 8px; border-bottom: 1px solid #eaecef; font-weight: bold; font-size: 1.2em;">ℹ️ About</div>
-    <div style="padding: 5px 0;">{about}</div>
-</div>
-"""))
+display(HTML(create_about_box(about)))
 
 # If there's an API error, display it in the email
 if show_error:
-    display(HTML(f"""
-    <div style="border: 1px solid #cc0000; border-radius: 8px; padding: 10px; margin-bottom: 15px; background-color: #fff8f8;">
-        <div style="margin-top: 0; padding-bottom: 8px; border-bottom: 1px solid #eaecef; color: #cc0000; font-weight: bold; font-size: 1.2em;">⚠️ Error Monitoring Content</div>
-        
-        <div style="display: grid; grid-template-columns: 150px auto; grid-gap: 8px; margin-top: 10px; padding-bottom: 8px; border-bottom: 1px solid #eaecef;">
-            <div style="font-weight: bold;">Content GUID:</div>
-            <div>{error_guid}</div>
-            
-            <div style="font-weight: bold;">Error:</div>
-            <div style="color: #cc0000;">{error_message}</div>
-        </div>
-        
-        <div style="padding-top: 8px; font-size: 0.9em;">
-            Please check that your CANARY_GUID environment variable contains a valid content identifier.
-        </div>
-    </div>
-    """))
+    display(HTML(create_error_box(error_guid, error_message)))
 elif 'df' in locals() and not df.empty:
     # Display the report-style format in the email
     # We're working with a single result since we only monitor a single GUID
@@ -456,13 +453,6 @@ elif 'df' in locals() and not df.empty:
     display(HTML(report_html))
 else:
     # Display a message if neither error nor data is available
-    display(HTML(f"""
-    <div style="border: 1px solid #f0ad4e; border-radius: 8px; padding: 10px; margin-bottom: 15px; background-color: #fcf8e3;">
-        <div style="margin-top: 0; padding-bottom: 8px; border-bottom: 1px solid #eaecef; color: #cc0000; font-weight: bold; font-size: 1.2em;">⚠️ No results available</div>
-        <div style="padding: 5px 0;">
-            No monitoring results were found. Please check your configuration.
-        </div>
-    </div>
-    """))
+    display(HTML(create_no_results_box()))
 ```
 :::
