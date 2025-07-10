@@ -35,18 +35,12 @@ if not api_key:
     show_instructions = True
     instructions.append("Please set the <b>CONNECT_API_KEY</b> environment variable.")
 
-# Read CANARY_GUIDS from environment, needs to be manually configured on Connect and for local dev
-canary_guids_str = os.environ.get("CANARY_GUIDS", "")
-if not canary_guids_str:
+# Read CANARY_GUID from environment, needs to be manually configured on Connect and for local dev
+canary_guid = os.environ.get("CANARY_GUID", "")
+if not canary_guid:
     show_instructions = True
-    instructions.append("Please set the <b>CANARY_GUIDS</b> environment variable. It should be a comma separated list of GUID you wish to monitor.")
-    canary_guids = []
-else:
-    # Clean up the GUIDs
-    canary_guids = [guid.strip() for guid in canary_guids_str.split(',') if guid.strip()]
-    if not canary_guids:
-        show_instructions = True
-        instructions.append(f"CANARY_GUIDS environment variable is set but is empty or contains only whitespace. It should be a comma separated list of GUID you wish to monitor. Raw CANARY_GUIDS value: '{canary_guids_str}'")
+    instructions.append("Please set the <b>CANARY_GUID</b> environment variable. It should be the GUID of the content you wish to monitor.")
+    canary_guid = ""
 
 # Instantiate a Connect client using posit-sdk where api_key and url are automatically read from our environment vars
 client = connect.Client()
@@ -202,10 +196,10 @@ if not show_instructions:
                 "http_code": str(e)
             }
 
-    # Check all apps and collect results
+    # Check the app and collect result
     results = []
-    for guid in canary_guids:
-        results.append(validate_app(guid))
+    if canary_guid:
+        results.append(validate_app(canary_guid))
 
     # Convert results to DataFrame for easy display
     df = pd.DataFrame(results)
@@ -220,23 +214,18 @@ if not show_instructions:
 #| label: display
 
 about = """<div style="margin-bottom: 10px;">
-This report uses the publisher's API key to monitor a list of application GUIDs, verifies each of the monitored apps are 
-reachable at their content URL, and reports the results. If run on a schedule, reports will be emailed when any monitored 
+This report uses the publisher's API key to monitor an application GUID, verifies that the monitored app is 
+reachable at its content URL, and reports the results. If run on a schedule, reports will be emailed when the monitored 
 application reports a failure.
 </div>"""
 
 if not show_instructions and not df.empty:
-    
-    # Format the canary_guids as a string for display
-    canary_guids_str = ", ".join(canary_guids)
     
     # Use HTML to create a callout box
     display(HTML(f"""
     <div style="border: 1px solid #ccc; border-radius: 8px; padding: 10px; margin-bottom: 15px; background-color: #f8f9fa;">
         <div style="margin-top: 0; padding-bottom: 8px; border-bottom: 1px solid #eaecef; font-weight: bold; font-size: 1.2em;">App Canary Monitor</div>
         <div style="padding: 5px 0;">{about}</div>
-        <div style="margin-top: 10px; padding-top: 8px; border-top: 1px solid #eaecef; font-weight: bold;">Monitored GUIDs:</div>
-        <div style="padding: 5px 0;">{canary_guids_str}</div>
     </div>
     """))
     
@@ -354,11 +343,11 @@ else:
         <div style="padding: 5px 0;">
             No monitoring results were found. This could be because:
             <ul>
-                <li>No valid GUIDs were provided</li>
+                <li>No valid GUID was provided</li>
                 <li>There was an issue connecting to the specified content</li>
                 <li>The environment is properly configured but there was an error that caused no data to be returned</li>
             </ul>
-            <p>Please check your CANARY_GUIDS environment variable and ensure it contains valid content identifiers.</p>
+            <p>Please check your CANARY_GUID environment variable and ensure it contains a valid content identifier.</p>
         </div>
     </div>
     """))
