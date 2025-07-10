@@ -242,92 +242,86 @@ display(HTML(f"""
 
 if not show_instructions and not df.empty and not show_error:
     
-    # First create links for name and guid columns
-    df_display = df.copy()
+    # Process the results to display in a top-to-bottom report format
+    # We're working with a single result since we only monitor a single GUID
+    result = df.iloc[0]
     
-    # Process the DataFrame rows to add HTML links and format owner info
-    for i in range(len(df_display)):
-        # Format app name links only (not guid)
-        if 'dashboard_url' in df_display.columns and not pd.isna(df_display.loc[i, 'dashboard_url']) and df_display.loc[i, 'dashboard_url']:
-            url = df_display.loc[i, 'dashboard_url']
-            app_name = df_display.loc[i, 'name']
-            app_guid = df_display.loc[i, 'guid']
+    # Format app name with link if dashboard_url is available
+    app_name = result.get('name', 'Unknown')
+    dashboard_url = result.get('dashboard_url', '')
+    if dashboard_url:
+        app_name_display = f"<a href='{dashboard_url}' target='_blank'>{app_name}</a>"
+    else:
+        app_name_display = app_name
+    
+    # Get GUID
+    app_guid = result.get('guid', '')
+    
+    # Format status with appropriate color
+    status = result.get('status', '')
+    if status == "PASS":
+        status_color = "#28a745"  # Green for PASS
+        status_icon = "✅"
+    else:
+        status_color = "#dc3545"  # Red for FAIL
+        status_icon = "❌"
+    
+    # Get HTTP Code
+    http_code = result.get('http_code', '')
+    
+    # Format logs link if available
+    logs_url = result.get('logs_url', '')
+    if logs_url:
+        logs_display = f"<a href='{logs_url}' target='_blank' style='text-decoration:none;'>📋 View Logs</a>"
+    else:
+        logs_display = "No logs available (only available to owner and collaborators)"
+    
+    # Format owner information
+    owner_name = result.get('owner_name', 'Unknown')
+    owner_email = result.get('owner_email', '')
+    if owner_email:
+        owner_display = f"{owner_name} <a href='mailto:{owner_email}' style='text-decoration:none;'>✉️</a>"
+    else:
+        owner_display = owner_name
+    
+    # Create last check time display
+    check_time_display = f"Last checked: {check_time}"
+    
+    # Create the report display HTML
+    status_box_color = "#e8f5e9" if status == "PASS" else "#ffebee"  # Light green or light red background
+    status_border_color = "#4caf50" if status == "PASS" else "#f44336"  # Green or red border
+    
+    display(HTML(f"""
+    <div style="border: 1px solid {status_border_color}; border-radius: 8px; padding: 10px; margin-bottom: 15px; background-color: {status_box_color};">
+        <div style="margin-top: 0; padding-bottom: 8px; border-bottom: 1px solid #eaecef; font-weight: bold; font-size: 1.2em;">
+            <span style="color: {status_color};">{status_icon} {status}</span> - Application Status
+        </div>
+        
+        <div style="display: grid; grid-template-columns: 150px auto; grid-gap: 8px; padding: 10px 0;">
+            <div style="font-weight: bold;">Name:</div>
+            <div>{app_name_display}</div>
             
-            # Create simple markdown link for name only
-            df_display.loc[i, 'name'] = f"<a href='{url}' target='_blank'>{app_name}</a>"
+            <div style="font-weight: bold;">Content GUID:</div>
+            <div>{app_guid}</div>
+            
+            <div style="font-weight: bold;">HTTP Code:</div>
+            <div>{http_code}</div>
+            
+            <div style="font-weight: bold;">Logs:</div>
+            <div>{logs_display}</div>
+            
+            <div style="font-weight: bold;">Owner:</div>
+            <div>{owner_display}</div>
+        </div>
         
-        # Format logs URL using markdown instead of HTML (similar to owner email)
-        if 'logs_url' in df_display.columns and df_display.loc[i, 'logs_url'] is not None and str(df_display.loc[i, 'logs_url']).strip():
-            # Use a simple icon since we can't use custom SVG in emails easily
-            logs_icon = "📋"
-            logs_url = df_display.loc[i, 'logs_url']
-            df_display.loc[i, 'logs'] = f"<a href='{logs_url}' target='_blank' style='text-decoration:none;'>{logs_icon}</a>"
-
-        else:
-            df_display.loc[i, 'logs'] = ""
-
-        # Format owner name with email icon link
-        owner_name = df_display.loc[i, 'owner_name'] if not pd.isna(df_display.loc[i, 'owner_name']) else "Unknown"
-        owner_email = df_display.loc[i, 'owner_email'] if not pd.isna(df_display.loc[i, 'owner_email']) else ""
-        
-        if owner_email:
-            # Use a simple icon since we can't use custom SVG in emails easily
-            email_icon = "✉️"
-            df_display.loc[i, 'owner_display'] = f"{owner_name} <a href='mailto:{owner_email}' style='text-decoration:none;'>{email_icon}</a>"
-        else:
-            df_display.loc[i, 'owner_display'] = owner_name
+        <div style="text-align: right; font-size: 0.8em; color: #666; padding-top: 8px; border-top: 1px solid #eaecef;">
+            {check_time_display}
+        </div>
+    </div>
+    """))
     
-    # Remove dashboard_url column since the links are embedded in the other columns
-    if 'dashboard_url' in df_display.columns:
-        df_display = df_display.drop(columns=['dashboard_url'])
-    
-    # Remove raw owner columns in favor of our formatted display column
-    if 'owner_name' in df_display.columns:
-        df_display = df_display.drop(columns=['owner_name'])
-    if 'owner_email' in df_display.columns:
-        df_display = df_display.drop(columns=['owner_email'])
-    
-    # Reorder columns to match requested layout
-    column_order = ['name', 'guid', 'status', 'http_code', 'logs', 'owner_display']
-    # Only include columns that exist in df_display
-    ordered_columns = [col for col in column_order if col in df_display.columns]
-    df_display = df_display[ordered_columns]
-    
-    # Create GT table
-    gt_tbl = GT(df_display)
-    
-    # Tell great_tables to render markdown content in these columns
-    gt_tbl = gt_tbl.fmt_markdown(columns=['name', 'owner_display', 'logs'])
-    
-    # Apply styling to columns
-    gt_tbl = (gt_tbl
-              # Status column styling - green for PASS, red for FAIL
-              .tab_style(
-                  style.fill("green"),
-                  locations=loc.body(columns="status", rows=lambda df: df["status"] == "PASS")
-              )
-              .tab_style(
-                  style.fill("red"),
-                  locations=loc.body(columns="status", rows=lambda df: df["status"] == "FAIL")
-              )
-              # Set column labels for better presentation
-              .cols_label(
-                  owner_display="Owner",
-                  name="Name",
-                  guid="Content GUID",
-                  status="Status",
-                  http_code="HTTP Code",
-                  logs="Logs"
-              )
-              # Override default column alignment for better presentation
-              .cols_align(
-                align='center', 
-                columns=["status", "http_code", "logs"]
-              )
-              .tab_options(
-                container_width="100%"
-              )
-              )
+    # Set gt_tbl to None since we're not using a table
+    gt_tbl = None
 
 elif show_error:
     # Create a callout box for API errors
@@ -399,8 +393,8 @@ if show_error:
 ```{python}
 #| echo: false
 
-# Display the table in the rendered document HTML, email is handled separately below
-gt_tbl
+# No need to display anything here since we're displaying HTML directly above
+# The gt_tbl variable is set to None in our new implementation
 ```
 
 
@@ -438,6 +432,82 @@ if show_error:
     </div>
     """))
 else:
-    gt_tbl
+    # Display the report-style format in the email
+    # We're working with a single result since we only monitor a single GUID
+    result = df.iloc[0]
+    
+    # Format app name with link if dashboard_url is available
+    app_name = result.get('name', 'Unknown')
+    dashboard_url = result.get('dashboard_url', '')
+    if dashboard_url:
+        app_name_display = f"<a href='{dashboard_url}' target='_blank'>{app_name}</a>"
+    else:
+        app_name_display = app_name
+    
+    # Get GUID
+    app_guid = result.get('guid', '')
+    
+    # Format status with appropriate color
+    status = result.get('status', '')
+    if status == "PASS":
+        status_color = "#28a745"  # Green for PASS
+        status_icon = "✅"
+    else:
+        status_color = "#dc3545"  # Red for FAIL
+        status_icon = "❌"
+    
+    # Get HTTP Code
+    http_code = result.get('http_code', '')
+    
+    # Format logs link if available
+    logs_url = result.get('logs_url', '')
+    if logs_url:
+        logs_display = f"<a href='{logs_url}' target='_blank' style='text-decoration:none;'>📋 View Logs</a>"
+    else:
+        logs_display = "No logs available"
+    
+    # Format owner information
+    owner_name = result.get('owner_name', 'Unknown')
+    owner_email = result.get('owner_email', '')
+    if owner_email:
+        owner_display = f"{owner_name} <a href='mailto:{owner_email}' style='text-decoration:none;'>✉️</a>"
+    else:
+        owner_display = owner_name
+    
+    # Create last check time display
+    check_time_display = f"Last checked: {check_time}"
+    
+    # Create the report display HTML
+    status_box_color = "#e8f5e9" if status == "PASS" else "#ffebee"  # Light green or light red background
+    status_border_color = "#4caf50" if status == "PASS" else "#f44336"  # Green or red border
+    
+    display(HTML(f"""
+    <div style="border: 1px solid {status_border_color}; border-radius: 8px; padding: 10px; margin-bottom: 15px; background-color: {status_box_color};">
+        <div style="margin-top: 0; padding-bottom: 8px; border-bottom: 1px solid #eaecef; font-weight: bold; font-size: 1.2em;">
+            <span style="color: {status_color};">{status_icon} {status}</span> - Application Status
+        </div>
+        
+        <div style="display: grid; grid-template-columns: 150px auto; grid-gap: 8px; padding: 10px 0;">
+            <div style="font-weight: bold;">Name:</div>
+            <div>{app_name_display}</div>
+            
+            <div style="font-weight: bold;">Content GUID:</div>
+            <div>{app_guid}</div>
+            
+            <div style="font-weight: bold;">HTTP Code:</div>
+            <div>{http_code}</div>
+            
+            <div style="font-weight: bold;">Logs:</div>
+            <div>{logs_display}</div>
+            
+            <div style="font-weight: bold;">Owner:</div>
+            <div>{owner_display}</div>
+        </div>
+        
+        <div style="text-align: right; font-size: 0.8em; color: #666; padding-top: 8px; border-top: 1px solid #eaecef;">
+            {check_time_display}
+        </div>
+    </div>
+    """))
 ```
 :::
