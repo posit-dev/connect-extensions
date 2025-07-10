@@ -1,19 +1,34 @@
 # R Shiny App using an Azure OpenAI OAuth Integration
 
-An R Shiny app that uses `ellmer` and `shinychat` to create an interactive chat interface that answers questions about the `palmerpenguins` dataset. The app demonstrates the OAuth credential handoff made possible by the Azure OpenAI OAuth integration which gives the shiny app access to Azure OpenAI resources.
+## Overview
 
-# Setup
+An R Shiny app that uses `ellmer` and `shinychat` to create an interactive chat interface that answers questions about the `palmerpenguins` dataset. The app demonstrates the OAuth credential handoff made possible by the Azure OpenAI OAuth integration which gives the shiny app access to an Azure OpenAI resource.
 
-An Azure OpenAI OAuth Integration must be configured by the Posit Connect administrator using application specific fields from the Azure administrator.
+## Setup
 
-Alternatively, if testing this shiny app locally, the environment variable `AZURE_OPENAI_API_KEY` must be set.
+### Azure Administrator Setup
 
-# Usage
+An Azure Administrator must first register a new OAuth application in Microsoft Entra ID. For a step by step guide on how to do this see the [admin guide](https://docs.posit.co/connect/admin/integrations/oauth-integrations/azure-openai/).
 
-Deploy the app to Connect.
+The Azure Administrator then passes the `tenant_id`, `client_id`, and `client_secret` to a Connect Administrator to be used in the configuration of the OAuth integration in Connect.
 
-**Note**: 
+### Posit Connect Administrator Setup
 
-Only members of the "Connect" group have been assigned the proper data action role to use the Azure OpenAI `gpt-4o-mini` deployment that this app is set up to interact with. Because of this, the primary purpose of the app is to serve as a blueprint for what utilizing the Azure OpenAI OAuth integration might look like.
+1.  **Configure OAuth integration in Connect**: Using the information from the Azure Administrator, the Connect Administrator configures an Azure OpenAI OAuth integration. This can either be done from the "System" tab or by using `curl` and the [Connect Server API](https://docs.posit.co/connect/api/#post-/v1/oauth/integrations).
 
-To adapt this shiny app to a different azure endpoint and model deployment, the `deployment_id`, `api_version`, and `endpoint` arguments passed to `ellmer::chat_azure_openai()`, must be respecified.
+2.  **Publish the Extension**: Publish this application to Posit Connect.
+
+3.  **Configure Environment Variables**: In the "Vars" pane of the content settings,
+
+    Set `DEPLOYMENT_ID`, `API_VERSION`, and `ENDPOINT`, all of which are specific to the Azure OpenAI resource that you want to utilize.
+
+    **Example**
+
+    -   `DEPLOYMENT_ID`: `gpt-4o-mini`
+    -   `API_VERSION`: `2023-05-15`
+    -   `ENDPOINT`: `https://your-resource-name.openai.azure.com`
+
+## Usage
+
+1.  Open the application in Posit Connect.
+2.  Type your questions about the `palmerpenguins` dataset in the chat box.
