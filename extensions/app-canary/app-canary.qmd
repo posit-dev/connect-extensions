@@ -23,6 +23,10 @@ show_instructions = False
 instructions = []
 gt_tbl = None
 
+# Used to display on-screen error messages if API errors occur
+show_error = False
+error_message = ""
+
 # Read CONNECT_SERVER from environment, this is automatically configured on Connect, set manually for local dev
 connect_server = os.environ.get("CONNECT_SERVER", "")
 if not connect_server:
@@ -199,7 +203,16 @@ if not show_instructions:
     # Check the app and collect result
     results = []
     if canary_guid:
-        results.append(validate_app(canary_guid))
+        result = validate_app(canary_guid)
+        
+        # Check if there was an error with the GUID
+        if result["name"].startswith("ERROR:"):
+            show_error = True
+            error_message = result["name"].replace("ERROR: ", "")
+            # Still add to results so we have a non-empty dataframe
+            results.append(result)
+        else:
+            results.append(result)
 
     # Convert results to DataFrame for easy display
     df = pd.DataFrame(results)
@@ -213,21 +226,21 @@ if not show_instructions:
 #| echo: false
 #| label: display
 
-about = """<div style="margin-bottom: 10px;">
+about = """<div>
 This report uses the publisher's API key to monitor an application GUID, verifies that the monitored app is 
 reachable at its content URL, and reports the results. If run on a schedule, reports will be emailed when the monitored 
 application reports a failure.
 </div>"""
 
-if not show_instructions and not df.empty:
-    
-    # Use HTML to create a callout box
-    display(HTML(f"""
-    <div style="border: 1px solid #ccc; border-radius: 8px; padding: 10px; margin-bottom: 15px; background-color: #f8f9fa;">
-        <div style="margin-top: 0; padding-bottom: 8px; border-bottom: 1px solid #eaecef; font-weight: bold; font-size: 1.2em;">App Canary Monitor</div>
-        <div style="padding: 5px 0;">{about}</div>
-    </div>
-    """))
+# Always display the About callout box
+display(HTML(f"""
+<div style="border: 1px solid #ccc; border-radius: 8px; padding: 10px; margin-bottom: 15px; background-color: #f8f9fa;">
+    <div style="margin-top: 0; padding-bottom: 8px; border-bottom: 1px solid #eaecef; font-weight: bold; font-size: 1.2em;">ℹ️ About</div>
+    <div style="padding: 5px 0;">{about}</div>
+</div>
+"""))
+
+if not show_instructions and not df.empty and not show_error:
     
     # First create links for name and guid columns
     df_display = df.copy()
@@ -316,9 +329,25 @@ if not show_instructions and not df.empty:
               )
               )
 
+elif show_error:
+    # Create a callout box for API errors
+    display(HTML(f"""
+    <div style="border: 1px solid #cc0000; border-radius: 8px; padding: 10px; margin-bottom: 15px; background-color: #fff8f8;">
+        <div style="margin-top: 0; padding-bottom: 8px; border-bottom: 1px solid #eaecef; color: #cc0000; font-weight: bold; font-size: 1.2em;">⚠️ Error Monitoring Content</div>
+        <div style="margin-top: 10px; padding-bottom: 8px; border-bottom: 1px solid #eaecef; font-weight: bold;">Error Details:</div>
+        <div style="padding: 5px 0; color: #cc0000;">{error_message}</div>
+        <div style="padding-top: 8px; font-size: 0.9em;">
+            Please check that your CANARY_GUID environment variable contains a valid content identifier.
+        </div>
+    </div>
+    """))
+    
+    # Set gt_tbl to None since we're using HTML display instead
+    gt_tbl = None
+    
 elif show_instructions:
     # Create a callout box for instructions
-    instructions_html = about  # Start with the about message
+    instructions_html = ""
 
     for instruction in instructions:
         instructions_html += f"<div style='margin-bottom: 10px;'>{instruction}</div>"
@@ -360,6 +389,10 @@ if 'df' in locals() and 'status' in df.columns:
     send_email = bool(not df.empty and (df['status'] == 'FAIL').any())
 else:
     send_email = False
+
+# Also send email if we have an API error
+if show_error:
+    send_email = True
 ```
 
 
@@ -383,6 +416,28 @@ App Canary - ❌ one or more apps have failed monitoring
 
 ```{python}
 #| echo: false
-gt_tbl
+
+# Always show the about section in the email
+display(HTML(f"""
+<div style="border: 1px solid #ccc; border-radius: 8px; padding: 10px; margin-bottom: 15px; background-color: #f8f9fa;">
+    <div style="margin-top: 0; padding-bottom: 8px; border-bottom: 1px solid #eaecef; font-weight: bold; font-size: 1.2em;">ℹ️ About</div>
+    <div style="padding: 5px 0;">{about}</div>
+</div>
+"""))
+
+# If there's an API error, display it in the email
+if show_error:
+    display(HTML(f"""
+    <div style="border: 1px solid #cc0000; border-radius: 8px; padding: 10px; margin-bottom: 15px; background-color: #fff8f8;">
+        <div style="margin-top: 0; padding-bottom: 8px; border-bottom: 1px solid #eaecef; color: #cc0000; font-weight: bold; font-size: 1.2em;">⚠️ Error Monitoring Content</div>
+        <div style="margin-top: 10px; padding-bottom: 8px; border-bottom: 1px solid #eaecef; font-weight: bold;">Error Details:</div>
+        <div style="padding: 5px 0; color: #cc0000;">{error_message}</div>
+        <div style="padding-top: 8px; font-size: 0.9em;">
+            Please check that your CANARY_GUID environment variable contains a valid content identifier.
+        </div>
+    </div>
+    """))
+else:
+    gt_tbl
 ```
 :::
