@@ -24,6 +24,7 @@ instructions = []
 # Used to display on-screen error messages if API errors occur
 show_error = False
 error_message = ""
+error_guid = ""
 
 # Read CONNECT_SERVER from environment, this is automatically configured on Connect, set manually for local dev
 connect_server = os.environ.get("CONNECT_SERVER", "")
@@ -207,6 +208,7 @@ if not show_instructions:
         if result["name"].startswith("ERROR:"):
             show_error = True
             error_message = result["name"].replace("ERROR: ", "")
+            error_guid = result["guid"]
             # Still add to results so we have a non-empty dataframe
             results.append(result)
         else:
@@ -224,39 +226,21 @@ if not show_instructions:
 #| echo: false
 #| label: display
 
-about = """<div>
-This report uses the publisher's API key to monitor an application GUID, verifies that the monitored app is 
-reachable at its content URL, and reports the results. If run on a schedule, reports will be emailed when the monitored 
-application reports a failure.
-</div>"""
-
-# Always display the About callout box
-display(HTML(f"""
-<div style="border: 1px solid #ccc; border-radius: 8px; padding: 10px; margin-bottom: 15px; background-color: #f8f9fa;">
-    <div style="margin-top: 0; padding-bottom: 8px; border-bottom: 1px solid #eaecef; font-weight: bold; font-size: 1.2em;">ℹ️ About</div>
-    <div style="padding: 5px 0;">{about}</div>
-</div>
-"""))
-
-if not show_instructions and not df.empty and not show_error:
-    
-    # Process the results to display in a top-to-bottom report format
-    # We're working with a single result since we only monitor a single GUID
-    result = df.iloc[0]
-    
+# Define a function to create the report display for a result
+def create_report_display(result_data, check_time_value):
     # Format app name with link if dashboard_url is available
-    app_name = result.get('name', 'Unknown')
-    dashboard_url = result.get('dashboard_url', '')
+    app_name = result_data.get('name', 'Unknown')
+    dashboard_url = result_data.get('dashboard_url', '')
     if dashboard_url:
         app_name_display = f"<a href='{dashboard_url}' target='_blank'>{app_name}</a>"
     else:
         app_name_display = app_name
     
     # Get GUID
-    app_guid = result.get('guid', '')
+    app_guid = result_data.get('guid', '')
     
     # Format status with appropriate color
-    status = result.get('status', '')
+    status = result_data.get('status', '')
     if status == "PASS":
         status_color = "#28a745"  # Green for PASS
         status_icon = "✅"
@@ -265,31 +249,31 @@ if not show_instructions and not df.empty and not show_error:
         status_icon = "❌"
     
     # Get HTTP Code
-    http_code = result.get('http_code', '')
+    http_code = result_data.get('http_code', '')
     
     # Format logs link if available
-    logs_url = result.get('logs_url', '')
+    logs_url = result_data.get('logs_url', '')
     if logs_url:
         logs_display = f"<a href='{logs_url}' target='_blank' style='text-decoration:none;'>📋 View Logs</a>"
     else:
         logs_display = "No logs available (only available to owner and collaborators)"
     
     # Format owner information
-    owner_name = result.get('owner_name', 'Unknown')
-    owner_email = result.get('owner_email', '')
+    owner_name = result_data.get('owner_name', 'Unknown')
+    owner_email = result_data.get('owner_email', '')
     if owner_email:
         owner_display = f"{owner_name} <a href='mailto:{owner_email}' style='text-decoration:none;'>✉️</a>"
     else:
         owner_display = owner_name
     
     # Create last check time display
-    check_time_display = f"Last checked: {check_time}"
+    check_time_display = f"Last checked: {check_time_value}"
     
     # Create the report display HTML
     status_box_color = "#e8f5e9" if status == "PASS" else "#ffebee"  # Light green or light red background
     status_border_color = "#4caf50" if status == "PASS" else "#f44336"  # Green or red border
     
-    display(HTML(f"""
+    html_output = f"""
     <div style="border: 1px solid {status_border_color}; border-radius: 8px; padding: 10px; margin-bottom: 15px; background-color: {status_box_color};">
         <div style="margin-top: 0; padding-bottom: 8px; border-bottom: 1px solid #eaecef; font-weight: bold; font-size: 1.2em;">
             <span style="color: {status_color};">{status_icon} {status}</span> - Application Status
@@ -316,7 +300,31 @@ if not show_instructions and not df.empty and not show_error:
             {check_time_display}
         </div>
     </div>
-    """))
+    """
+    
+    return html_output
+
+about = """<div>
+This report uses the publisher's API key to monitor an application GUID, verifies that the monitored app is 
+reachable at its content URL, and reports the results. If run on a schedule, reports will be emailed when the monitored 
+application reports a failure.
+</div>"""
+
+# Always display the About callout box
+display(HTML(f"""
+<div style="border: 1px solid #ccc; border-radius: 8px; padding: 10px; margin-bottom: 15px; background-color: #f8f9fa;">
+    <div style="margin-top: 0; padding-bottom: 8px; border-bottom: 1px solid #eaecef; font-weight: bold; font-size: 1.2em;">ℹ️ About</div>
+    <div style="padding: 5px 0;">{about}</div>
+</div>
+"""))
+
+if not show_instructions and 'df' in locals() and not df.empty and not show_error:
+    # We're working with a single result since we only monitor a single GUID
+    result_data = df.iloc[0]
+    
+    # Use the function to create and display the report
+    report_html = create_report_display(result_data, check_time)
+    display(HTML(report_html))
     
     # No need for table display since we're using HTML callouts
 
@@ -325,8 +333,15 @@ elif show_error:
     display(HTML(f"""
     <div style="border: 1px solid #cc0000; border-radius: 8px; padding: 10px; margin-bottom: 15px; background-color: #fff8f8;">
         <div style="margin-top: 0; padding-bottom: 8px; border-bottom: 1px solid #eaecef; color: #cc0000; font-weight: bold; font-size: 1.2em;">⚠️ Error Monitoring Content</div>
-        <div style="margin-top: 10px; padding-bottom: 8px; border-bottom: 1px solid #eaecef; font-weight: bold;">Error Details:</div>
-        <div style="padding: 5px 0; color: #cc0000;">{error_message}</div>
+        
+        <div style="display: grid; grid-template-columns: 150px auto; grid-gap: 8px; margin-top: 10px; padding-bottom: 8px; border-bottom: 1px solid #eaecef;">
+            <div style="font-weight: bold;">Content GUID:</div>
+            <div>{error_guid}</div>
+            
+            <div style="font-weight: bold;">Error:</div>
+            <div style="color: #cc0000;">{error_message}</div>
+        </div>
+        
         <div style="padding-top: 8px; font-size: 0.9em;">
             Please check that your CANARY_GUID environment variable contains a valid content identifier.
         </div>
@@ -417,88 +432,35 @@ if show_error:
     display(HTML(f"""
     <div style="border: 1px solid #cc0000; border-radius: 8px; padding: 10px; margin-bottom: 15px; background-color: #fff8f8;">
         <div style="margin-top: 0; padding-bottom: 8px; border-bottom: 1px solid #eaecef; color: #cc0000; font-weight: bold; font-size: 1.2em;">⚠️ Error Monitoring Content</div>
-        <div style="margin-top: 10px; padding-bottom: 8px; border-bottom: 1px solid #eaecef; font-weight: bold;">Error Details:</div>
-        <div style="padding: 5px 0; color: #cc0000;">{error_message}</div>
+        
+        <div style="display: grid; grid-template-columns: 150px auto; grid-gap: 8px; margin-top: 10px; padding-bottom: 8px; border-bottom: 1px solid #eaecef;">
+            <div style="font-weight: bold;">Content GUID:</div>
+            <div>{error_guid}</div>
+            
+            <div style="font-weight: bold;">Error:</div>
+            <div style="color: #cc0000;">{error_message}</div>
+        </div>
+        
         <div style="padding-top: 8px; font-size: 0.9em;">
             Please check that your CANARY_GUID environment variable contains a valid content identifier.
         </div>
     </div>
     """))
-else:
+elif 'df' in locals() and not df.empty:
     # Display the report-style format in the email
     # We're working with a single result since we only monitor a single GUID
-    result = df.iloc[0]
+    result_data = df.iloc[0]
     
-    # Format app name with link if dashboard_url is available
-    app_name = result.get('name', 'Unknown')
-    dashboard_url = result.get('dashboard_url', '')
-    if dashboard_url:
-        app_name_display = f"<a href='{dashboard_url}' target='_blank'>{app_name}</a>"
-    else:
-        app_name_display = app_name
-    
-    # Get GUID
-    app_guid = result.get('guid', '')
-    
-    # Format status with appropriate color
-    status = result.get('status', '')
-    if status == "PASS":
-        status_color = "#28a745"  # Green for PASS
-        status_icon = "✅"
-    else:
-        status_color = "#dc3545"  # Red for FAIL
-        status_icon = "❌"
-    
-    # Get HTTP Code
-    http_code = result.get('http_code', '')
-    
-    # Format logs link if available
-    logs_url = result.get('logs_url', '')
-    if logs_url:
-        logs_display = f"<a href='{logs_url}' target='_blank' style='text-decoration:none;'>📋 View Logs</a>"
-    else:
-        logs_display = "No logs available"
-    
-    # Format owner information
-    owner_name = result.get('owner_name', 'Unknown')
-    owner_email = result.get('owner_email', '')
-    if owner_email:
-        owner_display = f"{owner_name} <a href='mailto:{owner_email}' style='text-decoration:none;'>✉️</a>"
-    else:
-        owner_display = owner_name
-    
-    # Create last check time display
-    check_time_display = f"Last checked: {check_time}"
-    
-    # Create the report display HTML
-    status_box_color = "#e8f5e9" if status == "PASS" else "#ffebee"  # Light green or light red background
-    status_border_color = "#4caf50" if status == "PASS" else "#f44336"  # Green or red border
-    
+    # Use the function to create and display the report
+    report_html = create_report_display(result_data, check_time)
+    display(HTML(report_html))
+else:
+    # Display a message if neither error nor data is available
     display(HTML(f"""
-    <div style="border: 1px solid {status_border_color}; border-radius: 8px; padding: 10px; margin-bottom: 15px; background-color: {status_box_color};">
-        <div style="margin-top: 0; padding-bottom: 8px; border-bottom: 1px solid #eaecef; font-weight: bold; font-size: 1.2em;">
-            <span style="color: {status_color};">{status_icon} {status}</span> - Application Status
-        </div>
-        
-        <div style="display: grid; grid-template-columns: 150px auto; grid-gap: 8px; padding: 10px 0;">
-            <div style="font-weight: bold;">Name:</div>
-            <div>{app_name_display}</div>
-            
-            <div style="font-weight: bold;">Content GUID:</div>
-            <div>{app_guid}</div>
-            
-            <div style="font-weight: bold;">HTTP Code:</div>
-            <div>{http_code}</div>
-            
-            <div style="font-weight: bold;">Logs:</div>
-            <div>{logs_display}</div>
-            
-            <div style="font-weight: bold;">Owner:</div>
-            <div>{owner_display}</div>
-        </div>
-        
-        <div style="text-align: right; font-size: 0.8em; color: #666; padding-top: 8px; border-top: 1px solid #eaecef;">
-            {check_time_display}
+    <div style="border: 1px solid #f0ad4e; border-radius: 8px; padding: 10px; margin-bottom: 15px; background-color: #fcf8e3;">
+        <div style="margin-top: 0; padding-bottom: 8px; border-bottom: 1px solid #eaecef; color: #cc0000; font-weight: bold; font-size: 1.2em;">⚠️ No results available</div>
+        <div style="padding: 5px 0;">
+            No monitoring results were found. Please check your configuration.
         </div>
     </div>
     """))
