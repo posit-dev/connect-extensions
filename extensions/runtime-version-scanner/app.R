@@ -7,8 +7,10 @@ library(shinycssloaders)
 library(lubridate)
 library(bsicons)
 library(tidyr)
-library(future)
 library(shinyjs)
+library(future)
+
+plan(multisession)
 
 source("get_usage.R")
 source("connect_module.R")
@@ -168,7 +170,18 @@ ui <- page_sidebar(
       )
     ),
 
-    uiOutput("usage_loading_message"),
+    conditionalPanel(
+      condition = "output.usage_task_running",
+      div(
+        style = "display: flex; align-items: center; gap: 0.5em; font-style: italic;",
+        span(
+          class = "spinner-border spinner-border-sm",
+          role = "status",
+          style = "width: 1rem; height: 1rem;"
+        ),
+        span("Loading usage…")
+      )
+    ),
 
     tags$hr(),
 
@@ -283,16 +296,10 @@ server <- function(input, output, session) {
     usage_task$invoke(as.integer(input$views_window))
   })
 
-  output$usage_loading_message <- renderUI({
-    if (usage_task$status() %in% c("initial", "pending", "running")) {
-      div(
-        style = "font-style: italic;",
-        "Loading usage..."
-      )
-    } else {
-      NULL
-    }
+  output$usage_task_running <- reactive({
+    usage_task$status() == "running"
   })
+  outputOptions(output, "usage_task_running", suspendWhenHidden = FALSE)
 
   content_table_data <- reactive({
     # Filter by content type
