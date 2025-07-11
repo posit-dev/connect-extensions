@@ -2,6 +2,7 @@ library(shiny)
 library(connectapi)
 library(purrr)
 library(dplyr)
+library(shinyjs)
 
 
 connectVisitorClient <- function(
@@ -94,7 +95,7 @@ connectVisitorClient <- function(
     # “Use the ‘…’ Integration” button logic
     observeEvent(input$auto_add_integration, {
       auto_add_integration(publisher_client, selected_integration_guid())
-      session$reload()
+      runjs("window.top.location.reload(true);")
     })
 
     return(client)

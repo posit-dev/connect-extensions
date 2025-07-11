@@ -8,6 +8,7 @@ library(lubridate)
 library(bsicons)
 library(tidyr)
 library(future)
+library(shinyjs)
 
 source("get_usage.R")
 source("connect_module.R")
@@ -44,6 +45,7 @@ app_mode_lookup <- with(
 # Shiny app definition
 
 ui <- page_sidebar(
+  useShinyjs(),
   tags$head(
     tags$link(rel = "stylesheet", type = "text/css", href = "styles.css")
   ),
