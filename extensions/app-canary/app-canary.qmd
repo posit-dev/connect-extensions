@@ -13,7 +13,6 @@ import json
 import os
 import requests
 import datetime
-import pandas as pd
 from posit import connect
 from IPython.display import HTML, display
 
@@ -227,22 +226,17 @@ if not show_instructions:
             }
         return None
         
-    # Check the app and collect result
-    results = []
-    result = None
+    # Check the app and get result
+    app_result = None
     if canary_guid:
-        result = validate_app(canary_guid)
-        results.append(result)
+        app_result = validate_app(canary_guid)
         
         # Check if there was an error with the GUID
-        if has_error(result):
+        if has_error(app_result):
             show_error = True
-            error_details = extract_error_details(result)
+            error_details = extract_error_details(app_result)
             error_message = error_details["message"]
             error_guid = error_details["guid"]
-
-    # Convert results to DataFrame for easy display
-    df = pd.DataFrame(results)
 
     # Store the current time
     check_time = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
@@ -428,46 +422,52 @@ def create_report_display(result_data, check_time_value):
     
     return html_output
 
-about = """<div>
+# Create the about content text
+about_content = """<div>
 This report uses the publisher's API key to monitor an application GUID, verifies that the monitored app is 
 reachable at its content URL, and reports the results. If run on a schedule, reports will be emailed when the monitored 
 application reports a failure.
 </div>"""
 
+# Store HTML components in variables for reuse
+about_box_html = create_about_box(about_content)
+error_box_html = ""
+no_results_box_html = ""
+report_box_html = ""
+
+# Generate the appropriate HTML based on the state
+if show_error:
+    # Create error box HTML
+    error_box_html = create_error_box(error_guid, error_message)
+elif app_result and not has_error(app_result):
+    # Create report box HTML using the function
+    report_box_html = create_report_display(app_result, check_time)
+else:
+    # Create no results box HTML
+    no_results_box_html = create_no_results_box()
+
 # Always display the About callout box
-display(HTML(create_about_box(about)))
+display(HTML(about_box_html))
 
-if not show_instructions and 'df' in locals() and not df.empty and not show_error:
-    # We're working with a single result since we only monitor a single GUID
-    result_data = df.iloc[0]
-    
-    # Use the function to create and display the report
-    report_html = create_report_display(result_data, check_time)
-    display(HTML(report_html))
-    
-    # No need for table display since we're using HTML callouts
-
-elif show_error:
-    # Create a callout box for API errors
-    display(HTML(create_error_box(error_guid, error_message)))
-    
-    # Using HTML display instead of tables
-    
-elif show_instructions:
+# Display the appropriate content based on the state
+if show_instructions:
     # Create a callout box for instructions
     instructions_html = ""
-
     for instruction in instructions:
         instructions_html += f"<div style='margin-bottom: 10px;'>{instruction}</div>"
     
-    display(HTML(create_instructions_box(instructions_html)))
-    
-    # Using HTML display instead of tables
+    # Create and display instructions box
+    instructions_box_html = create_instructions_box(instructions_html)
+    display(HTML(instructions_box_html))
+elif show_error:
+    # Display the error box that was already created
+    display(HTML(error_box_html))
+elif report_box_html:
+    # Display the report box that was already created
+    display(HTML(report_box_html))
 else:
-    # We should only hit this catchall if the dataframe is empty (a likely error) and there are no instructions
-    display(HTML(create_no_results_box()))
-    
-    # Using HTML display instead of tables
+    # Display the no results box that was already created
+    display(HTML(no_results_box_html))
 
 # Helper function to determine if we should send an email
 def should_send_email():
@@ -476,9 +476,9 @@ def should_send_email():
     if show_error:
         return True
     
-    # Send email if at least one app has a failure status
-    if 'df' in locals() and not df.empty and 'status' in df.columns:
-        return bool(df['status'] == STATUS_FAIL).any()
+    # Send email if the monitored app has a failure status
+    if app_result and 'status' in app_result:
+        return app_result['status'] == STATUS_FAIL
     
     return False
 
@@ -501,28 +501,23 @@ send_email = should_send_email()
 :::
 
 ::: {.subject}
-App Canary - ❌ one or more apps have failed monitoring
+App Canary - ❌ The monitored app has failed
 :::
 
 ```{python}
 #| echo: false
 
 # Always show the about section in the email
-display(HTML(create_about_box(about)))
+display(HTML(about_box_html))
 
-# If there's an API error, display it in the email
-if show_error:
-    display(HTML(create_error_box(error_guid, error_message)))
-elif 'df' in locals() and not df.empty:
-    # Display the report-style format in the email
-    # We're working with a single result since we only monitor a single GUID
-    result_data = df.iloc[0]
-    
-    # Use the function to create and display the report
-    report_html = create_report_display(result_data, check_time)
-    display(HTML(report_html))
+# Display the appropriate content based on the state - use the same HTML as the main report
+if show_instructions:
+    display(HTML(instructions_box_html))
+elif show_error:
+    display(HTML(error_box_html))
+elif report_box_html:
+    display(HTML(report_box_html))
 else:
-    # Display a message if neither error nor data is available
-    display(HTML(create_no_results_box()))
+    display(HTML(no_results_box_html))
 ```
 :::
