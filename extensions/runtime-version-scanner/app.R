@@ -124,7 +124,6 @@ ui <- page_sidebar(
       )
     ),
 
-    # h5("Filters"),
     tags$hr(),
 
     selectizeInput(
@@ -141,22 +140,16 @@ ui <- page_sidebar(
 
     div(
       class = "form-group shiny-input-container",
-      # tags$label(
-      #   "Viewed at least…",
-      #   style = "margin-bottom: 8px; display: inline-block;"
-      # ),
       div(
-        # this div is getting a height of 52.6
         style = "display: flex; align-items: baseline; gap: 6px; height: 36.5px",
         numericInput(
-          # this control has a height of 36.5
           "min_views_filter",
           label = NULL,
           value = 0,
           min = 0,
           width = "80px",
         ),
-        span("times") # this span has a height of 24
+        span("times")
       )
     ),
 
