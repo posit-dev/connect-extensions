@@ -10,6 +10,15 @@ library(tidyr)
 library(shinyjs)
 library(future)
 
+# https://devguide.python.org/versions/
+PY_OLDEST_SUPPORTED <- "3.9.0"
+
+# https://www.tidyverse.org/blog/2019/04/r-version-support/, https://www.r-project.org/
+R_OLDEST_SUPPORTED <- "4.1.0"
+
+# Special version that will be greater than any real version
+ANY_VERSION <- "999.99.99"
+
 plan(multisession)
 
 source("get_usage.R")
@@ -66,8 +75,8 @@ ui <- page_sidebar(
         bsicons::bs_icon("question-circle-fill"),
         tagList(
           p(
-            "Enable a runtime filter and select a version to show ",
-            "items using versions older than the selected version.",
+            "Enable a runtime filter and select a version range to ",
+            "filter content by runtime version.",
           ),
         )
       )
@@ -75,7 +84,7 @@ ui <- page_sidebar(
 
     checkboxInput(
       "use_r_cutoff",
-      label = "R older than…",
+      label = "R",
       value = FALSE
     ),
     conditionalPanel(
@@ -89,7 +98,7 @@ ui <- page_sidebar(
 
     checkboxInput(
       "use_py_cutoff",
-      label = "Python older than…",
+      label = "Python",
       value = FALSE
     ),
     conditionalPanel(
@@ -103,7 +112,7 @@ ui <- page_sidebar(
 
     checkboxInput(
       "use_quarto_cutoff",
-      label = "Quarto older than…",
+      label = "Quarto",
       value = FALSE
     ),
     conditionalPanel(
@@ -236,15 +245,20 @@ server <- function(input, output, session) {
       filter(runtime == "quarto") |>
       pull(version)
 
+    # Include EOL versions and ANY_VERSION in the additional versions
+    r_additional_vers <- c(r_server_vers, R_OLDEST_SUPPORTED, ANY_VERSION)
+    py_additional_vers <- c(py_server_vers, PY_OLDEST_SUPPORTED, ANY_VERSION)
+    quarto_additional_vers <- c(quarto_server_vers, ANY_VERSION)
+
     content <- get_content(client) |>
       filter(app_role %in% c("owner", "editor")) |>
       mutate(
         owner_username = map_chr(owner, "username"),
-        r_version = as_ordered_version_factor(r_version, r_server_vers),
-        py_version = as_ordered_version_factor(py_version, py_server_vers),
+        r_version = as_ordered_version_factor(r_version, r_additional_vers),
+        py_version = as_ordered_version_factor(py_version, py_additional_vers),
         quarto_version = as_ordered_version_factor(
           quarto_version,
-          quarto_server_vers
+          quarto_additional_vers
         ),
       )
   })
@@ -257,27 +271,62 @@ server <- function(input, output, session) {
       pv <- levels(content()$py_version)
       qv <- levels(content()$quarto_version)
 
+      # Create named vectors for the dropdown choices
+      r_choices <- rv
+      py_choices <- pv
+      quarto_choices <- qv
+
+      # Special version labels
+      r_eol_label <- paste0("tidyverse EOL (< ", R_OLDEST_SUPPORTED, ")")
+      py_eol_label <- paste0("Official EOL (< ", PY_OLDEST_SUPPORTED, ")")
+      any_version_label <- "Any version"
+
+      # Format labels for all normal versions
+      format_version_label <- function(version) {
+        if (version == ANY_VERSION) {
+          return(any_version_label)
+        } else {
+          return(paste0("< ", version))
+        }
+      }
+
+      # Create names for all choices with formatted labels
+      names(r_choices) <- sapply(r_choices, format_version_label)
+      names(py_choices) <- sapply(py_choices, format_version_label)
+      names(quarto_choices) <- sapply(quarto_choices, format_version_label)
+
+      # Find the EOL versions and add special labels
+      r_eol_index <- which(r_choices == R_OLDEST_SUPPORTED)
+      py_eol_index <- which(py_choices == PY_OLDEST_SUPPORTED)
+
+      if (length(r_eol_index) > 0) {
+        names(r_choices)[r_eol_index] <- r_eol_label
+      }
+      if (length(py_eol_index) > 0) {
+        names(py_choices)[py_eol_index] <- py_eol_label
+      }
+
       # Update the R version input
       updateSelectizeInput(
         session,
         "r_version_cutoff",
-        choices = I(rv),
-        selected = if (length(rv) > 0) rv[length(rv)] else NULL
+        choices = r_choices,
+        selected = if (length(rv) > 0) rv[r_eol_index] else NULL
       )
 
       # Update the Python version input
       updateSelectizeInput(
         session,
         "py_version_cutoff",
-        choices = I(pv),
-        selected = if (length(pv) > 0) pv[length(pv)] else NULL
+        choices = py_choices,
+        selected = if (length(pv) > 0) pv[py_eol_index] else NULL
       )
 
       # Update the Quarto version input
       updateSelectizeInput(
         session,
         "quarto_version_cutoff",
-        choices = I(qv),
+        choices = quarto_choices,
         selected = if (length(qv) > 0) qv[length(qv)] else NULL
       )
     },
@@ -345,13 +394,20 @@ server <- function(input, output, session) {
       return(base)
     }
 
-    base |>
+    # Apply filters based on runtime version cutoffs
+
+    # Apply the filter
+    result <- base |>
       # fmt: skip
       filter(
         (input$use_r_cutoff & r_version < input$r_version_cutoff) |
         (input$use_py_cutoff & py_version < input$py_version_cutoff) |
         (input$use_quarto_cutoff & quarto_version < input$quarto_version_cutoff)
       )
+
+    # Return the filtered results
+
+    result
   })
 
   output$selected_versions_html <- renderUI({
@@ -381,18 +437,33 @@ server <- function(input, output, session) {
     # Single filter case
     if (active_filters == 1) {
       if (input$use_r_cutoff) {
+        label <- if (rv == ANY_VERSION) {
+          "any R version"
+        } else {
+          paste0("R version < ", rv)
+        }
         return(tags$p(HTML(glue::glue(
-          "Showing {total_count} items using R older than <span class='number-pre'>{rv}</span>."
+          "Showing {total_count} items using {label}."
         ))))
       }
       if (input$use_py_cutoff) {
+        label <- if (pv == ANY_VERSION) {
+          "any Python version"
+        } else {
+          paste0("Python version < ", pv)
+        }
         return(tags$p(HTML(glue::glue(
-          "Showing {total_count} items using Python older than <span class='number-pre'>{pv}</span>."
+          "Showing {total_count} items using {label}."
         ))))
       }
       if (input$use_quarto_cutoff) {
+        label <- if (qv == ANY_VERSION) {
+          "any Quarto version"
+        } else {
+          paste0("Quarto version < ", qv)
+        }
         return(tags$p(HTML(glue::glue(
-          "Showing {total_count} items using Quarto older than <span class='number-pre'>{qv}</span>."
+          "Showing {total_count} items using {label}."
         ))))
       }
     }
@@ -423,18 +494,33 @@ server <- function(input, output, session) {
     # Create list items for multiple filters
     li_items <- list()
     if (input$use_r_cutoff) {
+      r_label <- if (rv == ANY_VERSION) {
+        "Any R version"
+      } else {
+        paste0("R version < ", rv)
+      }
       li_items[[length(li_items) + 1]] <- tags$li(HTML(glue::glue(
-        "R older than <span class='number-pre'>{rv}</span> ({r_count} items)"
+        "{r_label} ({r_count} items)"
       )))
     }
     if (input$use_py_cutoff) {
+      py_label <- if (pv == ANY_VERSION) {
+        "Any Python version"
+      } else {
+        paste0("Python version < ", pv)
+      }
       li_items[[length(li_items) + 1]] <- tags$li(HTML(glue::glue(
-        "Python older than <span class='number-pre'>{pv}</span> ({py_count} items)"
+        "{py_label} ({py_count} items)"
       )))
     }
     if (input$use_quarto_cutoff) {
+      quarto_label <- if (qv == ANY_VERSION) {
+        "Any Quarto version"
+      } else {
+        paste0("Quarto version < ", qv)
+      }
       li_items[[length(li_items) + 1]] <- tags$li(HTML(glue::glue(
-        "Quarto older than <span class='number-pre'>{qv}</span> ({quarto_count} items)"
+        "{quarto_label} ({quarto_count} items)"
       )))
     }
 
@@ -562,6 +648,7 @@ server <- function(input, output, session) {
     req(input$content_table_ready)
     session$sendCustomMessage("setGuidVisible", input$show_guid)
   })
+
 
   # Download handler
   output$export_data <- downloadHandler(
