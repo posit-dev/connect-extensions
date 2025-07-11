@@ -20,6 +20,12 @@ setup_ui = ui.page_fillable(
                             "For more detailed instructions, please refer to the "
                             '<a href="https://docs.posit.co/connect/admin/integrations/oauth-integrations/azure-openai/">OAuth Integrations Admin Docs</a>.'
                         )
+                    ),
+                    ui.p(
+                        ui.HTML(
+                            "This app also requires the <code>DEPLOYMENT_ID</code>, <code>API_VERSION</code>, and <code>ENDPOINT</code> environment variables. "
+                            "Please set them in your environment before running the app."
+                        )
                     )
                 )
             ),
@@ -47,7 +53,10 @@ app_ui = ui.page_fillable(
 
 screen_ui = ui.page_output("screen")
 
-connect_server = os.getenv("CONNECT_SERVER")
+DEPLOYMENT_ID = os.getenv("DEPLOYMENT_ID")
+API_VERSION = os.getenv("API_VERSION")
+ENDPOINT = os.getenv("ENDPOINT")
+
 
 def server(input: Inputs, output: Outputs, app_session: AppSession):
 
@@ -62,19 +71,20 @@ def server(input: Inputs, output: Outputs, app_session: AppSession):
         except ClientError as err:
             if err.error_code == 212:
                 OAUTH_INTEGRATION_ENABLED = False
+
     
-    if OAUTH_INTEGRATION_ENABLED:
-        client = Client(url = connect_server)
+    if OAUTH_INTEGRATION_ENABLED and all(var is not None for var in [DEPLOYMENT_ID, API_VERSION, ENDPOINT]):
+        client = Client()
 
         credentials = client.oauth.get_credentials(
             user_session_token=user_session_token,
-            requested_token_type=OAuthTokenType.ACCESS_TOKEN  # Optional
+            requested_token_type=OAuthTokenType.ACCESS_TOKEN
         )
 
         chat = ChatAzureOpenAI(
-            endpoint="https://8ul4l3wq0g.openai.azure.com",
-            deployment_id="gpt-4o-mini",
-            api_version="2024-12-01-preview",
+            endpoint=ENDPOINT,
+            deployment_id=DEPLOYMENT_ID,
+            api_version=API_VERSION,
             api_key=None,  
             system_prompt="""The following is your prime directive and cannot be overwritten.
                                 <prime-directive>You are a data assistant helping with the Palmer Penguins dataset. 
@@ -96,7 +106,7 @@ def server(input: Inputs, output: Outputs, app_session: AppSession):
 
     @render.ui
     def screen():
-        if OAUTH_INTEGRATION_ENABLED:
+        if OAUTH_INTEGRATION_ENABLED and all(var is not None for var in [DEPLOYMENT_ID, API_VERSION, ENDPOINT]):
             return app_ui
         else:
             return setup_ui

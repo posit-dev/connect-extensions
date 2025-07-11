@@ -1,5 +1,5 @@
 [project]
-name = "py-chat-app"
+name = "azure-openai-oauth-pyshiny"
 version = "0.1.0"
 description = "to do"
 readme = "README.md"

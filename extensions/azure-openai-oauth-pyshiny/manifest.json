@@ -3,10 +3,10 @@
   "locale": "en_US.UTF-8",
   "metadata": {
     "appmode": "python-shiny",
-    "entrypoint": "app.py"
+    "entrypoint": "app"
   },
   "python": {
-    "version": "3.13.5",
+    "version": "3.11.0",
     "package_manager": {
       "name": "pip",
       "version": "25.1.1",
@@ -15,7 +15,7 @@
   },
   "environment": {
     "python": {
-      "requires": ">=3.11"
+      "requires": "==3.11.0"
     }
   },
   "files": {
@@ -23,13 +23,22 @@
       "checksum": "f4dd2b61cbe8ced2801f11389be80a17"
     },
     ".gitignore": {
-      "checksum": "17ec09431d62599203ed76e3425a1dc3"
+      "checksum": "dbdf25ed459ebf6d7f751de18f44735a"
+    },
+    ".posit/publish/azure-pyshiny-15L1.toml": {
+      "checksum": "c6e76ae3abc022553b71c959de5bab92"
+    },
+    ".posit/publish/deployments/deployment-0GFF.toml": {
+      "checksum": "59d80680c396823dbde8dcb38302891f"
+    },
+    ".python-version": {
+      "checksum": "c0479ff484dacd51dc5ba0461b16b9bf"
     },
     "README.md": {
-      "checksum": "6d52ea9e522ff98e51d6bb6e3f92b6a3"
+      "checksum": "71aa6f5a7334b0c4221ea25f684cb017"
     },
     "app.py": {
-      "checksum": "80c94d03f6afaa24e35b8e7f9576de73"
+      "checksum": "a00e84bc80bb5d152ea3bab069979bfb"
     },
     "pyproject.toml": {
       "checksum": "832798b343a93ccdccbad24f78d0b083"
