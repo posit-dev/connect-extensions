@@ -7,6 +7,10 @@ library(shinycssloaders)
 library(lubridate)
 library(bsicons)
 library(tidyr)
+library(shinyjs)
+library(future)
+
+plan(multisession)
 
 source("get_usage.R")
 source("connect_module.R")
@@ -43,6 +47,7 @@ app_mode_lookup <- with(
 # Shiny app definition
 
 ui <- page_sidebar(
+  useShinyjs(),
   tags$head(
     tags$link(rel = "stylesheet", type = "text/css", href = "styles.css")
   ),
@@ -53,81 +58,159 @@ ui <- page_sidebar(
     open = TRUE,
     width = 275,
 
-    h5(
-      "Scan for Runtimes",
+    title = "Filters",
+
+    div(
+      "Runtimes",
       tooltip(
         bsicons::bs_icon("question-circle-fill"),
         tagList(
           p(
             "Enable a runtime filter and select a version to show ",
-            "items using that version or earlier.",
+            "items using versions older than the selected version.",
           ),
-          p(
-            "Versions in italic are no longer available on the server."
-          )
         )
       )
     ),
 
     checkboxInput(
       "use_r_cutoff",
-      label = "R Versions",
+      label = "R older than…",
       value = FALSE
     ),
     conditionalPanel(
       condition = "input.use_r_cutoff == true",
-      uiOutput("r_version_selector")
+      selectizeInput(
+        "r_version_cutoff",
+        label = NULL,
+        choices = NULL
+      )
     ),
 
     checkboxInput(
       "use_py_cutoff",
-      label = "Python Versions",
+      label = "Python older than…",
       value = FALSE
     ),
     conditionalPanel(
       condition = "input.use_py_cutoff == true",
-      uiOutput("py_version_selector")
+      selectizeInput(
+        "py_version_cutoff",
+        label = NULL,
+        choices = NULL
+      )
     ),
 
     checkboxInput(
       "use_quarto_cutoff",
-      label = "Quarto Versions",
+      label = "Quarto older than…",
       value = FALSE
     ),
     conditionalPanel(
       condition = "input.use_quarto_cutoff == true",
-      uiOutput("quarto_version_selector")
+      selectizeInput(
+        "quarto_version_cutoff",
+        label = NULL,
+        choices = NULL
+      )
     ),
 
-    h5("Filters"),
+    # h5("Filters"),
+    tags$hr(),
 
     selectizeInput(
       "content_type_filter",
-      label = "Content Type",
-      options = list(placeholder = "All Content Types"),
+      label = "Content types",
+      options = list(placeholder = "All content types"),
       choices = names(app_mode_groups),
       multiple = TRUE,
     ),
 
-    numericInput(
-      "min_hits_filter",
-      label = "Minimum Views",
-      value = 0,
-      min = 0,
-      step = 1
+    tags$hr(),
+
+    div("Viewed at least…"),
+
+    div(
+      class = "form-group shiny-input-container",
+      # tags$label(
+      #   "Viewed at least…",
+      #   style = "margin-bottom: 8px; display: inline-block;"
+      # ),
+      div(
+        # this div is getting a height of 52.6
+        style = "display: flex; align-items: baseline; gap: 6px; height: 36.5px",
+        numericInput(
+          # this control has a height of 36.5
+          "min_views_filter",
+          label = NULL,
+          value = 0,
+          min = 0,
+          width = "80px",
+        ),
+        span("times") # this span has a height of 24
+      )
     ),
 
-    h5("View"),
+    div(
+      class = "form-group shiny-input-container",
+      div(
+        style = "display: flex; align-items: baseline; gap: 6px; height: 36.5px",
+        span("in the last"),
+        selectizeInput(
+          "views_window",
+          label = NULL,
+          choices = c(
+            "week" = 7,
+            "month" = 30,
+            "quarter" = 90
+          ),
+          selected = 7,
+          width = "110px",
+        ),
+      )
+    ),
+
+    conditionalPanel(
+      condition = "output.usage_task_running",
+      div(
+        style = "display: flex; align-items: center; gap: 0.5em; font-style: italic;",
+        span(
+          class = "spinner-border spinner-border-sm",
+          role = "status",
+          style = "width: 1rem; height: 1rem;"
+        ),
+        span("Loading usage…")
+      )
+    ),
+
+    tags$hr(),
 
     checkboxInput(
       "show_guid",
       label = "Show GUIDs"
     ),
+
+    downloadButton(
+      "export_data",
+      class = "btn-sm",
+      label = "Download Filtered Data"
+    )
   ),
 
   uiOutput("selected_versions_html"),
 
-  withSpinner(reactableOutput("content_table"))
+  withSpinner(reactableOutput("content_table")),
+
+  tags$script(HTML(
+    "
+  Shiny.addCustomMessageHandler('setGuidVisible', function(visible) {
+    Reactable.setHiddenColumns('content_table', prev => {
+      const cols = prev.filter(c => c !== 'guid');
+      return visible ? cols : [...cols, 'guid'];
+    });
+  });
+"
+  ))
 )
 
 server <- function(input, output, session) {
@@ -156,6 +239,7 @@ server <- function(input, output, session) {
     content <- get_content(client) |>
       filter(app_role %in% c("owner", "editor")) |>
       mutate(
+        owner_username = map_chr(owner, "username"),
         r_version = as_ordered_version_factor(r_version, r_server_vers),
         py_version = as_ordered_version_factor(py_version, py_server_vers),
         quarto_version = as_ordered_version_factor(
@@ -165,73 +249,7 @@ server <- function(input, output, session) {
       )
   })
 
-  # Reactive values to store selected versions
-  selected_r_version <- reactiveVal()
-  selected_py_version <- reactiveVal()
-  selected_quarto_version <- reactiveVal()
-
-  # Version selector helpers
-  create_version_buttons <- function(runtime, versions, selected_version) {
-    if (length(versions) == 0) {
-      return(NULL)
-    }
-
-    # Get server versions for this runtime
-    server_vers <- server_versions()
-    server_versions_for_runtime <- server_vers |>
-      filter(runtime == ifelse(runtime == "py", "python", runtime)) |>
-      pull(version)
-
-    div(
-      class = "version-selector",
-      lapply(versions, function(version) {
-        # Check if this version is available on server
-        is_server_version <- version %in% server_versions_for_runtime
-
-        is_selected <- !is.null(selected_version) &&
-          as.numeric_version(version) <= as.numeric_version(selected_version)
-        is_max <- !is.null(selected_version) &&
-          as.numeric_version(version) == as.numeric_version(selected_version)
-
-        # Determine button class based on selection state and server availability
-        base_class <- "btn-version"
-        if (is_server_version) {
-          base_class <- paste(base_class, "server-version")
-        }
-
-        # Three possible states: not selected, selected below max, or the max version
-        btn_class <- if (!is_selected) {
-          base_class
-        } else if (is_max) {
-          paste(base_class, "selected max")
-        } else {
-          paste(base_class, "selected")
-        }
-
-        actionButton(
-          inputId = paste0(runtime, "_version_", gsub("\\.", "_", version)),
-          label = version,
-          class = btn_class
-        )
-      })
-    )
-  }
-
-  # Generate the version selector UI
-  output$r_version_selector <- renderUI({
-    rv <- levels(content()$r_version)
-    create_version_buttons("r", rv, selected_r_version())
-  })
-  output$py_version_selector <- renderUI({
-    pv <- levels(content()$py_version)
-    create_version_buttons("py", pv, selected_py_version())
-  })
-  output$quarto_version_selector <- renderUI({
-    qv <- levels(content()$quarto_version)
-    create_version_buttons("quarto", qv, selected_quarto_version())
-  })
-
-  # Initialize with content and set default selected versions
+  # Initialize the version selectize inputs when content is loaded
   observeEvent(
     content(),
     {
@@ -239,73 +257,49 @@ server <- function(input, output, session) {
       pv <- levels(content()$py_version)
       qv <- levels(content()$quarto_version)
 
-      # Set initial versions (highest available)
-      if (length(rv) > 0) {
-        selected_r_version(rv[length(rv)])
-      }
-      if (length(pv) > 0) {
-        selected_py_version(pv[length(pv)])
-      }
-      if (length(qv) > 0) {
-        selected_quarto_version(qv[length(qv)])
-      }
+      # Update the R version input
+      updateSelectizeInput(
+        session,
+        "r_version_cutoff",
+        choices = I(rv),
+        selected = if (length(rv) > 0) rv[length(rv)] else NULL
+      )
+
+      # Update the Python version input
+      updateSelectizeInput(
+        session,
+        "py_version_cutoff",
+        choices = I(pv),
+        selected = if (length(pv) > 0) pv[length(pv)] else NULL
+      )
+
+      # Update the Quarto version input
+      updateSelectizeInput(
+        session,
+        "quarto_version_cutoff",
+        choices = I(qv),
+        selected = if (length(qv) > 0) qv[length(qv)] else NULL
+      )
     },
     ignoreNULL = TRUE
   )
 
-  # Create button click handlers for version selection
-  observe({
-    rv <- levels(content()$r_version)
-
-    lapply(rv, function(version) {
-      btn_id <- paste0("r_version_", gsub("\\.", "_", version))
-      observeEvent(
-        input[[btn_id]],
-        {
-          selected_r_version(version)
-        },
-        ignoreInit = TRUE
-      )
-    })
-  })
-  observe({
-    pv <- levels(content()$py_version)
-
-    lapply(pv, function(version) {
-      btn_id <- paste0("py_version_", gsub("\\.", "_", version))
-      observeEvent(
-        input[[btn_id]],
-        {
-          selected_py_version(version)
-        },
-        ignoreInit = TRUE
-      )
-    })
-  })
-  observe({
-    qv <- levels(content()$quarto_version)
-
-    lapply(qv, function(version) {
-      btn_id <- paste0("quarto_version_", gsub("\\.", "_", version))
-      observeEvent(
-        input[[btn_id]],
-        {
-          selected_quarto_version(version)
-        },
-        ignoreInit = TRUE
-      )
+  usage_task <- ExtendedTask$new(function(window_days) {
+    future({
+      get_usage(client, from = today() - days(window_days), to = today()) |>
+        group_by(content_guid) |>
+        summarize(views = n(), .groups = "drop")
     })
   })
 
-  usage <- reactive({
-    get_usage(
-      client,
-      from = today() - days(6),
-      to = today()
-    ) |>
-      group_by(content_guid) |>
-      summarize(hits = n())
+  observeEvent(input$views_window, {
+    usage_task$invoke(as.integer(input$views_window))
   })
+
+  output$usage_task_running <- reactive({
+    usage_task$status() == "running"
+  })
+  outputOptions(output, "usage_task_running", suspendWhenHidden = FALSE)
 
   content_table_data <- reactive({
     # Filter by content type
@@ -315,51 +309,55 @@ server <- function(input, output, session) {
       input$content_type_filter
     }
 
-    # Get min hits for filtering
-    min_hits <- input$min_hits_filter
-
     content() |>
       mutate(content_type = app_mode_lookup[app_mode]) |>
       filter(content_type %in% content_type_mask) |>
-      left_join(usage(), by = c("guid" = "content_guid")) |>
       select(
         title,
         dashboard_url,
         guid,
+        owner_username,
         content_type,
         r_version,
         py_version,
         quarto_version,
-        hits
-      ) |>
-      replace_na(list(hits = 0)) |>
-      filter(hits >= min_hits)
+        last_deployed_time
+      )
   })
 
   content_matching <- reactive({
-    # If no filters enabled, return all content
+    base <- content_table_data()
+
+    if (usage_task$status() != "success") {
+      base <- base |> mutate(views = NA_integer_)
+    } else {
+      base <- base |>
+        left_join(usage_task$result(), by = c("guid" = "content_guid")) |>
+        mutate(views = replace_na(views, 0)) |>
+        filter(views >= input$min_views_filter)
+    }
+
+    base <- relocate(base, last_deployed_time, .after = last_col())
+
     if (
       all(!input$use_r_cutoff, !input$use_py_cutoff, !input$use_quarto_cutoff)
     ) {
-      content_table_data()
-    } else {
-      content_table_data() |>
-        # fmt: skip
-        filter(
-          (input$use_r_cutoff &
-            r_version <= selected_r_version()) |
-          (input$use_py_cutoff &
-            py_version <= selected_py_version()) |
-          (input$use_quarto_cutoff &
-            quarto_version <= selected_quarto_version())
-        )
+      return(base)
     }
+
+    base |>
+      # fmt: skip
+      filter(
+        (input$use_r_cutoff & r_version < input$r_version_cutoff) |
+        (input$use_py_cutoff & py_version < input$py_version_cutoff) |
+        (input$use_quarto_cutoff & quarto_version < input$quarto_version_cutoff)
+      )
   })
 
   output$selected_versions_html <- renderUI({
-    rv <- selected_r_version()
-    pv <- selected_py_version()
-    qv <- selected_quarto_version()
+    rv <- input$r_version_cutoff
+    pv <- input$py_version_cutoff
+    qv <- input$quarto_version_cutoff
 
     # Get the total count of filtered content
     total_count <- nrow(content_matching())
@@ -384,17 +382,17 @@ server <- function(input, output, session) {
     if (active_filters == 1) {
       if (input$use_r_cutoff) {
         return(tags$p(HTML(glue::glue(
-          "Showing {total_count} items using R version <span class='number-pre'>{rv}</span> and earlier."
+          "Showing {total_count} items using R older than <span class='number-pre'>{rv}</span>."
         ))))
       }
       if (input$use_py_cutoff) {
         return(tags$p(HTML(glue::glue(
-          "Showing {total_count} items using Python version <span class='number-pre'>{pv}</span> and earlier."
+          "Showing {total_count} items using Python older than <span class='number-pre'>{pv}</span>."
         ))))
       }
       if (input$use_quarto_cutoff) {
         return(tags$p(HTML(glue::glue(
-          "Showing {total_count} items using Quarto version <span class='number-pre'>{qv}</span> and earlier."
+          "Showing {total_count} items using Quarto older than <span class='number-pre'>{qv}</span>."
         ))))
       }
     }
@@ -402,13 +400,13 @@ server <- function(input, output, session) {
     # Multiple filters case
     # Calculate counts for each runtime version filter
     r_count <- if (input$use_r_cutoff) {
-      nrow(content_table_data() |> filter(r_version <= selected_r_version()))
+      nrow(content_table_data() |> filter(r_version < input$r_version_cutoff))
     } else {
       0
     }
 
     py_count <- if (input$use_py_cutoff) {
-      nrow(content_table_data() |> filter(py_version <= selected_py_version()))
+      nrow(content_table_data() |> filter(py_version < input$py_version_cutoff))
     } else {
       0
     }
@@ -416,7 +414,7 @@ server <- function(input, output, session) {
     quarto_count <- if (input$use_quarto_cutoff) {
       nrow(
         content_table_data() |>
-          filter(quarto_version <= selected_quarto_version())
+          filter(quarto_version < input$quarto_version_cutoff)
       )
     } else {
       0
@@ -426,17 +424,17 @@ server <- function(input, output, session) {
     li_items <- list()
     if (input$use_r_cutoff) {
       li_items[[length(li_items) + 1]] <- tags$li(HTML(glue::glue(
-        "R version <span class='number-pre'>{rv}</span> and earlier ({r_count} items)"
+        "R older than <span class='number-pre'>{rv}</span> ({r_count} items)"
       )))
     }
     if (input$use_py_cutoff) {
       li_items[[length(li_items) + 1]] <- tags$li(HTML(glue::glue(
-        "Python version <span class='number-pre'>{pv}</span> and earlier ({py_count} items)"
+        "Python older than <span class='number-pre'>{pv}</span> ({py_count} items)"
       )))
     }
     if (input$use_quarto_cutoff) {
       li_items[[length(li_items) + 1]] <- tags$li(HTML(glue::glue(
-        "Quarto version <span class='number-pre'>{qv}</span> and earlier ({quarto_count} items)"
+        "Quarto older than <span class='number-pre'>{qv}</span> ({quarto_count} items)"
       )))
     }
 
@@ -450,29 +448,27 @@ server <- function(input, output, session) {
   })
 
   output$content_table <- renderReactable({
-    data <- content_matching()
+    # Only actually *render* the reactable once.
+    data <- isolate(content_matching())
 
-    # Extract available server runtime versions by type
-    server_vers <- server_versions()
-    r_server_vers <- server_vers |> filter(runtime == "r") |> pull(version)
-    py_server_vers <- server_vers |>
-      filter(runtime == "python") |>
-      pull(version)
-    quarto_server_vers <- server_vers |>
-      filter(runtime == "quarto") |>
-      pull(version)
-
-    # Extract server versions for styling
-
-    reactable(
+    tbl <- reactable(
       data,
       defaultPageSize = 15,
       showPageSizeOptions = TRUE,
       pageSizeOptions = c(15, 50, 100),
-      wrap = FALSE,
       class = "content-tbl",
+      defaultColDef = colDef(
+        headerVAlign = "bottom",
+        headerStyle = list(
+          whiteSpace = "normal"
+        ),
+        style = list(whiteSpace = "nowrap")
+      ),
       columns = list(
-        title = colDef(name = "Title"),
+        title = colDef(
+          name = "Title",
+          minWidth = 125
+        ),
 
         dashboard_url = colDef(
           name = "",
@@ -496,7 +492,7 @@ server <- function(input, output, session) {
 
         guid = colDef(
           name = "GUID",
-          show = input$show_guid,
+          show = FALSE,
           class = "number-pre",
           cell = function(value) {
             div(
@@ -506,32 +502,76 @@ server <- function(input, output, session) {
           }
         ),
 
+        owner_username = colDef(
+          name = "Owner",
+          defaultSortOrder = "asc",
+          minWidth = 75,
+          maxWidth = 175
+        ),
+
         content_type = colDef(name = "Content Type", width = 125),
 
         r_version = colDef(
           name = "R",
           width = 100,
           class = "number-pre",
+          na = "—"
         ),
         py_version = colDef(
           name = "Python",
           width = 100,
           class = "number-pre",
+          na = "—"
         ),
         quarto_version = colDef(
           name = "Quarto",
           width = 100,
           class = "number-pre",
+          na = "—"
         ),
 
-        hits = colDef(
-          name = "Views (Last Week)",
-          width = 125,
+        views = colDef(
+          name = "Views",
+          minWidth = 75,
+          maxWidth = 100,
           class = "number-pre",
+          defaultSortOrder = "desc"
+        ),
+
+        last_deployed_time = colDef(
+          name = "Last Published",
+          width = 170,
+          format = colFormat(datetime = TRUE),
+          defaultSortOrder = "desc"
         )
       )
     )
+
+    htmlwidgets::onRender(
+      tbl,
+      "() => {
+        Shiny.setInputValue('content_table_ready', Math.random())
+      }"
+    )
   })
+
+  observe({
+    updateReactable("content_table", data = content_matching())
+  })
+  observe({
+    req(input$content_table_ready)
+    session$sendCustomMessage("setGuidVisible", input$show_guid)
+  })
+
+  # Download handler
+  output$export_data <- downloadHandler(
+    filename = function() {
+      paste0("connect_content_runtimes_filtered", Sys.Date(), ".csv")
+    },
+    content = function(file) {
+      write.csv(content_matching(), file, row.names = FALSE)
+    }
+  )
 }
 
 shinyApp(ui, server)
