@@ -540,7 +540,7 @@ server <- function(input, output, session) {
 
         last_deployed_time = colDef(
           name = "Last Published",
-          width = 160,
+          width = 170,
           format = colFormat(datetime = TRUE),
           defaultSortOrder = "desc"
         )
