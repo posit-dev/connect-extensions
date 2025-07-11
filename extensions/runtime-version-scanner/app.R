@@ -458,7 +458,10 @@ server <- function(input, output, session) {
         style = list(whiteSpace = "nowrap")
       ),
       columns = list(
-        title = colDef(name = "Title"),
+        title = colDef(
+          name = "Title",
+          minWidth = 125
+        ),
 
         dashboard_url = colDef(
           name = "",
