@@ -116,30 +116,59 @@ ui <- page_sidebar(
 
     selectizeInput(
       "content_type_filter",
-      label = "Content Type",
-      options = list(placeholder = "All Content Types"),
+      label = "Content types",
+      options = list(placeholder = "All content types"),
       choices = names(app_mode_groups),
       multiple = TRUE,
     ),
 
-    selectizeInput(
-      "views_window",
-      label = "Views Window",
-      choices = c(
-        "Last Week" = 7,
-        "Last Month" = 30,
-        "Last Quarter" = 90
-      ),
-      selected = 7
+    tags$hr(),
+
+    div("Viewed at least…"),
+
+    div(
+      class = "form-group shiny-input-container",
+      # tags$label(
+      #   "Viewed at least…",
+      #   style = "margin-bottom: 8px; display: inline-block;"
+      # ),
+      div(
+        # this div is getting a height of 52.6
+        style = "display: flex; align-items: baseline; gap: 6px; height: 36.5px",
+        numericInput(
+          # this control has a height of 36.5
+          "min_views_filter",
+          label = NULL,
+          value = 0,
+          min = 0,
+          width = "80px",
+        ),
+        span("times") # this span has a height of 24
+      )
     ),
 
-    numericInput(
-      "min_views_filter",
-      label = "Minimum Views",
-      value = 0,
-      min = 0,
-      step = 1
+    div(
+      class = "form-group shiny-input-container",
+      div(
+        style = "display: flex; align-items: baseline; gap: 6px; height: 36.5px",
+        span("in the last"),
+        selectizeInput(
+          "views_window",
+          label = NULL,
+          choices = c(
+            "week" = 7,
+            "month" = 30,
+            "quarter" = 90
+          ),
+          selected = 7,
+          width = "110px",
+        ),
+      )
     ),
+
+    uiOutput("usage_loading_message"),
+
+    tags$hr(),
 
     checkboxInput(
       "show_guid",
@@ -156,8 +185,6 @@ ui <- page_sidebar(
   uiOutput("selected_versions_html"),
 
   withSpinner(reactableOutput("content_table")),
-
-  uiOutput("usage_loading_message"),
 
   tags$script(HTML(
     "
@@ -476,16 +503,19 @@ server <- function(input, output, session) {
           name = "R",
           width = 100,
           class = "number-pre",
+          na = "—"
         ),
         py_version = colDef(
           name = "Python",
           width = 100,
           class = "number-pre",
+          na = "—"
         ),
         quarto_version = colDef(
           name = "Quarto",
           width = 100,
           class = "number-pre",
+          na = "—"
         ),
 
         views = colDef(
@@ -498,7 +528,7 @@ server <- function(input, output, session) {
 
         last_deployed_time = colDef(
           name = "Last Published",
-          width = 155,
+          width = 160,
           format = colFormat(datetime = TRUE),
           defaultSortOrder = "desc"
         )
