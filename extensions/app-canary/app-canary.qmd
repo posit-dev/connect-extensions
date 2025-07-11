@@ -36,7 +36,7 @@ def get_env_var(var_name, description=""):
     value = os.environ.get(var_name, "")
     if not value:
         show_instructions = True
-        instruction = f"Please set the <b>{var_name}</b> environment variable."
+        instruction = f"Please set the <b>{var_name}</b> environment variable and re-render the report."
         if description:
             instruction += f" {description}"
         instructions.append(instruction)
