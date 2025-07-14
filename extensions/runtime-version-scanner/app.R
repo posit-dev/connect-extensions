@@ -53,7 +53,6 @@ app_mode_lookup <- with(
   setNames(as.character(ind), values)
 )
 
-
 # Shiny app definition
 
 ui <- page_sidebar(
@@ -63,28 +62,14 @@ ui <- page_sidebar(
   ),
 
   title = h1(
-    "Runtime Version Scanner ",
-    tooltip(
-      bsicons::bs_icon("question-circle-fill"),
-      tagList(
-        p(
-          "The Runtime Version Scanner shows you a list of content you own or ",
-          "collaborate on, along with the versions of R, Python, and Quarto their ",
-          "environments were built with."
-        ),
-        p(
-          "Enable a runtime filter in the sidebar to filter your content by runtime ",
-          "version. The content list will show content running an older version than ",
-          "the one selected in the corresponding dropdown menu in the sidebar. ",
-          "The menus include options to show content running Python outside of the ",
-          "official support window, and R outside of the tidyverse support window."
-        ),
-        p(
-          "You can also filter the list by content type and view count. For example, ",
-          "you could show only applications that have been viewed at least once in the ",
-          "last quarter, or APIs with more than 100,000 hits in the last week."
-        )
-      )
+    "Runtime Version Scanner",
+    actionLink(
+      inputId = "show_runtime_help",
+      label = bsicons::bs_icon("question-circle-fill"),
+      class = "ms-2",
+      `data-bs-toggle` = "tooltip",
+      title = "Show Runtime Version Scanner help",
+      style = "margin-left: 0 !important; color: black;"
     ),
     class = "bslib-page-title navbar-brand"
   ),
@@ -230,6 +215,33 @@ ui <- page_sidebar(
   ))
 )
 
+runtime_help_modal <- function() {
+  modalDialog(
+    title = "Runtime Version Scanner Help",
+    tagList(
+      p(
+        "The Runtime Version Scanner shows you a list of content you own or ",
+        "collaborate on, along with the versions of R, Python, and Quarto their ",
+        "environments were built with."
+      ),
+      p(
+        "Enable a runtime filter in the sidebar to filter your content by runtime ",
+        "version. The content list will show content running an older version than ",
+        "the one selected in the corresponding dropdown menu in the sidebar. ",
+        "The menus include options to show content running Python outside of the ",
+        "official support window, and R outside of the tidyverse support window."
+      ),
+      p(
+        "You can also filter the list by content type and view count. For example, ",
+        "you could show only applications that have been viewed at least once in the ",
+        "last quarter, or APIs with more than 100,000 hits in the last week."
+      )
+    ),
+    easyClose = TRUE,
+    footer = NULL
+  )
+}
+
 server <- function(input, output, session) {
   client <- connectVisitorClient()
   if (is.null(client)) {
@@ -301,6 +313,10 @@ server <- function(input, output, session) {
           quarto_additional_vers
         ),
       )
+  })
+
+  observeEvent(input$show_runtime_help, {
+    showModal(runtime_help_modal())
   })
 
   # Initialize the version selectize inputs when content is loaded
