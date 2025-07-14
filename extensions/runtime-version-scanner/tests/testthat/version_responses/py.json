@@ -1,0 +1,101 @@
+{
+    "result": {
+        "releases": [
+            {
+                "name": "3.11",
+                "codename": null,
+                "label": "3.11",
+                "releaseDate": "2022-10-24",
+                "isLts": false,
+                "ltsFrom": null,
+                "isEoas": true,
+                "eoasFrom": "2024-04-01",
+                "isEol": false,
+                "eolFrom": "2027-10-31",
+                "isMaintained": true,
+                "latest": {
+                    "name": "3.11.13",
+                    "date": "2025-06-03",
+                    "link": "https://www.python.org/downloads/release/python-31113/"
+                },
+                "custom": null
+            },
+            {
+                "name": "3.10",
+                "codename": null,
+                "label": "3.10",
+                "releaseDate": "2021-10-04",
+                "isLts": false,
+                "ltsFrom": null,
+                "isEoas": true,
+                "eoasFrom": "2023-04-05",
+                "isEol": false,
+                "eolFrom": "2026-10-31",
+                "isMaintained": true,
+                "latest": {
+                    "name": "3.10.18",
+                    "date": "2025-06-03",
+                    "link": "https://www.python.org/downloads/release/python-31018/"
+                },
+                "custom": null
+            },
+            {
+                "name": "3.9",
+                "codename": null,
+                "label": "3.9",
+                "releaseDate": "2020-10-05",
+                "isLts": false,
+                "ltsFrom": null,
+                "isEoas": true,
+                "eoasFrom": "2022-05-17",
+                "isEol": false,
+                "eolFrom": "2025-10-31",
+                "isMaintained": true,
+                "latest": {
+                    "name": "3.9.23",
+                    "date": "2025-06-03",
+                    "link": "https://www.python.org/downloads/release/python-3923/"
+                },
+                "custom": null
+            },
+            {
+                "name": "3.8",
+                "codename": null,
+                "label": "3.8",
+                "releaseDate": "2019-10-14",
+                "isLts": false,
+                "ltsFrom": null,
+                "isEoas": true,
+                "eoasFrom": "2021-05-03",
+                "isEol": true,
+                "eolFrom": "2024-10-07",
+                "isMaintained": false,
+                "latest": {
+                    "name": "3.8.20",
+                    "date": "2024-09-06",
+                    "link": "https://www.python.org/downloads/release/python-3820/"
+                },
+                "custom": null
+            },
+            {
+                "name": "3.7",
+                "codename": null,
+                "label": "3.7",
+                "releaseDate": "2018-06-27",
+                "isLts": false,
+                "ltsFrom": null,
+                "isEoas": true,
+                "eoasFrom": "2020-06-27",
+                "isEol": true,
+                "eolFrom": "2023-06-27",
+                "isMaintained": false,
+                "latest": {
+                    "name": "3.7.17",
+                    "date": "2023-06-05",
+                    "link": "https://www.python.org/downloads/release/python-3717/"
+                },
+                "custom": null
+            }
+        ]
+    }
+}
