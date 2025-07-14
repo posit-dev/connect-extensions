@@ -77,6 +77,7 @@
 /* Custom tooltip styling */
 .tooltip-inner {
   text-align: left;
+  max-width: 300px;
 }
 
 /* Remove extra space at the end */

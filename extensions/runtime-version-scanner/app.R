@@ -62,7 +62,32 @@ ui <- page_sidebar(
     tags$link(rel = "stylesheet", type = "text/css", href = "styles.css")
   ),
 
-  title = "Runtime Version Scanner",
+  title = h1(
+    "Runtime Version Scanner ",
+    tooltip(
+      bsicons::bs_icon("question-circle-fill"),
+      tagList(
+        p(
+          "The Runtime Version Scanner shows you a list of content you own or ",
+          "collaborate on, along with the versions of R, Python, and Quarto their ",
+          "environments were built with."
+        ),
+        p(
+          "Enable a runtime filter in the sidebar to filter your content by runtime ",
+          "version. The content list will show content running an older version than ",
+          "the one selected in the corresponding dropdown menu in the sidebar. ",
+          "The menus include options to show content running Python outside of the ",
+          "official support window, and R outside of the tidyverse support window."
+        ),
+        p(
+          "You can also filter the list by content type and view count. For example, ",
+          "you could show only applications that have been viewed at least once in the ",
+          "last quarter, or APIs with more than 100,000 hits in the last week."
+        )
+      )
+    ),
+    class = "bslib-page-title navbar-brand"
+  ),
 
   sidebar = sidebar(
     open = TRUE,
@@ -70,18 +95,7 @@ ui <- page_sidebar(
 
     title = "Filters",
 
-    div(
-      "Runtimes",
-      tooltip(
-        bsicons::bs_icon("question-circle-fill"),
-        tagList(
-          p(
-            "Enable a runtime filter and select a version range to ",
-            "filter content by runtime version.",
-          ),
-        )
-      )
-    ),
+    "Runtimes",
 
     checkboxInput(
       "use_r_cutoff",
@@ -568,6 +582,7 @@ server <- function(input, output, session) {
       defaultPageSize = 15,
       showPageSizeOptions = TRUE,
       pageSizeOptions = c(15, 50, 100),
+      defaultSorted = "last_deployed_time",
       class = "content-tbl",
       defaultColDef = colDef(
         headerVAlign = "bottom",
