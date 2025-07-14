@@ -2612,7 +2612,7 @@
   },
   "files": {
     "app.R": {
-      "checksum": "cdf18366e3d70c0140cfcfea82173076"
+      "checksum": "5f7be85f4aa9110d2165020831ad532d"
     },
     "connect_module.R": {
       "checksum": "ac5eb8fe7ee7b5c5b1b8279939b0c3a2"
@@ -2623,13 +2623,17 @@
     "renv.lock": {
       "checksum": "3ea511f6226a59ff5ee84657837c5db4"
     },
+    "supported_versions.R": {
+      "checksum": "372ce7efd4a75398bc2cb6c8ac5f0a11"
+    },
     "version_ordering.R": {
       "checksum": "dc05d91a7b8cf813f03f519b5ecb72dc"
     },
     "www/styles.css": {
-      "checksum": "a6c8a391b548cafad9bfa6808e004d68"
+      "checksum": "48340b42bcc9fbed7bdac0c216bb6964"
     }
   },
+  "users": null,
   "extension": {
     "name": "runtime-version-scanner",
     "title": "Runtime Version Scanner",
