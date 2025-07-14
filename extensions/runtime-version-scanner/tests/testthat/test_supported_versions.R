@@ -1,4 +1,4 @@
-source("../../supported_versions")
+source("../../supported_versions.R")
 
 test_that("pad_version() handles basic cases", {
   expect_equal(pad_version("4.1.2"), "4.1.2")
