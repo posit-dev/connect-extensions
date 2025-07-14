@@ -11,10 +11,10 @@ library(shinyjs)
 library(future)
 
 # https://devguide.python.org/versions/
-PY_OLDEST_SUPPORTED <- "3.9.0"
+OLDEST_SUPPORTED_PY_FALLBACK <- "3.9.0"
 
 # https://www.tidyverse.org/blog/2019/04/r-version-support/, https://www.r-project.org/
-R_OLDEST_SUPPORTED <- "4.1.0"
+OLDEST_SUPPORTED_R_FALLBACK <- "4.1.0"
 
 # Special version that will be greater than any real version
 ANY_VERSION <- "999.99.99"
@@ -24,6 +24,7 @@ plan(multisession)
 source("get_usage.R")
 source("connect_module.R")
 source("version_ordering.R")
+source("supported_versions.R")
 
 options(
   spinner.type = 1,
@@ -221,6 +222,38 @@ server <- function(input, output, session) {
     return()
   }
 
+  oldest_supported_r <- tryCatch(
+    {
+      version <- get_oldest_supported_r()
+      message("Fetched oldest supported R version: ", version)
+      version
+    },
+    error = function(e) {
+      message(
+        "Failed to fetch oldest supported R version; using fallback: ",
+        OLDEST_SUPPORTED_R_FALLBACK
+      )
+      message("Error: ", e$message)
+      OLDEST_SUPPORTED_R_FALLBACK
+    }
+  )
+
+  oldest_supported_py <- tryCatch(
+    {
+      version <- get_oldest_supported_py()
+      message("Fetched oldest supported Python version: ", version)
+      version
+    },
+    error = function(e) {
+      message(
+        "Failed to fetch oldest supported Python version; using fallback: ",
+        OLDEST_SUPPORTED_PY_FALLBACK
+      )
+      message("Error: ", e$message)
+      OLDEST_SUPPORTED_PY_FALLBACK
+    }
+  )
+
   # Server runtime versions
   server_versions <- reactive({
     get_runtimes(client)
@@ -239,8 +272,8 @@ server <- function(input, output, session) {
       pull(version)
 
     # Include EOL versions and ANY_VERSION in the additional versions
-    r_additional_vers <- c(r_server_vers, R_OLDEST_SUPPORTED, ANY_VERSION)
-    py_additional_vers <- c(py_server_vers, PY_OLDEST_SUPPORTED, ANY_VERSION)
+    r_additional_vers <- c(r_server_vers, oldest_supported_r, ANY_VERSION)
+    py_additional_vers <- c(py_server_vers, oldest_supported_py, ANY_VERSION)
     quarto_additional_vers <- c(quarto_server_vers, ANY_VERSION)
 
     content <- get_content(client) |>
@@ -270,8 +303,8 @@ server <- function(input, output, session) {
       quarto_choices <- qv
 
       # Special version labels
-      r_eol_label <- paste0("tidyverse EOL (< ", R_OLDEST_SUPPORTED, ")")
-      py_eol_label <- paste0("Official EOL (< ", PY_OLDEST_SUPPORTED, ")")
+      r_eol_label <- paste0("tidyverse EOL (< ", oldest_supported_r, ")")
+      py_eol_label <- paste0("Official EOL (< ", oldest_supported_py, ")")
       any_version_label <- "Any version"
 
       # Format labels for all normal versions
@@ -289,8 +322,8 @@ server <- function(input, output, session) {
       names(quarto_choices) <- sapply(quarto_choices, format_version_label)
 
       # Find the EOL versions and add special labels
-      r_eol_index <- which(r_choices == R_OLDEST_SUPPORTED)
-      py_eol_index <- which(py_choices == PY_OLDEST_SUPPORTED)
+      r_eol_index <- which(r_choices == oldest_supported_r)
+      py_eol_index <- which(py_choices == oldest_supported_py)
 
       if (length(r_eol_index) > 0) {
         names(r_choices)[r_eol_index] <- r_eol_label
@@ -641,7 +674,6 @@ server <- function(input, output, session) {
     req(input$content_table_ready)
     session$sendCustomMessage("setGuidVisible", input$show_guid)
   })
-
 
   # Download handler
   output$export_data <- downloadHandler(
