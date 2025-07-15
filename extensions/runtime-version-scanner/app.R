@@ -285,33 +285,64 @@ server <- function(input, output, session) {
     get_runtimes(client)
   })
 
-  # User-scoped content data frame
+  empty_content_df <- tibble::tibble(
+    title = character(),
+    dashboard_url = character(),
+    guid = character(),
+    owner_username = character(),
+    app_mode = character(),
+    content_type = character(),
+    r_version = factor(),
+    py_version = factor(),
+    quarto_version = factor(),
+    last_deployed_time = as.POSIXct(character())
+  )
+
+  content_task <- ExtendedTask$new(function(...) {
+    future({
+      content <- get_content(client) |>
+        filter(app_role %in% c("owner", "editor")) |>
+        mutate(owner_username = map_chr(owner, "username"))
+      content
+    })
+  })
+
+  observe({
+    content_task$invoke()
+  })
+
   content <- reactive({
-    # Extract server runtime versions by type
+    if (content_task$status() != "success") {
+      return(empty_content_df)
+    }
+
+    raw <- content_task$result()
+
+    # Extract server runtime versions
     server_vers <- server_versions()
-    r_server_vers <- server_vers |> filter(runtime == "r") |> pull(version)
-    py_server_vers <- server_vers |>
-      filter(runtime == "python") |>
-      pull(version)
-    quarto_server_vers <- server_vers |>
-      filter(runtime == "quarto") |>
-      pull(version)
+    r_additional_vers <- c(
+      server_vers |> filter(runtime == "r") |> pull(version),
+      oldest_supported_r,
+      ANY_VERSION
+    )
+    py_additional_vers <- c(
+      server_vers |> filter(runtime == "python") |> pull(version),
+      oldest_supported_py,
+      ANY_VERSION
+    )
+    quarto_additional_vers <- c(
+      server_vers |> filter(runtime == "quarto") |> pull(version),
+      ANY_VERSION
+    )
 
-    # Include EOL versions and ANY_VERSION in the additional versions
-    r_additional_vers <- c(r_server_vers, oldest_supported_r, ANY_VERSION)
-    py_additional_vers <- c(py_server_vers, oldest_supported_py, ANY_VERSION)
-    quarto_additional_vers <- c(quarto_server_vers, ANY_VERSION)
-
-    content <- get_content(client) |>
-      filter(app_role %in% c("owner", "editor")) |>
+    raw |>
       mutate(
-        owner_username = map_chr(owner, "username"),
         r_version = as_ordered_version_factor(r_version, r_additional_vers),
         py_version = as_ordered_version_factor(py_version, py_additional_vers),
         quarto_version = as_ordered_version_factor(
           quarto_version,
           quarto_additional_vers
-        ),
+        )
       )
   })
 
@@ -470,6 +501,20 @@ server <- function(input, output, session) {
     rv <- input$r_version_cutoff
     pv <- input$py_version_cutoff
     qv <- input$quarto_version_cutoff
+
+    if (content_task$status() != "success") {
+      return(
+        div(
+          style = "display: flex; align-items: center; gap: 0.5em; font-style: italic;",
+          span(
+            class = "spinner-border spinner-border-sm",
+            role = "status",
+            style = "width: 1rem; height: 1rem;"
+          ),
+          span("Loading content…")
+        )
+      )
+    }
 
     # Get the total count of filtered content
     total_count <- nrow(content_matching())
