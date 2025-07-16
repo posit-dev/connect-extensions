@@ -9,11 +9,12 @@ library(bsicons)
 library(tidyr)
 library(shinyjs)
 library(future)
+library(future.mirai)
 
 # Special version that will be greater than any real version
 ANY_VERSION <- "999.99.99"
 
-plan(multisession)
+plan(mirai_multisession)
 
 source("get_usage.R")
 source("connect_module.R")
