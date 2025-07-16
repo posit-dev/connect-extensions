@@ -387,7 +387,7 @@ def create_report_display(result_data, check_time_value):
     owner_name = result_data.get('owner_name', 'Unknown')
     owner_email = result_data.get('owner_email', '')
     if owner_email:
-        owner_display = f"{owner_name} <a href='mailto:{owner_email}' style='text-decoration:none;'>✉️</a>"
+        owner_display = f"<a href='mailto:{owner_email}' style='text-decoration:none;'>✉️ {owner_name}</a>"
     else:
         owner_display = owner_name
     
