@@ -220,21 +220,24 @@ runtime_help_modal <- function() {
     title = "Runtime Version Scanner Help",
     tagList(
       p(
-        "The Runtime Version Scanner shows you a list of content you own or ",
-        "collaborate on, along with the versions of R, Python, and Quarto their ",
-        "environments were built with."
+        "The Runtime Version Scanner shows a table of content you own or collaborate ",
+        "on, alongside the versions of R, Python, and/or Quarto their environments ",
+        "were built with. Use this to help maintain your content on Connect — for ",
+        "example, by surfacing items that are actively used but running older ",
+        "versions."
       ),
       p(
-        "Enable a runtime filter in the sidebar to filter your content by runtime ",
-        "version. The content list will show content running an older version than ",
-        "the one selected in the corresponding dropdown menu in the sidebar. ",
-        "The menus include options to show content running Python outside of the ",
-        "official support window, and R outside of the tidyverse support window."
+        "You can filter the table by runtime version using the controls the sidebar. ",
+        "The runtime filters let you select a version of R, Python, or Quarto to show ",
+        "only the items running an older version than the one selected. Selecting a ",
+        "version labeled 'EOL' will show content running end-of-life Python and R ",
+        "versions, based on the oldest officially supported Python and tidyverse-",
+        "supported R versions respectively."
       ),
       p(
         "You can also filter the list by content type and view count. For example, ",
-        "you could show only applications that have been viewed at least once in the ",
-        "last quarter, or APIs with more than 100,000 hits in the last week."
+        "you could show applications with at least one view in the last quarter, or ",
+        "APIs with more than 100,000 hits in the last week."
       )
     ),
     easyClose = TRUE,
@@ -248,37 +251,8 @@ server <- function(input, output, session) {
     return()
   }
 
-  oldest_supported_r <- tryCatch(
-    {
-      version <- get_oldest_supported_r()
-      message("Fetched oldest supported R version: ", version)
-      version
-    },
-    error = function(e) {
-      message(
-        "Failed to fetch oldest supported R version; using fallback: ",
-        OLDEST_SUPPORTED_R_FALLBACK
-      )
-      message("Error: ", e$message)
-      OLDEST_SUPPORTED_R_FALLBACK
-    }
-  )
-
-  oldest_supported_py <- tryCatch(
-    {
-      version <- get_oldest_supported_py()
-      message("Fetched oldest supported Python version: ", version)
-      version
-    },
-    error = function(e) {
-      message(
-        "Failed to fetch oldest supported Python version; using fallback: ",
-        OLDEST_SUPPORTED_PY_FALLBACK
-      )
-      message("Error: ", e$message)
-      OLDEST_SUPPORTED_PY_FALLBACK
-    }
-  )
+  oldest_supported_r <- get_oldest_supported_r()
+  oldest_supported_py <- get_oldest_supported_py()
 
   # Server runtime versions
   server_versions <- reactive({
