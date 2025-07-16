@@ -211,7 +211,7 @@ ui <- page_sidebar(
 
 runtime_help_modal <- function() {
   modalDialog(
-    title = "Runtime Version Scanner Help",
+    title = "About the Runtime Version Scanner",
     tagList(
       p(
         "The Runtime Version Scanner shows a table of content you own or collaborate ",
