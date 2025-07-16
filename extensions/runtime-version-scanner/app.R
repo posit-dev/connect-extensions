@@ -603,6 +603,9 @@ server <- function(input, output, session) {
   })
 
   output$content_table <- renderReactable({
+    if (content_task$status() != "success") {
+      return(NULL)
+    }
     # Only actually *render* the reactable once.
     data <- isolate(content_matching())
 
