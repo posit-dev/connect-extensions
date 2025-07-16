@@ -407,9 +407,6 @@ def create_report_display(result_data, check_time_value):
             <div style="font-weight: bold;">Content GUID:</div>
             <div>{content_guid}</div>
             
-            <div style="font-weight: bold;">HTTP Code:</div>
-            <div>{http_code}</div>
-            
             <div style="font-weight: bold;">Logs:</div>
             <div>{logs_display}</div>
             
