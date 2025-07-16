@@ -1,5 +1,5 @@
 ---
-title: "App Canary - Application Health Monitor"
+title: "App Canary - Content Health Monitor"
 format: 
     email:
         page-layout: full
@@ -397,7 +397,7 @@ def create_report_display(result_data, check_time_value):
     html_output = f"""
     <div style="{CSS_BOX_STYLE.format(border=status_colors['border'], background=status_colors['background'])}">
         <div style="{CSS_HEADER_STYLE}">
-            <span style="color: {status_colors['text']};">{status_icon} {status}</span> - Application Status
+            <span style="color: {status_colors['text']};">{status_icon} {status}</span>
         </div>
         
         <div style="{CSS_GRID_STYLE}">
@@ -427,9 +427,9 @@ def create_report_display(result_data, check_time_value):
 
 # Create the about content text
 about_content = """<div>
-This report uses the publisher's API key to monitor an application GUID, verifies that the monitored app is 
+This report uses the publisher's API key to monitor a content GUID, verifies that the monitored content is 
 reachable at its content URL, and reports the results. If run on a schedule, reports will be emailed when the monitored 
-application reports a failure.
+content reports a failure.
 </div>"""
 
 # Store HTML components in variables for reuse
@@ -504,7 +504,7 @@ send_email = should_send_email()
 :::
 
 ::: {.subject}
-App Canary - ❌ The monitored app has failed
+App Canary - ❌ The monitored content has failed
 :::
 
 ```{python}
