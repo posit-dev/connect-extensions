@@ -1,5 +1,3 @@
-source("../../supported_versions.R")
-
 test_that("pad_version() handles basic cases", {
   expect_equal(pad_version("4.1.2"), "4.1.2")
   expect_equal(pad_version("4.1"), "4.1.0")
@@ -19,7 +17,6 @@ with_mock_api({
     expect_equal(
       rv,
       "4.0.0",
-      info = .mockPaths()
     )
   })
 
@@ -31,7 +28,6 @@ with_mock_api({
     expect_equal(
       pv,
       "3.8.0",
-      info = .mockPaths()
     )
   })
 })
