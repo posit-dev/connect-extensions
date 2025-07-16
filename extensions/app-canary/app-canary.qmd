@@ -25,8 +25,8 @@ show_error = False
 error_message = ""
 error_guid = ""
 
-# Variable to store app monitoring result
-app_result = None
+# Variable to store content monitoring result
+content_result = None
 
 # Helper function to read environment variables and add instructions if missing
 def get_env_var(var_name, description=""):
@@ -104,10 +104,10 @@ if not show_instructions:
         
         return error_message
     
-    # Function to get app details from Connect API
+    # Function to get content details from Connect API
     def get_content(guid):
         try:
-            # Get app details from Connect API
+            # Get content details from Connect API
             content = client.content.get(guid)
             return content
         except Exception as e:
@@ -128,15 +128,15 @@ if not show_instructions:
             error_message = format_error_message(e)
             raise RuntimeError(f"Error getting user: {error_message}")
 
-    # Function to validate app health (simple HTTP 200 check)
-    def validate_app(guid):
-        # Get app details
+    # Function to validate content health (simple HTTP 200 check)
+    def validate(guid):
+        # Get content details
         content = get_content(guid)
 
-        app_name = content.get("title", "")
+        content_name = content.get("title", "")
         # Title is optional, if not set use name
-        if not app_name:
-            app_name = content.get("name", "")
+        if not content_name:
+            content_name = content.get("name", "")
         
         # Ensure we have a valid URL
         dashboard_url = content.get("dashboard_url", "")
@@ -148,7 +148,7 @@ if not show_instructions:
         owner_full_name = ""
         
         # Get additional data if we don't have an error when attempting to get the content details
-        if not str(app_name).startswith("ERROR:"):
+        if not str(content_name).startswith("ERROR:"):
             # Get content owner details
             try:
                 owner_guid = content.get("owner_guid")
@@ -174,12 +174,12 @@ if not show_instructions:
         try:
             # Use the content_url if available, otherwise construct one so we get a proper status code
             if content_url:
-                app_url = content_url
+                content_url = content_url
             else:
                 # Likely hit error condition in get_content() thus no content_url available
-                app_url = f"{connect_server}/content/{guid}"
-            app_response = requests.get(
-                app_url, 
+                content_url = f"{connect_server}/content/{guid}"
+            content_response = requests.get(
+                content_url, 
                 headers=headers,
                 timeout=60, # Max time to wait for a response from the content
                 allow_redirects=True  # Enabled by default in Python requests, included for clarity
@@ -188,22 +188,22 @@ if not show_instructions:
             return {
                 # App details
                 "guid": guid,
-                "name": app_name,
+                "name": content_name,
                 "dashboard_url": dashboard_url,
                 "logs_url": logs_url,
                 # Owner details
                 "owner_name": owner_full_name,
                 "owner_email": owner_email,
                 # Monitoring status
-                "status": "PASS" if app_response.status_code >= 200 and app_response.status_code < 300 else "FAIL",
-                "http_code": app_response.status_code
+                "status": "PASS" if content_response.status_code >= 200 and content_response.status_code < 300 else "FAIL",
+                "http_code": content_response.status_code
             }
 
         except Exception as e:
             return {
                 # App details
                 "guid": guid,
-                "name": app_name,
+                "name": content_name,
                 "dashboard_url": dashboard_url,
                 "logs_url": logs_url,
                 # Owner details
@@ -229,15 +229,15 @@ if not show_instructions:
             }
         return None
         
-    # Check the app and get result
-    app_result = None
+    # Check the content and get result
+    content_result = None
     if canary_guid:
-        app_result = validate_app(canary_guid)
+        content_result = validate(canary_guid)
         
         # Check if there was an error with the GUID
-        if has_error(app_result):
+        if has_error(content_result):
             show_error = True
-            error_details = extract_error_details(app_result)
+            error_details = extract_error_details(content_result)
             error_message = error_details["message"]
             error_guid = error_details["guid"]
 
@@ -352,16 +352,16 @@ def create_instructions_box(instructions_html_content):
 
 # Function to create the report display for a result
 def create_report_display(result_data, check_time_value):
-    # Format app name with link if dashboard_url is available
-    app_name = result_data.get('name', 'Unknown')
+    # Format content name with link if dashboard_url is available
+    content_name = result_data.get('name', 'Unknown')
     dashboard_url = result_data.get('dashboard_url', '')
     if dashboard_url:
-        app_name_display = f"<a href='{dashboard_url}' target='_blank'>{app_name}</a>"
+        content_name_display = f"<a href='{dashboard_url}' target='_blank'>{content_name}</a>"
     else:
-        app_name_display = app_name
+        content_name_display = content_name
     
     # Get GUID
-    app_guid = result_data.get('guid', '')
+    content_guid = result_data.get('guid', '')
     
     # Format status with appropriate color
     status = result_data.get('status', '')
@@ -402,10 +402,10 @@ def create_report_display(result_data, check_time_value):
         
         <div style="{CSS_GRID_STYLE}">
             <div style="font-weight: bold;">Name:</div>
-            <div>{app_name_display}</div>
+            <div>{content_name_display}</div>
             
             <div style="font-weight: bold;">Content GUID:</div>
-            <div>{app_guid}</div>
+            <div>{content_guid}</div>
             
             <div style="font-weight: bold;">HTTP Code:</div>
             <div>{http_code}</div>
@@ -442,9 +442,9 @@ report_box_html = ""
 if show_error:
     # Create error box HTML
     error_box_html = create_error_box(error_guid, error_message)
-elif app_result and not has_error(app_result):
+elif content_result and not has_error(content_result):
     # Create report box HTML using the function
-    report_box_html = create_report_display(app_result, check_time)
+    report_box_html = create_report_display(content_result, check_time)
 else:
     # Create no results box HTML
     no_results_box_html = create_no_results_box()
@@ -479,9 +479,9 @@ def should_send_email():
     if show_error:
         return True
     
-    # Send email if the monitored app has a failure status
-    if app_result and 'status' in app_result:
-        return app_result['status'] == STATUS_FAIL
+    # Send email if the monitored content has a failure status
+    if content_result and 'status' in content_result:
+        return content_result['status'] == STATUS_FAIL
     
     return False
 
