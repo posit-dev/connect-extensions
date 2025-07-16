@@ -1,3 +1,4 @@
+// Edited to show Python 3.8 as not-EOL.
 {
     "result": {
         "releases": [
@@ -67,9 +68,9 @@
                 "ltsFrom": null,
                 "isEoas": true,
                 "eoasFrom": "2021-05-03",
-                "isEol": true,
+                "isEol": false,
                 "eolFrom": "2024-10-07",
-                "isMaintained": false,
+                "isMaintained": true,
                 "latest": {
                     "name": "3.8.20",
                     "date": "2024-09-06",

@@ -10,12 +10,6 @@ library(tidyr)
 library(shinyjs)
 library(future)
 
-# https://devguide.python.org/versions/
-OLDEST_SUPPORTED_PY_FALLBACK <- "3.9.0"
-
-# https://www.tidyverse.org/blog/2019/04/r-version-support/, https://www.r-project.org/
-OLDEST_SUPPORTED_R_FALLBACK <- "4.1.0"
-
 # Special version that will be greater than any real version
 ANY_VERSION <- "999.99.99"
 

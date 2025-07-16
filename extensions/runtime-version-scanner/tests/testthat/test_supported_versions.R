@@ -6,26 +6,56 @@ test_that("pad_version() handles basic cases", {
   expect_equal(pad_version("4"), "4.0.0")
 
   # Doesn't handle more than four parts, which is fine.
-  expect_error(pad_version("4.1.2.3"), "4.1.2")
+  expect_error(pad_version("4.1.2.3"))
 })
 
-# For the "fetch" function, we just want to make sure they make a successful
-# request and parse it to a character vector.
-test_that("fetch_r_versions() successfully returns text", {
-  expect_equal(class(fetch_r_versions()), "character")
+# Test fetching and parsing against mock response.
+with_mock_api({
+  test_that("get_oldest_supported_r() fetches oldest version from API", {
+    expect_message(
+      rv <- get_oldest_supported_r(),
+      "Fetched oldest supported R version"
+    )
+    expect_equal(
+      rv,
+      "4.0.0",
+      info = .mockPaths()
+    )
+  })
+
+  test_that("get_oldest_supported_r() fetches oldest version from API", {
+    expect_message(
+      pv <- get_oldest_supported_py(),
+      "Fetched oldest supported Python version"
+    )
+    expect_equal(
+      pv,
+      "3.8.0",
+      info = .mockPaths()
+    )
+  })
 })
 
-test_that("fetch_py_versions() successfully returns text", {
-  expect_equal(class(fetch_py_versions()), "character")
-})
+without_internet({
+  test_that("get_oldest_supported_r() falls back without", {
+    expect_message(
+      rv <- get_oldest_supported_r(),
+      "Failed to fetch oldest supported R version; using fallback"
+    )
+    expect_equal(
+      rv,
+      "4.1.0"
+    )
+  })
 
-# The parse tests load simplified JSON mocks.
-test_that("parse_py_versions() works as expected", {
-  py_version_text <- readLines("version_responses/py.json")
-  expect_equal(parse_py_versions(py_version_text), "3.9.0")
-})
-
-test_that("parse_r_versions() works as expected", {
-  r_version_text <- readLines("version_responses/r.json")
-  expect_equal(parse_r_versions(r_version_text), "4.1.0")
+  test_that("get_oldest_supported_r() falls back without", {
+    expect_message(
+      pv <- get_oldest_supported_py(),
+      "Failed to fetch oldest supported Python version; using fallback"
+    )
+    expect_equal(
+      pv,
+      "3.9.0"
+    )
+  })
 })
