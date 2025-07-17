@@ -2751,11 +2751,12 @@
     "title": "Runtime Version Scanner",
     "description": "See the Python, R, and Quarto versions used by your content. Filter by version, content type, and usage to identify items that need updating. Quickly find content that uses end-of-life language versions.",
     "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/runtime-version-scanner",
+    "category": "extension",
     "tags": [],
     "minimumConnectVersion": "2025.04.0",
     "requiredFeatures": [
       "OAuth Integrations"
     ],
-    "version": "1.0.0"
+    "version": "1.0.1"
   }
 }
