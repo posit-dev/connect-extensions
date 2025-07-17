@@ -658,7 +658,8 @@
           }
         }
       ],
-      "tags": []
+      "tags": [],
+      "category": "extension"
     },
     {
       "name": "script-python",
