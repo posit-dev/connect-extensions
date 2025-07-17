@@ -677,7 +677,7 @@ server <- function(input, output, session) {
         title = colDef(
           name = "Title",
           minWidth = 125,
-          na = "[Untitled]"
+          na = "Untitled"
         ),
 
         dashboard_url = colDef(
