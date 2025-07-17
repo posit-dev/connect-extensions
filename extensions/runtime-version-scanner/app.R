@@ -271,7 +271,10 @@ server <- function(input, output, session) {
     future({
       content <- get_content(client) |>
         filter(app_role %in% c("owner", "editor")) |>
-        mutate(owner_username = map_chr(owner, "username"))
+        mutate(
+          owner_username = map_chr(owner, "username"),
+          title = coalesce(title, ifelse(name != "", name, NA))
+        )
       content
     })
   })
@@ -627,7 +630,8 @@ server <- function(input, output, session) {
       columns = list(
         title = colDef(
           name = "Title",
-          minWidth = 125
+          minWidth = 125,
+          na = "[Untitled]"
         ),
 
         dashboard_url = colDef(
