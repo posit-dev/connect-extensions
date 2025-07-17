@@ -124,9 +124,12 @@ ui <- page_sidebar(
     selectizeInput(
       "content_type_filter",
       label = "Content types",
-      options = list(placeholder = "All content types"),
+      options = list(
+        placeholder = "All content types",
+        plugins = list("remove_button")
+      ),
       choices = names(app_mode_groups),
-      multiple = TRUE,
+      multiple = TRUE
     ),
 
     tags$hr(),
@@ -258,7 +261,7 @@ server <- function(input, output, session) {
     title = character(),
     dashboard_url = character(),
     guid = character(),
-    owner_username = character(),
+    owner_name = character(),
     app_mode = character(),
     content_type = character(),
     r_version = factor(),
@@ -272,7 +275,10 @@ server <- function(input, output, session) {
       content <- get_content(client) |>
         filter(app_role %in% c("owner", "editor")) |>
         mutate(
-          owner_username = map_chr(owner, "username"),
+          owner_name = paste(
+            map_chr(owner, "first_name"),
+            map_chr(owner, "last_name")
+          ),
           title = coalesce(title, ifelse(name != "", name, NA))
         )
       content
@@ -424,7 +430,7 @@ server <- function(input, output, session) {
         title,
         dashboard_url,
         guid,
-        owner_username,
+        owner_name,
         content_type,
         r_version,
         py_version,
@@ -606,6 +612,10 @@ server <- function(input, output, session) {
     )
   })
 
+  observe({
+    toggleState("export_data", condition = nrow(content_matching()) > 0)
+  })
+
   output$content_table <- renderReactable({
     if (content_task$status() != "success") {
       return(NULL)
@@ -666,7 +676,7 @@ server <- function(input, output, session) {
           }
         ),
 
-        owner_username = colDef(
+        owner_name = colDef(
           name = "Owner",
           defaultSortOrder = "asc",
           minWidth = 75,
