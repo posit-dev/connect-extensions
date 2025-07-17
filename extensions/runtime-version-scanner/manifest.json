@@ -842,6 +842,40 @@
         "RemoteSha": "1.58.0"
       }
     },
+    "future.mirai": {
+      "Source": "CRAN",
+      "Repository": "https://packagemanager.posit.co/cran/latest",
+      "description": {
+        "Package": "future.mirai",
+        "Version": "0.10.1",
+        "Depends": "future (>= 1.49.0)",
+        "Imports": "mirai (>= 2.2.0), parallelly, utils",
+        "Suggests": "future.tests, future.apply, listenv",
+        "Title": "A 'Future' API for Parallel Processing using 'mirai'",
+        "Description": "Implementation of the 'Future' API <doi:10.32614/RJ-2021-048> on top of the 'mirai' package <doi:10.5281/zenodo.7912722>. By using this package, you get to take advantage of the benefits of 'mirai' plus everything else that 'future' and the 'Futureverse' adds on top of it. It allows you to process futures, as defined by the 'future' package, in parallel out of the box, on your local machine or across remote machines. Contrary to back-ends relying on the 'parallel' package (e.g. 'multisession') and socket connections, 'mirai_cluster' and 'mirai_multisession', provided here, can run more than 125 parallel R processes. As a reminder, regardless which future backend is used by the user, the code does not have to change, it gives identical results, and behaves exactly the same.",
+        "Authors@R": "c(\n  person(\"Henrik\", \"Bengtsson\",\n         role = c(\"aut\", \"cre\", \"cph\"),\n         email = \"henrikb@braju.com\",\n         comment = c(ORCID = \"0000-0002-7579-5165\")\n        ),\n  person(\"Charlie\", \"Gao\",\n         role = c(\"ctb\"),\n         email = \"charlie.gao@shikokuchuo.net\",\n         comment = c(ORCID = \"0000-0002-0750-061X\", note = \"For 'mirai'-related patches and implementing feature requests in 'mirai'\")\n        ))",
+        "License": "GPL (>= 3)",
+        "Language": "en-US",
+        "Encoding": "UTF-8",
+        "URL": "https://future.mirai.futureverse.org,\nhttps://github.com/futureverse/future.mirai",
+        "BugReports": "https://github.com/futureverse/future.mirai/issues",
+        "RoxygenNote": "7.3.2",
+        "NeedsCompilation": "no",
+        "Packaged": "2025-07-10 10:08:55 UTC; henrik",
+        "Author": "Henrik Bengtsson [aut, cre, cph] (ORCID:\n    <https://orcid.org/0000-0002-7579-5165>),\n  Charlie Gao [ctb] (ORCID: <https://orcid.org/0000-0002-0750-061X>,\n    note: For 'mirai'-related patches and implementing feature requests\n    in 'mirai')",
+        "Maintainer": "Henrik Bengtsson <henrikb@braju.com>",
+        "Repository": "RSPM",
+        "Date/Publication": "2025-07-10 10:30:01 UTC",
+        "Built": "R 4.3.0; ; 2025-07-11 04:59:47 UTC; unix",
+        "RemoteType": "standard",
+        "RemoteRef": "future.mirai",
+        "RemotePkgRef": "future.mirai",
+        "RemoteRepos": "https://packagemanager.posit.co/cran/latest",
+        "RemoteReposName": "CRAN",
+        "RemotePkgPlatform": "aarch64-apple-darwin20",
+        "RemoteSha": "0.10.1"
+      }
+    },
     "generics": {
       "Source": "CRAN",
       "Repository": "https://packagemanager.posit.co/cran/latest",
@@ -1474,6 +1508,84 @@
         "RemoteReposName": "CRAN",
         "RemotePkgPlatform": "aarch64-apple-darwin20",
         "RemoteSha": "0.13"
+      }
+    },
+    "mirai": {
+      "Source": "CRAN",
+      "Repository": "https://packagemanager.posit.co/cran/latest",
+      "description": {
+        "Type": "Package",
+        "Package": "mirai",
+        "Title": "Minimalist Async Evaluation Framework for R",
+        "Version": "2.4.1",
+        "Authors@R": "c(\n    person(\"Charlie\", \"Gao\", , \"charlie.gao@posit.co\", role = c(\"aut\", \"cre\"),\n           comment = c(ORCID = \"0000-0002-0750-061X\")),\n    person(\"Joe\", \"Cheng\", , \"joe@posit.co\", role = \"ctb\"),\n    person(\"Posit Software, PBC\", role = c(\"cph\", \"fnd\"),\n           comment = c(ROR = \"03wc8by49\")),\n    person(\"Hibiki AI Limited\", role = \"cph\")\n  )",
+        "Description": "Designed for simplicity, a 'mirai' evaluates an R expression\n    asynchronously in a parallel process, locally or distributed over the\n    network. Modern networking and concurrency, built on 'nanonext' and\n    'NNG', ensures reliable scheduling over fast inter-process\n    communications or TCP/IP secured by TLS. Launch remote resources via\n    SSH or cluster managers for distributed computing. Scales efficiently\n    to millions of tasks over thousands of connections, requiring no\n    storage on the file system due to its inherently queued architecture.\n    Innovative features include event-driven promises, asynchronous\n    parallel map, and seamless serialization of otherwise non-exportable\n    reference objects.",
+        "License": "MIT + file LICENSE",
+        "URL": "https://mirai.r-lib.org, https://github.com/r-lib/mirai",
+        "BugReports": "https://github.com/r-lib/mirai/issues",
+        "Depends": "R (>= 3.6)",
+        "Imports": "nanonext (>= 1.6.2)",
+        "Suggests": "cli, litedown",
+        "Enhances": "parallel, promises",
+        "VignetteBuilder": "litedown",
+        "Config/Needs/website": "tidyverse/tidytemplate",
+        "Config/usethis/last-upkeep": "2025-04-23",
+        "Encoding": "UTF-8",
+        "RoxygenNote": "7.3.2",
+        "NeedsCompilation": "no",
+        "Packaged": "2025-07-15 07:40:16 UTC; cg334",
+        "Author": "Charlie Gao [aut, cre] (ORCID: <https://orcid.org/0000-0002-0750-061X>),\n  Joe Cheng [ctb],\n  Posit Software, PBC [cph, fnd] (ROR: <https://ror.org/03wc8by49>),\n  Hibiki AI Limited [cph]",
+        "Maintainer": "Charlie Gao <charlie.gao@posit.co>",
+        "Repository": "RSPM",
+        "Date/Publication": "2025-07-15 08:10:02 UTC",
+        "Built": "R 4.3.0; ; 2025-07-16 11:20:30 UTC; unix",
+        "RemoteType": "standard",
+        "RemoteRef": "mirai",
+        "RemotePkgRef": "mirai",
+        "RemoteRepos": "https://packagemanager.posit.co/cran/latest",
+        "RemoteReposName": "CRAN",
+        "RemotePkgPlatform": "aarch64-apple-darwin20",
+        "RemoteSha": "2.4.1"
+      }
+    },
+    "nanonext": {
+      "Source": "CRAN",
+      "Repository": "https://packagemanager.posit.co/cran/latest",
+      "description": {
+        "Type": "Package",
+        "Package": "nanonext",
+        "Title": "NNG (Nanomsg Next Gen) Lightweight Messaging Library",
+        "Version": "1.6.2",
+        "Authors@R": "c(\n    person(\"Charlie\", \"Gao\", , \"charlie.gao@posit.co\", role = c(\"aut\", \"cre\"),\n           comment = c(ORCID = \"0000-0002-0750-061X\")),\n    person(\"Posit Software, PBC\", role = c(\"cph\", \"fnd\"),\n           comment = c(ROR = \"03wc8by49\")),\n    person(\"Hibiki AI Limited\", role = \"cph\"),\n    person(\"R Consortium\", role = \"fnd\")\n  )",
+        "Description": "R binding for NNG (Nanomsg Next Gen), a successor to ZeroMQ.\n    NNG is a socket library for reliable, high-performance messaging over\n    in-process, IPC, TCP, WebSocket and secure TLS transports. Implements\n    'Scalability Protocols', a standard for common communications patterns\n    including publish/subscribe, request/reply and service discovery. As\n    its own threaded concurrency framework, provides a toolkit for\n    asynchronous programming and distributed computing. Intuitive 'aio'\n    objects resolve automatically when asynchronous operations complete,\n    and synchronisation primitives allow R to wait upon events signalled\n    by concurrent threads.",
+        "License": "MIT + file LICENSE",
+        "URL": "https://nanonext.r-lib.org, https://github.com/r-lib/nanonext",
+        "BugReports": "https://github.com/r-lib/nanonext/issues",
+        "Depends": "R (>= 3.6)",
+        "Suggests": "later, litedown",
+        "Enhances": "promises",
+        "VignetteBuilder": "litedown",
+        "Biarch": "true",
+        "Config/build/compilation-database": "true",
+        "Config/Needs/website": "tidyverse/tidytemplate",
+        "Config/usethis/last-upkeep": "2025-04-23",
+        "Encoding": "UTF-8",
+        "RoxygenNote": "7.3.2",
+        "SystemRequirements": "'libnng' >= 1.9 and 'libmbedtls' >= 2.5, or 'cmake'\nand 'xz' to compile NNG and/or Mbed TLS included in package\nsources",
+        "NeedsCompilation": "yes",
+        "Packaged": "2025-07-14 07:19:05 UTC; cg334",
+        "Author": "Charlie Gao [aut, cre] (ORCID: <https://orcid.org/0000-0002-0750-061X>),\n  Posit Software, PBC [cph, fnd] (ROR: <https://ror.org/03wc8by49>),\n  Hibiki AI Limited [cph],\n  R Consortium [fnd]",
+        "Maintainer": "Charlie Gao <charlie.gao@posit.co>",
+        "Repository": "RSPM",
+        "Date/Publication": "2025-07-14 07:50:02 UTC",
+        "Built": "R 4.3.0; x86_64-pc-linux-gnu; 2025-07-15 04:37:36 UTC; unix",
+        "RemoteType": "standard",
+        "RemoteRef": "nanonext",
+        "RemotePkgRef": "nanonext",
+        "RemoteRepos": "https://packagemanager.posit.co/cran/latest",
+        "RemoteReposName": "CRAN",
+        "RemotePkgPlatform": "aarch64-apple-darwin20",
+        "RemoteSha": "1.6.2"
       }
     },
     "openssl": {
@@ -2612,7 +2724,7 @@
   },
   "files": {
     "app.R": {
-      "checksum": "5f7be85f4aa9110d2165020831ad532d"
+      "checksum": "057fbf993cd0b6340176832c30af7902"
     },
     "connect_module.R": {
       "checksum": "ac5eb8fe7ee7b5c5b1b8279939b0c3a2"
@@ -2621,10 +2733,10 @@
       "checksum": "ac5b526efed72f1c34786620ca2ddacd"
     },
     "renv.lock": {
-      "checksum": "3ea511f6226a59ff5ee84657837c5db4"
+      "checksum": "ce799725ffef2b083c9f85dba52f1452"
     },
     "supported_versions.R": {
-      "checksum": "372ce7efd4a75398bc2cb6c8ac5f0a11"
+      "checksum": "ca8c4181bddf00f8e7e0797671ae01c6"
     },
     "version_ordering.R": {
       "checksum": "dc05d91a7b8cf813f03f519b5ecb72dc"
