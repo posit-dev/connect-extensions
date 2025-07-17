@@ -9,21 +9,17 @@ library(bsicons)
 library(tidyr)
 library(shinyjs)
 library(future)
-
-# https://devguide.python.org/versions/
-PY_OLDEST_SUPPORTED <- "3.9.0"
-
-# https://www.tidyverse.org/blog/2019/04/r-version-support/, https://www.r-project.org/
-R_OLDEST_SUPPORTED <- "4.1.0"
+library(future.mirai)
 
 # Special version that will be greater than any real version
 ANY_VERSION <- "999.99.99"
 
-plan(multisession)
+plan(mirai_multisession)
 
 source("get_usage.R")
 source("connect_module.R")
 source("version_ordering.R")
+source("supported_versions.R")
 
 options(
   spinner.type = 1,
@@ -52,7 +48,6 @@ app_mode_lookup <- with(
   setNames(as.character(ind), values)
 )
 
-
 # Shiny app definition
 
 ui <- page_sidebar(
@@ -61,7 +56,18 @@ ui <- page_sidebar(
     tags$link(rel = "stylesheet", type = "text/css", href = "styles.css")
   ),
 
-  title = "Runtime Version Scanner",
+  title = h1(
+    "Runtime Version Scanner",
+    actionLink(
+      inputId = "show_runtime_help",
+      label = bsicons::bs_icon("question-circle-fill"),
+      class = "ms-2",
+      `data-bs-toggle` = "tooltip",
+      title = "Show Runtime Version Scanner help",
+      style = "margin-left: 0 !important; color: black;"
+    ),
+    class = "bslib-page-title navbar-brand"
+  ),
 
   sidebar = sidebar(
     open = TRUE,
@@ -69,18 +75,7 @@ ui <- page_sidebar(
 
     title = "Filters",
 
-    div(
-      "Runtimes",
-      tooltip(
-        bsicons::bs_icon("question-circle-fill"),
-        tagList(
-          p(
-            "Enable a runtime filter and select a version range to ",
-            "filter content by runtime version.",
-          ),
-        )
-      )
-    ),
+    "Runtimes",
 
     checkboxInput(
       "use_r_cutoff",
@@ -129,9 +124,12 @@ ui <- page_sidebar(
     selectizeInput(
       "content_type_filter",
       label = "Content types",
-      options = list(placeholder = "All content types"),
+      options = list(
+        placeholder = "All content types",
+        plugins = list("remove_button")
+      ),
       choices = names(app_mode_groups),
-      multiple = TRUE,
+      multiple = TRUE
     ),
 
     tags$hr(),
@@ -215,45 +213,119 @@ ui <- page_sidebar(
   ))
 )
 
+runtime_help_modal <- function() {
+  modalDialog(
+    title = "About the Runtime Version Scanner",
+    tagList(
+      p(
+        "The Runtime Version Scanner shows a table of content you own or collaborate ",
+        "on, alongside the versions of R, Python, and/or Quarto their environments ",
+        "were built with. Use this to help maintain your content on Connect — for ",
+        "example, by surfacing items that are actively used but running older ",
+        "versions."
+      ),
+      p(
+        "You can filter the table by runtime version using the controls the sidebar. ",
+        "The runtime filters let you select a version of R, Python, or Quarto to show ",
+        "only the items running an older version than the one selected. Selecting a ",
+        "version labeled 'EOL' will show content running end-of-life Python and R ",
+        "versions, based on the oldest officially supported Python and tidyverse-",
+        "supported R versions respectively."
+      ),
+      p(
+        "You can also filter the list by content type and view count. For example, ",
+        "you could show applications with at least one view in the last quarter, or ",
+        "APIs with more than 100,000 hits in the last week."
+      )
+    ),
+    easyClose = TRUE,
+    footer = NULL
+  )
+}
+
 server <- function(input, output, session) {
   client <- connectVisitorClient()
   if (is.null(client)) {
     return()
   }
 
+  oldest_supported_r <- get_oldest_supported_r()
+  oldest_supported_py <- get_oldest_supported_py()
+
   # Server runtime versions
   server_versions <- reactive({
     get_runtimes(client)
   })
 
-  # User-scoped content data frame
+  empty_content_df <- tibble::tibble(
+    title = character(),
+    dashboard_url = character(),
+    guid = character(),
+    owner_name = character(),
+    app_mode = character(),
+    content_type = character(),
+    r_version = factor(),
+    py_version = factor(),
+    quarto_version = factor(),
+    last_deployed_time = as.POSIXct(character())
+  )
+
+  content_task <- ExtendedTask$new(function(...) {
+    future({
+      content <- get_content(client) |>
+        filter(app_role %in% c("owner", "editor")) |>
+        mutate(
+          owner_name = paste(
+            map_chr(owner, "first_name"),
+            map_chr(owner, "last_name")
+          ),
+          title = coalesce(title, ifelse(name != "", name, NA))
+        )
+      content
+    })
+  })
+
+  observe({
+    content_task$invoke()
+  })
+
   content <- reactive({
-    # Extract server runtime versions by type
+    if (content_task$status() != "success") {
+      return(empty_content_df)
+    }
+
+    raw <- content_task$result()
+
+    # Extract server runtime versions
     server_vers <- server_versions()
-    r_server_vers <- server_vers |> filter(runtime == "r") |> pull(version)
-    py_server_vers <- server_vers |>
-      filter(runtime == "python") |>
-      pull(version)
-    quarto_server_vers <- server_vers |>
-      filter(runtime == "quarto") |>
-      pull(version)
+    r_additional_vers <- c(
+      server_vers |> filter(runtime == "r") |> pull(version),
+      oldest_supported_r,
+      ANY_VERSION
+    )
+    py_additional_vers <- c(
+      server_vers |> filter(runtime == "python") |> pull(version),
+      oldest_supported_py,
+      ANY_VERSION
+    )
+    quarto_additional_vers <- c(
+      server_vers |> filter(runtime == "quarto") |> pull(version),
+      ANY_VERSION
+    )
 
-    # Include EOL versions and ANY_VERSION in the additional versions
-    r_additional_vers <- c(r_server_vers, R_OLDEST_SUPPORTED, ANY_VERSION)
-    py_additional_vers <- c(py_server_vers, PY_OLDEST_SUPPORTED, ANY_VERSION)
-    quarto_additional_vers <- c(quarto_server_vers, ANY_VERSION)
-
-    content <- get_content(client) |>
-      filter(app_role %in% c("owner", "editor")) |>
+    raw |>
       mutate(
-        owner_username = map_chr(owner, "username"),
         r_version = as_ordered_version_factor(r_version, r_additional_vers),
         py_version = as_ordered_version_factor(py_version, py_additional_vers),
         quarto_version = as_ordered_version_factor(
           quarto_version,
           quarto_additional_vers
-        ),
+        )
       )
+  })
+
+  observeEvent(input$show_runtime_help, {
+    showModal(runtime_help_modal())
   })
 
   # Initialize the version selectize inputs when content is loaded
@@ -270,8 +342,8 @@ server <- function(input, output, session) {
       quarto_choices <- qv
 
       # Special version labels
-      r_eol_label <- paste0("tidyverse EOL (< ", R_OLDEST_SUPPORTED, ")")
-      py_eol_label <- paste0("Official EOL (< ", PY_OLDEST_SUPPORTED, ")")
+      r_eol_label <- paste0("tidyverse EOL (< ", oldest_supported_r, ")")
+      py_eol_label <- paste0("Official EOL (< ", oldest_supported_py, ")")
       any_version_label <- "Any version"
 
       # Format labels for all normal versions
@@ -289,8 +361,8 @@ server <- function(input, output, session) {
       names(quarto_choices) <- sapply(quarto_choices, format_version_label)
 
       # Find the EOL versions and add special labels
-      r_eol_index <- which(r_choices == R_OLDEST_SUPPORTED)
-      py_eol_index <- which(py_choices == PY_OLDEST_SUPPORTED)
+      r_eol_index <- which(r_choices == oldest_supported_r)
+      py_eol_index <- which(py_choices == oldest_supported_py)
 
       if (length(r_eol_index) > 0) {
         names(r_choices)[r_eol_index] <- r_eol_label
@@ -358,7 +430,7 @@ server <- function(input, output, session) {
         title,
         dashboard_url,
         guid,
-        owner_username,
+        owner_name,
         content_type,
         r_version,
         py_version,
@@ -407,6 +479,20 @@ server <- function(input, output, session) {
     rv <- input$r_version_cutoff
     pv <- input$py_version_cutoff
     qv <- input$quarto_version_cutoff
+
+    if (content_task$status() != "success") {
+      return(
+        div(
+          style = "display: flex; align-items: center; gap: 0.5em; font-style: italic;",
+          span(
+            class = "spinner-border spinner-border-sm",
+            role = "status",
+            style = "width: 1rem; height: 1rem;"
+          ),
+          span("Loading content…")
+        )
+      )
+    }
 
     # Get the total count of filtered content
     total_count <- nrow(content_matching())
@@ -526,15 +612,59 @@ server <- function(input, output, session) {
     )
   })
 
+  observe({
+    toggleState("export_data", condition = nrow(content_matching()) > 0)
+  })
+
+  # Format custom cells for display ----
+
+  format_dashboard_link <- function(url) {
+    ifelse(
+      is.na(url) | url == "",
+      "",
+      paste0(
+        "<div onclick='event.stopPropagation()'><a href='",
+        url,
+        "' target='_blank'>",
+        bsicons::bs_icon("arrow-up-right-square"),
+        "</a></div>"
+      )
+    )
+  }
+
+  format_guid_cell <- function(guid) {
+    ifelse(
+      is.na(guid) | guid == "",
+      "",
+      paste0(
+        "<div style='white-space: normal; word-break: break-all;'>",
+        guid,
+        "</div>"
+      )
+    )
+  }
+
+  content_display <- reactive({
+    content_matching() |>
+      mutate(
+        dashboard_url = format_dashboard_link(dashboard_url),
+        guid = format_guid_cell(guid)
+      )
+  })
+
   output$content_table <- renderReactable({
+    if (content_task$status() != "success") {
+      return(NULL)
+    }
     # Only actually *render* the reactable once.
-    data <- isolate(content_matching())
+    data <- isolate(content_display())
 
     tbl <- reactable(
       data,
       defaultPageSize = 15,
       showPageSizeOptions = TRUE,
       pageSizeOptions = c(15, 50, 100),
+      defaultSorted = "last_deployed_time",
       class = "content-tbl",
       defaultColDef = colDef(
         headerVAlign = "bottom",
@@ -546,26 +676,14 @@ server <- function(input, output, session) {
       columns = list(
         title = colDef(
           name = "Title",
-          minWidth = 125
+          minWidth = 125,
+          na = "Untitled"
         ),
 
         dashboard_url = colDef(
           name = "",
           width = 32,
           sortable = FALSE,
-          cell = function(url) {
-            if (is.na(url) || url == "") {
-              return("")
-            }
-            HTML(as.character(tags$div(
-              onclick = "event.stopPropagation()",
-              tags$a(
-                href = url,
-                target = "_blank",
-                bsicons::bs_icon("arrow-up-right-square")
-              )
-            )))
-          },
           html = TRUE
         ),
 
@@ -573,15 +691,10 @@ server <- function(input, output, session) {
           name = "GUID",
           show = FALSE,
           class = "number-pre",
-          cell = function(value) {
-            div(
-              style = list(whiteSpace = "normal", wordBreak = "break-all"),
-              value
-            )
-          }
+          html = TRUE
         ),
 
-        owner_username = colDef(
+        owner_name = colDef(
           name = "Owner",
           defaultSortOrder = "asc",
           minWidth = 75,
@@ -635,13 +748,13 @@ server <- function(input, output, session) {
   })
 
   observe({
-    updateReactable("content_table", data = content_matching())
+    print(content_display())
+    updateReactable("content_table", data = content_display())
   })
   observe({
     req(input$content_table_ready)
     session$sendCustomMessage("setGuidVisible", input$show_guid)
   })
-
 
   # Download handler
   output$export_data <- downloadHandler(
