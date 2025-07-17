@@ -2749,7 +2749,7 @@
   "extension": {
     "name": "runtime-version-scanner",
     "title": "Runtime Version Scanner",
-    "description": "See R, Python, and Quarto versions used by your content. Filter by runtime version, content type, and usage to find content that needs to be updated. Easily avoid using end-of-life language runtime versions.",
+    "description": "See the R, Python, and Quarto versions used by your content. Filter by runtime version, content type, and usage to identify items that need updating. Quickly find content that uses end-of-life language runtime versions.",
     "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/runtime-version-scanner",
     "tags": [],
     "minimumConnectVersion": "2025.04.0",
