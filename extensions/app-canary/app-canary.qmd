@@ -36,7 +36,11 @@ def get_env_var(var_name, description=""):
     value = os.environ.get(var_name, "")
     if not value:
         show_instructions = True
-        instruction = f"Please set the <b>{var_name}</b> environment variable and re-render the report."
+        instruction = (
+            f"Open the <b>Content Settings</b> panel, then navigate to the <b>Vars</b> pane. "
+            f"Create a new environment variable named <code>{var_name}</code>, set its value to the GUID of the content you want to monitor, "
+            f"and click <b>Add Variable</b>. When you're done, click <b>Refresh Report</b> to continue."
+        )
         if description:
             instruction += f" {description}"
         instructions.append(instruction)
@@ -424,9 +428,9 @@ def create_report_display(result_data, check_time_value):
 
 # Create the about content text
 about_content = """<div>
-This report uses the publisher's API key to monitor a content GUID, verifies that the monitored content is 
-reachable at its content URL, and reports the results. If run on a schedule, reports will be emailed when the monitored 
-content reports a failure.
+This report uses the publisher's API key to monitor one piece of content, pings the monitored content but does not 
+validate any content functionality, and reports the results. If run on a schedule, reports will be emailed when the 
+monitored content reports a failure.
 </div>"""
 
 # Store HTML components in variables for reuse
