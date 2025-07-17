@@ -616,12 +616,48 @@ server <- function(input, output, session) {
     toggleState("export_data", condition = nrow(content_matching()) > 0)
   })
 
+  # Format custom cells for display ----
+
+  format_dashboard_link <- function(url) {
+    ifelse(
+      is.na(url) | url == "",
+      "",
+      paste0(
+        "<div onclick='event.stopPropagation()'><a href='",
+        url,
+        "' target='_blank'>",
+        bsicons::bs_icon("arrow-up-right-square"),
+        "</a></div>"
+      )
+    )
+  }
+
+  format_guid_cell <- function(guid) {
+    ifelse(
+      is.na(guid) | guid == "",
+      "",
+      paste0(
+        "<div style='white-space: normal; word-break: break-all;'>",
+        guid,
+        "</div>"
+      )
+    )
+  }
+
+  content_display <- reactive({
+    content_matching() |>
+      mutate(
+        dashboard_url = format_dashboard_link(dashboard_url),
+        guid = format_guid_cell(guid)
+      )
+  })
+
   output$content_table <- renderReactable({
     if (content_task$status() != "success") {
       return(NULL)
     }
     # Only actually *render* the reactable once.
-    data <- isolate(content_matching())
+    data <- isolate(content_display())
 
     tbl <- reactable(
       data,
@@ -648,19 +684,6 @@ server <- function(input, output, session) {
           name = "",
           width = 32,
           sortable = FALSE,
-          cell = function(url) {
-            if (is.na(url) || url == "") {
-              return("")
-            }
-            HTML(as.character(tags$div(
-              onclick = "event.stopPropagation()",
-              tags$a(
-                href = url,
-                target = "_blank",
-                bsicons::bs_icon("arrow-up-right-square")
-              )
-            )))
-          },
           html = TRUE
         ),
 
@@ -668,12 +691,7 @@ server <- function(input, output, session) {
           name = "GUID",
           show = FALSE,
           class = "number-pre",
-          cell = function(value) {
-            div(
-              style = list(whiteSpace = "normal", wordBreak = "break-all"),
-              value
-            )
-          }
+          html = TRUE
         ),
 
         owner_name = colDef(
@@ -730,7 +748,8 @@ server <- function(input, output, session) {
   })
 
   observe({
-    updateReactable("content_table", data = content_matching())
+    print(content_display())
+    updateReactable("content_table", data = content_display())
   })
   observe({
     req(input$content_table_ready)
