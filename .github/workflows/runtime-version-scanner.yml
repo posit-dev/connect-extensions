@@ -61,6 +61,7 @@ jobs:
             extensions/${{ env.EXTENSION_NAME }}/get_usage.R
             extensions/${{ env.EXTENSION_NAME }}/renv.lock
             extensions/${{ env.EXTENSION_NAME }}/version_ordering.R
+            extensions/${{ env.EXTENSION_NAME }}/supported_versions.R
             extensions/${{ env.EXTENSION_NAME }}/www/styles.css
             extensions/${{ env.EXTENSION_NAME }}/manifest.json
 
