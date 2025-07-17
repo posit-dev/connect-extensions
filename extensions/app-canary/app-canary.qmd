@@ -501,7 +501,7 @@ send_email = should_send_email()
 :::
 
 ::: {.subject}
-App Canary - ❌ The monitored content has failed
+❌ App Canary - `{python} content_result.get('name')` has failed monitoring
 :::
 
 ```{python}
