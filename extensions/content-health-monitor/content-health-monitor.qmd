@@ -1,5 +1,5 @@
 ---
-title: "App Canary - Application Health Monitor"
+title: "Content Health Monitor"
 format: 
     email:
         page-layout: full
@@ -25,8 +25,8 @@ show_error = False
 error_message = ""
 error_guid = ""
 
-# Variable to store app monitoring result
-app_result = None
+# Variable to store content monitoring result
+content_result = None
 
 # Helper function to read environment variables and add instructions if missing
 def get_env_var(var_name, description=""):
@@ -36,19 +36,37 @@ def get_env_var(var_name, description=""):
     value = os.environ.get(var_name, "")
     if not value:
         show_instructions = True
-        instruction = f"Please set the <b>{var_name}</b> environment variable and re-render the report."
+        
+        # Generic instruction for most variables
+        if var_name != "MONITORED_CONTENT_GUID":
+            instruction = f"Please set the <code>{var_name}</code> environment variable."
+        # Detailed instructions for MONITORED_CONTENT_GUID
+        else:
+            instruction = (
+                f"Open the <b>Content Settings</b> panel, then navigate to the <b>Vars</b> pane. "
+                f"Create a new environment variable named <code>{var_name}</code>, set its value to the GUID of the content you want to monitor, "
+                f"and click <b>Add Variable</b>. When you're done, click <b>Refresh Report</b> in the upper right toolbar menu to continue."
+            )
+        
         if description:
             instruction += f" {description}"
         instructions.append(instruction)
     return value
 
 # Read environment variables
-connect_server = get_env_var("CONNECT_SERVER")
-api_key = get_env_var("CONNECT_API_KEY")
-canary_guid = get_env_var("CANARY_GUID", "It should be the GUID of the content you wish to monitor.")
+connect_server = get_env_var("CONNECT_SERVER") # Automatically provided by Connect, must be set when previewing locally
+api_key = get_env_var("CONNECT_API_KEY") # Automatically provided by Connect, must be set when previewing locally
+monitored_content_guid = get_env_var("MONITORED_CONTENT_GUID")
 
-# Instantiate a Connect client using posit-sdk where api_key and url are automatically read from our environment vars
-client = connect.Client()
+# Only instantiate the client if we have the required environment variables
+client = None
+if not show_instructions:
+    try:
+        # Instantiate a Connect client using posit-sdk where api_key and url are automatically read from our environment vars
+        client = connect.Client()
+    except ValueError as e:
+        show_instructions = True
+        instructions.append(f"<b>Error initializing client:</b> {str(e)}")
 ```
 
 ```{python}
@@ -66,8 +84,8 @@ if not show_instructions:
     # Headers for Connect API
     headers = {
         "Authorization": f"Key {api_key}",
-        # Set a custom user agent to enable filtering App Canary activity in Connect instrumentation data
-        "User-Agent": "AppCanary/1.0",
+        # Set a custom user agent to enable filtering of activity in Connect instrumentation data
+        "User-Agent": "ContentHealthMonitor/1.0",
     }
 
     # Check if server is reachable, would only be a potential problem during local dev
@@ -104,10 +122,10 @@ if not show_instructions:
         
         return error_message
     
-    # Function to get app details from Connect API
+    # Function to get content details from Connect API
     def get_content(guid):
         try:
-            # Get app details from Connect API
+            # Get content details from Connect API
             content = client.content.get(guid)
             return content
         except Exception as e:
@@ -128,15 +146,15 @@ if not show_instructions:
             error_message = format_error_message(e)
             raise RuntimeError(f"Error getting user: {error_message}")
 
-    # Function to validate app health (simple HTTP 200 check)
-    def validate_app(guid):
-        # Get app details
+    # Function to validate content health (simple HTTP 200 check)
+    def validate(guid):
+        # Get content details
         content = get_content(guid)
 
-        app_name = content.get("title", "")
+        content_name = content.get("title", "")
         # Title is optional, if not set use name
-        if not app_name:
-            app_name = content.get("name", "")
+        if not content_name:
+            content_name = content.get("name", "")
         
         # Ensure we have a valid URL
         dashboard_url = content.get("dashboard_url", "")
@@ -148,7 +166,7 @@ if not show_instructions:
         owner_full_name = ""
         
         # Get additional data if we don't have an error when attempting to get the content details
-        if not str(app_name).startswith("ERROR:"):
+        if not str(content_name).startswith("ERROR:"):
             # Get content owner details
             try:
                 owner_guid = content.get("owner_guid")
@@ -174,36 +192,36 @@ if not show_instructions:
         try:
             # Use the content_url if available, otherwise construct one so we get a proper status code
             if content_url:
-                app_url = content_url
+                content_url = content_url
             else:
                 # Likely hit error condition in get_content() thus no content_url available
-                app_url = f"{connect_server}/content/{guid}"
-            app_response = requests.get(
-                app_url, 
+                content_url = f"{connect_server}/content/{guid}"
+            content_response = requests.get(
+                content_url, 
                 headers=headers,
                 timeout=60, # Max time to wait for a response from the content
                 allow_redirects=True  # Enabled by default in Python requests, included for clarity
             )
             
             return {
-                # App details
+                # Content details
                 "guid": guid,
-                "name": app_name,
+                "name": content_name,
                 "dashboard_url": dashboard_url,
                 "logs_url": logs_url,
                 # Owner details
                 "owner_name": owner_full_name,
                 "owner_email": owner_email,
                 # Monitoring status
-                "status": "PASS" if app_response.status_code >= 200 and app_response.status_code < 300 else "FAIL",
-                "http_code": app_response.status_code
+                "status": "PASS" if content_response.status_code >= 200 and content_response.status_code < 300 else "FAIL",
+                "http_code": content_response.status_code
             }
 
         except Exception as e:
             return {
-                # App details
+                # Content details
                 "guid": guid,
-                "name": app_name,
+                "name": content_name,
                 "dashboard_url": dashboard_url,
                 "logs_url": logs_url,
                 # Owner details
@@ -229,15 +247,15 @@ if not show_instructions:
             }
         return None
         
-    # Check the app and get result
-    app_result = None
-    if canary_guid:
-        app_result = validate_app(canary_guid)
+    # Check the content and get result
+    content_result = None
+    if monitored_content_guid:
+        content_result = validate(monitored_content_guid)
         
         # Check if there was an error with the GUID
-        if has_error(app_result):
+        if has_error(content_result):
             show_error = True
-            error_details = extract_error_details(app_result)
+            error_details = extract_error_details(content_result)
             error_message = error_details["message"]
             error_guid = error_details["guid"]
 
@@ -313,7 +331,7 @@ def create_error_box(guid, error_msg):
         </div>
         
         <div style="{CSS_FOOTER_STYLE}">
-            Please check that your CANARY_GUID environment variable contains a valid content identifier.
+            Please check that your <code>MONITORED_CONTENT_GUID</code> environment variable contains a valid content identifier.
         </div>
     </div>
     """
@@ -332,17 +350,18 @@ def create_no_results_box():
                 <li>There was an issue connecting to the specified content</li>
                 <li>The environment is properly configured but there was an error that caused no data to be returned</li>
             </ul>
-            <p>Please check your CANARY_GUID environment variable and ensure it contains a valid content identifier.</p>
+            <p>Please check your MONITORED_CONTENT_GUID environment variable and ensure it contains a valid content identifier.</p>
         </div>
     </div>
     """
 
 def create_instructions_box(instructions_html_content):
     """Creates the Setup Instructions callout box HTML"""
-    error = CSS_COLORS["error"]
+    neutral = CSS_COLORS["neutral"]
+    warning = CSS_COLORS["warning"]  # For the header to make it stand out
     return f"""
-    <div style="{CSS_BOX_STYLE.format(border=error['border'], background=error['background'])}"> 
-        <div style="{CSS_HEADER_STYLE}; color: {error['text']};">⚠️ Setup Instructions</div>
+    <div style="{CSS_BOX_STYLE.format(border=warning['border'], background=neutral['background'])}"> 
+        <div style="{CSS_HEADER_STYLE}; color: #f0ad4e;">⚙️ Setup Required</div>
         {instructions_html_content}
         <div style="{CSS_FOOTER_STYLE}">
             See Posit Connect documentation for <a href='https://docs.posit.co/connect/user/content-settings/#content-vars' target='_blank'>Vars (environment variables)</a>
@@ -352,16 +371,16 @@ def create_instructions_box(instructions_html_content):
 
 # Function to create the report display for a result
 def create_report_display(result_data, check_time_value):
-    # Format app name with link if dashboard_url is available
-    app_name = result_data.get('name', 'Unknown')
+    # Format content name with link if dashboard_url is available
+    content_name = result_data.get('name', 'Unknown')
     dashboard_url = result_data.get('dashboard_url', '')
     if dashboard_url:
-        app_name_display = f"<a href='{dashboard_url}' target='_blank'>{app_name}</a>"
+        content_name_display = f"<a href='{dashboard_url}' target='_blank' style='text-decoration:none;'>{content_name}</a>"
     else:
-        app_name_display = app_name
+        content_name_display = content_name
     
     # Get GUID
-    app_guid = result_data.get('guid', '')
+    content_guid = result_data.get('guid', '')
     
     # Format status with appropriate color
     status = result_data.get('status', '')
@@ -381,13 +400,13 @@ def create_report_display(result_data, check_time_value):
     if logs_url:
         logs_display = f"<a href='{logs_url}' target='_blank' style='text-decoration:none;'>📋 View Logs</a>"
     else:
-        logs_display = "No logs available (only available to owner and collaborators)"
+        logs_display = "No logs available — only visible to the content owner and collaborators."
     
     # Format owner information
     owner_name = result_data.get('owner_name', 'Unknown')
     owner_email = result_data.get('owner_email', '')
     if owner_email:
-        owner_display = f"{owner_name} <a href='mailto:{owner_email}' style='text-decoration:none;'>✉️</a>"
+        owner_display = f"<a href='mailto:{owner_email}' style='text-decoration:none;'>✉️ {owner_name}</a>"
     else:
         owner_display = owner_name
     
@@ -397,18 +416,15 @@ def create_report_display(result_data, check_time_value):
     html_output = f"""
     <div style="{CSS_BOX_STYLE.format(border=status_colors['border'], background=status_colors['background'])}">
         <div style="{CSS_HEADER_STYLE}">
-            <span style="color: {status_colors['text']};">{status_icon} {status}</span> - Application Status
+            <span style="color: {status_colors['text']};">{status_icon} {status}</span>
         </div>
         
         <div style="{CSS_GRID_STYLE}">
             <div style="font-weight: bold;">Name:</div>
-            <div>{app_name_display}</div>
+            <div>{content_name_display}</div>
             
             <div style="font-weight: bold;">Content GUID:</div>
-            <div>{app_guid}</div>
-            
-            <div style="font-weight: bold;">HTTP Code:</div>
-            <div>{http_code}</div>
+            <div>{content_guid}</div>
             
             <div style="font-weight: bold;">Logs:</div>
             <div>{logs_display}</div>
@@ -427,9 +443,9 @@ def create_report_display(result_data, check_time_value):
 
 # Create the about content text
 about_content = """<div>
-This report uses the publisher's API key to monitor an application GUID, verifies that the monitored app is 
-reachable at its content URL, and reports the results. If run on a schedule, reports will be emailed when the monitored 
-application reports a failure.
+This report uses the publisher’s API key to monitor a single piece of content. It checks whether the content is 
+reachable, but does not validate its functionality. When scheduled to run regularly, it will send an email alert if the 
+content becomes unreachable.
 </div>"""
 
 # Store HTML components in variables for reuse
@@ -442,9 +458,9 @@ report_box_html = ""
 if show_error:
     # Create error box HTML
     error_box_html = create_error_box(error_guid, error_message)
-elif app_result and not has_error(app_result):
+elif content_result and not has_error(content_result):
     # Create report box HTML using the function
-    report_box_html = create_report_display(app_result, check_time)
+    report_box_html = create_report_display(content_result, check_time)
 else:
     # Create no results box HTML
     no_results_box_html = create_no_results_box()
@@ -479,9 +495,9 @@ def should_send_email():
     if show_error:
         return True
     
-    # Send email if the monitored app has a failure status
-    if app_result and 'status' in app_result:
-        return app_result['status'] == STATUS_FAIL
+    # Send email if the monitored content has a failure status
+    if content_result and 'status' in content_result:
+        return content_result['status'] == STATUS_FAIL
     
     return False
 
@@ -504,7 +520,7 @@ send_email = should_send_email()
 :::
 
 ::: {.subject}
-App Canary - ❌ The monitored app has failed
+❌ Content Health Monitor - `{python} content_result.get('name', 'Unknown') if content_result else 'Unknown'` has failed monitoring
 :::
 
 ```{python}

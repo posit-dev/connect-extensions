@@ -5,10 +5,10 @@
     "appmode": "quarto-static"
   },
     "extension": {
-    "name": "app-canary",
-    "title": "App Canary",
-    "description": "Provides a way to monitor deployed content and optionally email a report when any of the content has failed.",
-    "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/app-canary",
+    "name": "content-health-monitor",
+    "title": "Content Health Monitor",
+    "description": "This report uses the publisher’s API key to monitor a single piece of content. It checks whether the content is reachable, but does not validate its functionality. When scheduled to run regularly, it will send an email alert if the content becomes unreachable.",
+    "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/content-health-monitor",
     "category": "extension",
     "tags": [],
     "minimumConnectVersion": "2025.04.0",
@@ -40,7 +40,7 @@
     "requirements.txt": {
       "checksum": "09254fc2dfa7d869ffbc3da2abb1d224"
     },
-    "app-canary.qmd": {
+    "content-health-monitor.qmd": {
       "checksum": "732af0f4ea846c37d3a7641c3bbd6ba3"
     }
   }
