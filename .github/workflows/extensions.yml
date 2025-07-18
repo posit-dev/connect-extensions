@@ -53,7 +53,7 @@ jobs:
             top-5-income-share-streamlit: extensions/top-5-income-share-streamlit/**
             stock-report-jupyter: extensions/stock-report-jupyter/**
             usage-metrics-dashboard: extensions/usage-metrics-dashboard/**
-            app-canary: extensions/app-canary/**
+            content-health-monitor: extensions/content-health-monitor/**
             voila-example: extensions/voila-example/**
             stock-report: extensions/stock-report/**
             simple-mcp-server: extensions/simple-mcp-server/**
