@@ -444,7 +444,7 @@ def create_report_display(result_data, check_time_value):
 # Create the about content text
 about_content = """<div>
 This report uses the publisher’s API key to monitor a single piece of content. It checks whether the content is 
-reachable, but does not validate its functionality. If scheduled to run regularly, it will send an email alert if the 
+reachable, but does not validate its functionality. When scheduled to run regularly, it will send an email alert if the 
 content becomes unreachable.
 </div>"""
 
