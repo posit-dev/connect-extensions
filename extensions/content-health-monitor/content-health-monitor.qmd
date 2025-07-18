@@ -78,7 +78,7 @@ STATUS_PASS = "PASS"
 STATUS_FAIL = "FAIL"
 ERROR_PREFIX = "ERROR:"
 
-if not show_instructions and client is not None:
+if not show_instructions:
     # Proceed to validate our monitored GUIDS
 
     # Headers for Connect API
