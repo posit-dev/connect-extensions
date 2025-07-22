@@ -14,6 +14,19 @@
       "requires": "~=4.5.0"
     }
   },
+  "extension": {
+    "name": "vertex-ai-translator-rshiny",
+    "title": "Vertex AI OAuth R Shiny translator app",
+    "description": "An R Shiny app that uses a Vertex AI OAuth integration to access a model resource for text translation",
+    "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/vertex-ai-translator-rshiny",
+    "category": "example",
+    "tags": [],
+    "minimumConnectVersion": "2025.07.0",
+    "requiredFeatures": [
+      "OAuth Integrations"
+    ],
+    "version": "0.0.0"
+  },
   "packages": {
     "R6": {
       "Source": "CRAN",
