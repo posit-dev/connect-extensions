@@ -63,16 +63,8 @@ if not show_instructions:
         "User-Agent": "ContentHealthMonitor/1.0",
     }
 
-    # Check if server is reachable, would only be a potential problem during local dev
-    try:
-        server_check = requests.get(
-            f"{connect_server}/__ping__", 
-            headers=headers, 
-            timeout=5
-        )
-        server_check.raise_for_status()
-    except requests.exceptions.RequestException as e:
-        raise RuntimeError(f"Connect server at {connect_server} is unavailable: {str(e)}")
+    # Check if server is reachable using the utility function
+    check_server_reachable(connect_server, api_key)
 
     # Functions imported from content_health_utils.py
         

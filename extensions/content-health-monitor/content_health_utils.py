@@ -362,6 +362,27 @@ def create_report_display(result_data, check_time_value):
     
     return html_output
 
+# Function to check if the Connect server is reachable
+def check_server_reachable(connect_server, api_key):
+    """Check if Connect server is reachable and responding"""
+    # Headers for Connect API
+    headers = {
+        "Authorization": f"Key {api_key}",
+        # Set a custom user agent to enable filtering of activity in Connect instrumentation data
+        "User-Agent": "ContentHealthMonitor/1.0",
+    }
+
+    try:
+        server_check = requests.get(
+            f"{connect_server}/__ping__", 
+            headers=headers, 
+            timeout=5
+        )
+        server_check.raise_for_status()
+        return True
+    except requests.exceptions.RequestException as e:
+        raise RuntimeError(f"Connect server at {connect_server} is unavailable: {str(e)}")
+
 # Helper function to determine if we should send an email
 def should_send_email(show_error, content_result):
     """Determine if we should send an email notification"""
