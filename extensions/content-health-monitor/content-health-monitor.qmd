@@ -115,7 +115,7 @@ send_email = should_send_email(show_error, content_result)
 :::
 
 ::: {.subject}
-❌ Content Health Monitor - `{python} content_result.get('name', 'Unknown') if content_result else 'Unknown'` has failed monitoring
+`{python} f"❌ Content Health Monitor - \"{content_result.get('name', 'Unknown Content') if content_result else 'Unknown Content'}\" has failed monitoring"`
 :::
 
 ```{python}
