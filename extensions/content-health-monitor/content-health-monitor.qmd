@@ -42,32 +42,31 @@ if not show_instructions:
 
 
 # ------ DATA GATHERING SECTION ------ #
+# Always record the current time for reporting purposes
+check_time = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+
+# Only proceed with content validation if we have all requirements
+# (show_instructions=False already tells us env vars are set and client was initialized)
 if not show_instructions:
-    # Proceed to validate our monitored GUID
-
-    # Headers for Connect API
-    headers = {
-        "Authorization": f"Key {api_key}",
-        # Set a custom user agent to enable filtering of activity in Connect instrumentation data
-        "User-Agent": "ContentHealthMonitor/1.0",
-    }
-
-    # Check if server is reachable using the utility function
-    check_server_reachable(connect_server, api_key)
+    try:
+        # Check if server is reachable
+        check_server_reachable(connect_server, api_key)
         
-    # Check the content and get result
-    if monitored_content_guid:
+        # Validate the content
         content_result = validate(client, monitored_content_guid, connect_server, api_key)
         
-        # Check if there was an error with the GUID
+        # Check for content-specific errors
         if has_error(content_result):
             show_error = True
             error_details = extract_error_details(content_result)
             error_message = error_details["message"]
             error_guid = error_details["guid"]
-
-    # Store the current time
-    check_time = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+            
+    except Exception as e:
+        # Handle any unexpected errors during validation
+        show_error = True
+        error_message = str(e)
+        error_guid = monitored_content_guid
 
 
 # ------ DISPLAY SECTION ------ #
