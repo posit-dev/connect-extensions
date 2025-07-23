@@ -239,6 +239,8 @@ def create_about_box(about_content):
 def create_error_box(guid, error_msg):
     """Creates the Error callout box HTML"""
     error = CSS_COLORS["error"]
+    guid = guid or "Unknown"
+    error_msg = error_msg or "Unknown error"
     return f"""
     <div style="{CSS_BOX_STYLE.format(border=error['border'], background=error['background'])}"> 
         <div style="{CSS_HEADER_STYLE}; color: {error['text']}">⚠️ Error Monitoring Content</div>
@@ -292,6 +294,9 @@ def create_instructions_box(instructions_html_content):
 
 # Function to create the report display for a result
 def create_report_display(result_data, check_time_value):
+    if result_data is None:
+        return None
+        
     # Format content name with link if dashboard_url is available
     content_name = result_data.get('name', 'Unknown')
     dashboard_url = result_data.get('dashboard_url', '')

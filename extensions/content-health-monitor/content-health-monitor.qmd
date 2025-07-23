@@ -17,17 +17,13 @@ from posit import connect
 from IPython.display import HTML, display
 from content_health_utils import *
 
-# Used to display on-screen setup instructions if environment variables are missing
-show_instructions = False
-instructions = []
-
-# Used to display on-screen error messages if API errors occur
-show_error = False
-error_message = ""
-error_guid = ""
-
-# Variable to store content monitoring result
-content_result = None
+# Initialize state variables
+show_instructions = False  # Used to display on-screen setup instructions if environment variables are missing
+instructions = []         # List to store setup instructions for the user
+show_error = False        # Used to display on-screen error messages if API errors occur
+error_message = None      # Error message to display if API errors occur
+error_guid = None         # GUID that caused the error
+content_result = None     # Variable to store content monitoring result
 
 # Read environment variables
 connect_server = get_env_var("CONNECT_SERVER") # Automatically provided by Connect, must be set when previewing locally
@@ -83,9 +79,10 @@ content becomes unreachable.
 </div>"""
 
 # Prepare instructions HTML if needed
-instructions_html = ""
 if show_instructions:
     instructions_html = "".join(f"<div style='margin-bottom: 10px;'>{instruction}</div>" for instruction in instructions)
+else:
+    instructions_html = None
 
 # Create all HTML components up front based on state
 html_components = {
