@@ -181,6 +181,20 @@ def validate(client, guid, connect_server, api_key):
             allow_redirects=True  # Enabled by default in Python requests, included for clarity
         )
         
+        # EXTENSION POINT: You can add additional validation beyond HTTP status
+        
+        # Example: Check if response body contains expected text from environment variable
+        # expected_text = os.environ.get("EXPECTED_CONTENT_TEXT")
+        # contains_expected_text = True  # Default to True if no expected text is configured
+        # if expected_text:  # Only perform the check if expected text is configured
+        #     contains_expected_text = expected_text in content_response.text
+
+        # Determine status based on validation conditions
+        http_status_valid = content_response.status_code >= 200 and content_response.status_code < 300
+        
+        # Combine all validation conditions, you can add more as needed
+        status = "PASS" if (http_status_valid) else "FAIL"
+        
         return {
             # Content details
             "guid": guid,
@@ -191,7 +205,7 @@ def validate(client, guid, connect_server, api_key):
             "owner_name": owner_full_name,
             "owner_email": owner_email,
             # Monitoring status
-            "status": "PASS" if content_response.status_code >= 200 and content_response.status_code < 300 else "FAIL",
+            "status": status,
             "http_code": content_response.status_code
         }
 
