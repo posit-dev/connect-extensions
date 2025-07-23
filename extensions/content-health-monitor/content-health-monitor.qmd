@@ -7,8 +7,8 @@ format:
 
 ```{python}
 #| echo: false
-#| label: setup
 
+# ------ SETUP SECTION ------ #
 import json
 import os
 import requests
@@ -29,8 +29,6 @@ error_guid = ""
 # Variable to store content monitoring result
 content_result = None
 
-# Helper function imported from content_health_utils.py
-
 # Read environment variables
 connect_server = get_env_var("CONNECT_SERVER") # Automatically provided by Connect, must be set when previewing locally
 api_key = get_env_var("CONNECT_API_KEY") # Automatically provided by Connect, must be set when previewing locally
@@ -44,17 +42,12 @@ if not show_instructions:
         client = connect.Client()
     except ValueError as e:
         show_instructions = True
-        instructions.append(f"<b>Error initializing client:</b> {str(e)}")
-```
+        instructions.append(f"<b>Error initializing Connect client:</b> {str(e)}")
 
-```{python}
-#| echo: false
-#| label: data-gathering
 
-# Status constants imported from content_health_utils.py
-
+# ------ DATA GATHERING SECTION ------ #
 if not show_instructions:
-    # Proceed to validate our monitored GUIDS
+    # Proceed to validate our monitored GUID
 
     # Headers for Connect API
     headers = {
@@ -65,11 +58,8 @@ if not show_instructions:
 
     # Check if server is reachable using the utility function
     check_server_reachable(connect_server, api_key)
-
-    # Functions imported from content_health_utils.py
         
     # Check the content and get result
-    content_result = None
     if monitored_content_guid:
         content_result = validate(client, monitored_content_guid, connect_server, api_key)
         
@@ -82,18 +72,12 @@ if not show_instructions:
 
     # Store the current time
     check_time = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-```
 
 
-```{python}
-#| echo: false
-#| label: display
-
-# CSS styling constants and HTML component functions imported from content_health_utils.py
-
+# ------ DISPLAY SECTION ------ #
 # Create the about content text
 about_content = """<div>
-This report uses the publisher’s API key to monitor a single piece of content. It checks whether the content is 
+This report uses the publisher's API key to monitor a single piece of content. It checks whether the content is 
 reachable, but does not validate its functionality. When scheduled to run regularly, it will send an email alert if the 
 content becomes unreachable.
 </div>"""
@@ -142,12 +126,6 @@ else:
 send_email = should_send_email(show_error, content_result)
 ```
 
-
-```{python}
-#| echo: false
-
-# No need to display anything here since we're displaying HTML directly above
-```
 
 
 ::: {.email}
