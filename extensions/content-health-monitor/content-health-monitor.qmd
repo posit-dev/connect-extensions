@@ -82,45 +82,29 @@ reachable, but does not validate its functionality. When scheduled to run regula
 content becomes unreachable.
 </div>"""
 
-# Store HTML components in variables for reuse
-about_box_html = create_about_box(about_content)
-error_box_html = ""
-no_results_box_html = ""
-report_box_html = ""
+# Prepare instructions HTML if needed
+instructions_html = ""
+if show_instructions:
+    instructions_html = "".join(f"<div style='margin-bottom: 10px;'>{instruction}</div>" for instruction in instructions)
 
-# Generate the appropriate HTML based on the state
-if show_error:
-    # Create error box HTML
-    error_box_html = create_error_box(error_guid, error_message)
-elif content_result and not has_error(content_result):
-    # Create report box HTML using the function
-    report_box_html = create_report_display(content_result, check_time)
-else:
-    # Create no results box HTML
-    no_results_box_html = create_no_results_box()
+# Create all HTML components up front based on state
+html_components = {
+    'about': create_about_box(about_content),
+    'instructions': create_instructions_box(instructions_html) if show_instructions else None,
+    'error': create_error_box(error_guid, error_message) if show_error else None,
+    'report': create_report_display(content_result, check_time) if content_result and not has_error(content_result) else None,
+    'no_results': create_no_results_box() if not (show_instructions or show_error or 
+                                              (content_result and not has_error(content_result))) else None
+}
 
 # Always display the About callout box
-display(HTML(about_box_html))
+display(HTML(html_components['about']))
 
-# Display the appropriate content based on the state
-if show_instructions:
-    # Create a callout box for instructions
-    instructions_html = ""
-    for instruction in instructions:
-        instructions_html += f"<div style='margin-bottom: 10px;'>{instruction}</div>"
-    
-    # Create and display instructions box
-    instructions_box_html = create_instructions_box(instructions_html)
-    display(HTML(instructions_box_html))
-elif show_error:
-    # Display the error box that was already created
-    display(HTML(error_box_html))
-elif report_box_html:
-    # Display the report box that was already created
-    display(HTML(report_box_html))
-else:
-    # Display the no results box that was already created
-    display(HTML(no_results_box_html))
+# Display the appropriate content based on priority
+for component_type in ['instructions', 'error', 'report', 'no_results']:
+    if html_components[component_type]:
+        display(HTML(html_components[component_type]))
+        break
 
 # Set send_email variable for the quarto email mechanism
 send_email = should_send_email(show_error, content_result)
@@ -142,16 +126,12 @@ send_email = should_send_email(show_error, content_result)
 #| echo: false
 
 # Always show the about section in the email
-display(HTML(about_box_html))
+display(HTML(html_components['about']))
 
-# Display the appropriate content based on the state - use the same HTML as the main report
-if show_instructions:
-    display(HTML(instructions_box_html))
-elif show_error:
-    display(HTML(error_box_html))
-elif report_box_html:
-    display(HTML(report_box_html))
-else:
-    display(HTML(no_results_box_html))
+# Display the appropriate content based on priority - use the same logic as the main report
+for component_type in ['instructions', 'error', 'report', 'no_results']:
+    if html_components[component_type]:
+        display(HTML(html_components[component_type]))
+        break
 ```
 :::
