@@ -1,0 +1,4 @@
+name = "view-audit-logs"
+title = "View Audit Logs"
+description = "A prototype extension displaying Connect's audit logs."
+access_type = "acl"
