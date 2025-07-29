@@ -5,17 +5,15 @@ test_that("bar_chart creates expected structure", {
   expect_equal(chart$name, "div")
   expect_equal(chart$attribs$class, "bar-cell")
 
-  # Verify the bar div has the right class and properties
   bar_chart_div <- chart$children[[2]]
   expect_equal(bar_chart_div$attribs$class, "bar-chart")
 
-  # Check the inner bar has the right width
   bar <- bar_chart_div$children[[1]]
   expect_equal(bar$attribs$class, "bar")
   expect_equal(bar$attribs$style$width, "50%")
 })
 
-test_that("full_url handles port correctly", {
+test_that("full_url works as expected", {
   mock_session <- list(
     clientData = list(
       url_protocol = "https:",
