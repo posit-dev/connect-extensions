@@ -128,7 +128,16 @@ def validate(client, guid, connect_server, api_key):
     if not content_name:
         content_name = content.get("name", "")
     
-    # Ensure we have a valid URL
+    # Check if get_content returned an error (no permission, invalid GUID) and return early if it did
+    if str(content_name).startswith(ERROR_PREFIX):
+        return {
+            "guid": guid,
+            "name": content_name,
+            "status": "FAIL",
+            "http_code": "Error retrieving content"
+        }
+    
+    # Get the content URLs
     dashboard_url = content.get("dashboard_url", "")
     content_url = content.get("content_url", "")
 
@@ -143,23 +152,21 @@ def validate(client, guid, connect_server, api_key):
         "User-Agent": "ContentHealthMonitor/1.0",
     }
     
-    # Get additional data if we don't have an error when attempting to get the content details
-    if not str(content_name).startswith("ERROR:"):
-        # Get content owner details
-        try:
-            owner_guid = content.get("owner_guid")
-            if owner_guid:
-                # Get owner details
-                owner = get_user(client, owner_guid)
-                owner_email = owner.get("email", "")
-                owner_first_name = owner.get("first_name", "")
-                owner_last_name = owner.get("last_name", "")
-                owner_full_name = f"{owner_first_name} {owner_last_name}".strip()
-                if not owner_full_name:  # Handle case where both names are empty
-                    owner_full_name = "Unknown"
-        except Exception as e:
-            # If there's an error getting the owner, keep the defaults
-            print(f"Warning: Could not retrieve owner for {guid}: {str(e)}")
+    # Get content owner details
+    try:
+        owner_guid = content.get("owner_guid")
+        if owner_guid:
+            # Get owner details
+            owner = get_user(client, owner_guid)
+            owner_email = owner.get("email", "")
+            owner_first_name = owner.get("first_name", "")
+            owner_last_name = owner.get("last_name", "")
+            owner_full_name = f"{owner_first_name} {owner_last_name}".strip()
+            if not owner_full_name:  # Handle case where both names are empty
+                owner_full_name = "Unknown"
+    except Exception as e:
+        # If there's an error getting the owner, keep the defaults
+        print(f"Warning: Could not retrieve owner for {guid}: {str(e)}")
     
     # Compose URL to logs if we have a dashboard URL, only owner/editor have access
     if dashboard_url and content.get("app_role") != "viewer":
@@ -167,13 +174,12 @@ def validate(client, guid, connect_server, api_key):
     else:
         logs_url = ""
 
+    # Validate content health
     try:
-        # Use the content_url if available, otherwise construct one so we get a proper status code
-        if content_url:
-            content_url = content_url
-        else:
-            # Likely hit error condition in get_content() thus no content_url available
+        # Use the content_url if available
+        if not content_url:
             content_url = f"{connect_server}/content/{guid}"
+            
         content_response = requests.get(
             content_url, 
             headers=headers,
