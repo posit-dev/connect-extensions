@@ -7,51 +7,23 @@ format:
 
 ```{python}
 #| echo: false
-#| label: setup
 
+# ------ SETUP SECTION ------ #
 import json
 import os
 import requests
 import datetime
 from posit import connect
 from IPython.display import HTML, display
+from content_health_utils import *
 
-# Used to display on-screen setup instructions if environment variables are missing
-show_instructions = False
-instructions = []
-
-# Used to display on-screen error messages if API errors occur
-show_error = False
-error_message = ""
-error_guid = ""
-
-# Variable to store content monitoring result
-content_result = None
-
-# Helper function to read environment variables and add instructions if missing
-def get_env_var(var_name, description=""):
-    """Get environment variable and add instruction if missing"""
-    global show_instructions
-    
-    value = os.environ.get(var_name, "")
-    if not value:
-        show_instructions = True
-        
-        # Generic instruction for most variables
-        if var_name != "MONITORED_CONTENT_GUID":
-            instruction = f"Please set the <code>{var_name}</code> environment variable."
-        # Detailed instructions for MONITORED_CONTENT_GUID
-        else:
-            instruction = (
-                f"Open the <b>Content Settings</b> panel, then navigate to the <b>Vars</b> pane. "
-                f"Create a new environment variable named <code>{var_name}</code>, set its value to the GUID of the content you want to monitor, "
-                f"and click <b>Add Variable</b>. When you're done, click <b>Refresh Report</b> in the upper right toolbar menu to continue."
-            )
-        
-        if description:
-            instruction += f" {description}"
-        instructions.append(instruction)
-    return value
+# Initialize state variables
+show_instructions = False  # Used to display on-screen setup instructions if environment variables are missing
+instructions = []         # List to store setup instructions for the user
+show_error = False        # Used to display on-screen error messages if API errors occur
+error_message = None      # Error message to display if API errors occur
+error_guid = None         # GUID that caused the error
+content_result = None     # Variable to store content monitoring result
 
 # Read environment variables
 connect_server = get_env_var("CONNECT_SERVER") # Automatically provided by Connect, must be set when previewing locally
@@ -66,451 +38,73 @@ if not show_instructions:
         client = connect.Client()
     except ValueError as e:
         show_instructions = True
-        instructions.append(f"<b>Error initializing client:</b> {str(e)}")
-```
+        instructions.append(f"<b>Error initializing Connect client:</b> {str(e)}")
 
-```{python}
-#| echo: false
-#| label: data-gathering
 
-# Define status constants
-STATUS_PASS = "PASS"
-STATUS_FAIL = "FAIL"
-ERROR_PREFIX = "ERROR:"
+# ------ DATA GATHERING SECTION ------ #
+# Always record the current time for reporting purposes
+check_time = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
 
+# Only proceed with content validation if we have all requirements
+# (show_instructions=False already tells us env vars are set and client was initialized)
 if not show_instructions:
-    # Proceed to validate our monitored GUIDS
-
-    # Headers for Connect API
-    headers = {
-        "Authorization": f"Key {api_key}",
-        # Set a custom user agent to enable filtering of activity in Connect instrumentation data
-        "User-Agent": "ContentHealthMonitor/1.0",
-    }
-
-    # Check if server is reachable, would only be a potential problem during local dev
     try:
-        server_check = requests.get(
-            f"{connect_server}/__ping__", 
-            headers=headers, 
-            timeout=5
-        )
-        server_check.raise_for_status()
-    except requests.exceptions.RequestException as e:
-        raise RuntimeError(f"Connect server at {connect_server} is unavailable: {str(e)}")
-
-    # Helper function to extract error messages from exceptions
-    def format_error_message(exception):
-        """Extract a clean error message from various exception types"""
-        error_message = str(exception)
+        # Check if server is reachable
+        check_server_reachable(connect_server, api_key)
         
-        # posit-sdk will return a ClientError if there is a problem getting the guid, parse the error message
-        if isinstance(exception, connect.errors.ClientError):
-            try:
-                # ClientError from posit-connect SDK stores error as string that contains JSON
-                # Convert the string representation to a dict
-                error_data = json.loads(str(exception))
-                if isinstance(error_data, dict):
-                    # Extract the specific error message
-                    if "error_message" in error_data:
-                        error_message = error_data["error_message"]
-                    elif "error" in error_data:
-                        error_message = error_data["error"]
-            except json.JSONDecodeError:
-                # If parsing fails, keep the original error message
-                pass
+        # Validate the content
+        content_result = validate(client, monitored_content_guid, connect_server, api_key)
         
-        return error_message
-    
-    # Function to get content details from Connect API
-    def get_content(guid):
-        try:
-            # Get content details from Connect API
-            content = client.content.get(guid)
-            return content
-        except Exception as e:
-            # Extract error message and return error object
-            error_message = format_error_message(e)
-            
-            # Return content with error in title
-            return {
-                "title": f"{ERROR_PREFIX} {error_message}", 
-                "guid": guid
-            }
-
-    def get_user(user_guid):
-        try:
-            user = client.users.get(user_guid)
-            return user
-        except Exception as e:
-            error_message = format_error_message(e)
-            raise RuntimeError(f"Error getting user: {error_message}")
-
-    # Function to validate content health (simple HTTP 200 check)
-    def validate(guid):
-        # Get content details
-        content = get_content(guid)
-
-        content_name = content.get("title", "")
-        # Title is optional, if not set use name
-        if not content_name:
-            content_name = content.get("name", "")
-        
-        # Ensure we have a valid URL
-        dashboard_url = content.get("dashboard_url", "")
-        content_url = content.get("content_url", "")
-        content_guid = content.get("guid", guid)  # Use the passed guid if not in content
-
-        # Initialize default owner information
-        owner_email = ""
-        owner_full_name = ""
-        
-        # Get additional data if we don't have an error when attempting to get the content details
-        if not str(content_name).startswith("ERROR:"):
-            # Get content owner details
-            try:
-                owner_guid = content.get("owner_guid")
-                if owner_guid:
-                    # Get owner details
-                    owner = get_user(owner_guid)
-                    owner_email = owner.get("email", "")
-                    owner_first_name = owner.get("first_name", "")
-                    owner_last_name = owner.get("last_name", "")
-                    owner_full_name = f"{owner_first_name} {owner_last_name}".strip()
-                    if not owner_full_name:  # Handle case where both names are empty
-                        owner_full_name = "Unknown"
-            except Exception as e:
-                # If there's an error getting the owner, keep the defaults
-                print(f"Warning: Could not retrieve owner for {guid}: {str(e)}")
-        
-        # Compose URL to logs if we have a dashboard URL, only owner/editor have access
-        if dashboard_url and content.get("app_role") != "viewer":
-            logs_url = f"{dashboard_url}/logs"
-        else:
-            logs_url = ""
-
-        try:
-            # Use the content_url if available, otherwise construct one so we get a proper status code
-            if content_url:
-                content_url = content_url
-            else:
-                # Likely hit error condition in get_content() thus no content_url available
-                content_url = f"{connect_server}/content/{guid}"
-            content_response = requests.get(
-                content_url, 
-                headers=headers,
-                timeout=60, # Max time to wait for a response from the content
-                allow_redirects=True  # Enabled by default in Python requests, included for clarity
-            )
-            
-            return {
-                # Content details
-                "guid": guid,
-                "name": content_name,
-                "dashboard_url": dashboard_url,
-                "logs_url": logs_url,
-                # Owner details
-                "owner_name": owner_full_name,
-                "owner_email": owner_email,
-                # Monitoring status
-                "status": "PASS" if content_response.status_code >= 200 and content_response.status_code < 300 else "FAIL",
-                "http_code": content_response.status_code
-            }
-
-        except Exception as e:
-            return {
-                # Content details
-                "guid": guid,
-                "name": content_name,
-                "dashboard_url": dashboard_url,
-                "logs_url": logs_url,
-                # Owner details
-                "owner_name": owner_full_name,
-                "owner_email": owner_email,
-                # Monitoring status
-                "status": "FAIL",
-                "http_code": str(e)
-            }
-
-    # Helper function to check if a result has an error
-    def has_error(result):
-        """Check if a result contains an error message in the name field"""
-        return result["name"].startswith(ERROR_PREFIX) if result and "name" in result else False
-    
-    # Helper function to extract error details from a result
-    def extract_error_details(result):
-        """Extract error message and GUID from a result"""
-        if has_error(result):
-            return {
-                "message": result["name"].replace(f"{ERROR_PREFIX} ", ""),
-                "guid": result.get("guid", "")
-            }
-        return None
-        
-    # Check the content and get result
-    content_result = None
-    if monitored_content_guid:
-        content_result = validate(monitored_content_guid)
-        
-        # Check if there was an error with the GUID
+        # Check for content-specific errors
         if has_error(content_result):
             show_error = True
             error_details = extract_error_details(content_result)
             error_message = error_details["message"]
             error_guid = error_details["guid"]
-
-    # Store the current time
-    check_time = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-```
-
-
-```{python}
-#| echo: false
-#| label: display
-
-# Define CSS styling constants
-CSS_COLORS = {
-    "neutral": {
-        "border": "#ccc",
-        "background": "#f8f9fa",
-        "text": "#000"
-    },
-    "error": {
-        "border": "#cc0000",
-        "background": "#fff8f8",
-        "text": "#cc0000"
-    },
-    "warning": {
-        "border": "#f0ad4e",
-        "background": "#fcf8e3",
-        "text": "#cc0000"
-    },
-    "success": {
-        "border": "#4caf50",
-        "background": "#e8f5e9",
-        "text": "#28a745"
-    },
-    "fail": {
-        "border": "#f44336",
-        "background": "#ffebee",
-        "text": "#dc3545"
-    }
-}
-
-CSS_BOX_STYLE = "border: 1px solid {border}; border-radius: 8px; padding: 10px; margin-bottom: 15px; background-color: {background};"
-CSS_HEADER_STYLE = "margin-top: 0; padding-bottom: 8px; border-bottom: 1px solid #eaecef; font-weight: bold; font-size: 1.2em;"
-CSS_CONTENT_STYLE = "padding: 5px 0;"
-CSS_FOOTER_STYLE = "padding-top: 8px; font-size: 0.9em; border-top: 1px solid #eaecef;"
-CSS_GRID_STYLE = "display: grid; grid-template-columns: 150px auto; grid-gap: 8px; padding: 10px 0;"
-
-# Define helper functions for generating HTML components
-
-def create_about_box(about_content):
-    """Creates the About callout box HTML"""
-    neutral = CSS_COLORS["neutral"]
-    return f"""
-    <div style="{CSS_BOX_STYLE.format(border=neutral['border'], background=neutral['background'])}"> 
-        <div style="{CSS_HEADER_STYLE}">ℹ️ About</div>
-        <div style="{CSS_CONTENT_STYLE}">{about_content}</div>
-    </div>
-    """
-
-def create_error_box(guid, error_msg):
-    """Creates the Error callout box HTML"""
-    error = CSS_COLORS["error"]
-    return f"""
-    <div style="{CSS_BOX_STYLE.format(border=error['border'], background=error['background'])}"> 
-        <div style="{CSS_HEADER_STYLE}; color: {error['text']}">⚠️ Error Monitoring Content</div>
-        
-        <div style="{CSS_GRID_STYLE}; margin-top: 10px; padding-bottom: 8px; border-bottom: 1px solid #eaecef;">
-            <div style="font-weight: bold;">Content GUID:</div>
-            <div>{guid}</div>
             
-            <div style="font-weight: bold;">Error:</div>
-            <div style="color: {error['text']};">{error_msg}</div>
-        </div>
-        
-        <div style="{CSS_FOOTER_STYLE}">
-            Please check that your <code>MONITORED_CONTENT_GUID</code> environment variable contains a valid content identifier.
-        </div>
-    </div>
-    """
+    except Exception as e:
+        # Handle any unexpected errors during validation
+        show_error = True
+        error_message = str(e)
+        error_guid = monitored_content_guid
 
-def create_no_results_box():
-    """Creates the No Results callout box HTML"""
-    warning = CSS_COLORS["warning"]
-    error_text = CSS_COLORS["error"]["text"]
-    return f"""
-    <div style="{CSS_BOX_STYLE.format(border=warning['border'], background=warning['background'])}"> 
-        <div style="{CSS_HEADER_STYLE}; color: {error_text};">⚠️ No results available</div>
-        <div style="{CSS_CONTENT_STYLE}">
-            No monitoring results were found. This could be because:
-            <ul>
-                <li>No valid GUID was provided</li>
-                <li>There was an issue connecting to the specified content</li>
-                <li>The environment is properly configured but there was an error that caused no data to be returned</li>
-            </ul>
-            <p>Please check your MONITORED_CONTENT_GUID environment variable and ensure it contains a valid content identifier.</p>
-        </div>
-    </div>
-    """
 
-def create_instructions_box(instructions_html_content):
-    """Creates the Setup Instructions callout box HTML"""
-    neutral = CSS_COLORS["neutral"]
-    warning = CSS_COLORS["warning"]  # For the header to make it stand out
-    return f"""
-    <div style="{CSS_BOX_STYLE.format(border=warning['border'], background=neutral['background'])}"> 
-        <div style="{CSS_HEADER_STYLE}; color: #f0ad4e;">⚙️ Setup Required</div>
-        {instructions_html_content}
-        <div style="{CSS_FOOTER_STYLE}">
-            See Posit Connect documentation for <a href='https://docs.posit.co/connect/user/content-settings/#content-vars' target='_blank'>Vars (environment variables)</a>
-        </div>
-    </div>
-    """
-
-# Function to create the report display for a result
-def create_report_display(result_data, check_time_value):
-    # Format content name with link if dashboard_url is available
-    content_name = result_data.get('name', 'Unknown')
-    dashboard_url = result_data.get('dashboard_url', '')
-    if dashboard_url:
-        content_name_display = f"<a href='{dashboard_url}' target='_blank' style='text-decoration:none;'>{content_name}</a>"
-    else:
-        content_name_display = content_name
-    
-    # Get GUID
-    content_guid = result_data.get('guid', '')
-    
-    # Format status with appropriate color
-    status = result_data.get('status', '')
-    
-    if status == STATUS_PASS:
-        status_colors = CSS_COLORS["success"]
-        status_icon = "✅"  # Checkmark
-    else:
-        status_colors = CSS_COLORS["fail"]
-        status_icon = "❌"  # X mark
-    
-    # Get HTTP Code
-    http_code = result_data.get('http_code', '')
-    
-    # Format logs link if available
-    logs_url = result_data.get('logs_url', '')
-    if logs_url:
-        logs_display = f"<a href='{logs_url}' target='_blank' style='text-decoration:none;'>📋 View Logs</a>"
-    else:
-        logs_display = "No logs available — only visible to the content owner and collaborators."
-    
-    # Format owner information
-    owner_name = result_data.get('owner_name', 'Unknown')
-    owner_email = result_data.get('owner_email', '')
-    if owner_email:
-        owner_display = f"<a href='mailto:{owner_email}' style='text-decoration:none;'>✉️ {owner_name}</a>"
-    else:
-        owner_display = owner_name
-    
-    # Create last check time display
-    check_time_display = f"Last checked: {check_time_value}"
-    
-    html_output = f"""
-    <div style="{CSS_BOX_STYLE.format(border=status_colors['border'], background=status_colors['background'])}">
-        <div style="{CSS_HEADER_STYLE}">
-            <span style="color: {status_colors['text']};">{status_icon} {status}</span>
-        </div>
-        
-        <div style="{CSS_GRID_STYLE}">
-            <div style="font-weight: bold;">Name:</div>
-            <div>{content_name_display}</div>
-            
-            <div style="font-weight: bold;">Content GUID:</div>
-            <div>{content_guid}</div>
-            
-            <div style="font-weight: bold;">Logs:</div>
-            <div>{logs_display}</div>
-            
-            <div style="font-weight: bold;">Owner:</div>
-            <div>{owner_display}</div>
-        </div>
-        
-        <div style="text-align: right; font-size: 0.8em; color: #666; {CSS_FOOTER_STYLE}">
-            {check_time_display}
-        </div>
-    </div>
-    """
-    
-    return html_output
-
+# ------ DISPLAY SECTION ------ #
 # Create the about content text
 about_content = """<div>
-This report uses the publisher’s API key to monitor a single piece of content. It checks whether the content is 
+This report uses the publisher's API key to monitor a single piece of content. It checks whether the content is 
 reachable, but does not validate its functionality. When scheduled to run regularly, it will send an email alert if the 
 content becomes unreachable.
 </div>"""
 
-# Store HTML components in variables for reuse
-about_box_html = create_about_box(about_content)
-error_box_html = ""
-no_results_box_html = ""
-report_box_html = ""
-
-# Generate the appropriate HTML based on the state
-if show_error:
-    # Create error box HTML
-    error_box_html = create_error_box(error_guid, error_message)
-elif content_result and not has_error(content_result):
-    # Create report box HTML using the function
-    report_box_html = create_report_display(content_result, check_time)
+# Prepare instructions HTML if needed
+if show_instructions:
+    instructions_html = "".join(f"<div style='margin-bottom: 10px;'>{instruction}</div>" for instruction in instructions)
 else:
-    # Create no results box HTML
-    no_results_box_html = create_no_results_box()
+    instructions_html = None
+
+# Create all HTML components up front based on state
+html_components = {
+    'instructions': create_instructions_box(instructions_html) if show_instructions else None,
+    'error': create_error_box(error_guid, error_message) if show_error else None,
+    'report': create_report_display(content_result, check_time) if content_result and not has_error(content_result) else None,
+    'no_results': create_no_results_box() if not (show_instructions or show_error or 
+                                              (content_result and not has_error(content_result))) else None
+}
 
 # Always display the About callout box
-display(HTML(about_box_html))
+display(HTML(create_about_box(about_content)))
 
-# Display the appropriate content based on the state
-if show_instructions:
-    # Create a callout box for instructions
-    instructions_html = ""
-    for instruction in instructions:
-        instructions_html += f"<div style='margin-bottom: 10px;'>{instruction}</div>"
-    
-    # Create and display instructions box
-    instructions_box_html = create_instructions_box(instructions_html)
-    display(HTML(instructions_box_html))
-elif show_error:
-    # Display the error box that was already created
-    display(HTML(error_box_html))
-elif report_box_html:
-    # Display the report box that was already created
-    display(HTML(report_box_html))
-else:
-    # Display the no results box that was already created
-    display(HTML(no_results_box_html))
-
-# Helper function to determine if we should send an email
-def should_send_email():
-    """Determine if we should send an email notification"""
-    # Send email if we have an API error
-    if show_error:
-        return True
-    
-    # Send email if the monitored content has a failure status
-    if content_result and 'status' in content_result:
-        return content_result['status'] == STATUS_FAIL
-    
-    return False
+# Display the first piece of information available from the list of instructions, error, report, etc.
+for component in html_components.values():
+    if component:
+        display(HTML(component))
+        break
 
 # Set send_email variable for the quarto email mechanism
-send_email = should_send_email()
+send_email = should_send_email(show_error, content_result)
 ```
 
-
-```{python}
-#| echo: false
-
-# No need to display anything here since we're displaying HTML directly above
-```
 
 
 ::: {.email}
@@ -520,23 +114,19 @@ send_email = should_send_email()
 :::
 
 ::: {.subject}
-❌ Content Health Monitor - `{python} content_result.get('name', 'Unknown') if content_result else 'Unknown'` has failed monitoring
+`{python} f"❌ Content Health Monitor - \"{content_result.get('name', 'Unknown Content') if content_result else 'Unknown Content'}\" has failed monitoring"`
 :::
 
 ```{python}
 #| echo: false
 
 # Always show the about section in the email
-display(HTML(about_box_html))
+display(HTML(create_about_box(about_content)))
 
-# Display the appropriate content based on the state - use the same HTML as the main report
-if show_instructions:
-    display(HTML(instructions_box_html))
-elif show_error:
-    display(HTML(error_box_html))
-elif report_box_html:
-    display(HTML(report_box_html))
-else:
-    display(HTML(no_results_box_html))
+# Display the first piece of information available from the list of instructions, error, report, etc.
+for component in html_components.values():
+    if component:
+        display(HTML(component))
+        break
 ```
 :::

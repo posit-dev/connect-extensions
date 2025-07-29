@@ -9,6 +9,7 @@ content becomes unreachable.
 The following environment variables are required when previewing the report locally.
 
 ```bash:
+# Required variables
 CONNECT_SERVER  # Set automatically when deployed to Connect
 CONNECT_API_KEY # Set automatically when deployed to Connect
 MONITORED_CONTENT_GUID # GUID for the content to monitor
@@ -16,7 +17,13 @@ MONITORED_CONTENT_GUID # GUID for the content to monitor
 
 # Usage
 
-Deploy the the Content Health Monitor to Connect, then follow the setup instructions, and then refresh (re-render) the report. 
+Deploy the Content Health Monitor to Connect, then follow the setup instructions, and then refresh (re-render) the report.
+
+## Extending Validation
+
+By default, the monitor only checks HTTP status codes.
+
+For more advanced validation, modify the `validate()` function in `content_health_utils.py`. You can add checks for expected text, specific HTML elements, or any other content validation logic.
 
 
 # Testing
