@@ -22,6 +22,8 @@ options(
 
 source("get_usage.R")
 source("integrations.R")
+source("ui_components.R")
+source("visit_processing.R")
 
 app_mode_groups <- list(
   "API" = c("api", "python-fastapi", "python-api", "tensorflow-saved-model"),
@@ -40,32 +42,6 @@ app_mode_groups <- list(
   "Other" = c("unknown")
 )
 
-bar_chart <- function(
-  value,
-  max_val,
-  height = "1rem",
-  fill = "#7494b1",
-  background = NULL
-) {
-  width <- paste0(value * 100 / max_val, "%")
-  value <- format(value, width = nchar(max_val), justify = "right")
-  bar <- div(class = "bar", style = list(background = fill, width = width))
-  chart <- div(class = "bar-chart", style = list(background = background), bar)
-  label <- span(class = "number", value)
-  div(class = "bar-cell", label, chart)
-}
-
-full_url <- function(session) {
-  paste0(
-    session$clientData$url_protocol,
-    "//",
-    session$clientData$url_hostname,
-    if (nzchar(session$clientData$url_port)) {
-      paste0(":", session$clientData$url_port)
-    },
-    session$clientData$url_pathname
-  )
-}
 
 content_usage_table_search_method = JS(
   "
@@ -671,19 +647,7 @@ server <- function(input, output, session) {
     }
 
     req(input$visit_merge_window)
-    if (input$visit_merge_window == 0) {
-      app_mode_filtered_usage
-    } else {
-      app_mode_filtered_usage |>
-        group_by(content_guid, user_guid) |>
-
-        # Compute time diffs and filter out hits within the session
-        mutate(time_diff = seconds(timestamp - lag(timestamp, 1))) |>
-        replace_na(list(time_diff = seconds(Inf))) |>
-        filter(time_diff > input$visit_merge_window) |>
-        ungroup() |>
-        select(-time_diff)
-    }
+    merge_visits_by_time_window(app_mode_filtered_usage, input$visit_merge_window)
   })
 
   # Create data for the main table and summary export.
