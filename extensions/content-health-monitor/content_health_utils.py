@@ -370,9 +370,6 @@ def create_report_display(result_data, check_time_value, current_user_name):
         status_colors = CSS_COLORS["fail"]
         status_icon = "❌"  # X mark
     
-    # Get HTTP Code
-    http_code = result_data.get('http_code', '')
-    
     # Format logs link if available
     logs_url = result_data.get('logs_url', '')
     if logs_url:
