@@ -48,12 +48,10 @@ def get_env_var(var_name, description=""):
     """Get environment variable and add instruction if missing"""
     # These variables are defined in the Quarto document
     # We'll need to use them from the global scope
-    import sys
-    caller_globals = sys._getframe(1).f_globals
-    
+    global show_instructions, instructions    
     value = os.environ.get(var_name, "")
     if not value:
-        caller_globals["show_instructions"] = True
+        show_instructions = True
         
         # Generic instruction for most variables
         if var_name != "MONITORED_CONTENT_GUID":
@@ -68,7 +66,7 @@ def get_env_var(var_name, description=""):
         
         if description:
             instruction += f" {description}"
-        caller_globals["instructions"].append(instruction)
+        instructions.append(instruction)
     return value
 
 # Helper function to extract error messages from exceptions
