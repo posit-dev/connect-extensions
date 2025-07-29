@@ -345,7 +345,7 @@ def create_instructions_box(instructions_html_content):
     """
 
 # Function to create the report display for a result
-def create_report_display(result_data, check_time_value, current_user_name=None):
+def create_report_display(result_data, check_time_value, current_user_name):
     if result_data is None:
         return None
         
@@ -378,10 +378,7 @@ def create_report_display(result_data, check_time_value, current_user_name=None)
     if logs_url:
         logs_display = f"<a href='{logs_url}' target='_blank' style='text-decoration:none;'>📋 View Logs</a>"
     else:
-        if current_user_name:
-            logs_display = f"Log access is restricted for {current_user_name}. Logs are only available to the content owner and collaborators."
-        else:
-            logs_display = "Log access is restricted. Logs are only available to the content owner and collaborators."
+        logs_display = f"Log access is restricted for {current_user_name}. Logs are only available to the content owner and collaborators."
     
     # Format owner information
     owner_name = result_data.get('owner_name', 'Unknown')
