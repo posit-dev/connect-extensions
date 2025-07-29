@@ -3035,14 +3035,11 @@
     }
   },
   "files": {
-    ".Rprofile": {
-      "checksum": "33ca477d2e39a7ef01a9e52f61792bd1"
-    },
     "app.R": {
-      "checksum": "9ed2fd4003521fe3e61e1addfdd9d519"
+      "checksum": "5bd019bb29544900a0cebf33b3f27be1"
     },
     "get_usage.R": {
-      "checksum": "ac5b526efed72f1c34786620ca2ddacd"
+      "checksum": "5f1c4eb8903a8179761f5fe94c77bfa1"
     },
     "integrations.R": {
       "checksum": "2b495c74b5987a2c318bcd80a0c2be8f"
@@ -3051,7 +3048,13 @@
       "checksum": "c0599c7d23181ccb7b2e1a02db85114b"
     },
     "renv.lock": {
-      "checksum": "f309cfa5bb8ed0331f057f2a8f524b91"
+      "checksum": "05865206c04be53631ca32658836ad2a"
+    },
+    "ui_components.R": {
+      "checksum": "d428bc9021b68810e290e77c112f29b5"
+    },
+    "visit_processing.R": {
+      "checksum": "c08950e94ccf40dd6773ea9fb554a0f5"
     },
     "www/styles.css": {
       "checksum": "7ea30e3cc044a3221877a503b0e1ee7d"
@@ -3068,6 +3071,6 @@
     "requiredFeatures": [
       "OAuth Integrations"
     ],
-    "version": "1.0.6"
+    "version": "1.0.7"
   }
 }
