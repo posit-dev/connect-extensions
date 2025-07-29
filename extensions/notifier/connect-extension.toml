@@ -1,4 +1,0 @@
-name="notifier"
-title="notifier"
-access_type="acl"
-description="send an HTTP request to an external service based on Connect's audit log"

@@ -1,4 +1,0 @@
-name = "oauth-integration-debug"
-title = "Connect OAuth Integration Debugger"
-description = "Allows Connect content viewers to debug user session tokens and credential exchange."
-access_type = "logged_in"
