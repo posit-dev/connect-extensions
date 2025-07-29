@@ -85,7 +85,6 @@ else:
 
 # Create all HTML components up front based on state
 html_components = {
-    'about': create_about_box(about_content),
     'instructions': create_instructions_box(instructions_html) if show_instructions else None,
     'error': create_error_box(error_guid, error_message) if show_error else None,
     'report': create_report_display(content_result, check_time) if content_result and not has_error(content_result) else None,
@@ -94,12 +93,12 @@ html_components = {
 }
 
 # Always display the About callout box
-display(HTML(html_components['about']))
+display(HTML(create_about_box(about_content)))
 
-# Display the appropriate content based on priority
-for component_type in ['instructions', 'error', 'report', 'no_results']:
-    if html_components[component_type]:
-        display(HTML(html_components[component_type]))
+# Display the first piece of information available from the list of instructions, error, report, etc.
+for component in html_components.values():
+    if component:
+        display(HTML(component))
         break
 
 # Set send_email variable for the quarto email mechanism
@@ -122,12 +121,12 @@ send_email = should_send_email(show_error, content_result)
 #| echo: false
 
 # Always show the about section in the email
-display(HTML(html_components['about']))
+display(HTML(create_about_box(about_content)))
 
-# Display the appropriate content based on priority - use the same logic as the main report
-for component_type in ['instructions', 'error', 'report', 'no_results']:
-    if html_components[component_type]:
-        display(HTML(html_components[component_type]))
+# Display the first piece of information available from the list of instructions, error, report, etc.
+for component in html_components.values():
+    if component:
+        display(HTML(component))
         break
 ```
 :::
