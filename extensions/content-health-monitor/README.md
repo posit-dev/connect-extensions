@@ -28,16 +28,19 @@ For more advanced validation, modify the `validate()` function in `content_healt
 
 # Testing
 
-If customizing the code in this report here are some general test scenarios to consider:
+The Content Health Monitor includes a comprehensive test suite. Follow these simple steps to run the tests:
 
- - No MONITORED_CONTENT_GUID env var set
-     - If scheduled, DOES NOT send an email
- - Invalid GUID
-     - If scheduled, sends an email
- - Valid GUID for content you are a owner of
- - Valid GUID for content you are a collaborator of
- - Valid GUID for content you are a viewer of
- - Valid GUID for content you do not have access to (not in ACL, etc.)
-     - In the above setup, where the monitored content passing validation, if scheduled, DOES NOT send an email
- - Valid GUID, content is published but fails validation
-     - If scheduled, sends an email
+## Running Tests
+
+1. Install project requirements and test dependencies with `uv`:
+
+```bash
+uv pip install -r requirements.txt
+uv pip install pytest
+```
+
+2. Run the tests with `uv`:
+
+```bash
+uv run pytest test_content_health_utils.py -v
+```
