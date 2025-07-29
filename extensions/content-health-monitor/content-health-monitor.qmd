@@ -100,7 +100,7 @@ else:
 html_components = {
     'instructions': create_instructions_box(instructions_html) if show_instructions else None,
     'error': create_error_box(error_guid, error_message) if show_error else None,
-    'report': create_report_display(content_result, check_time) if content_result and not has_error(content_result) else None,
+    'report': create_report_display(content_result, check_time, current_user_name) if content_result and not has_error(content_result) else None,
     'no_results': create_no_results_box() if not (show_instructions or show_error or 
                                               (content_result and not has_error(content_result))) else None
 }
