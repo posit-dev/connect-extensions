@@ -118,6 +118,38 @@ def get_user(client, user_guid):
         error_message = format_error_message(e)
         raise RuntimeError(f"Error getting user: {error_message}")
 
+def get_current_user_full_name(client):
+    """
+    Get the full name of the current user from the Connect API
+    
+    Args:
+        client: The Connect client instance
+        
+    Returns:
+        str: The full name of the current user or "Unknown" if not available
+    """
+    try:
+        # Get the current user information
+        current_user = client.me
+        
+        # Extract first and last name
+        first_name = current_user.get("first_name", "")
+        last_name = current_user.get("last_name", "")
+        
+        # Combine into full name
+        full_name = f"{first_name} {last_name}".strip()
+        
+        # Return username if full name is empty
+        if not full_name:
+            return current_user.get("username", "Unknown")
+            
+        return full_name
+    except Exception as e:
+        # Handle any errors gracefully
+        error_message = format_error_message(e)
+        print(f"Warning: Could not retrieve current user: {error_message}")
+        return "Unknown"
+
 # Function to validate content health (simple HTTP 200 check)
 def validate(client, guid, connect_server, api_key):
     # Get content details
@@ -313,7 +345,7 @@ def create_instructions_box(instructions_html_content):
     """
 
 # Function to create the report display for a result
-def create_report_display(result_data, check_time_value):
+def create_report_display(result_data, check_time_value, current_user_name):
     if result_data is None:
         return None
         
@@ -338,15 +370,12 @@ def create_report_display(result_data, check_time_value):
         status_colors = CSS_COLORS["fail"]
         status_icon = "❌"  # X mark
     
-    # Get HTTP Code
-    http_code = result_data.get('http_code', '')
-    
     # Format logs link if available
     logs_url = result_data.get('logs_url', '')
     if logs_url:
         logs_display = f"<a href='{logs_url}' target='_blank' style='text-decoration:none;'>📋 View Logs</a>"
     else:
-        logs_display = "No logs available — only visible to the content owner and collaborators."
+        logs_display = f"Log access is restricted for {current_user_name}. Logs are only available to the content owner and collaborators."
     
     # Format owner information
     owner_name = result_data.get('owner_name', 'Unknown')
