@@ -258,6 +258,38 @@ class TestFormatErrorMessage:
 # Tests for get_content and get_user functions
 class TestContentAndUserFunctions:
     
+    def test_get_current_user_full_name_success(self, mock_client):
+        """Test get_current_user_full_name when successful"""
+        # Setup - Mock current user info
+        mock_client.me = {
+            "first_name": "Current",
+            "last_name": "User",
+            "username": "current_user",
+            "email": "current@example.com"
+        }
+        
+        # Execute
+        result = content_health_utils.get_current_user_full_name(mock_client)
+        
+        # Assert
+        assert result == "Current User"
+    
+    def test_get_current_user_full_name_no_name(self, mock_client):
+        """Test get_current_user_full_name when user has no first/last name"""
+        # Setup - Mock current user with empty names
+        mock_client.me = {
+            "first_name": "",
+            "last_name": "",
+            "username": "current_user",
+            "email": "current@example.com"
+        }
+        
+        # Execute
+        result = content_health_utils.get_current_user_full_name(mock_client)
+        
+        # Assert - Should fall back to username
+        assert result == "current_user"
+    
     def test_get_content_success(self, mock_client, valid_content_response):
         """Test get_content when successful"""
         # Setup
@@ -628,7 +660,7 @@ class TestShouldSendEmailFunction:
         # Assert
         assert result
     
-    def test_should_send_email_with_passing_validation(self):
+    def test_should_not_send_email_with_passing_validation(self):
         """Test should_send_email when content validation passed"""
         # Setup
         show_error = False
@@ -644,7 +676,7 @@ class TestShouldSendEmailFunction:
         # Assert
         assert not result
     
-    def test_should_send_email_with_no_content_result(self):
+    def test_should_not_send_email_with_no_content_result(self):
         """Test should_send_email when no content result is available"""
         # Setup
         show_error = False
@@ -656,7 +688,7 @@ class TestShouldSendEmailFunction:
         # Assert
         assert not result
     
-    def test_should_send_email_with_invalid_content_result(self):
+    def test_should_not_send_email_with_invalid_content_result(self):
         """Test should_send_email when content result doesn't have status"""
         # Setup
         show_error = False
@@ -886,6 +918,61 @@ class TestScenarios:
             should_email = should_send_email(show_error, result)
             assert should_email  # FAIL status means send email
 
+
+# Tests for report display HTML generation
+class TestReportDisplay:
+    
+    def test_create_report_display_with_logs_url(self):
+        """Test create_report_display when logs URL is available (owner/collaborator)"""
+        # Setup - Result with logs_url (owner/collaborator)
+        result_data = {
+            "guid": "test-guid-123",
+            "name": "Test Content",
+            "status": STATUS_PASS,
+            "http_code": 200,
+            "logs_url": "https://connect.example.com/content/test-guid-123/logs",
+            "dashboard_url": "https://connect.example.com/content/test-guid-123",
+            "owner_name": "Test Owner",
+            "owner_email": "owner@example.com"
+        }
+        check_time = "2023-01-01 12:00:00"
+        current_user_name = "Test User"
+        
+        # Execute
+        html_output = content_health_utils.create_report_display(result_data, check_time, current_user_name)
+        
+        # Assert
+        assert html_output is not None
+        # Check that the logs URL is included as a clickable link
+        assert "View Logs</a>" in html_output
+        assert result_data["logs_url"] in html_output
+    
+    def test_create_report_display_without_logs_url(self):
+        """Test create_report_display when logs URL is not available (viewer)"""
+        # Setup - Result without logs_url (viewer)
+        result_data = {
+            "guid": "test-guid-123",
+            "name": "Test Content",
+            "status": STATUS_PASS,
+            "http_code": 200,
+            "logs_url": "",  # Empty logs_url for viewer
+            "dashboard_url": "https://connect.example.com/content/test-guid-123",
+            "owner_name": "Test Owner",
+            "owner_email": "owner@example.com"
+        }
+        check_time = "2023-01-01 12:00:00"
+        current_user_name = "Viewer User"
+        
+        # Execute
+        html_output = content_health_utils.create_report_display(result_data, check_time, current_user_name)
+        
+        # Assert
+        assert html_output is not None
+        # Check that the "log access restricted" message is shown with the current user's name
+        assert f"Log access is restricted for {current_user_name}" in html_output
+        assert "only available to the content owner and collaborators" in html_output
+        # Ensure there's no logs link
+        assert "View Logs</a>" not in html_output
 
 # Test check_server_reachable function
 class TestCheckServerReachable:
