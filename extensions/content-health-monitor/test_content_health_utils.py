@@ -1,20 +1,17 @@
 # Standard library imports
 import json
 import os
-import sys
 
 # Third-party imports
 import pytest
 import requests
 from posit import connect
-from unittest.mock import MagicMock, patch, create_autospec
+from unittest.mock import MagicMock, patch
 
-# Import the module - this must be at the top level
+# Import the modules - this must be at the top level
+import globals
 import content_health_utils
 
-# Setup module-level globals required by content_health_utils.get_env_var
-sys.modules['content_health_utils'].show_instructions = False
-sys.modules['content_health_utils'].instructions = []
 
 # Constants from content_health_utils
 ERROR_PREFIX = content_health_utils.ERROR_PREFIX
@@ -74,8 +71,8 @@ def clear_env_var(var_name):
 @pytest.fixture(autouse=True)
 def reset_module_globals():
     """Reset module globals before each test"""
-    content_health_utils.show_instructions = False
-    content_health_utils.instructions = []
+    globals.show_instructions = False
+    globals.instructions = []
     yield  # This makes it run before each test; the test runs at this point
     # If we needed cleanup after each test, it would go here
 
@@ -136,8 +133,8 @@ class TestGetEnvVar:
         
         # Assert
         assert result == var_value
-        assert not content_health_utils.show_instructions
-        assert content_health_utils.instructions == []
+        assert not globals.show_instructions
+        assert globals.instructions == []
         
         # No explicit cleanup needed - the fixture handles it
     
@@ -152,9 +149,9 @@ class TestGetEnvVar:
         
         # Assert
         assert result == ""
-        assert content_health_utils.show_instructions
-        assert len(content_health_utils.instructions) == 1
-        assert f"Please set the <code>{var_name}</code> environment variable." in content_health_utils.instructions[0]
+        assert globals.show_instructions
+        assert len(globals.instructions) == 1
+        assert f"Please set the <code>{var_name}</code> environment variable." in globals.instructions[0]
     
     def test_get_env_var_missing_canary_guid(self):
         """Test get_env_var when MONITORED_CONTENT_GUID is missing"""
@@ -167,9 +164,10 @@ class TestGetEnvVar:
         
         # Assert
         assert result == ""
-        assert content_health_utils.show_instructions
-        assert len(content_health_utils.instructions) == 1
-        assert "Open the <b>Content Settings</b> panel" in content_health_utils.instructions[0]
+        assert globals.show_instructions
+        assert len(globals.instructions) == 1
+        assert "Open the <b>Content Settings</b> panel" in globals.instructions[0]
+        assert f"<code>{var_name}</code>" in globals.instructions[0]
     
     def test_get_env_var_with_description(self):
         """Test get_env_var when env var is missing and description is provided"""
@@ -183,10 +181,10 @@ class TestGetEnvVar:
         
         # Assert
         assert result == ""
-        assert content_health_utils.show_instructions
-        assert len(content_health_utils.instructions) == 1
-        assert f"Please set the <code>{var_name}</code> environment variable." in content_health_utils.instructions[0]
-        assert description in content_health_utils.instructions[0]
+        assert globals.show_instructions
+        assert len(globals.instructions) == 1
+        assert f"Please set the <code>{var_name}</code> environment variable." in globals.instructions[0]
+        assert description in globals.instructions[0]
 
 
 # Tests for format_error_message function
@@ -715,8 +713,8 @@ class TestScenarios:
         Expected: If scheduled, DOES NOT send an email
         """
         # Setup - Reset module globals
-        content_health_utils.show_instructions = False
-        content_health_utils.instructions = []
+        globals.show_instructions = False
+        globals.instructions = []
         
         # Clear environment variable if it exists
         clear_env_var("MONITORED_CONTENT_GUID")
@@ -726,7 +724,7 @@ class TestScenarios:
         
         # Assert - It should be empty and show instructions
         assert result == ""
-        assert content_health_utils.show_instructions
+        assert globals.show_instructions
         
         # For this scenario, show_instructions=True means the script won't proceed to validation,
         # so should_send_email would get show_error=False and content_result=None
