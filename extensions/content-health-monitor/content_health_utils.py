@@ -3,6 +3,9 @@ import os
 import requests
 from posit import connect
 
+# Import shared global variables from globals.py
+import globals
+
 # Define status constants
 STATUS_PASS = "PASS"
 STATUS_FAIL = "FAIL"
@@ -46,12 +49,9 @@ CSS_GRID_STYLE = "display: grid; grid-template-columns: 150px auto; grid-gap: 8p
 # Helper function to read environment variables and add instructions if missing
 def get_env_var(var_name, description=""):
     """Get environment variable and add instruction if missing"""
-    # These variables are defined in the Quarto document
-    # We'll need to use them from the global scope
-    global show_instructions, instructions    
     value = os.environ.get(var_name, "")
     if not value:
-        show_instructions = True
+        globals.show_instructions = True
         
         # Generic instruction for most variables
         if var_name != "MONITORED_CONTENT_GUID":
@@ -66,7 +66,7 @@ def get_env_var(var_name, description=""):
         
         if description:
             instruction += f" {description}"
-        instructions.append(instruction)
+        globals.instructions.append(instruction)
     return value
 
 # Helper function to extract error messages from exceptions

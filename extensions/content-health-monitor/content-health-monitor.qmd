@@ -15,11 +15,10 @@ import requests
 import datetime
 from posit import connect
 from IPython.display import HTML, display
+import globals  # Import shared globals
 from content_health_utils import *
 
-# Initialize state variables
-show_instructions = False  # Used to display on-screen setup instructions if environment variables are missing
-instructions = []         # List to store setup instructions for the user
+# Initialize state variables that are only used in this Quarto document
 show_error = False        # Used to display on-screen error messages if API errors occur
 error_message = None      # Error message to display if API errors occur
 error_guid = None         # GUID that caused the error
@@ -32,13 +31,13 @@ monitored_content_guid = get_env_var("MONITORED_CONTENT_GUID")
 
 # Only instantiate the client if we have the required environment variables
 client = None
-if not show_instructions:
+if not globals.show_instructions:
     try:
         # Instantiate a Connect client using posit-sdk where api_key and url are automatically read from our environment vars
         client = connect.Client()
     except ValueError as e:
-        show_instructions = True
-        instructions.append(f"<b>Error initializing Connect client:</b> {str(e)}")
+        globals.show_instructions = True
+        globals.instructions.append(f"<b>Error initializing Connect client:</b> {str(e)}")
 
 
 # ------ DATA GATHERING SECTION ------ #
@@ -49,7 +48,7 @@ check_time = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
 current_user_name = "the publisher"  # Default, used if no name is available
 
 # Get current user's full name if client is available
-if not show_instructions and client:
+if not globals.show_instructions and client:
     try:
         user_name = get_current_user_full_name(client)
         if user_name:  # Only update if we got a valid name
@@ -58,8 +57,8 @@ if not show_instructions and client:
         print(f"Warning: Could not get current user name: {str(e)}")
 
 # Only proceed with content validation if we have all requirements
-# (show_instructions=False already tells us env vars are set and client was initialized)
-if not show_instructions:
+# (globals.show_instructions=False already tells us env vars are set and client was initialized)
+if not globals.show_instructions:
     try:
         # Check if server is reachable
         check_server_reachable(connect_server, api_key)
@@ -91,17 +90,17 @@ content becomes unreachable.
 
 
 # Prepare instructions HTML if needed
-if show_instructions:
-    instructions_html = "".join(f"<div style='margin-bottom: 10px;'>{instruction}</div>" for instruction in instructions)
+if globals.show_instructions:
+    instructions_html = "".join(f"<div style='margin-bottom: 10px;'>{instruction}</div>" for instruction in globals.instructions)
 else:
     instructions_html = None
 
 # Create all HTML components up front based on state
 html_components = {
-    'instructions': create_instructions_box(instructions_html) if show_instructions else None,
+    'instructions': create_instructions_box(instructions_html) if globals.show_instructions else None,
     'error': create_error_box(error_guid, error_message) if show_error else None,
     'report': create_report_display(content_result, check_time, current_user_name) if content_result and not has_error(content_result) else None,
-    'no_results': create_no_results_box() if not (show_instructions or show_error or 
+    'no_results': create_no_results_box() if not (globals.show_instructions or show_error or 
                                               (content_result and not has_error(content_result))) else None
 }
 
