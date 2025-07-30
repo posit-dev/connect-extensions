@@ -52,7 +52,6 @@ jobs:
             script-r: extensions/script-r/**
             top-5-income-share-streamlit: extensions/top-5-income-share-streamlit/**
             stock-report-jupyter: extensions/stock-report-jupyter/**
-            usage-metrics-dashboard: extensions/usage-metrics-dashboard/**
             content-health-monitor: extensions/content-health-monitor/**
             voila-example: extensions/voila-example/**
             stock-report: extensions/stock-report/**
