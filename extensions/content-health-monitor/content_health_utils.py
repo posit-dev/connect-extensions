@@ -1,5 +1,6 @@
 import json
 import os
+import re
 import requests
 from posit import connect
 
@@ -93,6 +94,27 @@ def format_error_message(exception):
             pass
     
     return error_message
+
+# Function to extract GUID string or URL
+def extract_guid(input_string):
+    """
+    Extract GUID from a string or URL.
+    
+    Args:
+        input_string: String that may contain a GUID
+        
+    Returns:
+        str: Extracted GUID or original string if no GUID found
+    """
+    # Match UUIDs in various formats that might appear in URLs
+    guid_pattern = re.compile(r'[0-9a-fA-F]{8}-?[0-9a-fA-F]{4}-?[0-9a-fA-F]{4}-?[0-9a-fA-F]{4}-?[0-9a-fA-F]{12}')
+    
+    match = guid_pattern.search(input_string)
+    if match:
+        return match.group(0)
+    
+    # Return original string if no GUID found
+    return input_string
 
 # Function to get content details from Connect API
 def get_content(client, guid):
