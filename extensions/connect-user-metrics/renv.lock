@@ -5492,34 +5492,6 @@
       "Maintainer": "Winston Chang <winston@posit.co>",
       "Repository": "CRAN"
     },
-    "shinyTime": {
-      "Package": "shinyTime",
-      "Version": "1.0.3",
-      "Source": "Repository",
-      "Type": "Package",
-      "Title": "A Time Input Widget for Shiny",
-      "Authors@R": "person(\"Gerhard\", \"Burger\", email = \"burger.ga@gmail.com\", role = c(\"aut\", \"cre\"), comment = c(ORCID = \"0000-0003-1062-5576\"))",
-      "Description": "Provides a time input widget for Shiny. This widget allows intuitive time input in the '[hh]:[mm]:[ss]' or '[hh]:[mm]' (24H) format by using a separate numeric input for each time component. The interface with R uses date-time objects. See the project page for more information and examples.",
-      "License": "GPL-3 | file LICENSE",
-      "Imports": [
-        "htmltools",
-        "shiny"
-      ],
-      "URL": "https://burgerga.github.io/shinyTime/, https://github.com/burgerga/shinyTime",
-      "BugReports": "https://github.com/burgerga/shinyTime/issues",
-      "RoxygenNote": "7.2.1",
-      "Encoding": "UTF-8",
-      "Language": "en-US",
-      "Suggests": [
-        "testthat (>= 2.1.0)",
-        "spelling",
-        "hms"
-      ],
-      "NeedsCompilation": "no",
-      "Author": "Gerhard Burger [aut, cre] (<https://orcid.org/0000-0003-1062-5576>)",
-      "Maintainer": "Gerhard Burger <burger.ga@gmail.com>",
-      "Repository": "CRAN"
-    },
     "shinyWidgets": {
       "Package": "shinyWidgets",
       "Version": "0.9.0",
@@ -5557,38 +5529,6 @@
       "NeedsCompilation": "no",
       "Author": "Victor Perrier [aut, cre, cph], Fanny Meyer [aut], David Granjon [aut], Ian Fellows [ctb] (Methods for mutating vertical tabs & updateMultiInput), Wil Davis [ctb] (numericRangeInput function), Spencer Matthews [ctb] (autoNumeric methods), JavaScript and CSS libraries authors [ctb, cph] (All authors are listed in LICENSE.md)",
       "Maintainer": "Victor Perrier <victor.perrier@dreamrs.fr>",
-      "Repository": "CRAN"
-    },
-    "shinycssloaders": {
-      "Package": "shinycssloaders",
-      "Version": "1.1.0",
-      "Source": "Repository",
-      "Title": "Add Loading Animations to a 'shiny' Output While It's Recalculating",
-      "Authors@R": "c( person(\"Dean\",\"Attali\",email=\"daattali@gmail.com\",role=c(\"aut\",\"cre\"), comment = c(\"Maintainer/developer of shinycssloaders since 2019\", ORCID=\"0000-0002-5645-3493\")), person(\"Andras\",\"Sali\",email=\"andras.sali@alphacruncher.hu\",role=c(\"aut\"),comment=\"Original creator of shinycssloaders package\"), person(\"Luke\",\"Hass\",role=c(\"ctb\",\"cph\"),comment=\"Author of included CSS loader code\") )",
-      "Description": "When a 'Shiny' output (such as a plot, table, map, etc.) is recalculating, it remains  visible but gets greyed out. Using 'shinycssloaders', you can add a loading animation (\"spinner\") to outputs instead. By wrapping a 'Shiny' output in 'withSpinner()', a spinner will automatically appear while the output is recalculating. You can also manually show and hide the spinner, or add a full-page spinner to cover the entire page. See the demo online at <https://daattali.com/shiny/shinycssloaders-demo/>.",
-      "License": "MIT + file LICENSE",
-      "URL": "https://github.com/daattali/shinycssloaders, https://daattali.com/shiny/shinycssloaders-demo/",
-      "BugReports": "https://github.com/daattali/shinycssloaders/issues",
-      "Depends": [
-        "R (>= 3.1)"
-      ],
-      "Imports": [
-        "digest",
-        "glue",
-        "grDevices",
-        "htmltools (>= 0.3.5)",
-        "shiny"
-      ],
-      "Suggests": [
-        "knitr",
-        "shinydisconnect",
-        "shinyjs"
-      ],
-      "RoxygenNote": "7.2.3",
-      "Encoding": "UTF-8",
-      "NeedsCompilation": "no",
-      "Author": "Dean Attali [aut, cre] (Maintainer/developer of shinycssloaders since 2019, <https://orcid.org/0000-0002-5645-3493>), Andras Sali [aut] (Original creator of shinycssloaders package), Luke Hass [ctb, cph] (Author of included CSS loader code)",
-      "Maintainer": "Dean Attali <daattali@gmail.com>",
       "Repository": "CRAN"
     },
     "shinyjs": {
