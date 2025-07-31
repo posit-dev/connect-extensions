@@ -1,6 +1,6 @@
 box::use(
   lubridate,
-  shiny[div, moduleServer, NS, numericInput, reactive, req, selectInput, tags],
+  shiny[NS, div, moduleServer, numericInput, reactive, req, selectInput, tags],
 )
 #' @export
 default_min_time_list <- list(number = 0, unit = "minutes")

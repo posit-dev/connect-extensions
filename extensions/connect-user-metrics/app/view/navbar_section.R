@@ -3,11 +3,11 @@
 box::use(
   imola[flexPanel],
   shiny[
+    NS,
     a,
     h1,
     img,
     moduleServer,
-    NS
   ],
 )
 

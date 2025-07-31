@@ -40,7 +40,7 @@ map_wday <- function(dow) {
     "monday", "tuesday", "wednesday", "thursday", "friday",
     "saturday", "sunday"
   )
-  return(match(tolower(dow), dows))
+  match(tolower(dow), dows)
 }
 
 #' @export
@@ -73,9 +73,9 @@ get_goal_spec <- function(goal_df, agg_levels, date_agg) {
     as.integer()
   if (length(spec) == 0) {
     return(NULL)
-  } else {
-    return(spec)
   }
+
+  spec
 }
 
 #' Filter dataframe by username
@@ -129,7 +129,7 @@ create_image_path <- function(image_path) {
     )
   }
 
-  return(file_path)
+  file_path
 }
 
 #' Get titles for applications and replace empty titles with names

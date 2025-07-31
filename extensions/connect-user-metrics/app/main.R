@@ -9,7 +9,6 @@ box::use(
   mirai[mirai],
   reactable[reactableOutput, renderReactable],
   shiny,
-  shinyjs[toggleElement, useShinyjs],
   shinyWidgets[
     prettyCheckboxGroup,
     sendSweetAlert,
@@ -17,6 +16,7 @@ box::use(
     updateVirtualSelect,
     virtualSelectInput
   ],
+  shinyjs[toggleElement, useShinyjs],
   stats[setNames],
   tibble[add_row],
   tidyr[replace_na],

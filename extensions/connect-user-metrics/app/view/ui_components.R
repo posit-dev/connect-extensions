@@ -1,12 +1,12 @@
 box::use(
   bslib[card_header],
   shiny[
+    HTML,
     a,
     div,
-    HTML,
     icon,
     img,
-    tags
+    tags,
   ],
 )
 

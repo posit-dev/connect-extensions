@@ -32,7 +32,7 @@ read_config_yml <- function(file_path = "config.yml") {
     error = function(e) {
       message("Error in parsing config")
       message(e)
-      return(NULL)
+      NULL
     }
   )
 }
