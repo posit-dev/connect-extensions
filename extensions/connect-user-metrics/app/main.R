@@ -30,6 +30,7 @@ box::use(
   app/logic/data_utils,
   app/logic/duration_utils[format_duration],
   app/logic/ui_utils[
+    brand,
     compose_charts_theme,
     is_credits_enabled,
     placeholder_replacements
@@ -70,6 +71,7 @@ ui <- function(id) {
     useShinyjs(),
     shiny$useBusyIndicators(),
     title = navbar_section$ui(ns("navbar")),
+    window_title = brand$meta$app_title,
     # Sidebar
     sidebar = bslib$sidebar(
       width = 300,
