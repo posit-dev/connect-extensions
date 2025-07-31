@@ -59,7 +59,7 @@ Confirm with your Posit Connect admin that instrumentation is enabled.
 
 <!-- Links -->
 [User Guide Vars]: https://docs.posit.co/connect/user/content-settings/#content-vars  
-[rsconnect-auth]: https://go.appsilon.com/why-use-rstudio-connect-authentication-user-metrics-app  
+[rsconnect-auth]: https://go.appsilon.com/rstudio-connect-authentication-user-metrics-app
 [Configuration appendix]: https://docs.posit.co/connect/admin/appendix/configuration/  
 [DefaultServerEnv]: https://docs.posit.co/connect/admin/appendix/configuration/#Applications.DefaultServerEnv  
 [DefaultAPIKeyEnv]: https://docs.posit.co/connect/admin/appendix/configuration/#Applications.DefaultAPIKeyEnv  
