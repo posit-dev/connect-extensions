@@ -23,7 +23,7 @@
     }
   },
   "quarto": {
-    "version": "1.4.557",
+    "version": "1.6.43",
     "engines": [
       "jupyter"
     ]
@@ -32,16 +32,25 @@
     "version": "3.11.7",
     "package_manager": {
       "name": "pip",
-      "version": "23.2.1",
+      "version": "24.2",
       "package_file": "requirements.txt"
     }
   },
   "files": {
     "requirements.txt": {
-      "checksum": "09254fc2dfa7d869ffbc3da2abb1d224"
+      "checksum": "5f89d52674b219c0b0ed85f1a5785641"
     },
     "content-health-monitor.qmd": {
-      "checksum": "732af0f4ea846c37d3a7641c3bbd6ba3"
+      "checksum": "a83d589956cf93b0e4ae8d1181d4cab6"
+    },
+    "content_health_utils.py": {
+      "checksum": "b26b1e2aff3638ad7051010871335da8"
+    },
+    "images/settings-gear-icon.png": {
+      "checksum": "e2bc43263eb8a9179b6e0e5ab3e22450"
+    },
+    "images/refresh-report.png": {
+      "checksum": "e5680e6188eb8d659e4313cb89d0be3b"
     }
   }
 }
