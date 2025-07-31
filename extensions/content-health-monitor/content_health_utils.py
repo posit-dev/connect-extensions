@@ -83,21 +83,21 @@ def get_env_var(var_name, state, description=""):
                 # f'<img src="images/guid-copy-button.png" alt="GUID copy button" '
                 # f'style="max-width: 80%; margin: 10px 0; border: 1px solid #ddd;"><br>'
                 f"{one_tab}<b>Option B:</b> Copy the full URL from your browser<br>"
-                f"{two_tabs}• If the address bar contains a GUID (a long string of letters and numbers), "
+                f"{two_tabs}• If the address bar contains a GUID (ex: 1d97c1ff-e56c-4074-906f-cb3557685b75), "
                 f"you can simply copy the entire URL<br><br>"
 
-                
-                f"<b>Step 2:</b> Return to this report and configure the environment variable:<br>"
-                f"{one_tab}• Open the <b>Content Settings</b> panel by clicking the gear icon<br>"
-                f"• Navigate to the <b>Vars</b> tab<br>"
+                f"<b>Step 2:</b> Return to this report to set the environment variable.<br>"
+                f"{one_tab}• Click the <b>gear icon</b> to open <b>Content Settings</b><br>"
+                f"{one_tab}• Select the <b>Vars</b> tab<br>"
                 # f'<img src="images/vars-tab.png" alt="Vars tab in settings" style="max-width: 80%; margin: 10px 0; border: 1px solid #ddd;"><br>'
-                f"{one_tab}• Create a new environment variable named <code>{var_name}</code><br>"
-                f"{one_tab}• Set its value to the GUID you copied<br>"
+                f"{one_tab}• Add a new variable named <code>{var_name}</code><br>"
+                f"{one_tab}• Paste the GUID you copied into the value field<br>"
                 # f'<img src="images/add-variable.png" alt="Adding environment variable" style="max-width: 80%; margin: 10px 0; border: 1px solid #ddd;"><br>'
-                f"{one_tab}• Click <b>Add Variable</b><br><br>"
-                
-                f"<b>Step 3:</b> Click <b>Refresh Report</b> in the upper right toolbar menu to continue.<br>"
+                f"{one_tab}• Click <b>Add Variable</b> to save it<br><br>"
+
+                f"<b>Step 3:</b> Click <b>Refresh Report</b> in the top right to continue.<br>"
                 f'<img src="images/refresh-report.png" alt="Refresh report button" style="max-width: 80%; margin: 10px 0; border: 1px solid #ddd;"><br><br>'
+
             )
         
         if description:
