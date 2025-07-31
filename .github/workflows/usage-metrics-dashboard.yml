@@ -57,10 +57,10 @@ jobs:
           # Replace the below with the files your content needs
           path: |
             extensions/${{ env.EXTENSION_NAME }}/app.R
-            extensions/${{ env.EXTENSION_NAME }}/get_usage.R
-            extensions/${{ env.EXTENSION_NAME }}/integrations.R
-            extensions/${{ env.EXTENSION_NAME }}/ui_components.R
-            extensions/${{ env.EXTENSION_NAME }}/visit_processing.R
+            extensions/${{ env.EXTENSION_NAME }}/R/get_usage.R
+            extensions/${{ env.EXTENSION_NAME }}/R/integrations.R
+            extensions/${{ env.EXTENSION_NAME }}/R/ui_components.R
+            extensions/${{ env.EXTENSION_NAME }}/R/visit_processing.R
             extensions/${{ env.EXTENSION_NAME }}/renv.lock
             extensions/${{ env.EXTENSION_NAME }}/www/styles.css
             extensions/${{ env.EXTENSION_NAME }}/manifest.json
