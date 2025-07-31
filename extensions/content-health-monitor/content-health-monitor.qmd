@@ -30,6 +30,10 @@ connect_server = get_env_var("CONNECT_SERVER") # Automatically provided by Conne
 api_key = get_env_var("CONNECT_API_KEY") # Automatically provided by Connect, must be set when previewing locally
 monitored_content_guid = get_env_var("MONITORED_CONTENT_GUID")
 
+# Extract GUID if it's a string or URL containing a GUID
+if monitored_content_guid:
+    monitored_content_guid = extract_guid(monitored_content_guid)
+
 # Only instantiate the client if we have the required environment variables
 client = None
 if not show_instructions:
