@@ -151,29 +151,6 @@
         "Built": "R 4.5.1; aarch64-apple-darwin20; 2025-06-14 01:29:52 UTC; unix"
       }
     },
-    "PKI": {
-      "Source": "CRAN",
-      "Repository": "https://packagemanager.posit.co/cran/latest",
-      "description": {
-        "Package": "PKI",
-        "Version": "0.1-14",
-        "Title": "Public Key Infrastucture for R Based on the X.509 Standard",
-        "Author": "Simon Urbanek <Simon.Urbanek@r-project.org>",
-        "Maintainer": "Simon Urbanek <Simon.Urbanek@r-project.org>",
-        "Depends": "R (>= 2.9.0), base64enc",
-        "Enhances": "gmp",
-        "Description": "Public Key Infrastucture functions such as verifying certificates, RSA encription and signing which can be used to build PKI infrastructure and perform cryptographic tasks.",
-        "License": "GPL-2 | GPL-3 | file LICENSE",
-        "URL": "http://www.rforge.net/PKI",
-        "SystemRequirements": "OpenSSL library and headers (openssl-dev or\nsimilar)",
-        "NeedsCompilation": "yes",
-        "Packaged": "2024-06-15 19:22:05 UTC; rforge",
-        "Repository": "RSPM",
-        "Date/Publication": "2024-06-15 19:40:02 UTC",
-        "Encoding": "UTF-8",
-        "Built": "R 4.5.0; x86_64-pc-linux-gnu; 2025-04-09 05:57:02 UTC; unix"
-      }
-    },
     "R.cache": {
       "Source": "CRAN",
       "Repository": "https://packagemanager.posit.co/cran/latest",
@@ -406,35 +383,6 @@
         "Date/Publication": "2024-07-07 11:10:02 UTC",
         "Encoding": "UTF-8",
         "Built": "R 4.5.0; x86_64-pc-linux-gnu; 2025-07-03 13:55:20 UTC; unix"
-      }
-    },
-    "RcppTOML": {
-      "Source": "CRAN",
-      "Repository": "https://packagemanager.posit.co/cran/latest",
-      "description": {
-        "Package": "RcppTOML",
-        "Type": "Package",
-        "Title": "'Rcpp' Bindings to Parser for \"Tom's Obvious Markup Language\"",
-        "Version": "0.2.3",
-        "Date": "2025-03-08",
-        "Authors@R": "c(person(\"Dirk\", \"Eddelbuettel\", role = c(\"aut\", \"cre\"), email = \"edd@debian.org\",\n                    comment = c(ORCID = \"0000-0001-6419-907X\")),\n             person(\"Mark\", \"Gillard\", role = \"aut\",\n                    comment = \"Author of 'toml++' header library\"))",
-        "Description": "The configuration format defined by 'TOML' (which expands to\n \"Tom's Obvious Markup Language\") specifies an excellent format\n (described at <https://toml.io/en/>) suitable for both human editing\n as well as the common uses of a machine-readable format. This package\n uses 'Rcpp' to connect to the 'toml++' parser written by Mark Gillard\n to R.",
-        "SystemRequirements": "A C++17 compiler",
-        "BugReports": "https://github.com/eddelbuettel/rcpptoml/issues",
-        "URL": "http://dirk.eddelbuettel.com/code/rcpp.toml.html",
-        "Imports": "Rcpp (>= 1.0.8)",
-        "Depends": "R (>= 3.3.0)",
-        "LinkingTo": "Rcpp",
-        "Suggests": "tinytest",
-        "License": "GPL (>= 2)",
-        "NeedsCompilation": "yes",
-        "Packaged": "2025-03-08 13:54:57 UTC; edd",
-        "Author": "Dirk Eddelbuettel [aut, cre] (<https://orcid.org/0000-0001-6419-907X>),\n  Mark Gillard [aut] (Author of 'toml++' header library)",
-        "Maintainer": "Dirk Eddelbuettel <edd@debian.org>",
-        "Repository": "RSPM",
-        "Date/Publication": "2025-03-08 14:30:06 UTC",
-        "Encoding": "UTF-8",
-        "Built": "R 4.5.0; x86_64-pc-linux-gnu; 2025-07-03 14:00:57 UTC; unix"
       }
     },
     "SQUAREM": {
@@ -3025,41 +2973,6 @@
         "Built": "R 4.5.0; x86_64-pc-linux-gnu; 2025-05-27 04:55:44 UTC; unix"
       }
     },
-    "packrat": {
-      "Source": "CRAN",
-      "Repository": "https://packagemanager.posit.co/cran/latest",
-      "description": {
-        "Type": "Package",
-        "Package": "packrat",
-        "Title": "A Dependency Management System for Projects and their R Package\nDependencies",
-        "Version": "0.9.3",
-        "Authors@R": "c(\n    person(\"Aron\", \"Atkins\", , \"aron@posit.co\", role = c(\"aut\", \"cre\")),\n    person(\"Toph\", \"Allen\", role = \"aut\"),\n    person(\"Kevin\", \"Ushey\", role = \"aut\"),\n    person(\"Jonathan\", \"McPherson\", role = \"aut\"),\n    person(\"Joe\", \"Cheng\", role = \"aut\"),\n    person(\"JJ\", \"Allaire\", role = \"aut\"),\n    person(\"Posit Software, PBC\", role = c(\"cph\", \"fnd\"))\n  )",
-        "Description": "Manage the R packages your project depends on in an isolated,\n    portable, and reproducible way.",
-        "License": "GPL-2",
-        "URL": "https://github.com/rstudio/packrat",
-        "BugReports": "https://github.com/rstudio/packrat/issues",
-        "Depends": "R (>= 3.0.0)",
-        "Imports": "tools, utils",
-        "Suggests": "devtools, httr, knitr, mockery, rmarkdown, testthat (>=\n3.0.0), webfakes, withr",
-        "Config/testthat/edition": "3",
-        "Encoding": "UTF-8",
-        "RoxygenNote": "7.3.2",
-        "NeedsCompilation": "no",
-        "Packaged": "2025-06-16 19:37:19 UTC; aron",
-        "Author": "Aron Atkins [aut, cre],\n  Toph Allen [aut],\n  Kevin Ushey [aut],\n  Jonathan McPherson [aut],\n  Joe Cheng [aut],\n  JJ Allaire [aut],\n  Posit Software, PBC [cph, fnd]",
-        "Maintainer": "Aron Atkins <aron@posit.co>",
-        "Repository": "RSPM",
-        "Date/Publication": "2025-06-16 20:00:02 UTC",
-        "Built": "R 4.5.0; ; 2025-06-17 04:39:30 UTC; unix",
-        "RemoteType": "standard",
-        "RemoteRef": "packrat",
-        "RemotePkgRef": "packrat",
-        "RemoteRepos": "https://packagemanager.posit.co/cran/latest",
-        "RemoteReposName": "CRAN",
-        "RemotePkgPlatform": "aarch64-apple-darwin20",
-        "RemoteSha": "0.9.3"
-      }
-    },
     "padr": {
       "Source": "CRAN",
       "Repository": "https://packagemanager.posit.co/cran/latest",
@@ -3980,44 +3893,6 @@
         "Built": "R 4.5.1; ; 2025-07-31 10:41:40 UTC; unix"
       }
     },
-    "rsconnect": {
-      "Source": "CRAN",
-      "Repository": "https://packagemanager.posit.co/cran/latest",
-      "description": {
-        "Type": "Package",
-        "Package": "rsconnect",
-        "Title": "Deploy Docs, Apps, and APIs to 'Posit Connect', 'shinyapps.io',\nand 'RPubs'",
-        "Version": "1.5.0",
-        "Authors@R": "c(\n    person(\"Aron\", \"Atkins\", , \"aron@posit.co\", role = c(\"aut\", \"cre\")),\n    person(\"Toph\", \"Allen\", role = \"aut\"),\n    person(\"Hadley\", \"Wickham\", role = \"aut\"),\n    person(\"Jonathan\", \"McPherson\", role = \"aut\"),\n    person(\"JJ\", \"Allaire\", role = \"aut\"),\n    person(\"Posit Software, PBC\", role = c(\"cph\", \"fnd\"))\n  )",
-        "Description": "Programmatic deployment interface for 'RPubs',\n    'shinyapps.io', and 'Posit Connect'. Supported content types include R\n    Markdown documents, Shiny applications, Plumber APIs, plots, and\n    static web content.",
-        "License": "GPL-2",
-        "URL": "https://rstudio.github.io/rsconnect/,\nhttps://github.com/rstudio/rsconnect",
-        "BugReports": "https://github.com/rstudio/rsconnect/issues",
-        "Depends": "R (>= 3.5.0)",
-        "Imports": "cli, curl, digest, jsonlite, lifecycle, openssl (>= 2.0.0),\nPKI, packrat (>= 0.6), renv (>= 1.0.0), rlang (>= 1.0.0),\nrstudioapi (>= 0.5), snowflakeauth, tools, yaml (>= 2.1.5),\nutils",
-        "Suggests": "Biobase, BiocManager, foreign, knitr, MASS, plumber (>=\n0.3.2), quarto, RCurl, reticulate, rmarkdown (>= 1.1), shiny,\ntestthat (>= 3.1.9), webfakes, withr",
-        "VignetteBuilder": "knitr, rmarkdown",
-        "Config/Needs/website": "tidyverse/tidytemplate",
-        "Config/testthat/edition": "3",
-        "Config/testthat/parallel": "true",
-        "Encoding": "UTF-8",
-        "RoxygenNote": "7.3.2",
-        "NeedsCompilation": "no",
-        "Packaged": "2025-06-26 15:08:33 UTC; aron",
-        "Author": "Aron Atkins [aut, cre],\n  Toph Allen [aut],\n  Hadley Wickham [aut],\n  Jonathan McPherson [aut],\n  JJ Allaire [aut],\n  Posit Software, PBC [cph, fnd]",
-        "Maintainer": "Aron Atkins <aron@posit.co>",
-        "Repository": "RSPM",
-        "Date/Publication": "2025-06-26 15:50:02 UTC",
-        "Built": "R 4.5.0; ; 2025-06-27 04:39:35 UTC; unix",
-        "RemoteType": "standard",
-        "RemoteRef": "rsconnect",
-        "RemotePkgRef": "rsconnect",
-        "RemoteRepos": "https://packagemanager.posit.co/cran/latest",
-        "RemoteReposName": "CRAN",
-        "RemotePkgPlatform": "aarch64-apple-darwin20",
-        "RemoteSha": "1.5.0"
-      }
-    },
     "rstudioapi": {
       "Source": "CRAN",
       "Repository": "https://packagemanager.posit.co/cran/latest",
@@ -4271,39 +4146,6 @@
         "Repository": "RSPM",
         "Date/Publication": "2024-10-25 17:40:02 UTC",
         "Built": "R 4.5.0; x86_64-pc-linux-gnu; 2025-04-09 06:47:23 UTC; unix"
-      }
-    },
-    "snowflakeauth": {
-      "Source": "CRAN",
-      "Repository": "https://packagemanager.posit.co/cran/latest",
-      "description": {
-        "Package": "snowflakeauth",
-        "Title": "Authentication Helpers for 'Snowflake'",
-        "Version": "0.1.2",
-        "Authors@R": "c(\n    person(\"Aaron\", \"Jacobs\", , \"aaron.jacobs@posit.co\", role = c(\"aut\")),\n    person(\"E. David\", \"Aja\", , \"david@posit.co\", role = c(\"aut\", \"cre\")),\n    person(\"Posit Software, PBC\", role = c(\"cph\", \"fnd\"))\n  )",
-        "Description": "Authentication helpers for 'Snowflake'.\n    It provides compatibility with authentication approaches supported\n    by the 'Snowflake Connector for Python' <https://pypi.org/project/snowflake-connector-python>\n    and the 'Snowflake CLI' <https://pypi.org/project/snowflake-cli>.",
-        "License": "MIT + file LICENSE",
-        "Encoding": "UTF-8",
-        "Imports": "cli, curl, jsonlite, RcppTOML, rlang",
-        "Suggests": "jose, openssl, testthat (>= 3.0.0), withr",
-        "RoxygenNote": "7.3.2",
-        "Config/testthat/edition": "3",
-        "URL": "https://posit-dev.github.io/snowflakeauth/,\nhttps://github.com/posit-dev/snowflakeauth",
-        "BugReports": "https://github.com/posit-dev/snowflakeauth/issues",
-        "NeedsCompilation": "no",
-        "Packaged": "2025-06-18 13:05:51 UTC; edavidaja",
-        "Author": "Aaron Jacobs [aut],\n  E. David Aja [aut, cre],\n  Posit Software, PBC [cph, fnd]",
-        "Maintainer": "E. David Aja <david@posit.co>",
-        "Repository": "RSPM",
-        "Date/Publication": "2025-06-19 15:20:02 UTC",
-        "Built": "R 4.5.0; ; 2025-06-20 04:55:13 UTC; unix",
-        "RemoteType": "standard",
-        "RemoteRef": "snowflakeauth",
-        "RemotePkgRef": "snowflakeauth",
-        "RemoteRepos": "https://packagemanager.posit.co/cran/latest",
-        "RemoteReposName": "CRAN",
-        "RemotePkgPlatform": "aarch64-apple-darwin20",
-        "RemoteSha": "0.1.2"
       }
     },
     "sourcetools": {
@@ -5313,7 +5155,7 @@
       "checksum": "fb30c80ac12ab9f012fe104f371b4725"
     },
     ".Rprofile": {
-      "checksum": "f5ef09ada9e46463b287a6adf23b48e4"
+      "checksum": "f3a0350397830e42e67166706cd121e5"
     },
     "app.R": {
       "checksum": "d4103b4dcc8bebfefd99294ba6125f11"
@@ -5332,9 +5174,6 @@
     },
     "app/logic/config_settings.R": {
       "checksum": "1eff749b1b258c1a2a0652eea270203d"
-    },
-    "app/logic/connect-extension.R": {
-      "checksum": "6846bace06b3d72676a80e3e3348d8de"
     },
     "app/logic/data_utils.R": {
       "checksum": "635bbc125bca53c54f68a434b03a327b"
@@ -5430,10 +5269,10 @@
       "checksum": "2d8e446a69c77281bc99044135bb0648"
     },
     "README.md": {
-      "checksum": "4688c4bf86f7f5c9c86a5f8d3fce072f"
+      "checksum": "cad74b4da927ed3b78986036b487c7d8"
     },
     "renv.lock": {
-      "checksum": "43b3b6877ca399c9ceb9b58b2f734c63"
+      "checksum": "ea78d481ae93e24b04e1f14a54c683af"
     },
     "rhino.yml": {
       "checksum": "4f8295c6437069d07ae84698aca26c76"
