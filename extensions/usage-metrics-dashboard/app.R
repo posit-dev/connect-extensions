@@ -20,10 +20,8 @@ options(
   spinner.color = "#7494b1"
 )
 
-source("get_usage.R")
-source("integrations.R")
-source("ui_components.R")
-source("visit_processing.R")
+files.sources = list.files("R", full.names = TRUE)
+sapply(files.sources, source)
 
 app_mode_groups <- list(
   "API" = c("api", "python-fastapi", "python-api", "tensorflow-saved-model"),
