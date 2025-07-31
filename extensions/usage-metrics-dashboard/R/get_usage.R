@@ -11,8 +11,8 @@ usage_dtype <- tibble::tibble(
   "data" = NA_list_
 )
 
-to_iso8601 <- function(x) {
-  strftime(x, "%Y-%m-%dT%H:%M:%S%z") |>
+to_iso8601 <- function(x, tz = "") {
+  strftime(x, "%Y-%m-%dT%H:%M:%S%z", tz = tz) |>
     sub("([+-]\\d{2})(\\d{2})$", "\\1:\\2", x = _)
 }
 

@@ -20,8 +20,8 @@ options(
   spinner.color = "#7494b1"
 )
 
-source("get_usage.R")
-source("integrations.R")
+files.sources = list.files("R", full.names = TRUE)
+sapply(files.sources, source)
 
 app_mode_groups <- list(
   "API" = c("api", "python-fastapi", "python-api", "tensorflow-saved-model"),
@@ -40,32 +40,6 @@ app_mode_groups <- list(
   "Other" = c("unknown")
 )
 
-bar_chart <- function(
-  value,
-  max_val,
-  height = "1rem",
-  fill = "#7494b1",
-  background = NULL
-) {
-  width <- paste0(value * 100 / max_val, "%")
-  value <- format(value, width = nchar(max_val), justify = "right")
-  bar <- div(class = "bar", style = list(background = fill, width = width))
-  chart <- div(class = "bar-chart", style = list(background = background), bar)
-  label <- span(class = "number", value)
-  div(class = "bar-cell", label, chart)
-}
-
-full_url <- function(session) {
-  paste0(
-    session$clientData$url_protocol,
-    "//",
-    session$clientData$url_hostname,
-    if (nzchar(session$clientData$url_port)) {
-      paste0(":", session$clientData$url_port)
-    },
-    session$clientData$url_pathname
-  )
-}
 
 content_usage_table_search_method = JS(
   "
@@ -119,7 +93,7 @@ ui <- function(request) {
       ),
 
       sliderInput(
-        "visit_merge_window",
+        "session_window",
         label = tagList(
           "Session Window (sec)",
           tooltip(
@@ -137,7 +111,7 @@ ui <- function(request) {
       ),
 
       textInput(
-        "visit_merge_window_text",
+        "session_window_text",
         label = NULL,
         value = 0,
       ),
@@ -476,31 +450,31 @@ server <- function(input, output, session) {
 
   # Session Window controls: sync slider and text input ----
 
-  observeEvent(input$visit_merge_window, {
-    if (input$visit_merge_window != input$visit_merge_window_text) {
-      freezeReactiveValue(input, "visit_merge_window_text")
+  observeEvent(input$session_window, {
+    if (input$session_window != input$session_window_text) {
+      freezeReactiveValue(input, "session_window_text")
       updateTextInput(
         session,
-        "visit_merge_window_text",
-        value = input$visit_merge_window
+        "session_window_text",
+        value = input$session_window
       )
     }
   })
 
-  observeEvent(input$visit_merge_window_text, {
-    new_value <- suppressWarnings(as.numeric(input$visit_merge_window_text))
+  observeEvent(input$session_window_text, {
+    new_value <- suppressWarnings(as.numeric(input$session_window_text))
     if (!is.na(new_value) && new_value >= 0 && new_value <= 180) {
-      if (new_value != input$visit_merge_window) {
-        freezeReactiveValue(input, "visit_merge_window")
-        updateSliderInput(session, "visit_merge_window", value = new_value)
+      if (new_value != input$session_window) {
+        freezeReactiveValue(input, "session_window")
+        updateSliderInput(session, "session_window", value = new_value)
       }
     } else {
-      if (input$visit_merge_window_text != input$visit_merge_window) {
-        freezeReactiveValue(input, "visit_merge_window_text")
+      if (input$session_window_text != input$session_window) {
+        freezeReactiveValue(input, "session_window_text")
         updateTextInput(
           session,
-          "visit_merge_window_text",
-          value = input$visit_merge_window
+          "session_window_text",
+          value = input$session_window
         )
       }
     }
@@ -653,7 +627,7 @@ server <- function(input, output, session) {
 
   # Multi-content table data ----
 
-  # Filter the raw data based on selected scope, app mode and visit merge window
+  # Filter the raw data based on selected scope, app mode and session window
   usage_data_visits <- reactive({
     req(content())
     scope_filtered_usage <- usage_data_raw() |>
@@ -670,20 +644,8 @@ server <- function(input, output, session) {
         filter(content_guid %in% filter_guids)
     }
 
-    req(input$visit_merge_window)
-    if (input$visit_merge_window == 0) {
-      app_mode_filtered_usage
-    } else {
-      app_mode_filtered_usage |>
-        group_by(content_guid, user_guid) |>
-
-        # Compute time diffs and filter out hits within the session
-        mutate(time_diff = seconds(timestamp - lag(timestamp, 1))) |>
-        replace_na(list(time_diff = seconds(Inf))) |>
-        filter(time_diff > input$visit_merge_window) |>
-        ungroup() |>
-        select(-time_diff)
-    }
+    req(input$session_window)
+    filter_visits_by_time_window(app_mode_filtered_usage, input$session_window)
   })
 
   # Create data for the main table and summary export.
@@ -752,7 +714,7 @@ server <- function(input, output, session) {
   function(el, x) {
     const tableId = el.id;
     const storageKey = 'search_' + tableId;
-    
+
     // Clear search value when the page is refreshed
     window.addEventListener('beforeunload', function() {
       sessionStorage.removeItem(storageKey);
@@ -763,7 +725,7 @@ server <- function(input, output, session) {
 
     // Restore previous search if available
     const savedSearch = sessionStorage.getItem(storageKey);
-    
+
     if (savedSearch) {
       searchInput.value = savedSearch;
       if (window.Reactable && typeof window.Reactable.setSearch === 'function') {
@@ -937,7 +899,7 @@ server <- function(input, output, session) {
       group_by(user_guid) |>
       mutate(time_diff = seconds(timestamp - lag(timestamp, 1))) |>
       replace_na(list(time_diff = seconds(Inf))) |>
-      filter(time_diff > input$visit_merge_window) |>
+      filter(time_diff > input$session_window) |>
       ungroup() |>
 
       # Join to usernames
@@ -963,7 +925,7 @@ server <- function(input, output, session) {
       # Compute time diffs and filter out hits within the session
       mutate(time_diff = seconds(timestamp - lag(timestamp, 1))) |>
       replace_na(list(time_diff = seconds(Inf))) |>
-      filter(time_diff > input$visit_merge_window) |>
+      filter(time_diff > input$session_window) |>
 
       summarize(n_visits = n())
 
