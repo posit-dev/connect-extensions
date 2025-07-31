@@ -11,13 +11,63 @@
       "description": "Pre-built content to illustrate the types of content publishable on Posit Connect."
     }
   ],
-  "tags": [],
+  "tags": [
+    "python",
+    "shiny",
+    "fastapi",
+    "mcp",
+    "llm",
+    "chat"
+  ],
   "requiredFeatures": [
     "API Publishing",
     "OAuth Integrations",
     "Current User Execution"
   ],
   "extensions": [
+    {
+      "name": "chat-with-content",
+      "title": "Chat with Content",
+      "description": "Provides a way to interact with and query content using an LLM chat interface.",
+      "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/chat-with-content",
+      "latestVersion": {
+        "version": "0.0.1",
+        "released": "2025-07-08T15:18:27Z",
+        "url": "https://github.com/posit-dev/connect-extensions/releases/download/chat-with-content%40v0.0.1/chat-with-content.tar.gz",
+        "minimumConnectVersion": "2025.04.0",
+        "requiredFeatures": [
+          "OAuth Integrations"
+        ],
+        "requiredEnvironment": {
+          "python": {
+            "requires": ">=3.10.0"
+          }
+        }
+      },
+      "versions": [
+        {
+          "version": "0.0.1",
+          "released": "2025-07-08T15:18:27Z",
+          "url": "https://github.com/posit-dev/connect-extensions/releases/download/chat-with-content%40v0.0.1/chat-with-content.tar.gz",
+          "minimumConnectVersion": "2025.04.0",
+          "requiredFeatures": [
+            "OAuth Integrations"
+          ],
+          "requiredEnvironment": {
+            "python": {
+              "requires": ">=3.10.0"
+            }
+          }
+        }
+      ],
+      "tags": [
+        "llm",
+        "shiny",
+        "chat",
+        "python"
+      ],
+      "category": "extension"
+    },
     {
       "name": "connectwidgets-example",
       "title": "Connect Widgets Example",
@@ -109,6 +159,64 @@
         }
       ],
       "tags": []
+    },
+    {
+      "name": "package-vulnerability-scanner",
+      "title": "Package Vulnerability Scanner",
+      "description": "Scan for security vulnerabilities in your published content on Connect using Posit Package Manager. View an overview of CVEs (Common Vulnerabilities and Exposures) across all your apps, and get guidance on upgrading affected packages.",
+      "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/package-vulnerability-scanner",
+      "latestVersion": {
+        "version": "2.0.0",
+        "released": "2025-07-11T21:00:10Z",
+        "url": "https://github.com/posit-dev/connect-extensions/releases/download/package-vulnerability-scanner%40v2.0.0/package-vulnerability-scanner.tar.gz",
+        "minimumConnectVersion": "2025.04.0",
+        "requiredFeatures": [
+          "API Publishing"
+        ],
+        "requiredEnvironment": {
+          "image": "",
+          "prebuilt": false,
+          "python": {
+            "requires": "~=3.8"
+          }
+        }
+      },
+      "versions": [
+        {
+          "version": "2.0.0",
+          "released": "2025-07-11T21:00:10Z",
+          "url": "https://github.com/posit-dev/connect-extensions/releases/download/package-vulnerability-scanner%40v2.0.0/package-vulnerability-scanner.tar.gz",
+          "minimumConnectVersion": "2025.04.0",
+          "requiredFeatures": [
+            "API Publishing"
+          ],
+          "requiredEnvironment": {
+            "image": "",
+            "prebuilt": false,
+            "python": {
+              "requires": "~=3.8"
+            }
+          }
+        },
+        {
+          "version": "1.0.0",
+          "released": "2025-06-24T22:14:31Z",
+          "url": "https://github.com/posit-dev/connect-extensions/releases/download/package-vulnerability-scanner%40v1.0.0/package-vulnerability-scanner.tar.gz",
+          "minimumConnectVersion": "2025.04.0",
+          "requiredFeatures": [
+            "API Publishing"
+          ],
+          "requiredEnvironment": {
+            "image": "",
+            "prebuilt": false,
+            "python": {
+              "requires": "~=3.8"
+            }
+          }
+        }
+      ],
+      "tags": [],
+      "category": "extension"
     },
     {
       "name": "plumbertableau-example",
@@ -516,6 +624,44 @@
       "tags": []
     },
     {
+      "name": "runtime-version-scanner",
+      "title": "Runtime Version Scanner",
+      "description": "See the Python, R, and Quarto versions used by your content. Filter by version, content type, and usage to identify items that need updating. Quickly find content that uses end-of-life language versions.",
+      "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/runtime-version-scanner",
+      "latestVersion": {
+        "version": "1.0.0",
+        "released": "2025-07-17T21:50:47Z",
+        "url": "https://github.com/posit-dev/connect-extensions/releases/download/runtime-version-scanner%40v1.0.0/runtime-version-scanner.tar.gz",
+        "minimumConnectVersion": "2025.04.0",
+        "requiredFeatures": [
+          "OAuth Integrations"
+        ],
+        "requiredEnvironment": {
+          "r": {
+            "requires": "~=4.3.0"
+          }
+        }
+      },
+      "versions": [
+        {
+          "version": "1.0.0",
+          "released": "2025-07-17T21:50:47Z",
+          "url": "https://github.com/posit-dev/connect-extensions/releases/download/runtime-version-scanner%40v1.0.0/runtime-version-scanner.tar.gz",
+          "minimumConnectVersion": "2025.04.0",
+          "requiredFeatures": [
+            "OAuth Integrations"
+          ],
+          "requiredEnvironment": {
+            "r": {
+              "requires": "~=4.3.0"
+            }
+          }
+        }
+      ],
+      "tags": [],
+      "category": "extension"
+    },
+    {
       "name": "script-python",
       "title": "Run a Python Script",
       "description": "This data transformation Python script is an example of how you might automate regular imports and transformations from a data source. JSON and CSV files are exported and made available for download. Quarto is used to render the script.",
@@ -589,6 +735,119 @@
         }
       ],
       "tags": [],
+      "category": "example"
+    },
+    {
+      "name": "simple-mcp-server",
+      "title": "Simple MCP Server",
+      "description": "A simple example of a Connect extension that serves tools via the MCP protocol. This is meant to be used with the Simple Shiny Chat with MCP Support extension.",
+      "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/simple-mcp-server",
+      "latestVersion": {
+        "version": "0.0.2",
+        "released": "2025-07-08T16:14:02Z",
+        "url": "https://github.com/posit-dev/connect-extensions/releases/download/simple-mcp-server%40v0.0.2/simple-mcp-server.tar.gz",
+        "minimumConnectVersion": "2025.04.0",
+        "requiredFeatures": [
+          "API Publishing"
+        ],
+        "requiredEnvironment": {
+          "python": {
+            "requires": ">=3.10"
+          }
+        }
+      },
+      "versions": [
+        {
+          "version": "0.0.2",
+          "released": "2025-07-08T16:14:02Z",
+          "url": "https://github.com/posit-dev/connect-extensions/releases/download/simple-mcp-server%40v0.0.2/simple-mcp-server.tar.gz",
+          "minimumConnectVersion": "2025.04.0",
+          "requiredFeatures": [
+            "API Publishing"
+          ],
+          "requiredEnvironment": {
+            "python": {
+              "requires": ">=3.10"
+            }
+          }
+        },
+        {
+          "version": "0.0.1",
+          "released": "2025-07-08T15:10:16Z",
+          "url": "https://github.com/posit-dev/connect-extensions/releases/download/simple-mcp-server%40v0.0.1/simple-mcp-server.tar.gz",
+          "minimumConnectVersion": "2025.04.0",
+          "requiredFeatures": [
+            "API Publishing"
+          ],
+          "requiredEnvironment": {
+            "python": {
+              "requires": ">=3.10"
+            }
+          }
+        }
+      ],
+      "tags": [
+        "python",
+        "fastapi",
+        "mcp"
+      ],
+      "category": "example"
+    },
+    {
+      "name": "simple-shiny-chat-with-mcp",
+      "title": "Simple Shiny Chat with MCP Support",
+      "description": "A simple Shiny chat application that demonstrates how to use the MCP client to facilitate remote tool calls. This is meant to be used with the Simple MCP Server extension.",
+      "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/simple-shiny-chat-with-mcp",
+      "latestVersion": {
+        "version": "0.0.2",
+        "released": "2025-07-08T16:14:04Z",
+        "url": "https://github.com/posit-dev/connect-extensions/releases/download/simple-shiny-chat-with-mcp%40v0.0.2/simple-shiny-chat-with-mcp.tar.gz",
+        "minimumConnectVersion": "2025.04.0",
+        "requiredFeatures": [
+          "OAuth Integrations"
+        ],
+        "requiredEnvironment": {
+          "python": {
+            "requires": ">=3.10"
+          }
+        }
+      },
+      "versions": [
+        {
+          "version": "0.0.2",
+          "released": "2025-07-08T16:14:04Z",
+          "url": "https://github.com/posit-dev/connect-extensions/releases/download/simple-shiny-chat-with-mcp%40v0.0.2/simple-shiny-chat-with-mcp.tar.gz",
+          "minimumConnectVersion": "2025.04.0",
+          "requiredFeatures": [
+            "OAuth Integrations"
+          ],
+          "requiredEnvironment": {
+            "python": {
+              "requires": ">=3.10"
+            }
+          }
+        },
+        {
+          "version": "0.0.1",
+          "released": "2025-07-08T15:10:13Z",
+          "url": "https://github.com/posit-dev/connect-extensions/releases/download/simple-shiny-chat-with-mcp%40v0.0.1/simple-shiny-chat-with-mcp.tar.gz",
+          "minimumConnectVersion": "2025.04.0",
+          "requiredFeatures": [
+            "OAuth Integrations"
+          ],
+          "requiredEnvironment": {
+            "python": {
+              "requires": ">=3.10"
+            }
+          }
+        }
+      ],
+      "tags": [
+        "python",
+        "shiny",
+        "mcp",
+        "llm"
+      ],
       "category": "example"
     },
     {
@@ -904,9 +1163,9 @@
       "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/usage-metrics-dashboard",
       "category": "extension",
       "latestVersion": {
-        "version": "1.0.5",
-        "released": "2025-06-04T16:27:32Z",
-        "url": "https://github.com/posit-dev/connect-extensions/releases/download/usage-metrics-dashboard%40v1.0.5/usage-metrics-dashboard.tar.gz",
+        "version": "1.0.6",
+        "released": "2025-06-24T22:57:06Z",
+        "url": "https://github.com/posit-dev/connect-extensions/releases/download/usage-metrics-dashboard%40v1.0.6/usage-metrics-dashboard.tar.gz",
         "minimumConnectVersion": "2025.04.0",
         "requiredFeatures": [
           "OAuth Integrations"
@@ -918,6 +1177,20 @@
         }
       },
       "versions": [
+        {
+          "version": "1.0.6",
+          "released": "2025-06-24T22:57:06Z",
+          "url": "https://github.com/posit-dev/connect-extensions/releases/download/usage-metrics-dashboard%40v1.0.6/usage-metrics-dashboard.tar.gz",
+          "minimumConnectVersion": "2025.04.0",
+          "requiredFeatures": [
+            "OAuth Integrations"
+          ],
+          "requiredEnvironment": {
+            "r": {
+              "requires": "~=4.3"
+            }
+          }
+        },
         {
           "version": "1.0.5",
           "released": "2025-06-04T16:27:32Z",

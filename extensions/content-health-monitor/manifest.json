@@ -1,0 +1,47 @@
+{
+  "version": 1,
+  "locale": "en_US.UTF-8",
+  "metadata": {
+    "appmode": "quarto-static"
+  },
+    "extension": {
+    "name": "content-health-monitor",
+    "title": "Content Health Monitor",
+    "description": "This report uses the publisher’s API key to monitor a single piece of content. It checks whether the content is reachable, but does not validate its functionality. When scheduled to run regularly, it will send an email alert if the content becomes unreachable.",
+    "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/content-health-monitor",
+    "category": "extension",
+    "tags": [],
+    "minimumConnectVersion": "2025.04.0",
+    "version": "0.0.0"
+  },
+  "environment": {
+    "python": {
+      "requires": "~=3.11"
+    },
+    "quarto": {
+      "requires": "~=1.4"
+    }
+  },
+  "quarto": {
+    "version": "1.4.557",
+    "engines": [
+      "jupyter"
+    ]
+  },
+  "python": {
+    "version": "3.11.7",
+    "package_manager": {
+      "name": "pip",
+      "version": "23.2.1",
+      "package_file": "requirements.txt"
+    }
+  },
+  "files": {
+    "requirements.txt": {
+      "checksum": "09254fc2dfa7d869ffbc3da2abb1d224"
+    },
+    "content-health-monitor.qmd": {
+      "checksum": "732af0f4ea846c37d3a7641c3bbd6ba3"
+    }
+  }
+}

@@ -1,0 +1,55 @@
+{
+  "version": 1,
+  "locale": "en_US.UTF-8",
+  "metadata": {
+    "appmode": "python-shiny",
+    "entrypoint": "app"
+  },
+  "python": {
+    "version": "3.12.7",
+    "package_manager": {
+      "name": "pip",
+      "version": "24.2",
+      "package_file": "requirements.txt"
+    }
+  },
+  "environment": {
+    "python": {
+      "requires": ">=3.10.0"
+    }
+  },
+  "extension": {
+    "name": "chat-with-content",
+    "title": "Chat with Content",
+    "description": "Provides a way to interact with and query content using an LLM chat interface.",
+    "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/chat-with-content",
+    "category": "extension",
+    "tags": ["llm", "shiny", "chat", "python"],
+    "minimumConnectVersion": "2025.04.0",
+    "requiredFeatures": ["OAuth Integrations"],
+    "version": "0.0.1"
+  },
+  "files": {
+    "requirements.txt": {
+      "checksum": "3c0be3849915235fe65fc7d4a7fa0d01"
+    },
+    ".gitignore": {
+      "checksum": "693ec79eaa892babde62587aaacf0d8b"
+    },
+    ".python-version": {
+      "checksum": "c0479ff484dacd51dc5ba0461b16b9bf"
+    },
+    "README.md": {
+      "checksum": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "app.py": {
+      "checksum": "ef9cdbc80272b4735cbff3fea733ba52"
+    },
+    "pyproject.toml": {
+      "checksum": "f296646bfcde3f0a4ad4312bc69b28fc"
+    },
+    "uv.lock": {
+      "checksum": "9ecff153167f11d21459dfc20cde4299"
+    }
+  }
+}

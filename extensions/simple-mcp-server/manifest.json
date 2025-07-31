@@ -1,0 +1,45 @@
+{
+  "version": 1,
+  "locale": "en_US.UTF-8",
+  "metadata": {
+    "appmode": "python-fastapi",
+    "entrypoint": "main"
+  },
+  "python": {
+    "version": "3.12.7",
+    "package_manager": {
+      "name": "pip",
+      "version": "24.2",
+      "package_file": "requirements.txt"
+    }
+  },
+  "environment": {
+    "python": {
+      "requires": ">=3.10"
+    }
+  },
+  "extension": {
+    "name": "simple-mcp-server",
+    "title": "Simple MCP Server",
+    "description": "A simple example of a Connect extension that serves tools via the MCP protocol. This is meant to be used with the Simple Shiny Chat with MCP Support extension.",
+    "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/simple-mcp-server",
+    "category": "example",
+    "tags": ["python", "fastapi", "mcp"],
+    "requiredFeatures": [
+      "API Publishing"
+    ],
+    "minimumConnectVersion": "2025.04.0",
+    "version": "0.0.2"
+  },
+  "files": {
+    "requirements.txt": {
+      "checksum": "3f6b39234649b12256ccab08952dc062"
+    },
+    "main.py": {
+      "checksum": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "index.html.jinja": {
+      "checksum": "eb078517ea04264c8578e0e55afb7685"
+    }
+  }
+}

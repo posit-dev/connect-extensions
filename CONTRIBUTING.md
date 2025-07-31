@@ -376,3 +376,11 @@ above [Removing an entire piece of content](#removing-an-entire-piece-of-content
 section.
 
 In addition references to the content in GitHub workflows will need to removed.
+
+## Using a CHANGELOG
+
+It is recommended to use a `CHANGELOG.md` file in your extension directory
+to document changes made on each release.
+
+A recommended format is the [keep a changelog](https://keepachangelog.com/en/1.1.0/)
+format and ahering to the [Semantic Versioning](https://semver.org/) guidelines.

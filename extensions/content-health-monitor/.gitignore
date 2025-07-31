@@ -1,0 +1,13 @@
+# Quarto
+/.quarto/
+*.quarto_ipynb
+/_*.local
+*.html
+/email-preview
+.output_metadata.json
+*.quarto_ipynb
+
+# Local dev
+/.posit/
+.envrc
+.python-version
