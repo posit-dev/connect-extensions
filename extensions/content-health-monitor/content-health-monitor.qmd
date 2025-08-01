@@ -15,7 +15,8 @@ import requests
 import datetime
 from posit import connect
 from IPython.display import HTML, display
-from content_health_utils import *, MonitorState
+from content_health_utils import *
+from content_health_utils import MonitorState
 
 # Create state object to share between this file and utils
 state = MonitorState()
