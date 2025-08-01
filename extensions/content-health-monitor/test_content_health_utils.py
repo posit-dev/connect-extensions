@@ -9,8 +9,8 @@ from posit import connect
 from unittest.mock import MagicMock, patch
 
 # Import the modules - this must be at the top level
-import globals
 import content_health_utils
+from content_health_utils import MonitorState
 
 
 # Constants from content_health_utils
@@ -68,13 +68,10 @@ def clear_env_var(var_name):
     """Clear an environment variable if it exists"""
     os.environ.pop(var_name, None)  # More pythonic way using pop with default
 
-@pytest.fixture(autouse=True)
-def reset_module_globals():
-    """Reset module globals before each test"""
-    globals.show_instructions = False
-    globals.instructions = []
-    yield  # This makes it run before each test; the test runs at this point
-    # If we needed cleanup after each test, it would go here
+@pytest.fixture
+def state():
+    """Create a fresh state object for each test"""
+    return MonitorState()
 
 @pytest.fixture
 def env_var():
@@ -121,7 +118,7 @@ def api_test_key():
 # Tests for get_env_var function
 class TestGetEnvVar:
     
-    def test_get_env_var_with_value(self, env_var):
+    def test_get_env_var_with_value(self, env_var, state):
         """Test get_env_var when env var exists"""
         # Setup - use the environment fixture
         var_name = "TEST_ENV_VAR"
@@ -129,47 +126,47 @@ class TestGetEnvVar:
         env_var(var_name, var_value)
    
         # Execute
-        result = get_env_var(var_name)
+        result = get_env_var(var_name, state)
         
         # Assert
         assert result == var_value
-        assert not globals.show_instructions
-        assert globals.instructions == []
+        assert not state.show_instructions
+        assert state.instructions == []
         
         # No explicit cleanup needed - the fixture handles it
     
-    def test_get_env_var_missing_standard(self):
+    def test_get_env_var_missing_standard(self, state):
         """Test get_env_var when env var is missing (standard var)"""
         # Setup
         var_name = "MISSING_ENV_VAR"
         clear_env_var(var_name)  # Ensure it doesn't exist
 
         # Execute
-        result = get_env_var(var_name)
+        result = get_env_var(var_name, state)
         
         # Assert
         assert result == ""
-        assert globals.show_instructions
-        assert len(globals.instructions) == 1
-        assert f"Please set the <code>{var_name}</code> environment variable." in globals.instructions[0]
+        assert state.show_instructions
+        assert len(state.instructions) == 1
+        assert f"Please set the <code>{var_name}</code> environment variable." in state.instructions[0]
     
-    def test_get_env_var_missing_canary_guid(self):
+    def test_get_env_var_missing_canary_guid(self, state):
         """Test get_env_var when MONITORED_CONTENT_GUID is missing"""
         # Setup
         var_name = "MONITORED_CONTENT_GUID"
         clear_env_var(var_name)  # Ensure it doesn't exist
 
         # Execute
-        result = get_env_var(var_name)
+        result = get_env_var(var_name, state)
         
         # Assert
         assert result == ""
-        assert globals.show_instructions
-        assert len(globals.instructions) == 1
-        assert "Open the <b>Content Settings</b> panel" in globals.instructions[0]
-        assert f"<code>{var_name}</code>" in globals.instructions[0]
+        assert state.show_instructions
+        assert len(state.instructions) == 1
+        assert "Open the <b>Content Settings</b> panel" in state.instructions[0]
+        assert f"<code>{var_name}</code>" in state.instructions[0]
     
-    def test_get_env_var_with_description(self):
+    def test_get_env_var_with_description(self, state):
         """Test get_env_var when env var is missing and description is provided"""
         # Setup
         var_name = "MISSING_ENV_VAR"
@@ -177,14 +174,14 @@ class TestGetEnvVar:
         clear_env_var(var_name)  # Ensure it doesn't exist
 
         # Execute
-        result = get_env_var(var_name, description)
+        result = get_env_var(var_name, state, description)
         
         # Assert
         assert result == ""
-        assert globals.show_instructions
-        assert len(globals.instructions) == 1
-        assert f"Please set the <code>{var_name}</code> environment variable." in globals.instructions[0]
-        assert description in globals.instructions[0]
+        assert state.show_instructions
+        assert len(state.instructions) == 1
+        assert f"Please set the <code>{var_name}</code> environment variable." in state.instructions[0]
+        assert description in state.instructions[0]
 
 
 # Tests for format_error_message function
@@ -707,24 +704,20 @@ class TestShouldSendEmailFunction:
 class TestScenarios:
     
     @patch.dict(os.environ, {}, clear=True)
-    def test_scenario_no_canary_guid_env_var(self, mock_client):
+    def test_scenario_no_canary_guid_env_var(self, mock_client, state):
         """Test scenario: No CANARY_GUID env var set
         
         Expected: If scheduled, DOES NOT send an email
         """
-        # Setup - Reset module globals
-        globals.show_instructions = False
-        globals.instructions = []
-        
         # Clear environment variable if it exists
         clear_env_var("MONITORED_CONTENT_GUID")
         
         # Execute - Try to get the env var
-        result = get_env_var("MONITORED_CONTENT_GUID")
+        result = get_env_var("MONITORED_CONTENT_GUID", state)
         
         # Assert - It should be empty and show instructions
         assert result == ""
-        assert globals.show_instructions
+        assert state.show_instructions
         
         # For this scenario, show_instructions=True means the script won't proceed to validation,
         # so should_send_email would get show_error=False and content_result=None
