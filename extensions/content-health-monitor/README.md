@@ -47,33 +47,12 @@ make test-unit
 # Run only integration tests
 make test-integration
 
+# Update manifest.json (preserves extension and environment blocks)
+make update-manifest
+
 # Show help with all available targets
 make help
 
 # Clean up virtual environment and cache files
 make clean
-```
-
-## Running Tests Manually
-
-1. Install project requirements and test dependencies with `uv`:
-
-```bash
-pip install uv
-uv venv
-uv pip install -r requirements.txt
-uv pip install pytest
-```
-
-2. Run the tests with `uv`:
-
-```bash
-# Run unit tests
-uv run pytest test_content_health_utils.py -v
-
-# Run integration tests
-uv run pytest test_integration.py -v
-
-# Or run all tests at once
-uv run pytest -v
 ```
