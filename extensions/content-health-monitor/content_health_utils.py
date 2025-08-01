@@ -3,8 +3,15 @@ import os
 import requests
 from posit import connect
 
-# Import shared global variables from globals.py
-import globals
+class MonitorState:
+    """State container for content health monitor"""
+    
+    def __init__(self):
+        """Initialize with default values"""
+        # Flag to indicate if setup instructions should be displayed
+        self.show_instructions = False
+        # List to store setup instructions for the user
+        self.instructions = []
 
 # Define status constants
 STATUS_PASS = "PASS"
@@ -47,11 +54,11 @@ CSS_FOOTER_STYLE = "padding-top: 8px; font-size: 0.9em; border-top: 1px solid #e
 CSS_GRID_STYLE = "display: grid; grid-template-columns: 150px auto; grid-gap: 8px; padding: 10px 0;"
 
 # Helper function to read environment variables and add instructions if missing
-def get_env_var(var_name, description=""):
+def get_env_var(var_name, state, description=""):
     """Get environment variable and add instruction if missing"""
     value = os.environ.get(var_name, "")
     if not value:
-        globals.show_instructions = True
+        state.show_instructions = True
         
         # Generic instruction for most variables
         if var_name != "MONITORED_CONTENT_GUID":
@@ -66,7 +73,7 @@ def get_env_var(var_name, description=""):
         
         if description:
             instruction += f" {description}"
-        globals.instructions.append(instruction)
+        state.instructions.append(instruction)
     return value
 
 # Helper function to extract error messages from exceptions
