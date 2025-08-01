@@ -28,9 +28,33 @@ For more advanced validation, modify the `validate()` function in `content_healt
 
 # Testing
 
-The Content Health Monitor includes a comprehensive test suite. Follow these simple steps to run the tests:
+The Content Health Monitor includes a comprehensive test suite. You can run the tests using the provided Makefile or manually with pytest.
 
-## Running Tests
+## Using the Makefile
+
+The project includes a Makefile with several targets to simplify common tasks:
+
+```bash
+# Setup environment and install dependencies
+make setup
+
+# Run all tests
+make test
+
+# Run only unit tests
+make test-unit
+
+# Run only integration tests
+make test-integration
+
+# Show help with all available targets
+make help
+
+# Clean up virtual environment and cache files
+make clean
+```
+
+## Running Tests Manually
 
 1. Install project requirements and test dependencies with `uv`:
 
