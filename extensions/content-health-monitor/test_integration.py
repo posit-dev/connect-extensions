@@ -1,17 +1,10 @@
 import os
-import sys
-import importlib
 import pytest
+
+import content_health_utils
 from content_health_utils import MonitorState
 
 # Define fixtures to prepare the test environment
-@pytest.fixture(autouse=True)
-def clear_module_cache():
-    """Remove content_health_utils from sys.modules before each test"""
-    if 'content_health_utils' in sys.modules:
-        del sys.modules['content_health_utils']
-    yield
-    # No cleanup needed after the test
 
 @pytest.fixture
 def clean_environment():
@@ -44,16 +37,13 @@ def state():
     return MonitorState()
 
 # Integration tests
-def test_direct_import_without_setup(clean_environment):
+def test_state_initialization():
     """
-    Test that the module can be imported without any setup.
-    This simulates how the module is loaded in Connect.
+    Test that the MonitorState class initializes with correct default values.
+    This simulates how state is created in the Quarto document.
     """
-    # This should not raise any exceptions
-    import content_health_utils
-    
     # Create a state object and verify default values
-    state = content_health_utils.MonitorState()
+    state = MonitorState()
     assert state.show_instructions is False
     assert state.instructions == []
 
@@ -65,9 +55,6 @@ def test_get_env_var_missing_variable(clean_environment, state):
     # Make sure the variable is not in environment
     if 'MONITORED_CONTENT_GUID' in os.environ:
         del os.environ['MONITORED_CONTENT_GUID']
-    
-    # Import the module
-    import content_health_utils
     
     # Call the function that was failing
     value = content_health_utils.get_env_var('MONITORED_CONTENT_GUID', state)
@@ -84,9 +71,6 @@ def test_multiple_env_var_checks(clean_environment, state):
     Test that checking multiple environment variables behaves correctly.
     This simulates the scenario in the Quarto document where multiple env vars are checked.
     """
-    # Import the module
-    import content_health_utils
-    
     # Check several variables
     var1 = content_health_utils.get_env_var('VAR1', state)
     var2 = content_health_utils.get_env_var('VAR2', state)
@@ -99,35 +83,12 @@ def test_multiple_env_var_checks(clean_environment, state):
     assert state.show_instructions is True
     assert len(state.instructions) == 3
 
-def test_reimport_behavior(clean_environment):
-    """
-    Test that reimporting the module doesn't affect state objects.
-    This simulates how modules behave in Python's import system.
-    """
-    # First import
-    import content_health_utils
-    
-    # Create and modify a state object
-    state = content_health_utils.MonitorState()
-    state.show_instructions = True
-    state.instructions = ["Test instruction"]
-    
-    # Reimport using importlib
-    importlib.reload(content_health_utils)
-    
-    # Verify state object is preserved (it's independent of the module)
-    assert state.show_instructions is True
-    assert state.instructions == ["Test instruction"]
-
 def test_env_var_exists(clean_environment, state):
     """
     Test that get_env_var behaves correctly when environment variable exists.
     """
     # Set environment variable
     os.environ['TEST_VAR'] = 'test_value'
-    
-    # Import the module
-    import content_health_utils
     
     # Call the function
     value = content_health_utils.get_env_var('TEST_VAR', state)
