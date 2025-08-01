@@ -4,7 +4,7 @@
   "metadata": {
     "appmode": "quarto-static"
   },
-    "extension": {
+  "extension": {
     "name": "content-health-monitor",
     "title": "Content Health Monitor",
     "description": "This report uses the publisher’s API key to monitor a single piece of content. It checks whether the content is reachable, but does not validate its functionality. When scheduled to run regularly, it will send an email alert if the content becomes unreachable.",
@@ -23,7 +23,7 @@
     }
   },
   "quarto": {
-    "version": "1.4.557",
+    "version": "1.6.43",
     "engines": [
       "jupyter"
     ]
@@ -32,16 +32,19 @@
     "version": "3.11.7",
     "package_manager": {
       "name": "pip",
-      "version": "23.2.1",
+      "version": "25.1.1",
       "package_file": "requirements.txt"
     }
   },
   "files": {
     "requirements.txt": {
-      "checksum": "09254fc2dfa7d869ffbc3da2abb1d224"
+      "checksum": "5f89d52674b219c0b0ed85f1a5785641"
     },
     "content-health-monitor.qmd": {
-      "checksum": "732af0f4ea846c37d3a7641c3bbd6ba3"
+      "checksum": "7a31430ef0d92505829e214ac85f8633"
+    },
+    "content_health_utils.py": {
+      "checksum": "73627372e41f90a2259ea5c0969d19a9"
     }
   }
 }
