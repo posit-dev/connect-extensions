@@ -11,7 +11,7 @@ setup:
 	pip install uv
 	uv venv
 	uv pip install -r requirements.txt
-	uv pip install pytest
+	uv pip install pytest rsconnect-python
 
 # Run all tests
 .PHONY: test
@@ -49,7 +49,7 @@ clean:
 .PHONY: update-manifest
 update-manifest:
 	cp manifest.json manifest.old.json
-	rsconnect write-manifest quarto content-health-monitor.qmd content_health_utils.py --overwrite
+	uv run rsconnect write-manifest quarto content-health-monitor.qmd content_health_utils.py --overwrite
 	jq -n --slurpfile old manifest.old.json --slurpfile new manifest.json \
 		'{"version": $$new[0].version, "locale": $$new[0].locale, "metadata": $$new[0].metadata, "extension": $$old[0].extension, "environment": $$old[0].environment} * ($$new[0] | del(.version, .locale, .metadata))' \
 		> manifest.merged.json
