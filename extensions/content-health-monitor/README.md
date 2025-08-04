@@ -28,16 +28,31 @@ For more advanced validation, modify the `validate()` function in `content_healt
 
 # Testing
 
-If customizing the code in this report here are some general test scenarios to consider:
+The Content Health Monitor includes a comprehensive test suite. You can run the tests using the provided Makefile or manually with pytest.
 
- - No MONITORED_CONTENT_GUID env var set
-     - If scheduled, DOES NOT send an email
- - Invalid GUID
-     - If scheduled, sends an email
- - Valid GUID for content you are a owner of
- - Valid GUID for content you are a collaborator of
- - Valid GUID for content you are a viewer of
- - Valid GUID for content you do not have access to (not in ACL, etc.)
-     - In the above setup, where the monitored content passing validation, if scheduled, DOES NOT send an email
- - Valid GUID, content is published but fails validation
-     - If scheduled, sends an email
+## Using the Makefile
+
+The project includes a Makefile with several targets to simplify common tasks:
+
+```bash
+# Setup environment and install dependencies
+make setup
+
+# Run all tests
+make test
+
+# Run only unit tests
+make test-unit
+
+# Run only integration tests
+make test-integration
+
+# Update manifest.json (preserves extension and environment blocks)
+make update-manifest
+
+# Show help with all available targets
+make help
+
+# Clean up virtual environment and cache files
+make clean
+```
