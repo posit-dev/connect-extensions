@@ -52,7 +52,6 @@ jobs:
             script-r: extensions/script-r/**
             top-5-income-share-streamlit: extensions/top-5-income-share-streamlit/**
             stock-report-jupyter: extensions/stock-report-jupyter/**
-            usage-metrics-dashboard: extensions/usage-metrics-dashboard/**
             content-health-monitor: extensions/content-health-monitor/**
             voila-example: extensions/voila-example/**
             stock-report: extensions/stock-report/**
@@ -190,6 +189,7 @@ jobs:
       publisher-command-center: ${{ steps.changes.outputs.publisher-command-center }}
       package-vulnerability-scanner: ${{ steps.changes.outputs.package-vulnerability-scanner }}
       runtime-version-scanner: ${{ steps.changes.outputs.runtime-version-scanner }}
+      usage-metrics-dashboard: ${{ steps.changes.outputs.usage-metrics-dashboard }}
 
     steps:
       - uses: actions/checkout@v4
@@ -205,6 +205,7 @@ jobs:
             publisher-command-center: extensions/publisher-command-center/**
             package-vulnerability-scanner: extensions/package-vulnerability-scanner/**
             runtime-version-scanner: extensions/runtime-version-scanner/**
+            usage-metrics-dashboard: extensions/usage-metrics-dashboard/**
 
   # Creates and releases the Publisher Command Center extension using a custom
   # workflow
@@ -234,6 +235,15 @@ jobs:
     uses: ./.github/workflows/runtime-version-scanner.yml
     secrets: inherit
 
+  # Creates and releases the Usage Metrics Dashboard extension using a custom workflow
+  usage-metrics-dashboard:
+    needs: [complex-extension-changes]
+    # Only runs if the `complex-extension-changes` job detects changes in the
+    # usage-metrics-dashboard extension directory
+    if: ${{ needs.complex-extension-changes.outputs.usage-metrics-dashboard == 'true' }}
+    uses: ./.github/workflows/usage-metrics-dashboard.yml
+    secrets: inherit
+
   # All extensions have been linted, packaged, and released, if necessary
   # Continuing to update the extension list with the latest release data
 
@@ -248,7 +258,8 @@ jobs:
       simple-extension-release,
       publisher-command-center,
       package-vulnerability-scanner,
-      runtime-version-scanner
+      runtime-version-scanner,
+      usage-metrics-dashboard,
     ]
     if: ${{ always() }}
     outputs:
