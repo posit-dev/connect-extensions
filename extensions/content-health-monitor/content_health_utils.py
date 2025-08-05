@@ -77,11 +77,7 @@ def get_env_var(var_name, state, description=""):
                 f'{two_tabs}<img src="images/settings-gear-icon.png" alt="Settings gear icon location" '
                 f'style="max-width: 80%; margin: 10px 0; border: 1px solid #ddd;"><br>'
                 f"{two_tabs}• Select the <b>Info</b> tab<br>"
-                # f'<img src="images/info-tab.png" alt="Info tab in settings" '
-                # f'style="max-width: 80%; margin: 10px 0; border: 1px solid #ddd;"><br>'
                 f"{two_tabs}• Scroll to the bottom and click the <b>copy</b> button next to the GUID<br>"
-                # f'<img src="images/guid-copy-button.png" alt="GUID copy button" '
-                # f'style="max-width: 80%; margin: 10px 0; border: 1px solid #ddd;"><br>'
                 f"{one_tab}<b>Option B:</b> Copy the full URL from your browser<br>"
                 f"{two_tabs}• If the address bar contains a GUID (ex: 1d97c1ff-e56c-4074-906f-cb3557685b75), "
                 f"you can simply copy the entire URL<br><br>"
@@ -89,10 +85,8 @@ def get_env_var(var_name, state, description=""):
                 f"<b>Step 2:</b> Return to this report to set the environment variable<br>"
                 f"{one_tab}• Click the <b>gear icon</b> to open <b>Content Settings</b><br>"
                 f"{one_tab}• Select the <b>Vars</b> tab<br>"
-                # f'<img src="images/vars-tab.png" alt="Vars tab in settings" style="max-width: 80%; margin: 10px 0; border: 1px solid #ddd;"><br>'
                 f"{one_tab}• Add a new variable named <code>{var_name}</code><br>"
                 f"{one_tab}• Paste the GUID you copied into the value field<br>"
-                # f'<img src="images/add-variable.png" alt="Adding environment variable" style="max-width: 80%; margin: 10px 0; border: 1px solid #ddd;"><br>'
                 f"{one_tab}• Click <b>Add Variable</b> and then <b>Save</b> to save it<br><br>"
 
                 f"<b>Step 3:</b> Click <b>Refresh Report</b> in the top right to to run a health check against the content specified in the new variable<br>"
