@@ -24,7 +24,6 @@
   },
   "quarto": {
     "version": "1.6.43",
-    "version": "1.6.43",
     "engines": [
       "jupyter"
     ]
@@ -40,19 +39,18 @@
   "files": {
     "requirements.txt": {
       "checksum": "5f89d52674b219c0b0ed85f1a5785641"
-      "checksum": "5f89d52674b219c0b0ed85f1a5785641"
     },
     "content-health-monitor.qmd": {
-      "checksum": "a83d589956cf93b0e4ae8d1181d4cab6"
+      "checksum": "8dfce167badb4d889eeb93d1f4adbff8"
     },
     "content_health_utils.py": {
-      "checksum": "b26b1e2aff3638ad7051010871335da8"
-    },
-    "images/settings-gear-icon.png": {
-      "checksum": "e2bc43263eb8a9179b6e0e5ab3e22450"
+      "checksum": "3d599ebe8d29aa12ae630acc847e290a"
     },
     "images/refresh-report.png": {
       "checksum": "e5680e6188eb8d659e4313cb89d0be3b"
+    },
+    "images/settings-gear-icon.png": {
+      "checksum": "e2bc43263eb8a9179b6e0e5ab3e22450"
     }
   }
 }
