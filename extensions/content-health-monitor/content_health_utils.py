@@ -95,7 +95,7 @@ def get_env_var(var_name, state, description=""):
                 # f'<img src="images/add-variable.png" alt="Adding environment variable" style="max-width: 80%; margin: 10px 0; border: 1px solid #ddd;"><br>'
                 f"{one_tab}• Click <b>Add Variable</b> and then <b>Save</b> to save it.<br><br>"
 
-                f"<b>Step 3:</b> Click <b>Refresh Report</b> in the top right to continue.<br>"
+                f"<b>Step 3:</b> Click <b>Refresh Report</b> in the top right to to run a health check against the content specified in the new variable.<br>"
                 f'<img src="images/refresh-report.png" alt="Refresh report button" style="max-width: 80%; margin: 10px 0; border: 1px solid #ddd;"><br><br>'
 
             )
