@@ -163,7 +163,7 @@ class TestGetEnvVar:
         assert result == ""
         assert state.show_instructions
         assert len(state.instructions) == 1
-        assert "Open the <b>Content Settings</b> panel" in state.instructions[0]
+        assert "you must configure the <code>MONITORED_CONTENT_GUID</code> environment variable" in state.instructions[0]
         assert f"<code>{var_name}</code>" in state.instructions[0]
     
     def test_get_env_var_with_description(self, state):

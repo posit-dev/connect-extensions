@@ -66,10 +66,32 @@ def get_env_var(var_name, state, description=""):
             instruction = f"Please set the <code>{var_name}</code> environment variable."
         # Detailed instructions for MONITORED_CONTENT_GUID
         else:
+            one_tab = "&nbsp;&nbsp;&nbsp;&nbsp;"  # For indentation in HTML
+            two_tabs = f"{one_tab}{one_tab}"  # For deeper indentation
             instruction = (
-                f"Open the <b>Content Settings</b> panel, then navigate to the <b>Vars</b> pane. "
-                f"Create a new environment variable named <code>{var_name}</code>, set its value to the GUID of the content you want to monitor, "
-                f"and click <b>Add Variable</b>. When you're done, click <b>Refresh Report</b> in the upper right toolbar menu to continue."
+                f"To monitor a piece of content you must configure the <code>{var_name}</code> environment variable.<br><br>"
+                
+                f"<b>Step 1:</b> Locate the content you want to monitor in a new browser tab or window<br>"
+                f"{one_tab}<b>Option A:</b> Copy the GUID from the Content Settings panel<br>"
+                f"{two_tabs}• Click the <b>gear icon</b> in the top right toolbar to open <b>Content Settings</b><br>"
+                f'{two_tabs}<img src="images/settings-gear-icon.png" alt="Settings gear icon location" '
+                f'style="max-width: 80%; margin: 10px 0; border: 1px solid #ddd;"><br>'
+                f"{two_tabs}• Select the <b>Info</b> tab<br>"
+                f"{two_tabs}• Scroll to the bottom and click the <b>copy</b> button next to the GUID<br>"
+                f"{one_tab}<b>Option B:</b> Copy the full URL from your browser<br>"
+                f"{two_tabs}• If the address bar contains a GUID (ex: 1d97c1ff-e56c-4074-906f-cb3557685b75), "
+                f"you can simply copy the entire URL<br><br>"
+
+                f"<b>Step 2:</b> Return to this report to set the environment variable<br>"
+                f"{one_tab}• Click the <b>gear icon</b> to open <b>Content Settings</b><br>"
+                f"{one_tab}• Select the <b>Vars</b> tab<br>"
+                f"{one_tab}• Add a new variable named <code>{var_name}</code><br>"
+                f"{one_tab}• Paste the GUID you copied into the value field<br>"
+                f"{one_tab}• Click <b>Add Variable</b> and then <b>Save</b> to save it<br><br>"
+
+                f"<b>Step 3:</b> Click <b>Refresh Report</b> in the top right to to run a health check against the content specified in the new variable<br>"
+                f'<img src="images/refresh-report.png" alt="Refresh report button" style="max-width: 80%; margin: 10px 0; border: 1px solid #ddd;"><br><br>'
+
             )
         
         if description:
