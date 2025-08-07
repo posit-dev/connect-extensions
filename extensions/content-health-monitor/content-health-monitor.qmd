@@ -15,8 +15,7 @@ import requests
 import datetime
 from posit import connect
 from IPython.display import HTML, display
-from content_health_utils import *
-from content_health_utils import MonitorState
+from content_health_utils import *  # Imports everything including MonitorState and DEFAULT_USER_NAME
 
 # Create state object to share between this file and utils
 state = MonitorState()
@@ -26,6 +25,9 @@ show_error = False        # Used to display on-screen error messages if API erro
 error_message = None      # Error message to display if API errors occur
 error_guid = None         # GUID that caused the error
 content_result = None     # Variable to store content monitoring result
+
+# Initialize current user name with the default value from utils
+current_user_name = DEFAULT_USER_NAME  # Will be updated if user info can be retrieved
 
 # Read environment variables
 connect_server = get_env_var("CONNECT_SERVER", state) # Automatically provided by Connect, must be set when previewing locally
@@ -40,32 +42,29 @@ if monitored_content_guid:
         state.show_instructions = True
         state.instructions.append(guid_error_message)
 
-# Only instantiate the client if we have the required environment variables
+# Check if we have the required environment variables to instantiate the client
 client = None
-if not state.show_instructions:
+has_connect_env_vars = connect_server and api_key
+
+if has_connect_env_vars:
     try:
-        # Instantiate a Connect client using posit-sdk where api_key and url are automatically read from our environment vars
+        # Instantiate a Connect client using posit-sdk
         client = connect.Client()
+        
+        # Get current user's full name - function handles errors internally
+        user_name = get_current_user_full_name(client)
+        if user_name != "Unknown":  # Only update if we got a valid name
+            current_user_name = user_name
     except ValueError as e:
-        state.show_instructions = True
-        state.instructions.append(f"<b>Error initializing Connect client:</b> {str(e)}")
+        if not state.show_instructions:
+            state.show_instructions = True
+            state.instructions.append(f"<b>Error initializing Connect client:</b> {str(e)}")
 
 
 # ------ DATA GATHERING SECTION ------ #
 # Always record the current time for reporting purposes
 check_time = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
 
-# Initialize current user name with a default for display
-current_user_name = "the publisher"  # Default, used if no name is available
-
-# Get current user's full name if client is available
-if not state.show_instructions and client:
-    try:
-        user_name = get_current_user_full_name(client)
-        if user_name:  # Only update if we got a valid name
-            current_user_name = user_name
-    except Exception as e:
-        print(f"Warning: Could not get current user name: {str(e)}")
 
 # Only proceed with content validation if we have all requirements
 # (state.show_instructions=False already tells us env vars are set and client was initialized)
