@@ -47,9 +47,42 @@ jobs:
         connect_version: ${{ fromJson(needs.setup-test.outputs.versions) }}
     steps:
       - uses: actions/checkout@v4
+      
+      # Check if this Connect version should be tested with this extension
+      - id: check_version
+        run: |
+          EXTENSION="${{ matrix.extension }}"
+          CONNECT_VERSION="${{ matrix.connect_version }}"
+          MANIFEST_FILE="extensions/$EXTENSION/manifest.json"
+          
+          echo "::group::Checking version compatibility for $EXTENSION with Connect $CONNECT_VERSION"
+          
+          # Extract the minimum Connect version
+          MIN_VERSION=$(jq -r '.extension.minimumConnectVersion' "$MANIFEST_FILE")
+          echo "Extension $EXTENSION requires minimum Connect version: $MIN_VERSION"
+          
+          # Always run tests for preview version, otherwise check version compatibility
+          if [[ "$CONNECT_VERSION" == "connect-preview" ]]; then
+            echo "Always testing with preview version"
+            RUN_TEST=true
+          else
+            # Compare versions - if current version is older than minimum version, skip test
+            if [[ "$(printf '%s\n' "$MIN_VERSION" "$CONNECT_VERSION" | sort -V | head -n1)" == "$CONNECT_VERSION" && 
+                  "$MIN_VERSION" != "$CONNECT_VERSION" ]]; then
+              echo "⏭️ SKIPPING TEST: $CONNECT_VERSION is older than required minimum version $MIN_VERSION"
+              RUN_TEST=false
+            else
+              echo "✅ RUNNING TEST: $CONNECT_VERSION meets minimum version requirement $MIN_VERSION"
+              RUN_TEST=true
+            fi
+          fi
+          
+          echo "run_test=$RUN_TEST" >> $GITHUB_OUTPUT
+          echo "::endgroup::"
 
       - uses: ./.github/actions/connect-integration-test
         id: test
+        if: steps.check_version.outputs.run_test == 'true'
         with:
           extension-name: ${{ matrix.extension }}
           connect-version: ${{ matrix.connect_version }}
@@ -59,6 +92,7 @@ jobs:
       - uses: actions/upload-artifact@v4
         if: |
           always() && 
+          steps.check_version.outputs.run_test == 'true' &&
           steps.test.outcome != 'cancelled' && 
           steps.test.outcome != 'skipped'
         with:
