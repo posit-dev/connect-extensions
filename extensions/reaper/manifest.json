@@ -34,7 +34,7 @@
     "title": "Process Monitor",
     "description": "A process management tool for Connect. Monitor running processes for your apps and dashboards: see detailed information about them and terminate them if they are stuck or causing issues.",
     "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/reaper",
-    "minimumConnectVersion": "2025.04.0",
+    "minimumConnectVersion": "2025.06.0",
     "version": "0.0.0"
   }
 }
