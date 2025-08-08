@@ -118,14 +118,21 @@ jobs:
           
           # Convert the array of JSON strings into a proper JSON array
           # This creates the final matrix to be used by the test job
-          matrix_json=$(printf '%s\n' "${matrix_pairs[@]}" | jq -s .)
+          if [ ${#matrix_pairs[@]} -eq 0 ]; then
+            matrix_json="[]"
+          else
+            # Use jq with compact output (-c) for GitHub Actions compatibility
+            matrix_json=$(printf '%s\n' "${matrix_pairs[@]}" | jq -c -s .)
+          fi
           
-          # Set the output that will be used by downstream jobs
-          echo "matrix=$matrix_json" >> $GITHUB_OUTPUT
+          # Set the output that will be used by downstream jobs - no indentation
+          echo "matrix=${matrix_json}" >> $GITHUB_OUTPUT
           
           # Output matrix for debugging
           echo "::group::Generated compatibility matrix"
-          echo "$matrix_json" | jq .
+          echo "Generated $(echo "$matrix_json" | jq 'length') combinations"
+          # Print raw (no indentation, compact format)
+          echo "$matrix_json"
           echo "::endgroup::"
 
   # Run the Connect integration tests for each extension against compatible Connect versions only
