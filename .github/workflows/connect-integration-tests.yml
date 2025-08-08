@@ -70,6 +70,9 @@ jobs:
           echo "::group::Generating compatibility matrix for extensions"
           echo "All available Connect versions: $ALL_VERSIONS"
           echo "Extensions to test: $EXTENSIONS"
+          
+          # Extract versions list for direct checking
+          CONNECT_VERSIONS=$(echo "$ALL_VERSIONS" | jq -r '.[]')
           echo "::endgroup::"
           
           # This array will hold all the valid extension+version combinations
@@ -86,6 +89,13 @@ jobs:
             # Extract the minimumConnectVersion (linting ensures this exists)
             MIN_VERSION=$(jq -r '.extension.minimumConnectVersion' "$MANIFEST_FILE")
             echo "Extension $ext requires minimum Connect version: $MIN_VERSION"
+            
+            # VALIDATION: Check if minimumConnectVersion exists in CONNECT_VERSIONS list
+            if ! echo "$CONNECT_VERSIONS" | grep -q "^$MIN_VERSION$"; then
+              echo "❌ ERROR: Extension $ext requires Connect version $MIN_VERSION which is not in CONNECT_VERSIONS list!"
+              echo "❌ Please add $MIN_VERSION to CONNECT_VERSIONS in integration/Makefile"
+              exit 1
+            fi
             
             # RULE 1: Always include the preview version for all extensions
             # This ensures we always test with the latest development version
