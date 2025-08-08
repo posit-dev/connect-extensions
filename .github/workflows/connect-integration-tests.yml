@@ -1,5 +1,18 @@
 name: Connect Integration Tests
 
+# This workflow tests Connect extensions against compatible versions of Posit Connect.
+# It determines compatibility based on each extension's minimumConnectVersion property,
+# which is required in all extension manifests.
+#
+# Key workflow features:
+# 1. Determines all available Connect versions from integration/Makefile
+# 2. Reads each extension's minimumConnectVersion from its manifest
+# 3. Creates a dynamic test matrix that only includes compatible combinations:
+#    - All extensions are ALWAYS tested with the preview version
+#    - Extensions are ONLY tested with Connect versions that meet or exceed their minimumConnectVersion
+# 4. Runs integration tests only for compatible combinations (instead of skipped jobs polluting results)
+# 5. Collects and analyzes test results to determine which extensions passed all their tests
+
 on:
   workflow_call:
     inputs:
@@ -34,55 +47,106 @@ jobs:
           echo "Versions: $versions"
           echo "versions=$versions" >> "$GITHUB_OUTPUT"
 
-  # Run the Connect integration tests for each extension against each Connect version
-  test:
+  # Determine compatible Connect versions for each extension based on minimumConnectVersion
+  setup-extension-versions:
     runs-on: ubuntu-latest
-    timeout-minutes: 15 # Max time to run the integration tests
+    timeout-minutes: 5
     needs: setup-test
-    strategy:
-      # Do not fail fast so all extensions and Connect versions are processed
-      fail-fast: false
-      matrix:
-        extension: ${{ fromJson(inputs.extensions) }}
-        connect_version: ${{ fromJson(needs.setup-test.outputs.versions) }}
+    outputs:
+      matrix: ${{ steps.generate_matrix.outputs.matrix }}
     steps:
       - uses: actions/checkout@v4
       
-      # Check if this Connect version should be tested with this extension
-      - id: check_version
+      # This step generates a matrix of compatible extension/version combinations
+      # by checking each extension's minimumConnectVersion against available Connect versions
+      - id: generate_matrix
+        name: Generate extension-version compatibility matrix
         run: |
-          EXTENSION="${{ matrix.extension }}"
-          CONNECT_VERSION="${{ matrix.connect_version }}"
-          MANIFEST_FILE="extensions/$EXTENSION/manifest.json"
+          # Get the list of all Connect versions from the setup-test job
+          ALL_VERSIONS=$(echo '${{ needs.setup-test.outputs.versions }}')
+          # Get the list of extensions we need to test from workflow inputs
+          EXTENSIONS=$(echo '${{ inputs.extensions }}')
           
-          echo "::group::Checking version compatibility for $EXTENSION with Connect $CONNECT_VERSION"
+          echo "::group::Generating compatibility matrix for extensions"
+          echo "All available Connect versions: $ALL_VERSIONS"
+          echo "Extensions to test: $EXTENSIONS"
+          echo "::endgroup::"
           
-          # Extract the minimum Connect version
-          MIN_VERSION=$(jq -r '.extension.minimumConnectVersion' "$MANIFEST_FILE")
-          echo "Extension $EXTENSION requires minimum Connect version: $MIN_VERSION"
+          # This array will hold all the valid extension+version combinations
+          # Each entry will be a JSON object: {"extension": "ext-name", "connect_version": "ver"}
+          matrix_pairs=()
           
-          # Always run tests for preview version, otherwise check version compatibility
-          if [[ "$CONNECT_VERSION" == "connect-preview" ]]; then
-            echo "Always testing with preview version"
-            RUN_TEST=true
-          else
-            # Compare versions - if current version is older than minimum version, skip test
-            if [[ "$(printf '%s\n' "$MIN_VERSION" "$CONNECT_VERSION" | sort -V | head -n1)" == "$CONNECT_VERSION" && 
-                  "$MIN_VERSION" != "$CONNECT_VERSION" ]]; then
-              echo "⏭️ SKIPPING TEST: $CONNECT_VERSION is older than required minimum version $MIN_VERSION"
-              RUN_TEST=false
-            else
-              echo "✅ RUNNING TEST: $CONNECT_VERSION meets minimum version requirement $MIN_VERSION"
-              RUN_TEST=true
-            fi
-          fi
+          # Process each extension separately to find compatible versions
+          for ext in $(echo "$EXTENSIONS" | jq -r '.[]'); do
+            echo "::group::Processing extension: $ext"
+            
+            # Get minimumConnectVersion from the extension's manifest.json
+            MANIFEST_FILE="extensions/$ext/manifest.json"
+            
+            # Extract the minimumConnectVersion (linting ensures this exists)
+            MIN_VERSION=$(jq -r '.extension.minimumConnectVersion' "$MANIFEST_FILE")
+            echo "Extension $ext requires minimum Connect version: $MIN_VERSION"
+            
+            # RULE 1: Always include the preview version for all extensions
+            # This ensures we always test with the latest development version
+            matrix_pairs+=("{\"extension\":\"$ext\",\"connect_version\":\"connect-preview\"}")
+            echo "✅ Always adding connect-preview for $ext"
+            
+            # Process each Connect version for this extension
+            for version in $(echo "$ALL_VERSIONS" | jq -r '.[]'); do
+              # Skip the preview version (already added above)
+              if [[ "$version" == "connect-preview" ]]; then
+                continue
+              fi
+              
+              # RULE 2: Only include Connect versions that meet or exceed minimumConnectVersion
+              # Using sort -V for semantic version comparison (standard in GNU sort)
+              # The head -n1 returns the lower version after sorting
+              # If the current version is the minimum or higher, it's compatible
+              if [[ "$(printf '%s\n' "$MIN_VERSION" "$version" | sort -V | head -n1)" == "$MIN_VERSION" || 
+                    "$MIN_VERSION" == "$version" ]]; then
+                matrix_pairs+=("{\"extension\":\"$ext\",\"connect_version\":\"$version\"}")
+                echo "✅ Adding $version for $ext (meets minimum version $MIN_VERSION)"
+              else
+                # Skip incompatible versions (lower than minimum requirement)
+                echo "⏭️ Excluding $version for $ext (below minimum version $MIN_VERSION)"
+              fi
+            done
+            
+            echo "::endgroup::"
+          done
           
-          echo "run_test=$RUN_TEST" >> $GITHUB_OUTPUT
+          # Convert the array of JSON strings into a proper JSON array
+          # This creates the final matrix to be used by the test job
+          matrix_json=$(printf '%s\n' "${matrix_pairs[@]}" | jq -s .)
+          
+          # Set the output that will be used by downstream jobs
+          echo "matrix=$matrix_json" >> $GITHUB_OUTPUT
+          
+          # Output matrix for debugging
+          echo "::group::Generated compatibility matrix"
+          echo "$matrix_json" | jq .
           echo "::endgroup::"
 
+  # Run the Connect integration tests for each extension against compatible Connect versions only
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15 # Max time to run the integration tests
+    needs: [setup-test, setup-extension-versions]
+    strategy:
+      # Do not fail fast so all extensions and Connect versions are processed
+      fail-fast: false
+      # Use the dynamically generated matrix from setup-extension-versions
+      # This will only create jobs for extension/version combinations that are compatible
+      # based on each extension's minimumConnectVersion requirement
+      matrix:
+        include: ${{ fromJson(needs.setup-extension-versions.outputs.matrix) }}
+    steps:
+      - uses: actions/checkout@v4
+
+      # Run the integration test for this extension/version combination
       - uses: ./.github/actions/connect-integration-test
         id: test
-        if: steps.check_version.outputs.run_test == 'true'
         with:
           extension-name: ${{ matrix.extension }}
           connect-version: ${{ matrix.connect_version }}
@@ -90,19 +154,15 @@ jobs:
 
       # Upload the test report XML files as artifacts for use by downstream jobs
       - uses: actions/upload-artifact@v4
-        if: |
-          always() && 
-          steps.check_version.outputs.run_test == 'true' &&
-          steps.test.outcome != 'cancelled' && 
-          steps.test.outcome != 'skipped'
+        if: always() && steps.test.outcome != 'cancelled' && steps.test.outcome != 'skipped'
         with:
           name: ${{ matrix.extension }}-${{ matrix.connect_version }}-test-report
           path: integration/reports/*.xml
           retention-days: 7
 
-  # Using the XML test reports provide a matrix of extensions that passed all of the Connect integration tests
+  # Aggregate test results to determine which extensions passed all their tests
   collect-results:
-    needs: [test, setup-test]
+    needs: [test, setup-extension-versions]
     runs-on: ubuntu-latest
     timeout-minutes: 5
     outputs:
@@ -115,13 +175,15 @@ jobs:
           path: artifacts
           pattern: "*-test-report"
           
+      # Collect and analyze results from test reports
       - id: collect
+        name: Collect and analyze test results
         run: |
           # Validate inputs first
-          all_versions='${{ needs.setup-test.outputs.versions }}'
           extensions='${{ inputs.extensions }}'
+          matrix='${{ needs.setup-extension-versions.outputs.matrix }}'
 
-          if [[ -z "$all_versions" || -z "$extensions" ]]; then
+          if [[ -z "$matrix" || -z "$extensions" ]]; then
             echo "❌ Missing required inputs"
             exit 1
           fi
@@ -129,30 +191,39 @@ jobs:
           # Debug info
           echo "::group::Debug Inputs"
           echo "Extensions to check: $extensions"
-          echo "Connect versions: $all_versions"
+          echo "Test matrix: $matrix"
           echo "::endgroup::"
           
           # Track extensions that passed ALL version tests
           success_list=()
           
+          # Process each extension to determine if it passed all its tests
           for ext in $(echo "$extensions" | jq -r '.[]'); do
             all_passed=true
             echo "📦 Checking extension: $ext"
             
-            for version in $(echo "$all_versions" | jq -r '.[]'); do
+            # Get the list of versions that should have been tested for this extension
+            # This uses the filtered matrix so we only check versions that were actually tested
+            versions_for_extension=$(echo "$matrix" | jq -r --arg ext "$ext" '[.[] | select(.extension == $ext) | .connect_version]')
+            echo "Versions for $ext: $versions_for_extension"
+            
+            # Check each version that was tested for this extension
+            for version in $(echo "$versions_for_extension" | jq -r '.[]'); do
               echo "🔎 Checking $ext @ $version"
               report_dir="artifacts/${ext}-${version}-test-report"
               
+              # Check if we have test results for this combination
               if [ ! -d "$report_dir" ]; then
                 echo "❌ No test report for $ext @ $version"
                 all_passed=false
                 break
               fi
               
-              # Use grep to check for failures/errors using XML test report attributes
+              # Check for test failures/errors in XML report attributes
               failures=$(grep -o 'failures="[0-9]*"' "$report_dir"/*.xml | sed 's/failures="//g' | sed 's/"//g' | awk '{sum+=$1} END {print sum}' || echo "0")
               errors=$(grep -o 'errors="[0-9]*"' "$report_dir"/*.xml | sed 's/errors="//g' | sed 's/"//g' | awk '{sum+=$1} END {print sum}' || echo "0")
               
+              # If there were failures or errors, mark this extension as failed
               if [ "$failures" -gt 0 ] || [ "$errors" -gt 0 ]; then
                 echo "❌ Found $failures failures, $errors errors in test suite attributes"
                 # Extract and show some error details for debugging
@@ -167,6 +238,7 @@ jobs:
               fi
             done
             
+            # Add to success list if all version tests passed
             if [ "$all_passed" = "true" ]; then
               success_list+=("$ext")
               echo "🎉 SUCCESS: $ext passed ALL versions"
@@ -175,7 +247,8 @@ jobs:
             fi
           done
           
-          # Format output and ensure we always have a valid JSON array
+          # Format output as a valid JSON array
+          # Handle the case where no extensions passed
           if [ ${#success_list[@]} -eq 0 ]; then
             successful_extensions="[]"
           else
