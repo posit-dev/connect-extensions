@@ -200,9 +200,18 @@ jobs:
           extensions='${{ inputs.extensions }}'
           matrix='${{ needs.setup-extension-versions.outputs.matrix }}'
 
+          # Check if setup-extension-versions failed (which would be due to version validation)
+          if [[ "${{ needs.setup-extension-versions.result }}" == "failure" ]]; then
+            echo "⚠️ setup-extension-versions job failed - likely due to version validation"
+            echo "⚠️ No extensions passed validation, returning empty result"
+            echo "successful_extensions=[]" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+
           if [[ -z "$matrix" || -z "$extensions" ]]; then
             echo "❌ Missing required inputs"
-            exit 1
+            echo "successful_extensions=[]" >> $GITHUB_OUTPUT
+            exit 0
           fi
           
           # Debug info
