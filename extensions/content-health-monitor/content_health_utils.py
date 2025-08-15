@@ -259,7 +259,8 @@ def validate(client, guid, connect_server, api_key):
     try:
         # Use the content_url if available
         if not content_url:
-            content_url = f"{connect_server}/content/{guid}"
+            base_url = connect_server.rstrip('/')
+            content_url = f"{base_url}/content/{guid}"
             
         content_response = requests.get(
             content_url, 

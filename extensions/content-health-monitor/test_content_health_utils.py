@@ -488,6 +488,36 @@ class TestValidateFunction:
             mock_get.assert_called_once()
             args, kwargs = mock_get.call_args
             assert args[0] == f"{connect_test_server}/content/{guid}"
+            
+    def test_validate_missing_content_url_with_trailing_slash(self, mock_client, valid_content_response, valid_user_response, 
+                                                  mock_response, api_test_key):
+        """Test validate when content_url is missing and connect_server has a trailing slash"""
+        # Setup - content details without content_url
+        guid = valid_content_response["guid"]
+        content_without_url = valid_content_response.copy()
+        del content_without_url["content_url"]
+        mock_client.content.get.return_value = content_without_url
+        
+        # Setup - owner details
+        mock_client.users.get.return_value = valid_user_response
+        
+        # Setup - connect_server with trailing slash
+        connect_server_with_trailing_slash = "https://connect.example.com/"
+        
+        # Setup - HTTP request
+        with patch('requests.get', return_value=mock_response) as mock_get:
+            # Execute
+            result = validate(mock_client, guid, connect_server_with_trailing_slash, api_test_key)
+            
+            # Assert
+            assert result["guid"] == guid
+            assert result["status"] == STATUS_PASS
+            
+            # Verify HTTP request was made with correctly constructed URL - no double slash
+            mock_get.assert_called_once()
+            args, kwargs = mock_get.call_args
+            assert args[0] == "https://connect.example.com/content/{0}".format(guid)
+            assert "//" not in args[0].replace("https://", "")
     
     def test_validate_no_title_fallback_to_name(self, mock_client, valid_user_response, mock_response,
                                      connect_test_server, api_test_key):

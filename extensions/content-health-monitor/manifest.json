@@ -32,7 +32,7 @@
     "version": "3.11.7",
     "package_manager": {
       "name": "pip",
-      "version": "24.2",
+      "version": "25.1.1",
       "package_file": "requirements.txt"
     }
   },
@@ -44,7 +44,7 @@
       "checksum": "b9d7b54bd001f48f8af928b26be91a8f"
     },
     "content_health_utils.py": {
-      "checksum": "3d599ebe8d29aa12ae630acc847e290a"
+      "checksum": "4a645a030421b138e4280b7f17651783"
     },
     "images/refresh-report.png": {
       "checksum": "e5680e6188eb8d659e4313cb89d0be3b"
