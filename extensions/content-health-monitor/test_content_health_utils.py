@@ -21,6 +21,7 @@ STATUS_PASS = content_health_utils.STATUS_PASS
 # Functions from content_health_utils
 check_server_reachable = content_health_utils.check_server_reachable
 extract_error_details = content_health_utils.extract_error_details
+extract_guid = content_health_utils.extract_guid
 format_error_message = content_health_utils.format_error_message
 get_content = content_health_utils.get_content
 get_env_var = content_health_utils.get_env_var
@@ -248,6 +249,67 @@ class TestFormatErrorMessage:
             
             # Assert - Since the JSON is invalid, it should return the original string
             assert result == error_text
+
+
+# Tests for extract_guid function
+class TestExtractGuid:
+    
+    def test_extract_guid_with_valid_guid(self):
+        """Test extract_guid with a valid GUID string"""
+        # Setup - Valid GUID string
+        input_string = "1d97c1ff-e56c-4074-906f-cb3557685b75"
+        
+        # Execute
+        result, error_message = extract_guid(input_string)
+        
+        # Assert
+        assert result == input_string
+        assert error_message is None
+    
+    def test_extract_guid_with_valid_guid_in_url(self):
+        """Test extract_guid with a URL containing a valid GUID"""
+        # Setup - URL with GUID
+        guid = "1d97c1ff-e56c-4074-906f-cb3557685b75"
+        input_string = f"https://connect.example.com/content/{guid}/"
+        
+        # Execute
+        result, error_message = extract_guid(input_string)
+        
+        # Assert
+        assert result == guid
+        assert error_message is None
+    
+    def test_extract_guid_with_url_no_guid(self):
+        """Test extract_guid with a URL that does not contain a GUID"""
+        # Setup - URL without GUID
+        input_string = "https://connect.example.com/content/dashboard"
+        
+        # Execute
+        result, error_message = extract_guid(input_string)
+        
+        # Assert
+        assert result == input_string
+        assert error_message is not None
+        assert "The URL provided in <code>MONITORED_CONTENT_GUID</code> does not contain a valid GUID" in error_message
+        assert "The URL should contain a GUID like: <code>1d97c1ff-e56c-4074-906f-cb3557685b75</code>" in error_message
+        assert f"<a href=\"{input_string}\" target=\"_blank\" rel=\"noopener noreferrer\">" in error_message
+        assert "Please update your environment variable with a valid GUID or a URL containing a GUID" in error_message
+    
+    def test_extract_guid_with_plain_text(self):
+        """Test extract_guid with plain text that is not a URL and does not contain a GUID"""
+        # Setup - Plain text input
+        input_string = "some-content-name"
+        
+        # Execute
+        result, error_message = extract_guid(input_string)
+        
+        # Assert
+        assert result == input_string
+        assert error_message is not None
+        assert "The value provided in <code>MONITORED_CONTENT_GUID</code> is not a valid GUID" in error_message
+        assert "A valid GUID looks like: <code>1d97c1ff-e56c-4074-906f-cb3557685b75</code>" in error_message
+        assert f"The provided value was: <code>{input_string}</code>" in error_message
+        assert "Please update your environment variable with a valid GUID or a URL containing a GUID" in error_message
 
 
 # Tests for get_content and get_user functions
