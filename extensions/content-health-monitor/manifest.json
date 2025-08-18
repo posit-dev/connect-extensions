@@ -32,7 +32,7 @@
     "version": "3.11.7",
     "package_manager": {
       "name": "pip",
-      "version": "24.2",
+      "version": "25.1.1",
       "package_file": "requirements.txt"
     }
   },
@@ -41,10 +41,10 @@
       "checksum": "5f89d52674b219c0b0ed85f1a5785641"
     },
     "content-health-monitor.qmd": {
-      "checksum": "b9d7b54bd001f48f8af928b26be91a8f"
+      "checksum": "db9599dc24337de8c0becbcefb203371"
     },
     "content_health_utils.py": {
-      "checksum": "3d599ebe8d29aa12ae630acc847e290a"
+      "checksum": "3fc5386653742d8bf625686e486466ea"
     },
     "images/refresh-report.png": {
       "checksum": "e5680e6188eb8d659e4313cb89d0be3b"

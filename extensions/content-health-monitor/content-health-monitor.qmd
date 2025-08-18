@@ -34,7 +34,11 @@ monitored_content_guid = get_env_var("MONITORED_CONTENT_GUID", state)
 
 # Extract GUID if it's a string or URL containing a GUID
 if monitored_content_guid:
-    monitored_content_guid = extract_guid(monitored_content_guid)
+    monitored_content_guid, guid_error_message = extract_guid(monitored_content_guid)
+    # Handle URL with no GUID error
+    if guid_error_message:
+        state.show_instructions = True
+        state.instructions.append(guid_error_message)
 
 # Only instantiate the client if we have the required environment variables
 client = None

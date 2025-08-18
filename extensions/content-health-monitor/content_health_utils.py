@@ -131,17 +131,36 @@ def extract_guid(input_string):
         input_string: String that may contain a GUID
         
     Returns:
-        str: Extracted GUID or original string if no GUID found
+        tuple: (extracted_guid, error_message)
+            - extracted_guid: The extracted GUID or original string if no GUID found
+            - error_message: Error message if the input doesn't contain a valid GUID, None otherwise
     """
     # Match UUIDs in various formats that might appear in URLs
     guid_pattern = re.compile(r'[0-9a-fA-F]{8}-?[0-9a-fA-F]{4}-?[0-9a-fA-F]{4}-?[0-9a-fA-F]{4}-?[0-9a-fA-F]{12}')
     
     match = guid_pattern.search(input_string)
     if match:
-        return match.group(0)
+        return match.group(0), None
     
-    # Return original string if no GUID found
-    return input_string
+    # Check if the input looks like a URL but doesn't contain a GUID
+    url_pattern = re.compile(r'^https?://', re.IGNORECASE)
+    if url_pattern.match(input_string):
+        error_message = (
+            f"The URL provided in <code>MONITORED_CONTENT_GUID</code> does not contain a valid GUID. "
+            f"The URL should contain a GUID like: <code>1d97c1ff-e56c-4074-906f-cb3557685b75</code><br><br>"
+            f"The URL provided is: <a href=\"{input_string}\" target=\"_blank\" rel=\"noopener noreferrer\">{input_string}</a><br><br>"
+            f"Please update your environment variable with a valid GUID or a URL containing a GUID."
+        )
+        return input_string, error_message
+    
+    # Handle non-URL strings that don't match GUID format
+    error_message = (
+        f"The value provided in <code>MONITORED_CONTENT_GUID</code> is not a valid GUID. "
+        f"A valid GUID looks like: <code>1d97c1ff-e56c-4074-906f-cb3557685b75</code><br><br>"
+        f"The provided value was: <code>{input_string}</code><br><br>"
+        f"Please update your environment variable with a valid GUID or a URL containing a GUID."
+    )
+    return input_string, error_message
 
 # Function to get content details from Connect API
 def get_content(client, guid):
@@ -259,7 +278,8 @@ def validate(client, guid, connect_server, api_key):
     try:
         # Use the content_url if available
         if not content_url:
-            content_url = f"{connect_server}/content/{guid}"
+            base_url = connect_server.rstrip('/')
+            content_url = f"{base_url}/content/{guid}"
             
         content_response = requests.get(
             content_url, 
