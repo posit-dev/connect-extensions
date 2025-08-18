@@ -139,7 +139,7 @@ send_email = utils.should_send_email(show_error, content_result)
 :::
 
 ::: {.subject}
-`{python} f"❌ Content Health Monitor - \"{content_result.get('name', 'Unknown Content') if content_result else 'Unknown Content'}\" has failed monitoring"`
+`{python} f"{('❌' if content_result and content_result.get('status') == 'FAIL' else '✅')} Content Health Monitor - \"{content_result.get('name', 'Unknown Content') if content_result else 'Unknown Content'}\" {('has failed monitoring' if content_result and content_result.get('status') == 'FAIL' else 'is healthy')}"`
 :::
 
 ```{python}
