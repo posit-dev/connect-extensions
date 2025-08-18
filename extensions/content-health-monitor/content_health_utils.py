@@ -63,9 +63,9 @@ def get_env_var(var_name, state, description=""):
         state.show_instructions = True
         
         # Generic instruction for most variables
-        if var_name != "MONITORED_CONTENT_GUID":
+        if var_name != "MONITORED_CONTENT":
             instruction = f"Please set the <code>{var_name}</code> environment variable."
-        # Detailed instructions for MONITORED_CONTENT_GUID
+        # Detailed instructions for MONITORED_CONTENT
         else:
             one_tab = "&nbsp;&nbsp;&nbsp;&nbsp;"  # For indentation in HTML
             two_tabs = f"{one_tab}{one_tab}"  # For deeper indentation
@@ -147,7 +147,7 @@ def extract_guid(input_string):
     url_pattern = re.compile(r'^https?://', re.IGNORECASE)
     if url_pattern.match(input_string):
         error_message = (
-            f"The URL provided in <code>MONITORED_CONTENT_GUID</code> does not contain a valid GUID. "
+            f"The URL provided in <code>MONITORED_CONTENT</code> does not contain a valid GUID. "
             f"The URL should contain a GUID like: <code>1d97c1ff-e56c-4074-906f-cb3557685b75</code><br><br>"
             f"The URL provided is: <a href=\"{input_string}\" target=\"_blank\" rel=\"noopener noreferrer\">{input_string}</a><br><br>"
             f"Please update your environment variable with a valid GUID or a URL containing a GUID."
@@ -156,7 +156,7 @@ def extract_guid(input_string):
     
     # Handle non-URL strings that don't match GUID format
     error_message = (
-        f"The value provided in <code>MONITORED_CONTENT_GUID</code> is not a valid GUID. "
+        f"The value provided in <code>MONITORED_CONTENT</code> is not a valid GUID. "
         f"A valid GUID looks like: <code>1d97c1ff-e56c-4074-906f-cb3557685b75</code><br><br>"
         f"The provided value was: <code>{input_string}</code><br><br>"
         f"Please update your environment variable with a valid GUID or a URL containing a GUID."
@@ -376,7 +376,7 @@ def create_error_box(guid, error_msg):
         </div>
         
         <div style="{CSS_FOOTER_STYLE}">
-            Please check that your <code>MONITORED_CONTENT_GUID</code> environment variable contains a valid content identifier.
+            Please check that your <code>MONITORED_CONTENT</code> environment variable contains a valid content identifier.
         </div>
     </div>
     """
@@ -395,7 +395,7 @@ def create_no_results_box():
                 <li>There was an issue connecting to the specified content</li>
                 <li>The environment is properly configured but there was an error that caused no data to be returned</li>
             </ul>
-            <p>Please check your MONITORED_CONTENT_GUID environment variable and ensure it contains a valid content identifier.</p>
+            <p>Please check your MONITORED_CONTENT environment variable and ensure it contains a valid content identifier.</p>
         </div>
     </div>
     """

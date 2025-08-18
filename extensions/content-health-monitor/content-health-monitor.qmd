@@ -32,7 +32,7 @@ current_user_name = utils.DEFAULT_USER_NAME  # Will be updated if user info can 
 # Read environment variables
 connect_server = utils.get_env_var("CONNECT_SERVER", state) # Automatically provided by Connect, must be set when previewing locally
 api_key = utils.get_env_var("CONNECT_API_KEY", state) # Automatically provided by Connect, must be set when previewing locally
-monitored_content_guid = utils.get_env_var("MONITORED_CONTENT_GUID", state)
+monitored_content_guid = utils.get_env_var("MONITORED_CONTENT", state)
 
 # Extract GUID if it's a string or URL containing a GUID
 if monitored_content_guid:
