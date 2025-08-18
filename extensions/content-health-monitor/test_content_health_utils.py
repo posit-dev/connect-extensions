@@ -293,7 +293,7 @@ class TestExtractGuid:
         assert "The URL provided in <code>MONITORED_CONTENT</code> does not contain a valid GUID" in error_message
         assert "The URL should contain a GUID like: <code>1d97c1ff-e56c-4074-906f-cb3557685b75</code>" in error_message
         assert f"<a href=\"{input_string}\" target=\"_blank\" rel=\"noopener noreferrer\">" in error_message
-        assert "Please update your environment variable with a valid GUID or a URL containing a GUID" in error_message
+        assert "Please update your environment variable with a valid a URL containing a GUID" in error_message
     
     def test_extract_guid_with_plain_text(self):
         """Test extract_guid with plain text that is not a URL and does not contain a GUID"""
