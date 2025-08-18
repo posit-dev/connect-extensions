@@ -15,10 +15,10 @@ import requests
 import datetime
 from posit import connect
 from IPython.display import HTML, display
-from content_health_utils import *  # Imports everything including MonitorState and DEFAULT_USER_NAME
+import content_health_utils as utils
 
 # Create state object to share between this file and utils
-state = MonitorState()
+state = utils.MonitorState()
 
 # Initialize state variables that are only used in this Quarto document
 show_error = False        # Used to display on-screen error messages if API errors occur
@@ -27,16 +27,16 @@ error_guid = None         # GUID that caused the error
 content_result = None     # Variable to store content monitoring result
 
 # Initialize current user name with the default value from utils
-current_user_name = DEFAULT_USER_NAME  # Will be updated if user info can be retrieved
+current_user_name = utils.DEFAULT_USER_NAME  # Will be updated if user info can be retrieved
 
 # Read environment variables
-connect_server = get_env_var("CONNECT_SERVER", state) # Automatically provided by Connect, must be set when previewing locally
-api_key = get_env_var("CONNECT_API_KEY", state) # Automatically provided by Connect, must be set when previewing locally
-monitored_content_guid = get_env_var("MONITORED_CONTENT_GUID", state)
+connect_server = utils.get_env_var("CONNECT_SERVER", state) # Automatically provided by Connect, must be set when previewing locally
+api_key = utils.get_env_var("CONNECT_API_KEY", state) # Automatically provided by Connect, must be set when previewing locally
+monitored_content_guid = utils.get_env_var("MONITORED_CONTENT_GUID", state)
 
 # Extract GUID if it's a string or URL containing a GUID
 if monitored_content_guid:
-    monitored_content_guid, guid_error_message = extract_guid(monitored_content_guid)
+    monitored_content_guid, guid_error_message = utils.extract_guid(monitored_content_guid)
     # Handle URL with no GUID error
     if guid_error_message:
         state.show_instructions = True
@@ -52,7 +52,7 @@ if has_connect_env_vars:
         client = connect.Client()
         
         # Get current user's full name - function handles errors internally
-        user_name = get_current_user_full_name(client)
+        user_name = utils.get_current_user_full_name(client)
         if user_name != "Unknown":  # Only update if we got a valid name
             current_user_name = user_name
     except ValueError as e:
@@ -71,15 +71,15 @@ check_time = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
 if not state.show_instructions:
     try:
         # Check if server is reachable
-        check_server_reachable(connect_server, api_key)
+        utils.check_server_reachable(connect_server, api_key)
         
         # Validate the content
-        content_result = validate(client, monitored_content_guid, connect_server, api_key)
+        content_result = utils.validate(client, monitored_content_guid, connect_server, api_key)
         
         # Check for content-specific errors
-        if has_error(content_result):
+        if utils.has_error(content_result):
             show_error = True
-            error_details = extract_error_details(content_result)
+            error_details = utils.extract_error_details(content_result)
             error_message = error_details["message"]
             error_guid = error_details["guid"]
             
@@ -110,15 +110,15 @@ else:
 
 # Create all HTML components up front based on state
 html_components = {
-    'instructions': create_instructions_box(instructions_html) if state.show_instructions else None,
-    'error': create_error_box(error_guid, error_message) if show_error else None,
-    'report': create_report_display(content_result, check_time, current_user_name) if content_result and not has_error(content_result) else None,
-    'no_results': create_no_results_box() if not (state.show_instructions or show_error or 
-                                              (content_result and not has_error(content_result))) else None
+    'instructions': utils.create_instructions_box(instructions_html) if state.show_instructions else None,
+    'error': utils.create_error_box(error_guid, error_message) if show_error else None,
+    'report': utils.create_report_display(content_result, check_time, current_user_name) if content_result and not utils.has_error(content_result) else None,
+    'no_results': utils.create_no_results_box() if not (state.show_instructions or show_error or 
+                                              (content_result and not utils.has_error(content_result))) else None
 }
 
 # Always display the About callout box
-display(HTML(create_about_box(about_content)))
+display(HTML(utils.create_about_box(about_content)))
 
 # Display the first piece of information available from the list of instructions, error, report, etc.
 for component in html_components.values():
@@ -127,7 +127,7 @@ for component in html_components.values():
         break
 
 # Set send_email variable for the quarto email mechanism
-send_email = should_send_email(show_error, content_result)
+send_email = utils.should_send_email(show_error, content_result)
 ```
 
 
@@ -146,7 +146,7 @@ send_email = should_send_email(show_error, content_result)
 #| echo: false
 
 # Always show the about section in the email
-display(HTML(create_about_box(about_content)))
+display(HTML(utils.create_about_box(about_content)))
 
 # Display the first piece of information available from the list of instructions, error, report, etc.
 for component in html_components.values():
