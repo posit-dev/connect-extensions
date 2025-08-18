@@ -93,10 +93,12 @@ if not state.show_instructions:
 # ------ DISPLAY SECTION ------ #
 # Create the about content text
 about_content = f"""<div>
+This report is intended to monitor content that you own. If you share this report with someone else it may not function properly.<br><br>
+
 This report uses <b>{current_user_name}</b>'s API key to monitor a single piece of content. It checks whether the content is 
 reachable, but does not verify that it runs without errors.<br><br>
-When scheduled to run regularly, the report will send an email alert 
-if the content becomes unreachable.
+
+When scheduled to run regularly, the report will send an email alert if the content becomes unreachable.
 To learn more about scheduling reports in Connect, see the 
 <a href="https://docs.posit.co/connect/user/scheduling/index.html" target="_blank">Scheduling documentation</a>.
 </div>"""
