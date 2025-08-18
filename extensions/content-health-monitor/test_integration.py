@@ -23,7 +23,7 @@ def clean_environment():
         os.environ['PYTHONPATH'] = original_env['PYTHONPATH']
         
     # Explicitly ensure these variables are not set
-    for var in ['MONITORED_CONTENT_GUID', 'VAR1', 'VAR2', 'TEST_VAR']:
+    for var in ['MONITORED_CONTENT', 'VAR1', 'VAR2', 'TEST_VAR']:
         if var in os.environ:
             del os.environ[var]
     
@@ -55,18 +55,18 @@ def test_get_env_var_missing_variable(clean_environment, state):
     This simulates the case that was causing errors in Connect.
     """
     # Make sure the variable is not in environment
-    if 'MONITORED_CONTENT_GUID' in os.environ:
-        del os.environ['MONITORED_CONTENT_GUID']
+    if 'MONITORED_CONTENT' in os.environ:
+        del os.environ['MONITORED_CONTENT']
     
     # Call the function that was failing
-    value = content_health_utils.get_env_var('MONITORED_CONTENT_GUID', state)
+    value = content_health_utils.get_env_var('MONITORED_CONTENT', state)
     
     # Verify function behavior
     assert value == ""
     assert state.show_instructions is True
     assert len(state.instructions) == 1
     assert "Content Settings" in state.instructions[0]
-    assert "<code>MONITORED_CONTENT_GUID</code>" in state.instructions[0]
+    assert "<code>MONITORED_CONTENT</code>" in state.instructions[0]
 
 def test_multiple_env_var_checks(clean_environment, state):
     """
@@ -76,7 +76,7 @@ def test_multiple_env_var_checks(clean_environment, state):
     # Check several variables
     var1 = content_health_utils.get_env_var('VAR1', state)
     var2 = content_health_utils.get_env_var('VAR2', state)
-    var3 = content_health_utils.get_env_var('MONITORED_CONTENT_GUID', state)
+    var3 = content_health_utils.get_env_var('MONITORED_CONTENT', state)
     
     # Verify function behavior
     assert var1 == ""

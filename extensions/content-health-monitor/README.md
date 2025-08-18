@@ -12,7 +12,7 @@ The following environment variables are required when previewing the report loca
 # Required variables
 CONNECT_SERVER  # Set automatically when deployed to Connect
 CONNECT_API_KEY # Set automatically when deployed to Connect
-MONITORED_CONTENT_GUID # GUID for the content to monitor
+MONITORED_CONTENT # GUID for the content to monitor
 ```	
 
 # Usage

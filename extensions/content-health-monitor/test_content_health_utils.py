@@ -152,9 +152,9 @@ class TestGetEnvVar:
         assert f"Please set the <code>{var_name}</code> environment variable." in state.instructions[0]
     
     def test_get_env_var_missing_canary_guid(self, state):
-        """Test get_env_var when MONITORED_CONTENT_GUID is missing"""
+        """Test get_env_var when MONITORED_CONTENT is missing"""
         # Setup
-        var_name = "MONITORED_CONTENT_GUID"
+        var_name = "MONITORED_CONTENT"
         clear_env_var(var_name)  # Ensure it doesn't exist
 
         # Execute
@@ -164,7 +164,7 @@ class TestGetEnvVar:
         assert result == ""
         assert state.show_instructions
         assert len(state.instructions) == 1
-        assert "you must configure the <code>MONITORED_CONTENT_GUID</code> environment variable" in state.instructions[0]
+        assert "you must configure the <code>MONITORED_CONTENT</code> environment variable" in state.instructions[0]
         assert f"<code>{var_name}</code>" in state.instructions[0]
     
     def test_get_env_var_with_description(self, state):
@@ -290,7 +290,7 @@ class TestExtractGuid:
         # Assert
         assert result == input_string
         assert error_message is not None
-        assert "The URL provided in <code>MONITORED_CONTENT_GUID</code> does not contain a valid GUID" in error_message
+        assert "The URL provided in <code>MONITORED_CONTENT</code> does not contain a valid GUID" in error_message
         assert "The URL should contain a GUID like: <code>1d97c1ff-e56c-4074-906f-cb3557685b75</code>" in error_message
         assert f"<a href=\"{input_string}\" target=\"_blank\" rel=\"noopener noreferrer\">" in error_message
         assert "Please update your environment variable with a valid GUID or a URL containing a GUID" in error_message
@@ -306,7 +306,7 @@ class TestExtractGuid:
         # Assert
         assert result == input_string
         assert error_message is not None
-        assert "The value provided in <code>MONITORED_CONTENT_GUID</code> is not a valid GUID" in error_message
+        assert "The value provided in <code>MONITORED_CONTENT</code> is not a valid GUID" in error_message
         assert "A valid GUID looks like: <code>1d97c1ff-e56c-4074-906f-cb3557685b75</code>" in error_message
         assert f"The provided value was: <code>{input_string}</code>" in error_message
         assert "Please update your environment variable with a valid GUID or a URL containing a GUID" in error_message
@@ -802,10 +802,10 @@ class TestScenarios:
         Expected: If scheduled, DOES NOT send an email
         """
         # Clear environment variable if it exists
-        clear_env_var("MONITORED_CONTENT_GUID")
+        clear_env_var("MONITORED_CONTENT")
         
         # Execute - Try to get the env var
-        result = get_env_var("MONITORED_CONTENT_GUID", state)
+        result = get_env_var("MONITORED_CONTENT", state)
         
         # Assert - It should be empty and show instructions
         assert result == ""
