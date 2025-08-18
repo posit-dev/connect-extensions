@@ -1052,7 +1052,7 @@ class TestReportDisplay:
         # Assert
         assert html_output is not None
         # Check that the "log access restricted" message is shown with the current user's name
-        assert f"Log access is restricted for {current_user_name}" in html_output
+        assert f"Log access is restricted for <b>{current_user_name}</b>" in html_output
         assert "only available to the content owner and collaborators" in html_output
         # Ensure there's no logs link
         assert "View Logs</a>" not in html_output

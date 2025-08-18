@@ -18,6 +18,7 @@ class MonitorState:
 STATUS_PASS = "PASS"
 STATUS_FAIL = "FAIL"
 ERROR_PREFIX = "ERROR:"
+DEFAULT_USER_NAME = "the publisher"  # Default name used if user info cannot be retrieved
 
 # Define CSS styling constants
 CSS_COLORS = {
@@ -213,9 +214,8 @@ def get_current_user_full_name(client):
             
         return full_name
     except Exception as e:
-        # Handle any errors gracefully
-        error_message = format_error_message(e)
-        print(f"Warning: Could not retrieve current user: {error_message}")
+        # Handle any errors gracefully without printing
+        # This prevents errors from appearing at the top of reports
         return "Unknown"
 
 # Function to validate content health (simple HTTP 200 check)
@@ -264,9 +264,10 @@ def validate(client, guid, connect_server, api_key):
             owner_full_name = f"{owner_first_name} {owner_last_name}".strip()
             if not owner_full_name:  # Handle case where both names are empty
                 owner_full_name = "Unknown"
-    except Exception as e:
-        # If there's an error getting the owner, keep the defaults
-        print(f"Warning: Could not retrieve owner for {guid}: {str(e)}")
+    except Exception:
+        # If there's an error getting the owner, silently keep the defaults
+        # No print statement to avoid errors at the top of reports
+        pass
     
     # Compose URL to logs if we have a dashboard URL, only owner/editor have access
     if dashboard_url and content.get("app_role") != "viewer":
@@ -444,7 +445,7 @@ def create_report_display(result_data, check_time_value, current_user_name):
     if logs_url:
         logs_display = f"<a href='{logs_url}' target='_blank' style='text-decoration:none;'>📋 View Logs</a>"
     else:
-        logs_display = f"Log access is restricted for {current_user_name}. Logs are only available to the content owner and collaborators."
+        logs_display = f"Log access is restricted for <b>{current_user_name}</b>. Logs are only available to the content owner and collaborators."
     
     # Format owner information
     owner_name = result_data.get('owner_name', 'Unknown')
