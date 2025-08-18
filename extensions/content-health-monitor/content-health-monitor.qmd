@@ -93,7 +93,7 @@ if not state.show_instructions:
 # ------ DISPLAY SECTION ------ #
 # Create the about content text
 about_content = f"""<div>
-This report uses {current_user_name}'s API key to monitor a single piece of content. It checks whether the content is 
+This report uses <b>{current_user_name}</b>'s API key to monitor a single piece of content. It checks whether the content is 
 reachable, but does not verify that it runs without errors.<br><br>
 When scheduled to run regularly, the report will send an email alert 
 if the content becomes unreachable.

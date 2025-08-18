@@ -445,7 +445,7 @@ def create_report_display(result_data, check_time_value, current_user_name):
     if logs_url:
         logs_display = f"<a href='{logs_url}' target='_blank' style='text-decoration:none;'>📋 View Logs</a>"
     else:
-        logs_display = f"Log access is restricted for {current_user_name}. Logs are only available to the content owner and collaborators."
+        logs_display = f"Log access is restricted for <b>{current_user_name}</b>. Logs are only available to the content owner and collaborators."
     
     # Format owner information
     owner_name = result_data.get('owner_name', 'Unknown')
