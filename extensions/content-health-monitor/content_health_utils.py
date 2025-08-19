@@ -74,6 +74,7 @@ def get_env_var(var_name, state, description=""):
                 f"<h2>Step 1: Find the content to be monitored</h2>"
                 f"{one_tab}• In a separate tab, open the content you wish to monitor<br>"
                 f"{one_tab}• In the browser address bar, copy the entire address (URL)<br><br>"
+                f"{one_tab}<img src=\"images/address-bar.png\" alt=\"Browser address bar\" style=\"max-width: 50%; margin: 10px 0 10px 0; border: 1px solid #ddd;\"><br>"                
 
                 f"<h2>Step 2: Configure this report</h2>"
                 f"{one_tab}• Return to this report<br>"
