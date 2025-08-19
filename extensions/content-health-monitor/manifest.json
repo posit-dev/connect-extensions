@@ -9,10 +9,10 @@
     "title": "Content Health Monitor",
     "description": "This report uses the publisher’s API key to monitor a single piece of content. It checks whether the content is reachable, but does not validate its functionality. When scheduled to run regularly, it will send an email alert if the content becomes unreachable.",
     "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/content-health-monitor",
-    "category": "extension",
+    "category": "example",
     "tags": [],
     "minimumConnectVersion": "2025.04.0",
-    "version": "0.0.0"
+    "version": "1.0.0"
   },
   "environment": {
     "python": {
