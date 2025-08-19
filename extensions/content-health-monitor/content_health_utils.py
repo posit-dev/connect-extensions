@@ -68,30 +68,32 @@ def get_env_var(var_name, state, description=""):
         # Detailed instructions for MONITORED_CONTENT
         else:
             one_tab = "&nbsp;&nbsp;&nbsp;&nbsp;"  # For indentation in HTML
-            two_tabs = f"{one_tab}{one_tab}"  # For deeper indentation
             instruction = (
                 f"To monitor a piece of content you must configure the <code>{var_name}</code> environment variable.<br><br>"
                 
-                f"<b>Step 1:</b> Locate the content you want to monitor in a new browser tab or window<br>"
-                f"{one_tab}<b>Option A:</b> Copy the GUID from the Content Settings panel<br>"
-                f"{two_tabs}• Click the <b>gear icon</b> in the top right toolbar to open <b>Content Settings</b><br>"
-                f'{two_tabs}<img src="images/settings-gear-icon.png" alt="Settings gear icon location" '
-                f'style="max-width: 80%; margin: 10px 0; border: 1px solid #ddd;"><br>'
-                f"{two_tabs}• Select the <b>Info</b> tab<br>"
-                f"{two_tabs}• Scroll to the bottom and click the <b>copy</b> button next to the GUID<br>"
-                f"{one_tab}<b>Option B:</b> Copy the full URL from your browser<br>"
-                f"{two_tabs}• If the address bar contains a GUID (ex: 1d97c1ff-e56c-4074-906f-cb3557685b75), "
-                f"you can simply copy the entire URL<br><br>"
+                f"<h2>Step 1: Find the content to be monitored</h2>"
+                f"{one_tab}• In a separate tab, open the content you wish to monitor<br>"
+                f"{one_tab}• In the browser address bar, copy the entire address (URL)<br><br>"
+                f"{one_tab}<img src=\"images/address-bar.png\" alt=\"Browser address bar\" style=\"max-width: 50%; margin: 10px 0 10px 0; border: 1px solid #ddd;\"><br>"                
 
-                f"<b>Step 2:</b> Return to this report to set the environment variable<br>"
-                f"{one_tab}• Click the <b>gear icon</b> to open <b>Content Settings</b><br>"
-                f"{one_tab}• Select the <b>Vars</b> tab<br>"
-                f"{one_tab}• Add a new variable named <code>{var_name}</code><br>"
-                f"{one_tab}• Paste the GUID you copied into the value field<br>"
-                f"{one_tab}• Click <b>Add Variable</b> and then <b>Save</b> to save it<br><br>"
+                f"<h2>Step 2: Configure this report</h2>"
+                f"{one_tab}• Return to this report<br>"
+                f"{one_tab}• Click the <b>gear icon</b> at the top right of the screen to open <b>Content Settings</b><br>"
+                f"{one_tab}<img src=\"images/settings-gear-icon.png\" alt=\"Content Settings button\" style=\"max-width: 30%; margin: 10px 0 10px 0; border: 1px solid #ddd;\"><br>"
+                f"{one_tab}• Click the <b>Vars</b> tab<br>"
+                f"{one_tab}• In the <b>Name</b> field enter <code>{var_name}</code><br>"
+                f"{one_tab}• In the <b>Value</b> field paste the full address you copied in the previous step<br>"
+                f"{one_tab}• It should look like the example below<br>"
+                f"{one_tab}<img src=\"images/vars.png\" alt=\"Environment Variables tab\" style=\"max-width: 30%; margin: 10px 0 10px 0; border: 1px solid #ddd;\"><br>"                
+                f"{one_tab}• Click <b>Add Variable</b><br>"
+                f"{one_tab}• Click <b>Save</b> at the top of the screen to save your changes<br><br>"
 
-                f"<b>Step 3:</b> Click <b>Refresh Report</b> in the top right to to run a health check against the content specified in the new variable<br>"
-                f'<img src="images/refresh-report.png" alt="Refresh report button" style="max-width: 80%; margin: 10px 0; border: 1px solid #ddd;"><br><br>'
+                f"<h2>Step 3: Run the report to execute the health check</h2>"
+                f"{one_tab}• Click the <b>Refresh Report</b> button at the top right to run a health check against the monitored content<br>"
+                f"{one_tab}• The health check will run and report the status<br>"
+                f"{one_tab}• If the content is healthy, you will see a <b>PASS</b> status, otherwise you will see a <b>FAIL</b> status<br>"
+                f"{one_tab}• If you see a <b>FAIL</b> status, click the <b>View Logs</b> link to see more details about the failure<br>"
+                f"{one_tab}<img src=\"images/refresh-report.png\" alt=\"Refresh report button\" style=\"max-width: 30%; margin: 10px 0 10px 0; border: 1px solid #ddd;\"><br><br>"
 
             )
         
@@ -150,7 +152,8 @@ def extract_guid(input_string):
             f"The URL provided in <code>MONITORED_CONTENT</code> does not contain a valid GUID. "
             f"The URL should contain a GUID like: <code>1d97c1ff-e56c-4074-906f-cb3557685b75</code><br><br>"
             f"The URL provided is: <a href=\"{input_string}\" target=\"_blank\" rel=\"noopener noreferrer\">{input_string}</a><br><br>"
-            f"Please update your environment variable with a valid GUID or a URL containing a GUID."
+            f"Please update your environment variable with a valid a URL containing a GUID.<br><br>"
+            f"Or copy the GUID from the bottom of the Info tab. See the <a href=\"https://docs.posit.co/connect/user/content-settings/\" target=\"_blank\" rel=\"noopener noreferrer\">Connect Content Settings User Guide</a> instructions for more information.<br><br>"
         )
         return input_string, error_message
     
@@ -159,7 +162,8 @@ def extract_guid(input_string):
         f"The value provided in <code>MONITORED_CONTENT</code> is not a valid GUID. "
         f"A valid GUID looks like: <code>1d97c1ff-e56c-4074-906f-cb3557685b75</code><br><br>"
         f"The provided value was: <code>{input_string}</code><br><br>"
-        f"Please update your environment variable with a valid GUID or a URL containing a GUID."
+        f"Please update your environment variable with a valid GUID or a URL containing a GUID.<br><br>"
+        f"The GUID can be found at the bottom of the Info tab. See the <a href=\"https://docs.posit.co/connect/user/content-settings/\" target=\"_blank\" rel=\"noopener noreferrer\">Connect Content Settings User Guide</a> instructions for more information.<br><br>"
     )
     return input_string, error_message
 
@@ -408,9 +412,6 @@ def create_instructions_box(instructions_html_content):
     <div style="{CSS_BOX_STYLE.format(border=warning['border'], background=neutral['background'])}"> 
         <div style="{CSS_HEADER_STYLE}; color: #f0ad4e;">⚙️ Setup Required</div>
         {instructions_html_content}
-        <div style="{CSS_FOOTER_STYLE}">
-            See Posit Connect documentation for <a href='https://docs.posit.co/connect/user/content-settings/#content-vars' target='_blank'>Vars (environment variables)</a>
-        </div>
     </div>
     """
 
