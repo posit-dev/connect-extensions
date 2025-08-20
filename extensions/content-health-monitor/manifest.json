@@ -11,7 +11,7 @@
     "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/content-health-monitor",
     "category": "extension",
     "tags": [],
-    "minimumConnectVersion": "2025.07.0",
+    "minimumConnectVersion": "2025.04.0",
     "version": "0.0.0"
   },
   "environment": {
