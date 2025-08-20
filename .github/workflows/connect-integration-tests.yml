@@ -55,7 +55,7 @@ jobs:
     outputs:
       matrix: ${{ steps.generate_matrix.outputs.matrix }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       
       # This step generates a matrix of compatible extension/version combinations
       # by checking each extension's minimumConnectVersion against available Connect versions
