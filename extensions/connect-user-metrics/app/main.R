@@ -355,7 +355,10 @@ server <- function(id) {
         }
 
       users_choices <- users() %>%
-        dplyr$filter(!is.na(guid), !is.na(username)) %>%
+        dplyr$filter(!is.na(guid)) %>%
+        dplyr$mutate(
+          username = dplyr$if_else(!is.na(username) & username != "", username, guid)
+        ) %>%
         {
           setNames(.$guid, .$username)
         }
@@ -577,7 +580,10 @@ server <- function(id) {
         selected_users <- NULL
         if (length(unlist(config$users)) == 0) {
           selected_users <- users()$guid
-          names(selected_users) <- users()$username
+          usernames <- users()$username
+          names(selected_users) <- dplyr$if_else(
+            !is.na(usernames) & usernames != "", usernames, users()$guid
+          )
         } else {
           selected_user_names <- unlist(config$users)
           selected_users <-
