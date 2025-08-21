@@ -132,14 +132,18 @@ create_image_path <- function(image_path) {
   file_path
 }
 
-#' Get titles for applications and replace empty titles with names
+#' Get titles for applications and replace empty titles with names or GUIDs
+#' @param guids Vector of application GUIDs
 #' @param titles Vector of application titles
 #' @param names Vector of application names
 #' @return Vector of non-empty titles
 #' @export
-get_app_titles <- function(titles, names) {
-  has_title <- !is.na(titles) & titles != ""
-  ifelse(has_title, titles, names)
+get_app_titles <- function(guids, titles, names) {
+  dplyr$case_when(
+    !is.na(titles) & titles != "" ~ titles,
+    !is.na(names) & names != "" ~ names,
+    .default = guids
+  )
 }
 
 #' Get date range length in selected units

@@ -349,7 +349,7 @@ server <- function(id) {
       apps_choices <- apps() %>%
         dplyr$filter(!is.na(guid)) %>%
         # Use application name if it doesn't have title
-        dplyr$mutate(display_title = get_app_titles(title, name)) %>%
+        dplyr$mutate(display_title = get_app_titles(guid, title, name)) %>%
         {
           setNames(.$guid, .$display_title)
         }
@@ -557,7 +557,7 @@ server <- function(id) {
         if (length(unlist(config$apps)) == 0) {
           selected_apps <- apps()$guid
           # Use application name if it doesn't have title
-          names(selected_apps) <- get_app_titles(apps()$title, apps()$name)
+          names(selected_apps) <- get_app_titles(apps()$guid, apps()$title, apps()$name)
         } else {
           selected_app_names <- unlist(config$apps)
           selected_apps <-

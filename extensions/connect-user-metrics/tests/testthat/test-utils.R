@@ -183,7 +183,7 @@ test_that("get_app_titles returns app titles if they exist", {
 
   expect_equal(
     c("test_title_1", "test_title_2", "test_title_3"),
-    utils$get_app_titles(apps$title, apps$name)
+    utils$get_app_titles(apps$guid, apps$title, apps$name)
   )
 })
 
@@ -196,7 +196,7 @@ test_that("get_app_titles returns app names instead of NA titles", {
 
   expect_equal(
     c("test_title_1", "test_name_2", "test_title_3"),
-    utils$get_app_titles(apps$title, apps$name)
+    utils$get_app_titles(apps$guid, apps$title, apps$name)
   )
 })
 
@@ -209,7 +209,20 @@ test_that("get_app_titles returns app names instead of empty titles", {
 
   expect_equal(
     c("test_name_1", "test_title_2", "test_name_3"),
-    utils$get_app_titles(apps$title, apps$name)
+    utils$get_app_titles(apps$guid, apps$title, apps$name)
+  )
+})
+
+test_that("get_app_titles returns guid when both name and title is NA or empty", {
+  apps <- data.frame(
+    guid = c("test_guid_1", "test_guid_2", "test_guid_3", "test_guid_4", NA),
+    name = c("test_name_1", NA, "", "test_name_4", NA),
+    title = c("test_title_1", NA, "", "", NA)
+  )
+
+  expect_equal(
+    c("test_title_1", "test_guid_2", "test_guid_3", "test_name_4", NA),
+    utils$get_app_titles(apps$guid, apps$title, apps$name)
   )
 })
 
