@@ -133,8 +133,8 @@ create_image_path <- function(image_path) {
 }
 
 #' Get titles for applications and replace empty titles with names
-#' @param titles Vector of each application title
-#' @param names  Vector of each application name
+#' @param titles Vector of application titles
+#' @param names Vector of application names
 #' @return Vector of non-empty titles
 #' @export
 get_app_titles <- function(titles, names) {
@@ -150,11 +150,10 @@ get_app_titles <- function(titles, names) {
 #' @return Date range length in selected units (number)
 #' @export
 get_date_range_length_in_units <- function(
-  start_date,
-  end_date,
-  unit = c("day", "week", "month"),
-  week_start = week_start_id
-) {
+    start_date,
+    end_date,
+    unit = c("day", "week", "month"),
+    week_start = week_start_id) {
   start_date <- as_date(start_date)
   end_date <- as_date(end_date)
 
