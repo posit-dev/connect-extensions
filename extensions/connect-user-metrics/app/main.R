@@ -232,13 +232,14 @@ server <- function(id) {
             type = "error",
             btn_labels = "Close"
           )
+          NULL
         }
       )
     })
 
     # rendering DateRangeInput with correct range -----------------------------
     output$date_range_ui <- shiny$renderUI({
-      shiny$req(apps_guids())
+      shiny$req(client(), apps_guids())
 
       max_date <-
         data_utils$get_latest_date_from_client(
@@ -258,6 +259,7 @@ server <- function(id) {
 
     # Fetching data from client -----------------------------------------------
     apps <- shiny$reactive({
+      shiny$req(client())
       apps <-
         data_utils$get_apps_from_client(client = client(), guids = guids) |>
         dplyr$select(guid, name, title)
@@ -278,6 +280,7 @@ server <- function(id) {
     })
 
     users <- shiny$reactive({
+      shiny$req(client())
       data_utils$get_users_from_client(client = client()) |>
         dplyr$select(guid, username) %>%
         add_row(guid = "unknown", username = "unknown") %>%
@@ -301,7 +304,7 @@ server <- function(id) {
     )
 
     shiny$observe({
-      shiny$req(input$date_range)
+      shiny$req(client(), input$date_range)
       date_range <- input$date_range
 
       # add  `+ lubridate$days(1)` in `to` to get data from the whole day;
