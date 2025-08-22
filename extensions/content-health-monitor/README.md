@@ -47,7 +47,7 @@ make test-unit
 # Run only integration tests
 make test-integration
 
-# Update manifest.json (preserves extension and environment blocks)
+# Update manifest.json (preserves extension and environment blocks and automatically adds new image files)
 make update-manifest
 
 # Show help with all available targets
