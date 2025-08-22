@@ -101,6 +101,44 @@
       "tags": []
     },
     {
+      "name": "content-health-monitor",
+      "title": "Content Health Monitor",
+      "description": "This report uses the publisher’s API key to monitor a single piece of content. It checks whether the content is reachable, but does not validate its functionality. When scheduled to run regularly, it will send an email alert if the content becomes unreachable.",
+      "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/content-health-monitor",
+      "latestVersion": {
+        "version": "1.0.0",
+        "released": "2025-08-22T20:26:22Z",
+        "url": "https://github.com/posit-dev/connect-extensions/releases/download/content-health-monitor%40v1.0.0/content-health-monitor.tar.gz",
+        "minimumConnectVersion": "2025.04.0",
+        "requiredEnvironment": {
+          "python": {
+            "requires": "~=3.11"
+          },
+          "quarto": {
+            "requires": "~=1.4"
+          }
+        }
+      },
+      "versions": [
+        {
+          "version": "1.0.0",
+          "released": "2025-08-22T20:26:22Z",
+          "url": "https://github.com/posit-dev/connect-extensions/releases/download/content-health-monitor%40v1.0.0/content-health-monitor.tar.gz",
+          "minimumConnectVersion": "2025.04.0",
+          "requiredEnvironment": {
+            "python": {
+              "requires": "~=3.11"
+            },
+            "quarto": {
+              "requires": "~=1.4"
+            }
+          }
+        }
+      ],
+      "tags": [],
+      "category": "extension"
+    },
+    {
       "name": "fastapitableau-example",
       "title": "Tableau Python Extension",
       "description": "fastapitableau is a Python package that enables Python developers to build FastAPI APIs that function as Tableau Analytics Extensions. These extensions can be leveraged from Tableau workbooks to allow real time requests from Tableau to Python. This extension builds on top of Tableau's example Superstore dataset.",
