@@ -12,7 +12,7 @@ The following environment variables are required when previewing the report loca
 # Required variables
 CONNECT_SERVER  # Set automatically when deployed to Connect
 CONNECT_API_KEY # Set automatically when deployed to Connect
-MONITORED_CONTENT # GUID for the content to monitor
+MONITORED_CONTENT # URL including a GUID or the GUID for the content to monitor
 ```	
 
 # Usage
@@ -47,7 +47,7 @@ make test-unit
 # Run only integration tests
 make test-integration
 
-# Update manifest.json (preserves extension and environment blocks)
+# Update manifest.json (preserves extension and environment blocks and automatically adds new image files)
 make update-manifest
 
 # Show help with all available targets
