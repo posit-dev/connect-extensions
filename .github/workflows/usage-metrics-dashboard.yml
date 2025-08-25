@@ -39,10 +39,10 @@ jobs:
         with:
           working-directory: extensions/${{ env.EXTENSION_NAME }}
 
-      - run: Rscript -e 'install.packages(c("testthat", "httptest"))'
+      - run: Rscript -e 'install.packages(c("testthat"))'
         working-directory: extensions/${{ env.EXTENSION_NAME }}
 
-      - run: Rscript -e 'testthat::test_dir("tests/testthat")'
+      - run: Rscript -e 'testthat::test_local()'
         working-directory: extensions/${{ env.EXTENSION_NAME }}
 
       # Now that the extension is built we need to upload an artifact to pass
