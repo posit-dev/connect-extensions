@@ -1,7 +1,7 @@
 .PHONY: test update-manifest
 
 test:
-	Rscript -e 'testthat::test_package(".")'
+	Rscript -e 'testthat::test_local()'
 
 # This recipe updates the manifest, with a few helpful modifications:
 # - Copies over `extension` and `environment` blocks from the old manifest to
