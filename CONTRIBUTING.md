@@ -78,7 +78,7 @@ required to group content in the Gallery.
 {
   ...
   "extension": {
-    "category": "extension,
+    "category": "extension",
     ...
   }
 }

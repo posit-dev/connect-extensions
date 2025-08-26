@@ -58,6 +58,7 @@ jobs:
             simple-mcp-server: extensions/simple-mcp-server/**
             simple-shiny-chat-with-mcp: extensions/simple-shiny-chat-with-mcp/**
             chat-with-content: extensions/chat-with-content/**
+            dashboard-tips: extensions/dashboard-tips/**
 
   # Runs for each extension that has changed from `simple-extension-changes`
   # Lints and packages in preparation for tests and and release.

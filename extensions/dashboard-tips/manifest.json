@@ -1,0 +1,54 @@
+{
+  "version": 1,
+  "locale": "en_US.UTF-8",
+  "metadata": {
+    "appmode": "python-shiny",
+    "entrypoint": "shiny.express.app:app_2e_py"
+  },
+  "python": {
+    "version": "3.11.13",
+    "package_manager": {
+      "name": "pip",
+      "version": "25.1.1",
+      "package_file": "requirements.txt"
+    }
+  },
+  "environment": {
+    "python": {
+      "requires": "~=3.11.0"
+    }
+  },
+  "extension": {
+    "name": "dashboard-tips",
+    "title": "Restaurant tips dashboard",
+    "description": "An intermediate dashboard with input filters, value boxes, a plot, and table.",
+    "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/dashboard-tips",
+    "category": "example",
+    "tags": ["python", "shiny"],
+    "minimumConnectVersion": "2025.04.0",
+    "version": "0.0.0"
+  },
+  "files": {
+    "requirements.txt": {
+      "checksum": "78b8a4930d239b3bc4d5c0fedbc4c73d"
+    },
+    ".python-version": {
+      "checksum": "c0479ff484dacd51dc5ba0461b16b9bf"
+    },
+    "README.md": {
+      "checksum": "60fdf69b53a2a06b6fc41ae84b76bdf9"
+    },
+    "app.py": {
+      "checksum": "25eb97a954aefab7b5d4fd888ec7d6fc"
+    },
+    "shared.py": {
+      "checksum": "2c9ddbcae51dc1faee86c4a6d1781b43"
+    },
+    "styles.css": {
+      "checksum": "da429f0b2b2ce1f9f3ca8ab942efb124"
+    },
+    "tips.csv": {
+      "checksum": "b8e189917e1e12e5e34247f90db7834f"
+    }
+  }
+}
