@@ -10,4 +10,5 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Added CHANGELOG.md, added tests for business logic. In support of that, moved source files to `R/` and added a `DESCRIPTION` file.
+- Added CHANGELOG.md to the repo
+- Added tests for business logic. In support of that, moved source files to `R/` and added a `DESCRIPTION` file.
