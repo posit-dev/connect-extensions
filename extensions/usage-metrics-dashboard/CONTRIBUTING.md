@@ -2,8 +2,8 @@
 
 ## Organization
 
-- The app's core code lives in `app.R`
-- Supporting functions live in `R/`. Code in `R/` can be tests.
+- The app's core code lives in `app.R`.
+- Supporting functions live in `R/`.
 
 ## Tests
 
