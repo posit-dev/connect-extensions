@@ -1,0 +1,90 @@
+name: Usage Metrics Dashboard
+
+# Re-usable workflows use the `workflow_call` trigger
+# https://docs.github.com/en/actions/sharing-automations/reusing-workflows#creating-a-reusable-workflow
+on:
+  workflow_call:
+
+# Setup the environment with the extension name for easy re-use
+# Also set the GH_TOKEN for the release-extension action to be able to use gh
+env:
+  EXTENSION_NAME: usage-metrics-dashboard
+  GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+jobs:
+  extension:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./extensions/${{ env.EXTENSION_NAME }}
+
+    steps:
+      # Checkout the repository so the rest of the actions can run with no issue
+      - uses: actions/checkout@v4
+
+      # We want to fail quickly if the linting fails, do that first
+      - uses: ./.github/actions/lint-extension
+        with:
+          extension-name: ${{ env.EXTENSION_NAME }}
+
+      # ---
+      # Run R tests
+      # ---
+
+      - uses: r-lib/actions/setup-r@v2
+        with:
+          r-version: '4.3.3'
+
+      - uses: r-lib/actions/setup-renv@v2
+        with:
+          working-directory: extensions/${{ env.EXTENSION_NAME }}
+
+      - run: Rscript -e 'install.packages(c("testthat"))'
+        working-directory: extensions/${{ env.EXTENSION_NAME }}
+
+      - run: Rscript -e 'testthat::test_local()'
+        working-directory: extensions/${{ env.EXTENSION_NAME }}
+
+      # Now that the extension is built we need to upload an artifact to pass
+      # to the package-extension action that contains the files we want to be
+      # included in the extension
+      # This only includes necessary files for the extension to run leaving out
+      # the files that were used to build the /dist/ directory
+      - name: Upload built extension
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.EXTENSION_NAME }}
+          # Replace the below with the files your content needs
+          path: |
+            extensions/${{ env.EXTENSION_NAME }}/app.R
+            extensions/${{ env.EXTENSION_NAME }}/R/
+            extensions/${{ env.EXTENSION_NAME }}/renv.lock
+            extensions/${{ env.EXTENSION_NAME }}/www/styles.css
+            extensions/${{ env.EXTENSION_NAME }}/manifest.json
+
+      # Package up the extension into a TAR using the package-extension action
+      - uses: ./.github/actions/package-extension
+        with:
+          extension-name: ${{ env.EXTENSION_NAME }}
+          artifact-name: ${{ env.EXTENSION_NAME }}
+
+  connect-integration-tests:
+    needs: extension
+    uses: ./.github/workflows/connect-integration-tests.yml
+    secrets: inherit
+    with:
+      extensions: '["usage-metrics-dashboard"]'  # JSON array format to match the workflow input schema
+
+  release:
+    runs-on: ubuntu-latest
+    needs: [extension, connect-integration-tests]
+    # Release the extension using the release-extension action
+    # Will only create a GitHub release if merged to `main` and the semver
+    # version has been updated
+    steps:
+      # Checkout the repository so the rest of the actions can run with no issue
+      - uses: actions/checkout@v4
+
+      - uses: ./.github/actions/release-extension
+        with:
+          extension-name: ${{ env.EXTENSION_NAME }}
