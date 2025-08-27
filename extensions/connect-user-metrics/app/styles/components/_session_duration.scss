@@ -1,0 +1,14 @@
+// SESSION DURATION INPUT
+
+.session-duration-input-controls {
+  display: flex;
+  gap: 16px;
+
+  :first-child {
+    flex: 1;
+  }
+
+  :nth-child(2) {
+    flex: 2;
+  }
+}

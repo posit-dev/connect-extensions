@@ -1,0 +1,78 @@
+h1,
+h2,
+h3,
+h4,
+h5 {
+  margin-bottom: 0;
+  color: map.get($brand-colors, gray-dark);
+}
+
+.btn {
+  --bs-btn-padding-x: 15px;
+  --bs-btn-padding-y: 5px;
+}
+
+.btn-default,
+.btn:disabled,
+.btn.disabled,
+fieldset:disabled .btn {
+  border: none;
+  border-radius: 4px;
+  background-color: map.get($brand-colors, primary);
+  color: map.get($brand-colors, white);
+  cursor: pointer;
+  padding: 6px 16px;
+  min-width: 100px;
+  max-height: 36px;
+  opacity: unset;
+}
+
+.btn-default:hover,
+.btn-default:focus,
+:not(.btn-check) + .btn:active {
+  background-color: map.get($brand-colors, primary-dark-90);
+  color: map.get($brand-colors, white);
+  background-image: none;
+  opacity: unset;
+}
+
+.btn-group-toggle {
+  margin-left: 5px !important;
+}
+
+details.collapsible-section {
+  margin-top: 20px;
+}
+
+details.collapsible-section > summary {
+  align-items: center;
+  cursor: pointer;
+  display: flex;
+  margin-bottom: 10px;
+  width: fit-content;
+}
+
+details.collapsible-section > summary::before {
+  content: "\25b6";
+  font-size: 80%;
+  margin-right: 5px;
+}
+
+details.collapsible-section[open] > summary::before {
+  content: "\25bc";
+}
+
+details.collapsible-section > summary > h3 {
+  margin: 0;
+}
+
+hr {
+  margin: 0;
+  color: map.get($base-colors, gray-light);
+  opacity: 1;
+}
+
+.no-busy-indicator .recalculating::after {
+  display: none !important;
+  content: none !important;
+}

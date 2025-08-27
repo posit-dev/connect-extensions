@@ -58,6 +58,7 @@ jobs:
             simple-mcp-server: extensions/simple-mcp-server/**
             simple-shiny-chat-with-mcp: extensions/simple-shiny-chat-with-mcp/**
             chat-with-content: extensions/chat-with-content/**
+            connect-user-metrics: extensions/connect-user-metrics/**
 
   # Runs for each extension that has changed from `simple-extension-changes`
   # Lints and packages in preparation for tests and and release.

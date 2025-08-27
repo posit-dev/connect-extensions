@@ -1,0 +1,63 @@
+meta:
+  app_title: "Posit Connect User Metrics"
+  credits:
+    enabled: TRUE
+    about:
+      references:
+        homepage:
+          name: "Link to Appsilon"
+          link: "https://go.appsilon.com/appsilon-user-metrics-app"
+      powered_by:
+        rhino:
+          name: "Rhino"
+          link: "https://go.appsilon.com/github-rhino-user-metrics-app"
+          img_name: "rhino.png"
+          desc: "Rhino is an Open-Source Package developed by Appsilon to
+                 help the R community make more professional Shiny Apps. Rhino allows you to
+                 create Shiny apps The Appsilon Way - like a fullstack software engineer.
+                 Apply best software engineering practices, modularize your code,
+                 test it well, make UI beautiful, and think about user adoption
+                 from the very beginning."
+      summary: "We create, maintain, and develop Shiny applications
+                for enterprise customers all over the world. Appsilon
+                provides scalability, security, and modern UI/UX with
+                custom R packages that native Shiny apps do not provide.
+                Our team is among the world's foremost experts in R Shiny
+                and has made a variety of Shiny innovations over the
+                years. Appsilon is a proud Posit Full Service
+                Certified Partner."
+    footer:
+      text: "Designed and developed with 💙 by"
+      link:
+        label: "Appsilon"
+        url: "https://go.appsilon.com/appsilon-user-metrics-app"
+
+logo: "appsilon-logo.png"
+
+color:
+  palette:
+    white: "#FFFFFF"
+    mint: "#00CDA3"
+    blue: "#0099F9"
+    yellow: "#E8C329"
+    purple: "#994B9D"
+    black: "#000000"
+    gray: "#15354A"
+  foreground: gray
+  background: white
+  primary: blue
+
+typography:
+  fonts:
+    - family: Maven Pro
+      source: google
+      weight: [400, 500, 600, 700]
+      style: normal
+    - family: Roboto
+      source: google
+      weight: [400, 500, 600]
+      style: normal
+  base:
+    Roboto
+  headings:
+    Maven Pro
