@@ -17,7 +17,9 @@
     "fastapi",
     "mcp",
     "llm",
-    "chat"
+    "chat",
+    "quarto",
+    "r"
   ],
   "requiredFeatures": [
     "API Publishing",
