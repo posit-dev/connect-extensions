@@ -1,6 +1,10 @@
 ---
-title: smoke test
+title: pqr
 ---
+
+This Quarto document executes Python and R code.
+
+## R code
 
 ```{r}
 library(tinyplot)
@@ -20,6 +24,8 @@ tinyplot(Month ~ Temp | Temp,
 )
 ```
 
+
+## Python code
 
 ```{python}
 from plotnine import * 
