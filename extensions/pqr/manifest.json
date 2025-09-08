@@ -1102,7 +1102,7 @@
   "users": null,
   "extension": {
     "name": "pqr",
-    "title": "pqr",
+    "title": "Quarto Document with Python and R",
     "description": "A Quarto document that executes Python and R code.",
     "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/pqr",
     "category": "example",
