@@ -377,6 +377,54 @@
       "tags": []
     },
     {
+      "name": "pqr",
+      "title": "Quarto Document with Python and R",
+      "description": "A Quarto document that executes Python and R code.",
+      "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/pqr",
+      "latestVersion": {
+        "version": "0.1.0",
+        "released": "2025-09-12T19:27:07Z",
+        "url": "https://github.com/posit-dev/connect-extensions/releases/download/pqr%40v0.1.0/pqr.tar.gz",
+        "minimumConnectVersion": "2025.04.0",
+        "requiredEnvironment": {
+          "python": {
+            "requires": ">=3.11"
+          },
+          "quarto": {
+            "requires": ">=1.4"
+          },
+          "r": {
+            "requires": ">=4.3"
+          }
+        }
+      },
+      "versions": [
+        {
+          "version": "0.1.0",
+          "released": "2025-09-12T19:27:07Z",
+          "url": "https://github.com/posit-dev/connect-extensions/releases/download/pqr%40v0.1.0/pqr.tar.gz",
+          "minimumConnectVersion": "2025.04.0",
+          "requiredEnvironment": {
+            "python": {
+              "requires": ">=3.11"
+            },
+            "quarto": {
+              "requires": ">=1.4"
+            },
+            "r": {
+              "requires": ">=4.3"
+            }
+          }
+        }
+      ],
+      "tags": [
+        "python",
+        "quarto",
+        "r"
+      ],
+      "category": "example"
+    },
+    {
       "name": "publisher-command-center",
       "title": "Publisher Command Center",
       "description": "An app that helps publishers view and manage details about apps and dashboards deployed to Connect. View app metadata and history for all of the apps you are collaborating on as well as see and managing running process for individual apps.",
