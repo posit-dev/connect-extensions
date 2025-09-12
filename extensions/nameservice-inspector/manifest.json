@@ -11,7 +11,7 @@
     "description": "A simple extension to inspect the nameservice users and groups in Posit Connect.",
     "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/nameservice-inspector",
     "category": "",
-    "tags": [],
+    "tags": ["python", "streamlit", "nameservice"],
     "minimumConnectVersion": "2025.06.0",
     "version": "0.0.0"
   },
