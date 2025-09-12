@@ -2150,7 +2150,7 @@
         "Maintainer": "Kevin Ushey <kevin@rstudio.com>",
         "Repository": "RSPM",
         "Date/Publication": "2025-03-20 18:10:01 UTC",
-        "Built": "R 4.3.3; ; 2025-07-31 15:27:30 UTC; unix"
+        "Built": "R 4.3.0; ; 2025-03-21 06:10:06 UTC; unix"
       }
     },
     "rlang": {
@@ -3039,7 +3039,7 @@
       "checksum": "5555b67b7f82d2dbc90b3a36260ceeac"
     },
     "R/get_usage.R": {
-      "checksum": "5f1c4eb8903a8179761f5fe94c77bfa1"
+      "checksum": "1231f3eece53466dd1ff0867f1019bb0"
     },
     "R/integrations.R": {
       "checksum": "2b495c74b5987a2c318bcd80a0c2be8f"
@@ -3071,6 +3071,6 @@
     "requiredFeatures": [
       "OAuth Integrations"
     ],
-    "version": "1.0.7"
+    "version": "1.0.8"
   }
 }

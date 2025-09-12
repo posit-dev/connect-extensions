@@ -35,5 +35,14 @@ get_usage <- function(client, from = NULL, to = NULL) {
     )
   )
   usage_parsed <- connectapi:::parse_connectapi_typed(usage_raw, usage_dtype)
-  usage_parsed[c("user_guid", "content_guid", "timestamp")]
+
+  # Filter out hits from the Content Health Monitor
+  usage_parsed$user_agent <- vapply(
+    usage_parsed$data,
+    function(x) if (!is.null(x$user_agent)) x$user_agent else NA_character_,
+    FUN.VALUE = character(1)
+  )
+  usage_parsed <- filter(usage_parsed, !grepl("^ContentHealthMonitor/", user_agent))
+
+  usage_parsed[c("user_guid", "content_guid", "timestamp", "user_agent")]
 }
