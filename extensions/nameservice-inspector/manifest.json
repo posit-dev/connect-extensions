@@ -12,8 +12,12 @@
     "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/nameservice-inspector",
     "category": "",
     "tags": ["python", "streamlit", "nameservice"],
-    "minimumConnectVersion": "2025.06.0",
-    "version": "0.0.0"
+    "minimumConnectVersion": "2025.09.0",
+    "version": "0.0.0",
+    "requiredFeatures": [
+      "Current User Execution",
+      "OAuth Integrations"
+    ]
   },
   "python": {
     "version": "3.11.3",
