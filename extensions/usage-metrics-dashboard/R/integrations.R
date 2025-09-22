@@ -1,7 +1,3 @@
-library(connectapi)
-library(purrr)
-library(dplyr)
-
 get_eligible_integrations <- function(client) {
   tryCatch(
     {
@@ -9,13 +5,13 @@ get_eligible_integrations <- function(client) {
       # remove this and use that functionality instead.
       integrations <- client$GET("v1/oauth/integrations")
 
-      integrations_df <- map_dfr(integrations, function(record) {
+      integrations_df <- purrr::map_dfr(integrations, function(record) {
         # Extract main fields
-        main_fields <- discard(record, is.list) # Discard list fields like 'config'
+        main_fields <- purrr::discard(record, is.list) # Discard list fields like 'config'
 
         # Extract and combine the config fields with field names and values
         config <- paste(
-          imap_chr(record$config, ~ paste(.y, .x, sep = ": ")),
+          purrr::imap_chr(record$config, ~ paste(.y, .x, sep = ": ")),
           collapse = ", "
         )
 
@@ -26,7 +22,7 @@ get_eligible_integrations <- function(client) {
       print(integrations_df)
 
       eligible_integrations <- integrations_df |>
-        filter(
+        dplyr::filter(
           template == "connect",
           config %in% c("max_role: Admin", "max_role: Publisher")
         )

@@ -1,17 +1,4 @@
-library(shiny)
-library(bslib)
-library(shinyjs)
-library(connectapi)
-library(purrr)
-library(dplyr)
-library(tidyr)
-library(lubridate)
-library(reactable)
-library(ggplot2)
-library(plotly)
-library(shinycssloaders)
-
-shinyOptions(
+shiny::shinyOptions(
   cache = cachem::cache_disk("./app_cache/cache/", max_age = 60 * 60)
 )
 
@@ -41,7 +28,7 @@ app_mode_groups <- list(
 )
 
 
-content_usage_table_search_method = JS(
+content_usage_table_search_method = htmlwidgets::JS(
   "
   function(rows, columnIds, searchValue) {
     const searchLower = searchValue.toLowerCase();
@@ -61,42 +48,42 @@ content_usage_table_search_method = JS(
 )
 
 ui <- function(request) {
-  page_sidebar(
-    useShinyjs(),
-    theme = bs_theme(version = 5),
-    tags$head(
-      tags$link(rel = "stylesheet", type = "text/css", href = "styles.css")
+  bslib::page_sidebar(
+    shinyjs::useShinyjs(),
+    theme = bslib::bs_theme(version = 5),
+    shiny::tags$head(
+      shiny::tags$link(rel = "stylesheet", type = "text/css", href = "styles.css")
     ),
 
-    title = uiOutput("page_title_bar"),
+    title = shiny::uiOutput("page_title_bar"),
 
-    sidebar = sidebar(
+    sidebar = bslib::sidebar(
       open = TRUE,
       width = 275,
 
-      selectInput(
+      shiny::selectInput(
         "date_range_choice",
         label = "Date Range",
         choices = c("1 Week", "30 Days", "90 Days", "Custom"),
         selected = "1 Week"
       ),
 
-      conditionalPanel(
+      shiny::conditionalPanel(
         condition = "input.date_range_choice === 'Custom'",
-        dateRangeInput(
+        shiny::dateRangeInput(
           "date_range_custom",
           label = NULL,
-          start = today() - days(6),
-          end = today(),
-          max = today()
+          start = lubridate::today() - lubridate::days(6),
+          end = lubridate::today(),
+          max = lubridate::today()
         )
       ),
 
-      sliderInput(
+      shiny::sliderInput(
         "session_window",
-        label = tagList(
+        label = shiny::tagList(
           "Session Window (sec)",
-          tooltip(
+          bslib::tooltip(
             bsicons::bs_icon("question-circle-fill", class = "ms-2"),
             paste0(
               "Visits within this number of seconds are counted only once, ",
@@ -110,23 +97,23 @@ ui <- function(request) {
         step = 1
       ),
 
-      textInput(
+      shiny::textInput(
         "session_window_text",
         label = NULL,
-        value = 0,
+        value = 0
       ),
 
-      tags$hr(),
+      shiny::tags$hr(),
 
       # Controls shown only when the outer table is displayed
-      conditionalPanel(
+      shiny::conditionalPanel(
         "input.content_guid == null",
-        selectizeInput(
+        shiny::selectizeInput(
           "content_scope",
           "Included Content",
           choices = NULL
         ),
-        selectizeInput(
+        shiny::selectizeInput(
           "app_mode_filter",
           label = "Filter by Content Type",
           options = list(placeholder = "All Content Types"),
@@ -141,16 +128,16 @@ ui <- function(request) {
           ),
           multiple = TRUE
         ),
-        checkboxInput(
+        shiny::checkboxInput(
           "show_guid",
           label = "Show GUID"
         ),
-        downloadButton(
+        shiny::downloadButton(
           "export_visit_totals",
           class = "btn-sm",
           label = "Export Usage Table"
         ),
-        downloadButton(
+        shiny::downloadButton(
           "export_raw_visits",
           class = "btn-sm",
           label = "Export Raw Visit Data"
@@ -158,25 +145,25 @@ ui <- function(request) {
       ),
 
       # Controls shown only when the inner detail view is displayed
-      conditionalPanel(
+      shiny::conditionalPanel(
         "input.content_guid != null",
-        # div(class = "fs-5", "Filters"),
-        selectizeInput(
+        # shiny::div(class = "fs-5", "Filters"),
+        shiny::selectizeInput(
           "selected_users",
           label = "Filter Visitors",
           options = list(placeholder = "All Visitors"),
           choices = NULL,
           multiple = TRUE
         ),
-        uiOutput("email_selected_visitors_button")
+        shiny::uiOutput("email_selected_visitors_button")
       ),
 
-      tags$hr(),
+      shiny::tags$hr(),
 
-      div(
-        actionLink("clear_cache", "Refresh Data", icon = icon("refresh")),
-        div(
-          textOutput("last_updated"),
+      shiny::div(
+        shiny::actionLink("clear_cache", "Refresh Data", icon = shiny::icon("refresh")),
+        shiny::div(
+          shiny::textOutput("last_updated"),
           style = "
             font-size:0.75rem;
             color:#6c757d;
@@ -190,67 +177,67 @@ ui <- function(request) {
 
     # The multi-content table is shown by default, when no content item is
     # selected.
-    div(
+    shiny::div(
       id = "multi_content_table",
-      textOutput("summary_text"),
-      withSpinner(reactableOutput("content_usage_table"))
+      shiny::textOutput("summary_text"),
+      shinycssloaders::withSpinner(reactable::reactableOutput("content_usage_table"))
     ),
 
     # The single-content detail view is displayed when an item is selected,
     # either by clicking on a table row or upon restoring from a bookmark URL.
-    div(
+    shiny::div(
       id = "single_content_detail",
       style = "display:none;",
-      div(
+      shiny::div(
         class = "d-flex justify-content-between align-items-center gap-2 mb-3",
-        span(
-          uiOutput("filter_message")
+        shiny::span(
+          shiny::uiOutput("filter_message")
         ),
-        div(
+        shiny::div(
           class = "d-flex align-items-center gap-2",
-          textOutput("owner_info", inline = TRUE),
-          uiOutput("email_owner_button")
+          shiny::textOutput("owner_info", inline = TRUE),
+          shiny::uiOutput("email_owner_button")
         )
       ),
-      layout_column_wrap(
+      bslib::layout_column_wrap(
         width = "400px",
         heights_equal = "row",
-        navset_card_tab(
+        bslib::navset_card_tab(
           # Plot panel
-          tabPanel(
+          shiny::tabPanel(
             "Daily Visits",
-            div(
+            shiny::div(
               style = "height: 300px",
-              withSpinner(plotlyOutput(
+              shinycssloaders::withSpinner(plotly::plotlyOutput(
                 "daily_visits_plot",
                 height = "100%",
                 width = "100%"
               ))
             )
           ),
-          tabPanel(
+          shiny::tabPanel(
             "Visit Timeline",
-            div(
+            shiny::div(
               style = "height: 400px;",
-              uiOutput("visit_timeline_ui")
+              shiny::uiOutput("visit_timeline_ui")
             )
           )
         ),
-        navset_card_tab(
+        bslib::navset_card_tab(
           # Table panel
-          tabPanel(
-            title = tagList(
+          shiny::tabPanel(
+            title = shiny::tagList(
               "Top Visitors",
-              tooltip(
+              bslib::tooltip(
                 bsicons::bs_icon("info-circle-fill", class = "ms-2"),
                 "Click a row to show only that user's visits."
               )
             ),
-            withSpinner(reactableOutput("aggregated_visits"))
+            shinycssloaders::withSpinner(reactable::reactableOutput("aggregated_visits"))
           ),
-          tabPanel(
+          shiny::tabPanel(
             "List of Visits",
-            withSpinner(reactableOutput("all_visits"))
+            shinycssloaders::withSpinner(reactable::reactableOutput("all_visits"))
           )
         )
       )
@@ -258,7 +245,7 @@ ui <- function(request) {
 
     # Used to update the selected content GUID in locations other than the table
     # row click.
-    tags$script(
+    shiny::tags$script(
       "
       Shiny.addCustomMessageHandler('set_input_value', function(args) {
         Shiny.setInputValue(args[0], args[1], {priority: 'event'});
@@ -272,26 +259,26 @@ server <- function(input, output, session) {
   # Set up Connect client; handle error if Visitor API Key integration isn't
   # present.
 
-  publisher_client <- connect()
+  publisher_client <- connectapi::connect()
 
-  selected_integration_guid <- reactiveVal(NULL)
-  observeEvent(input$auto_add_integration, {
+  selected_integration_guid <- shiny::reactiveVal(NULL)
+  shiny::observeEvent(input$auto_add_integration, {
     auto_add_integration(publisher_client, selected_integration_guid())
     # Hard refresh so that the sidebar gets the up to date info
-    runjs("window.top.location.reload(true);")
+    shiny::runjs("window.top.location.reload(true);")
   })
 
   client <- NULL
   tryCatch(
-    client <- connect(
+    client <- connectapi::connect(
       token = session$request$HTTP_POSIT_CONNECT_USER_SESSION_TOKEN
     ),
     error = function(e) {
       eligible_integrations <- get_eligible_integrations(publisher_client)
       selected_integration <- eligible_integrations |>
         # Sort "max_role: Admin" before "max_role: Publisher"
-        arrange(config) |>
-        slice_head(n = 1)
+        dplyr::arrange(config) |>
+        dplyr::slice_head(n = 1)
       selected_integration_guid(selected_integration$guid)
 
       if (nrow(selected_integration) == 1) {
@@ -332,27 +319,27 @@ server <- function(input, output, session) {
       }
 
       footer <- if (nrow(selected_integration) == 1) {
-        button_label <- HTML(paste0(
+        button_label <- shiny::HTML(paste0(
           "Use the ",
           "<strong>'",
           selected_integration$name,
           "'</strong> ",
           "Integration"
         ))
-        actionButton(
+        shiny::actionButton(
           "auto_add_integration",
           button_label,
-          icon = icon("plus"),
+          icon = shiny::icon("plus"),
           class = "btn btn-primary"
         )
       } else if (nrow(selected_integration) == 0) {
         NULL
       }
 
-      showModal(modalDialog(
+      shiny::showModal(shiny::modalDialog(
         # title = "Additional Setup Required",
         footer = footer,
-        HTML(message)
+        shiny::HTML(message)
       ))
     }
   )
@@ -366,9 +353,9 @@ server <- function(input, output, session) {
   # selected_guid is a reactive value that tracks the input GUID. They are each
   # used to trigger different behaviors in different parts of the app so that it
   # reacts appropriately to the selection state.
-  selected_guid <- reactiveVal(NULL)
+  selected_guid <- shiny::reactiveVal(NULL)
 
-  observeEvent(
+  shiny::observeEvent(
     input$content_guid,
     {
       selected_guid(input$content_guid)
@@ -378,14 +365,14 @@ server <- function(input, output, session) {
 
   # Bookmarking ----
 
-  observe({
-    setBookmarkExclude(setdiff(names(input), "content_guid"))
+  shiny::observe({
+    shiny::setBookmarkExclude(setdiff(names(input), "content_guid"))
   })
-  onBookmarked(function(url) {
+  shiny::onBookmarked(function(url) {
     message("Bookmark complete. URL: ", url)
-    updateQueryString(url)
+    shiny::updateQueryString(url)
   })
-  onRestore(function(state) {
+  shiny::onRestore(function(state) {
     guid <- state$input$content_guid
     # Need to use content_unscoped() here because the input value that content()
     # depends on is not available yet. And we *can* use it, because the app
@@ -395,17 +382,17 @@ server <- function(input, output, session) {
       session$sendCustomMessage("set_input_value", list('content_guid', guid))
     }
   })
-  observeEvent(
+  shiny::observeEvent(
     input$content_guid,
     {
-      req(input$content_guid %in% content()$guid)
+      shiny::req(input$content_guid %in% content()$guid)
       session$doBookmark()
     },
     ignoreInit = TRUE
   )
 
   # Use selection state to toggle visibility of main views.
-  observe({
+  shiny::observe({
     shinyjs::toggle(
       id = "multi_content_table",
       condition = is.null(selected_guid())
@@ -417,12 +404,12 @@ server <- function(input, output, session) {
   })
 
   # Clicking the back button clears the selected GUID.
-  observeEvent(input$clear_content_selection, {
+  shiny::observeEvent(input$clear_content_selection, {
     session$sendCustomMessage("set_input_value", list('content_guid', NULL))
     updateReactable("aggregated_visits", selected = NA)
-    updateQueryString(paste0(full_url(session), "?"))
+    shiny::updateQueryString(paste0(full_url(session), "?"))
 
-    updateSelectizeInput(
+    shiny::updateSelectizeInput(
       session,
       "selected_users",
       selected = NA
@@ -431,8 +418,8 @@ server <- function(input, output, session) {
 
   # "Clear filter x" link ----
 
-  observeEvent(input$clear_selection, {
-    updateSelectizeInput(
+  shiny::observeEvent(input$clear_selection, {
+    shiny::updateSelectizeInput(
       session,
       "selected_users",
       selected = NA
@@ -442,7 +429,7 @@ server <- function(input, output, session) {
   # Cache invalidation button ----
 
   cache <- cachem::cache_disk("./app_cache/cache/")
-  observeEvent(input$clear_cache, {
+  shiny::observeEvent(input$clear_cache, {
     print("Cache cleared!")
     cache$reset()
     session$reload()
@@ -450,10 +437,10 @@ server <- function(input, output, session) {
 
   # Session Window controls: sync slider and text input ----
 
-  observeEvent(input$session_window, {
+  shiny::observeEvent(input$session_window, {
     if (input$session_window != input$session_window_text) {
-      freezeReactiveValue(input, "session_window_text")
-      updateTextInput(
+      shiny::freezeReactiveValue(input, "session_window_text")
+      shiny::updateTextInput(
         session,
         "session_window_text",
         value = input$session_window
@@ -461,17 +448,17 @@ server <- function(input, output, session) {
     }
   })
 
-  observeEvent(input$session_window_text, {
+  shiny::observeEvent(input$session_window_text, {
     new_value <- suppressWarnings(as.numeric(input$session_window_text))
     if (!is.na(new_value) && new_value >= 0 && new_value <= 180) {
       if (new_value != input$session_window) {
-        freezeReactiveValue(input, "session_window")
-        updateSliderInput(session, "session_window", value = new_value)
+        shiny::freezeReactiveValue(input, "session_window")
+        shiny::updateSliderInput(session, "session_window", value = new_value)
       }
     } else {
       if (input$session_window_text != input$session_window) {
-        freezeReactiveValue(input, "session_window_text")
-        updateTextInput(
+        shiny::freezeReactiveValue(input, "session_window_text")
+        shiny::updateTextInput(
           session,
           "session_window_text",
           value = input$session_window
@@ -483,13 +470,13 @@ server <- function(input, output, session) {
   # Filter Visitors input behavior ----
 
   # Set choices when aggregated visits data is present
-  observe({
-    req(aggregated_visits_data())
+  shiny::observe({
+    shiny::req(aggregated_visits_data())
     data <- aggregated_visits_data()
-    updateSelectizeInput(
+    shiny::updateSelectizeInput(
       session,
       "selected_users",
-      choices = setNames(data$user_guid, data$display_name),
+      choices = stats::setNames(data$user_guid, data$display_name),
       server = TRUE
     )
   })
@@ -498,13 +485,13 @@ server <- function(input, output, session) {
   # to be sorted differently from data for the sidebar and plots for them to appear
   # in the same order.
 
-  aggregated_visits_reactable_data <- reactive({
+  aggregated_visits_reactable_data <- shiny::reactive({
     aggregated_visits_data() |>
-      arrange(desc(n_visits), desc(display_name))
+      dplyr::arrange(dplyr::desc(n_visits), dplyr::desc(display_name))
   })
 
   # Sync table to sidebar
-  observe({
+  shiny::observe({
     selected_guids_reactable <- aggregated_visits_reactable_data()[
       getReactableState("aggregated_visits", "selected"),
       "user_guid",
@@ -513,7 +500,7 @@ server <- function(input, output, session) {
     # Get indices of selected reactable GUIDs from the main table
     all_guids <- aggregated_visits_data()$"user_guid"
     selected_guids <- all_guids[which(all_guids %in% selected_guids_reactable)]
-    updateSelectizeInput(
+    shiny::updateSelectizeInput(
       session,
       "selected_users",
       selected = selected_guids
@@ -521,12 +508,12 @@ server <- function(input, output, session) {
   })
 
   # Sync sidebar to table
-  observeEvent(
+  shiny::observeEvent(
     input$selected_users,
     {
       all_guids_reactable <- aggregated_visits_reactable_data()$user_guid
       selected_indices <- which(all_guids_reactable %in% input$selected_users)
-      updateReactable("aggregated_visits", selected = selected_indices)
+      reactable::updateReactable("aggregated_visits", selected = selected_indices)
     },
     ignoreNULL = FALSE
   )
@@ -553,9 +540,9 @@ server <- function(input, output, session) {
     )
   )
 
-  observe({
-    req(scope_choices)
-    updateSelectizeInput(
+  shiny::observe({
+    shiny::req(scope_choices)
+    shiny::updateSelectizeInput(
       session,
       "content_scope",
       choices = scope_choices,
@@ -563,29 +550,29 @@ server <- function(input, output, session) {
     )
   })
 
-  content_unscoped <- reactive({
-    get_content(client)
+  content_unscoped <- shiny::reactive({
+    connectapi::get_content(client)
   }) |>
-    bindCache(active_user_guid)
+    shiny::bindCache(active_user_guid)
 
-  content <- reactive({
-    req(input$content_scope)
+  content <- shiny::reactive({
+    shiny::req(input$content_scope)
 
     switch(
       input$content_scope,
       "all" = content_unscoped(),
-      "view" = content_unscoped() |> filter(app_role != "none"),
-      "edit" = content_unscoped() |> filter(app_role %in% c("owner", "editor")),
-      "own" = content_unscoped() |> filter(owner_guid == active_user_guid)
+      "view" = content_unscoped() |> dplyr::filter(app_role != "none"),
+      "edit" = content_unscoped() |> dplyr::filter(app_role %in% c("owner", "editor")),
+      "own" = content_unscoped() |> dplyr::filter(owner_guid == active_user_guid)
     )
   })
 
-  date_range <- reactive({
+  date_range <- shiny::reactive({
     switch(
       input$date_range_choice,
-      "1 Week" = list(from = today() - days(6), to = today()),
-      "30 Days" = list(from = today() - days(29), to = today()),
-      "90 Days" = list(from = today() - days(89), to = today()),
+      "1 Week" = list(from = lubridate::today() - lubridate::days(6), to = lubridate::today()),
+      "30 Days" = list(from = lubridate::today() - lubridate::days(29), to = lubridate::today()),
+      "90 Days" = list(from = lubridate::today() - lubridate::days(89), to = lubridate::today()),
       "Custom" = list(
         from = input$date_range_custom[1],
         to = input$date_range_custom[2]
@@ -593,18 +580,18 @@ server <- function(input, output, session) {
     )
   })
 
-  users <- reactive({
+  users <- shiny::reactive({
     get_users(client) |>
-      mutate(
+      dplyr::mutate(
         full_name = paste(first_name, last_name),
         display_name = paste0(full_name, " (", username, ")")
       ) |>
-      select(user_guid = guid, full_name, username, display_name, email)
+      dplyr::select(user_guid = guid, full_name, username, display_name, email)
   }) |>
-    bindCache(active_user_guid)
+    shiny::bindCache(active_user_guid)
 
-  usage_data_meta <- reactive({
-    req(active_user_role %in% c("administrator", "publisher"))
+  usage_data_meta <- shiny::reactive({
+    shiny::req(active_user_role %in% c("administrator", "publisher"))
     dat <- get_usage(
       client,
       from = date_range()$from,
@@ -615,67 +602,67 @@ server <- function(input, output, session) {
       last_updated = Sys.time()
     )
   }) |>
-    bindCache(active_user_guid, date_range())
+    shiny::bindCache(active_user_guid, date_range())
 
-  usage_data_raw <- reactive({
+  usage_data_raw <- shiny::reactive({
     usage_data_meta()$data
   })
 
-  usage_last_updated <- reactive({
+  usage_last_updated <- shiny::reactive({
     usage_data_meta()$last_updated
   })
 
   # Multi-content table data ----
 
   # Filter the raw data based on selected scope, app mode and session window
-  usage_data_visits <- reactive({
-    req(content())
+  usage_data_visits <- shiny::reactive({
+    shiny::req(content())
     scope_filtered_usage <- usage_data_raw() |>
-      filter(content_guid %in% content()$guid)
+      dplyr::filter(content_guid %in% content()$guid)
 
     app_mode_filtered_usage <- if (length(input$app_mode_filter) == 0) {
       scope_filtered_usage
     } else {
       app_modes <- unlist(app_mode_groups[input$app_mode_filter])
       filter_guids <- content() |>
-        filter(app_mode %in% app_modes) |>
-        pull(guid)
+        dplyr::filter(app_mode %in% app_modes) |>
+        dplyr::pull(guid)
       scope_filtered_usage |>
-        filter(content_guid %in% filter_guids)
+        dplyr::filter(content_guid %in% filter_guids)
     }
 
-    req(input$session_window)
+    shiny::req(input$session_window)
     filter_visits_by_time_window(app_mode_filtered_usage, input$session_window)
   })
 
   # Create data for the main table and summary export.
-  multi_content_table_data <- reactive({
-    req(nrow(usage_data_visits()) > 0)
+  multi_content_table_data <- shiny::reactive({
+    shiny::req(nrow(usage_data_visits()) > 0)
     usage_summary <- usage_data_visits() |>
-      group_by(content_guid) |>
-      summarize(
-        total_views = n(),
-        unique_viewers = n_distinct(user_guid, na.rm = TRUE),
+      dplyr::group_by(content_guid) |>
+      dplyr::summarize(
+        total_views = dplyr::n(),
+        unique_viewers = dplyr::n_distinct(user_guid, na.rm = TRUE),
         .groups = "drop"
       )
 
     # Prepare sparkline data.
     all_dates <- seq.Date(date_range()$from, date_range()$to, by = "day")
     daily_usage <- usage_data_visits() |>
-      count(content_guid, date = date(timestamp)) |>
-      complete(date = all_dates, nesting(content_guid), fill = list(n = 0)) |>
-      group_by(content_guid) |>
-      summarize(sparkline = list(n), .groups = "drop")
+      dplyr::count(content_guid, date = lubridate::date(timestamp)) |>
+      tidyr::complete(date = all_dates, tidyr::nesting(content_guid), fill = list(n = 0)) |>
+      dplyr::group_by(content_guid) |>
+      dplyr::summarize(sparkline = list(n), .groups = "drop")
 
     content() |>
-      mutate(owner_username = map_chr(owner, "username")) |>
-      select(title, content_guid = guid, owner_username, dashboard_url) |>
-      replace_na(list(title = "[Untitled]")) |>
-      right_join(usage_summary, by = "content_guid") |>
-      right_join(daily_usage, by = "content_guid") |>
-      replace_na(list(title = "[Deleted]")) |>
-      arrange(desc(total_views)) |>
-      select(
+      dplyr::mutate(owner_username = purrr::map_chr(owner, "username")) |>
+      dplyr::select(title, content_guid = guid, owner_username, dashboard_url) |>
+      tidyr::replace_na(list(title = "[Untitled]")) |>
+      dplyr::right_join(usage_summary, by = "content_guid") |>
+      dplyr::right_join(daily_usage, by = "content_guid") |>
+      tidyr::replace_na(list(title = "[Deleted]")) |>
+      dplyr::arrange(dplyr::desc(total_views)) |>
+      dplyr::select(
         title,
         dashboard_url,
         content_guid,
@@ -688,7 +675,7 @@ server <- function(input, output, session) {
 
   # Multi-content table UI and outputs ----
 
-  output$summary_text <- renderText(
+  output$summary_text <- shiny::renderText(
     if (active_user_role == "viewer") {
       "Viewer accounts do not have permission to view usage data."
     } else if (nrow(usage_data_visits()) == 0) {
@@ -704,7 +691,7 @@ server <- function(input, output, session) {
     }
   )
 
-  output$last_updated <- renderText({
+  output$last_updated <- shiny::renderText({
     fmt <- "%Y-%m-%d %l:%M:%S %p %Z"
     paste0("Updated ", format(usage_last_updated(), fmt))
   })
@@ -740,13 +727,13 @@ server <- function(input, output, session) {
   }
   "
 
-  output$content_usage_table <- renderReactable({
+  output$content_usage_table <- reactable::renderReactable({
     data <- multi_content_table_data()
 
-    table <- reactable(
+    table <- reactable::reactable(
       data,
       defaultSortOrder = "desc",
-      onClick = JS(
+      onClick = htmlwidgets::JS(
         "function(rowInfo, colInfo) {
         if (rowInfo && rowInfo.row && rowInfo.row.content_guid) {
           Shiny.setInputValue('content_guid', rowInfo.row.content_guid, {priority: 'event'});
@@ -758,8 +745,8 @@ server <- function(input, output, session) {
       sortable = TRUE,
       searchable = TRUE,
       searchMethod = content_usage_table_search_method,
-      language = reactableLang(
-        searchPlaceholder = "Search by title, URL, GUID, or owner",
+      language = reactable::reactableLang(
+        searchPlaceholder = "Search by title, URL, GUID, or owner"
       ),
       highlight = TRUE,
       defaultSorted = "total_views",
@@ -768,7 +755,7 @@ server <- function(input, output, session) {
       class = "metrics-tbl",
 
       columns = list(
-        title = colDef(
+        title = reactable::colDef(
           name = "Content",
           defaultSortOrder = "asc",
           style = function(value) {
@@ -781,7 +768,7 @@ server <- function(input, output, session) {
           }
         ),
 
-        dashboard_url = colDef(
+        dashboard_url = reactable::colDef(
           name = "",
           width = 32,
           sortable = FALSE,
@@ -789,9 +776,9 @@ server <- function(input, output, session) {
             if (is.na(url) || url == "") {
               return("")
             }
-            HTML(as.character(tags$div(
+            shiny::HTML(as.character(shiny::tags$div(
               onclick = "event.stopPropagation()",
-              tags$a(
+              shiny::tags$a(
                 href = url,
                 target = "_blank",
                 bsicons::bs_icon("arrow-up-right-square")
@@ -801,25 +788,25 @@ server <- function(input, output, session) {
           html = TRUE
         ),
 
-        content_guid = colDef(
+        content_guid = reactable::colDef(
           name = "GUID",
           show = input$show_guid,
           class = "number",
           cell = function(value) {
-            div(
+            shiny::div(
               style = list(whiteSpace = "normal", wordBreak = "break-all"),
               value
             )
           }
         ),
 
-        owner_username = colDef(
+        owner_username = reactable::colDef(
           name = "Owner",
           defaultSortOrder = "asc",
           minWidth = 75
         ),
 
-        total_views = colDef(
+        total_views = reactable::colDef(
           name = "Visits",
           align = "left",
           minWidth = 75,
@@ -830,7 +817,7 @@ server <- function(input, output, session) {
           }
         ),
 
-        sparkline = colDef(
+        sparkline = reactable::colDef(
           name = "By Day",
           align = "left",
           width = 90,
@@ -847,7 +834,7 @@ server <- function(input, output, session) {
           }
         ),
 
-        unique_viewers = colDef(
+        unique_viewers = reactable::colDef(
           name = "Unique Visitors",
           align = "left",
           minWidth = 70,
@@ -865,7 +852,7 @@ server <- function(input, output, session) {
     htmlwidgets::onRender(table, table_js)
   })
 
-  output$export_raw_visits <- downloadHandler(
+  output$export_raw_visits <- shiny::downloadHandler(
     filename = function() {
       paste0("content_raw_visits_", Sys.Date(), ".csv")
     },
@@ -874,80 +861,80 @@ server <- function(input, output, session) {
     }
   )
 
-  output$export_visit_totals <- downloadHandler(
+  output$export_visit_totals <- shiny::downloadHandler(
     filename = function() {
       paste0("content_visit_totals_", Sys.Date(), ".csv")
     },
     content = function(file) {
       to_export <- multi_content_table_data() |>
-        select(-sparkline)
+        dplyr::select(-sparkline)
       write.csv(to_export, file, row.names = FALSE)
     }
   )
 
   # Single-content detail view data ----
 
-  selected_content_usage <- reactive({
-    req(selected_guid())
+  selected_content_usage <- shiny::reactive({
+    shiny::req(selected_guid())
     usage_data_raw() |>
-      filter(content_guid == selected_guid())
+      dplyr::filter(content_guid == selected_guid())
   })
 
-  all_visits_data <- reactive({
+  all_visits_data <- shiny::reactive({
     all_visits <- selected_content_usage() |>
       # Compute time diffs and filter out hits within the session
-      group_by(user_guid) |>
-      mutate(time_diff = seconds(timestamp - lag(timestamp, 1))) |>
-      replace_na(list(time_diff = seconds(Inf))) |>
-      filter(time_diff > input$session_window) |>
-      ungroup() |>
+      dplyr::group_by(user_guid) |>
+      dplyr::mutate(time_diff = lubridate::seconds(timestamp - dplyr::lag(timestamp, 1))) |>
+      tidyr::replace_na(list(time_diff = lubridate::seconds(Inf))) |>
+      dplyr::filter(time_diff > input$session_window) |>
+      dplyr::ungroup() |>
 
       # Join to usernames
-      left_join(users(), by = "user_guid") |>
-      replace_na(list(
+      dplyr::left_join(users(), by = "user_guid") |>
+      tidyr::replace_na(list(
         user_guid = "ANONYMOUS",
         display_name = "[Anonymous]"
       )) |>
-      arrange(desc(timestamp)) |>
-      select(user_guid, display_name, timestamp)
+      dplyr::arrange(dplyr::desc(timestamp)) |>
+      dplyr::select(user_guid, display_name, timestamp)
 
     # If any users are selected for filtering, filter by their GUIDs
     if (length(input$selected_users) > 0) {
-      all_visits <- filter(all_visits, user_guid %in% input$selected_users)
+      all_visits <- dplyr::filter(all_visits, user_guid %in% input$selected_users)
     }
     all_visits
   })
 
-  aggregated_visits_data <- reactive({
+  aggregated_visits_data <- shiny::reactive({
     filtered_visits <- selected_content_usage() |>
-      group_by(user_guid) |>
+      dplyr::group_by(user_guid) |>
 
       # Compute time diffs and filter out hits within the session
-      mutate(time_diff = seconds(timestamp - lag(timestamp, 1))) |>
-      replace_na(list(time_diff = seconds(Inf))) |>
-      filter(time_diff > input$session_window) |>
+      dplyr::mutate(time_diff = lubridate::seconds(timestamp - dplyr::lag(timestamp, 1))) |>
+      tidyr::replace_na(list(time_diff = lubridate::seconds(Inf))) |>
+      dplyr::filter(time_diff > input$session_window) |>
 
-      summarize(n_visits = n())
+      dplyr::summarize(n_visits = dplyr::n())
 
     filtered_visits |>
-      left_join(users(), by = "user_guid") |>
-      replace_na(list(
+      dplyr::left_join(users(), by = "user_guid") |>
+      tidyr::replace_na(list(
         user_guid = "ANONYMOUS",
         display_name = "[Anonymous]"
       )) |>
-      arrange(desc(n_visits), display_name) |>
-      select(user_guid, display_name, email, n_visits)
+      dplyr::arrange(dplyr::desc(n_visits), display_name) |>
+      dplyr::select(user_guid, display_name, email, n_visits)
   })
 
-  selected_content_info <- reactive({
-    req(selected_guid())
-    filter(content(), guid == selected_guid())
+  selected_content_info <- shiny::reactive({
+    shiny::req(selected_guid())
+    dplyr::filter(content(), guid == selected_guid())
   })
 
   # Single-content detail view UI and outputs ----
 
-  output$aggregated_visits <- renderReactable({
-    reactable(
+  output$aggregated_visits <- reactable::renderReactable({
+    reactable::reactable(
       aggregated_visits_reactable_data(),
       selection = "multiple",
       onClick = "select",
@@ -956,9 +943,9 @@ server <- function(input, output, session) {
       style = list(cursor = "pointer"),
       wrap = FALSE,
       columns = list(
-        user_guid = colDef(show = FALSE),
-        display_name = colDef(name = "Visitor"),
-        email = colDef(
+        user_guid = reactable::colDef(show = FALSE),
+        display_name = reactable::colDef(name = "Visitor"),
+        email = reactable::colDef(
           name = "",
           width = 32,
           sortable = FALSE,
@@ -970,19 +957,19 @@ server <- function(input, output, session) {
               "\"{selected_content_info()$title}\" on Posit Connect"
             )
             mailto <- glue::glue(
-              "mailto:{url}?subject={URLencode(subject, reserved = TRUE)}"
+              "mailto:{url}?subject={utils::URLencode(subject, reserved = TRUE)}"
             )
-            HTML(as.character(tags$div(
+            shiny::HTML(as.character(shiny::tags$div(
               onclick = "event.stopPropagation()",
-              tags$a(
+              shiny::tags$a(
                 href = mailto,
-                icon("envelope")
+                shiny::icon("envelope")
               )
             )))
           },
           html = TRUE
         ),
-        n_visits = colDef(
+        n_visits = reactable::colDef(
           name = "Visits",
           defaultSortOrder = "desc",
           maxWidth = 75,
@@ -992,26 +979,26 @@ server <- function(input, output, session) {
     )
   })
 
-  output$all_visits <- renderReactable({
-    reactable(
+  output$all_visits <- reactable::renderReactable({
+    reactable::reactable(
       all_visits_data(),
       defaultSorted = "timestamp",
       class = "metrics-tbl",
       wrap = FALSE,
       columns = list(
-        user_guid = colDef(show = FALSE),
-        timestamp = colDef(
+        user_guid = reactable::colDef(show = FALSE),
+        timestamp = reactable::colDef(
           name = "Time",
-          format = colFormat(datetime = TRUE, time = TRUE),
+          format = reactable::colFormat(datetime = TRUE, time = TRUE),
           defaultSortOrder = "desc",
           class = "number"
         ),
-        display_name = colDef(name = "Visitor")
+        display_name = reactable::colDef(name = "Visitor")
       )
     )
   })
 
-  output$filter_message <- renderUI({
+  output$filter_message <- shiny::renderUI({
     hits <- all_visits_data()
     glue::glue(
       "{nrow(hits)} visits between ",
@@ -1019,22 +1006,22 @@ server <- function(input, output, session) {
     )
     if (length(input$selected_users) > 0) {
       users <- aggregated_visits_data() |>
-        filter(user_guid %in% input$selected_users) |>
-        pull(display_name)
+        dplyr::filter(user_guid %in% input$selected_users) |>
+        dplyr::pull(display_name)
       user_string <- if (length(users) == 1) {
         users
       } else {
         "multiple selected users"
       }
-      tagList(
-        HTML(glue::glue(
+      shiny::tagList(
+        shiny::HTML(glue::glue(
           "{nrow(hits)} visits from <b>{user_string}</b> between ",
           "{date_range()$from} and {date_range()$to}."
         )),
         actionLink(
           "clear_selection",
           glue::glue("Clear filter"),
-          icon = icon("times")
+          icon = shiny::icon("times")
         )
       )
     } else {
@@ -1045,35 +1032,35 @@ server <- function(input, output, session) {
     }
   })
 
-  output$content_title <- renderText({
-    req(selected_content_info())
+  output$content_title <- shiny::renderText({
+    shiny::req(selected_content_info())
     selected_content_info()$title
   })
 
-  output$content_guid <- renderText({
-    req(selected_content_info())
+  output$content_guid <- shiny::renderText({
+    shiny::req(selected_content_info())
     selected_content_info()$guid
   })
 
-  output$dashboard_link <- renderUI({
-    req(selected_content_info())
+  output$dashboard_link <- shiny::renderUI({
+    shiny::req(selected_content_info())
     url <- selected_content_info()$dashboard_url
-    tags$a(
+    shiny::tags$a(
       href = url,
       class = "btn btn-sm btn-outline-secondary",
       target = "_blank",
-      div(
+      shiny::div(
         style = "white-space: nowrap;",
-        icon("arrow-up-right-from-square"),
+        shiny::icon("arrow-up-right-from-square"),
         "Open"
       )
     )
   })
 
-  output$owner_info <- renderText({
-    req(selected_content_info())
+  output$owner_info <- shiny::renderText({
+    shiny::req(selected_content_info())
     if (nrow(selected_content_info()) == 1) {
-      owner <- filter(
+      owner <- dplyr::filter(
         users(),
         user_guid == selected_content_info()$owner[[1]]$guid
       )
@@ -1081,35 +1068,35 @@ server <- function(input, output, session) {
     }
   })
 
-  output$email_owner_button <- renderUI({
+  output$email_owner_button <- shiny::renderUI({
     owner_email <- users() |>
-      filter(user_guid == selected_content_info()$owner[[1]]$guid) |>
-      pull(email)
+      dplyr::filter(user_guid == selected_content_info()$owner[[1]]$guid) |>
+      dplyr::pull(email)
     subject <- glue::glue(
       "\"{selected_content_info()$title}\" on Posit Connect"
     )
     mailto <- glue::glue(
       "mailto:{owner_email}",
-      "?subject={URLencode(subject, reserved = TRUE)}"
+      "?subject={utils::URLencode(subject, reserved = TRUE)}"
     )
-    tags$a(
+    shiny::tags$a(
       href = mailto,
       class = "btn btn-sm btn-outline-secondary",
       target = "_blank",
-      div(
+      shiny::div(
         style = "white-space: nowrap;",
-        icon("envelope"),
+        shiny::icon("envelope"),
         "Email"
       )
     )
   })
 
-  output$email_selected_visitors_button <- renderUI({
-    req(selected_content_info())
+  output$email_selected_visitors_button <- shiny::renderUI({
+    shiny::req(selected_content_info())
     emails <- users() |>
-      filter(user_guid %in% input$selected_users) |>
-      pull(email) |>
-      na.omit()
+      dplyr::filter(user_guid %in% input$selected_users) |>
+      dplyr::pull(email) |>
+      stats::na.omit()
 
     disabled <- if (length(emails) == 0) "disabled" else NULL
 
@@ -1118,7 +1105,7 @@ server <- function(input, output, session) {
     )
     mailto <- glue::glue(
       "mailto:{paste(emails, collapse = ',')}",
-      "?subject={URLencode(subject, reserved = TRUE)}"
+      "?subject={utils::URLencode(subject, reserved = TRUE)}"
     )
 
     tags$button(
@@ -1130,63 +1117,63 @@ server <- function(input, output, session) {
       } else {
         NULL
       },
-      tagList(icon("envelope"), "Email Selected Visitors")
+      shiny::tagList(shiny::icon("envelope"), "Email Selected Visitors")
     )
   })
 
   # Plots for single-content view ----
 
-  daily_hit_data <- reactive({
+  daily_hit_data <- shiny::reactive({
     all_dates <- seq.Date(date_range()$from, date_range()$to, by = "day")
 
     all_visits_data() |>
-      mutate(date = date(timestamp)) |>
-      group_by(date) |>
-      summarize(daily_visits = n(), .groups = "drop") |>
-      complete(date = all_dates, fill = list(daily_visits = 0))
+      dplyr::mutate(date = lubridate::date(timestamp)) |>
+      dplyr::group_by(date) |>
+      dplyr::summarize(daily_visits = dplyr::n(), .groups = "drop") |>
+      tidyr::complete(date = all_dates, fill = list(daily_visits = 0))
   })
 
-  output$daily_visits_plot <- renderPlotly({
-    p <- ggplot(
+  output$daily_visits_plot <- plotly::renderPlotly({
+    p <- ggplot2::ggplot(
       daily_hit_data(),
-      aes(
+      ggplot2::aes(
         x = date,
         y = daily_visits,
         text = paste("Date:", date, "<br>Visits:", daily_visits)
       )
     ) +
-      geom_bar(stat = "identity", fill = "#447099") +
-      labs(y = "Visits", x = "Date") +
-      theme_minimal()
-    ggplotly(p, tooltip = "text")
+      ggplot2::geom_bar(stat = "identity", fill = "#447099") +
+      ggplot2::labs(y = "Visits", x = "Date") +
+      ggplot2::theme_minimal()
+    plotly::ggplotly(p, tooltip = "text")
   })
 
-  output$visit_timeline_plot <- renderPlotly({
+  output$visit_timeline_plot <- plotly::renderPlotly({
     visit_order <- aggregated_visits_data()$display_name
     data <- all_visits_data() |>
-      mutate(display_name = factor(display_name, levels = rev(visit_order)))
+      dplyr::mutate(display_name = factor(display_name, levels = rev(visit_order)))
 
     from <- as.POSIXct(paste(date_range()$from, "00:00:00"), tz = "")
     to <- as.POSIXct(paste(date_range()$to, "23:59:59"), tz = "")
-    p <- ggplot(
+    p <- ggplot2::ggplot(
       data,
-      aes(
+      ggplot2::aes(
         x = timestamp,
         y = display_name,
         text = paste("Timestamp:", timestamp)
       )
     ) +
-      geom_point(color = "#447099") +
+      ggplot2::geom_point(color = "#447099") +
       # Plotly output does not yet support `position = "top"`, but it should be
       # supported in the next release.
       # https://github.com/plotly/plotly.R/issues/808
-      scale_x_datetime(position = "top", limits = c(from, to)) +
-      theme_minimal() +
-      theme(axis.title.y = element_blank(), axis.ticks.y = element_blank())
-    ggplotly(p, tooltip = "text")
+      ggplot2::scale_x_datetime(position = "top", limits = c(from, to)) +
+      ggplot2::theme_minimal() +
+      ggplot2::theme(axis.title.y = ggplot2::element_blank(), axis.ticks.y = ggplot2::element_blank())
+    plotly::ggplotly(p, tooltip = "text")
   })
 
-  output$visit_timeline_ui <- renderUI({
+  output$visit_timeline_ui <- shiny::renderUI({
     n_users <- length(unique(all_visits_data()$display_name))
     row_height <- 20 # visual pitch per user
     label_buffer <- 50 # additional padding for y-axis labels
@@ -1194,7 +1181,7 @@ server <- function(input, output, session) {
 
     height_px <- n_users * row_height + label_buffer + toolbar_buffer
 
-    withSpinner(plotlyOutput(
+    shinycssloaders::withSpinner(plotly::plotlyOutput(
       "visit_timeline_plot",
       height = paste0(height_px, "px")
     ))
@@ -1202,33 +1189,33 @@ server <- function(input, output, session) {
 
   # Global UI elements ----
 
-  output$page_title_bar <- renderUI({
+  output$page_title_bar <- shiny::renderUI({
     if (is.null(selected_guid())) {
       "Usage"
     } else {
-      div(
+      shiny::div(
         style = "display: flex; justify-content: space-between; gap: 1rem; align-items: baseline;",
-        actionButton(
+        shiny::actionButton(
           "clear_content_selection",
           "Back",
-          icon("arrow-left"),
+          shiny::icon("arrow-left"),
           class = "btn btn-sm",
           style = "white-space: nowrap;"
         ),
-        span(
+        shiny::span(
           "Usage / ",
           textOutput("content_title", inline = TRUE)
         ),
-        code(
+        shiny::code(
           class = "text-muted",
           style = "font-family: \"Fira Mono\", Consolas, Monaco, monospace; font-size: 0.875rem;",
-          textOutput("content_guid", inline = TRUE)
+          shiny::textOutput("content_guid", inline = TRUE)
         ),
-        uiOutput("dashboard_link")
+        shiny::uiOutput("dashboard_link")
       )
     }
   })
 }
 
-enableBookmarking("url")
-shinyApp(ui, server)
+shiny::enableBookmarking("url")
+shiny::shinyApp(ui, server)

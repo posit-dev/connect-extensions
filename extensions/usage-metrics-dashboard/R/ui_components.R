@@ -1,5 +1,3 @@
-library(shiny)
-
 # Create a bar chart HTML element for use in the content reactable.
 bar_chart <- function(
   value,
@@ -10,10 +8,10 @@ bar_chart <- function(
 ) {
   width <- paste0(value * 100 / max_val, "%")
   value <- format(value, width = nchar(max_val), justify = "right")
-  bar <- div(class = "bar", style = list(background = fill, width = width))
-  chart <- div(class = "bar-chart", style = list(background = background), bar)
-  label <- span(class = "number", value)
-  div(class = "bar-cell", label, chart)
+  bar <- shiny::div(class = "bar", style = list(background = fill, width = width))
+  chart <- shiny::div(class = "bar-chart", style = list(background = background), bar)
+  label <- shiny::span(class = "number", value)
+  shiny::div(class = "bar-cell", label, chart)
 }
 
 # Construct full URL from Shiny session
