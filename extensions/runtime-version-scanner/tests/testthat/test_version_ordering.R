@@ -1,5 +1,3 @@
-source("../../version_ordering.R")
-
 versions <- c(
   "3.8.2",
   "2.8.9",

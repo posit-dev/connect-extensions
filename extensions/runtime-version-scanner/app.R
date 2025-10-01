@@ -16,10 +16,8 @@ ANY_VERSION <- "999.99.99"
 
 plan(mirai_multisession)
 
-source("get_usage.R")
-source("connect_module.R")
-source("version_ordering.R")
-source("supported_versions.R")
+files.sources = list.files("R", full.names = TRUE)
+sapply(files.sources, source)
 
 options(
   spinner.type = 1,
