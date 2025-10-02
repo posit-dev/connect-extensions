@@ -10,6 +10,7 @@ library(tidyr)
 library(shinyjs)
 library(future)
 library(future.mirai)
+library(purrr)
 
 # Special version that will be greater than any real version
 ANY_VERSION <- "999.99.99"
@@ -273,10 +274,10 @@ server <- function(input, output, session) {
     last_deployed_time = as.POSIXct(character())
   )
 
-  content_task <- ExtendedTask$new(function(...) {
+  content_task <- ExtendedTask$new(function(content_type_filter) {
     future({
-      content <- get_content(client) |>
-        filter(app_role %in% c("owner", "editor")) |>
+      content_list <- fetch_content(client, content_type_filter = content_type_filter)
+      content_df <- content_list_to_data_frame(content_list)|>
         mutate(
           owner_name = paste(
             map_chr(owner, "first_name"),
@@ -284,12 +285,12 @@ server <- function(input, output, session) {
           ),
           title = coalesce(title, ifelse(name != "", name, NA))
         )
-      content
+      content_df
     })
   })
 
   observe({
-    content_task$invoke()
+    content_task$invoke(input$content_type_filter)
   })
 
   content <- reactive({
@@ -427,16 +428,8 @@ server <- function(input, output, session) {
   outputOptions(output, "usage_task_running", suspendWhenHidden = FALSE)
 
   content_table_data <- reactive({
-    # Filter by content type
-    content_type_mask <- if (length(input$content_type_filter) == 0) {
-      names(app_mode_groups)
-    } else {
-      input$content_type_filter
-    }
-
     content() |>
       mutate(content_type = app_mode_lookup[app_mode]) |>
-      filter(content_type %in% content_type_mask) |>
       select(
         title,
         dashboard_url,
@@ -759,7 +752,6 @@ server <- function(input, output, session) {
   })
 
   observe({
-    print(content_display())
     updateReactable("content_table", data = content_display())
   })
   observe({
