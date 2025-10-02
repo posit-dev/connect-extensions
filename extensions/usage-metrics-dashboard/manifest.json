@@ -491,33 +491,34 @@
         "Type": "Package",
         "Package": "connectapi",
         "Title": "Utilities for Interacting with the 'Posit Connect' Server API",
-        "Version": "0.7.0",
+        "Version": "0.8.0",
         "Authors@R": "c(\n    person(given = \"Toph\",\n           family = \"Allen\",\n           role = c(\"aut\", \"cre\"),\n           email = \"toph@posit.co\"),\n    person(given = \"Neal\",\n           family = \"Richardson\",\n           role = c(\"aut\")),\n    person(given = \"Sean\",\n           family = \"Lopp\",\n           role = c(\"aut\")),\n    person(given = \"Cole\",\n           family = \"Arendt\",\n           role = c(\"aut\")),\n    person(given = \"Posit, PBC\",\n           role = c(\"cph\", \"fnd\")))",
         "Description": "Provides a helpful 'R6' class and methods for interacting with\n    the 'Posit Connect' Server API along with some meaningful utility functions\n    for regular tasks. API documentation varies by 'Posit Connect' installation\n    and version, but the latest documentation is also hosted publicly at\n    <https://docs.posit.co/connect/api/>.",
         "License": "MIT + file LICENSE",
         "URL": "https://posit-dev.github.io/connectapi/,\nhttps://github.com/posit-dev/connectapi",
         "BugReports": "https://github.com/posit-dev/connectapi/issues",
         "Imports": "bit64, fs, glue, httr, mime, jsonlite, lifecycle, magrittr,\npurrr, R6, rlang (>= 0.4.2), tibble, uuid, vctrs (>= 0.3.0),\nbase64enc",
-        "Suggests": "covr, dbplyr, dplyr, ggplot2, gridExtra, httptest, knitr,\nlubridate, progress, rmarkdown, rprojroot, rsconnect, spelling,\ntestthat, webshot2, withr",
+        "Suggests": "covr, dbplyr, dplyr, ggplot2, gridExtra, httptest, knitr,\nlubridate, progress, rmarkdown, rprojroot, rsconnect, spelling,\ntestthat, tidyr, webshot2, withr",
         "VignetteBuilder": "knitr",
         "Encoding": "UTF-8",
         "Language": "en-US",
         "RoxygenNote": "7.3.2",
         "Config/testthat/edition": "3",
+        "Collate": "'audits.R' 'browse.R' 'connect.R' 'connectapi-package.R'\n'connectapi.R' 'content.R' 'deploy.R' 'get.R' 'git.R'\n'groups.R' 'integrations.R' 'lazy.R' 'page.R' 'parse.R'\n'promote.R' 'ptype.R' 'remote.R' 'runtime-caches.R'\n'schedule.R' 'tags.R' 'utils.R' 'thumbnail.R' 'user.R'\n'utils-ci.R' 'utils-pipe.R' 'variant.R'",
         "NeedsCompilation": "no",
-        "Packaged": "2025-03-27 15:47:12 UTC; toph",
+        "Packaged": "2025-07-30 21:46:47 UTC; toph",
         "Author": "Toph Allen [aut, cre],\n  Neal Richardson [aut],\n  Sean Lopp [aut],\n  Cole Arendt [aut],\n  Posit, PBC [cph, fnd]",
         "Maintainer": "Toph Allen <toph@posit.co>",
         "Repository": "RSPM",
-        "Date/Publication": "2025-03-27 16:10:02 UTC",
-        "Built": "R 4.3.0; ; 2025-03-28 04:43:28 UTC; unix",
+        "Date/Publication": "2025-07-30 22:00:11 UTC",
+        "Built": "R 4.3.0; ; 2025-07-31 10:36:47 UTC; unix",
         "RemoteType": "standard",
         "RemoteRef": "connectapi",
         "RemotePkgRef": "connectapi",
         "RemoteRepos": "https://packagemanager.posit.co/cran/latest",
         "RemoteReposName": "CRAN",
         "RemotePkgPlatform": "aarch64-apple-darwin20",
-        "RemoteSha": "0.7.0"
+        "RemoteSha": "0.8.0"
       }
     },
     "cpp11": {
@@ -3036,10 +3037,7 @@
   },
   "files": {
     "app.R": {
-      "checksum": "5555b67b7f82d2dbc90b3a36260ceeac"
-    },
-    "R/get_usage.R": {
-      "checksum": "1231f3eece53466dd1ff0867f1019bb0"
+      "checksum": "d9fb03baa5ecda2ec9f7353d05abc75e"
     },
     "R/integrations.R": {
       "checksum": "2b495c74b5987a2c318bcd80a0c2be8f"
@@ -3054,7 +3052,7 @@
       "checksum": "c0599c7d23181ccb7b2e1a02db85114b"
     },
     "renv.lock": {
-      "checksum": "05865206c04be53631ca32658836ad2a"
+      "checksum": "1503687e203d1f5db7299f8a4a28ce06"
     },
     "www/styles.css": {
       "checksum": "7ea30e3cc044a3221877a503b0e1ee7d"
@@ -3071,6 +3069,6 @@
     "requiredFeatures": [
       "OAuth Integrations"
     ],
-    "version": "1.0.8"
+    "version": "1.0.9"
   }
 }
