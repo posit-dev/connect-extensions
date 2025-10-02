@@ -51,7 +51,8 @@ type_query <- function(content_types) {
 }
 
 content_list_to_data_frame <- function(content_list) {
-  connectapi:::parse_connectapi_typed(content_list, connectapi:::connectapi_ptypes$content)
-  # connectapi:::parse_connectapi(content_list)
+  connectapi:::parse_connectapi_typed(
+    content_list,
+    connectapi:::connectapi_ptypes$content
+  )
 }
-
