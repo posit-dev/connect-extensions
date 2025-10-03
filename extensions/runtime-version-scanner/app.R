@@ -16,10 +16,8 @@ ANY_VERSION <- "999.99.99"
 
 plan(mirai_multisession)
 
-source("get_usage.R")
-source("connect_module.R")
-source("version_ordering.R")
-source("supported_versions.R")
+files.sources = list.files("R", full.names = TRUE)
+sapply(files.sources, source)
 
 options(
   spinner.type = 1,
@@ -47,6 +45,11 @@ app_mode_lookup <- with(
   stack(app_mode_groups),
   setNames(as.character(ind), values)
 )
+
+to_iso8601 <- function(x) {
+  strftime(x, "%Y-%m-%dT%H:%M:%S%z") |>
+    sub("([+-]\\d{2})(\\d{2})$", "\\1:\\2", x = _)
+}
 
 # Shiny app definition
 
@@ -400,7 +403,15 @@ server <- function(input, output, session) {
 
   usage_task <- ExtendedTask$new(function(window_days) {
     future({
-      get_usage(client, from = today() - days(window_days), to = today()) |>
+      from <- as.POSIXct(
+        paste(today() - days(window_days), "00:00:00"),
+        tz = ""
+      )
+      to <- as.POSIXct(paste(today(), "00:00:00"), tz = "")
+
+      usage_list <- get_usage(client, from = from, to = to)
+      as_tibble(usage_list) |>
+        select(content_guid) |>
         group_by(content_guid) |>
         summarize(views = n(), .groups = "drop")
     })

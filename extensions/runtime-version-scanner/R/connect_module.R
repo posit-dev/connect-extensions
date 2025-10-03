@@ -92,7 +92,6 @@ connectVisitorClient <- function(
       }
     )
 
-    # “Use the ‘…’ Integration” button logic
     observeEvent(input$auto_add_integration, {
       auto_add_integration(publisher_client, selected_integration_guid())
       runjs("window.top.location.reload(true);")
