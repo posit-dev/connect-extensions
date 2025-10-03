@@ -46,6 +46,11 @@ app_mode_lookup <- with(
   setNames(as.character(ind), values)
 )
 
+to_iso8601 <- function(x) {
+  strftime(x, "%Y-%m-%dT%H:%M:%S%z") |>
+    sub("([+-]\\d{2})(\\d{2})$", "\\1:\\2", x = _)
+}
+
 # Shiny app definition
 
 ui <- page_sidebar(
@@ -398,7 +403,15 @@ server <- function(input, output, session) {
 
   usage_task <- ExtendedTask$new(function(window_days) {
     future({
-      get_usage(client, from = today() - days(window_days), to = today()) |>
+      from <- as.POSIXct(
+        paste(today() - days(window_days), "00:00:00"),
+        tz = ""
+      )
+      to <- as.POSIXct(paste(today(), "00:00:00"), tz = "")
+
+      usage_list <- get_usage(client, from = from, to = to)
+      as_tibble(usage_list) |>
+        select(content_guid) |>
         group_by(content_guid) |>
         summarize(views = n(), .groups = "drop")
     })
