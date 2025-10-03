@@ -605,15 +605,9 @@ server <- function(input, output, session) {
 
   usage_data_meta <- reactive({
     req(active_user_role %in% c("administrator", "publisher"))
-    from <- date_range()$from
-    to <- date_range()$to
-    # Allow us to pass in either dates or specific timestamps.
-    if (is.Date(from)) {
-      from <- as.POSIXct(paste(from, "00:00:00"), tz = "")
-    }
-    if (is.Date(to)) {
-      to <- as.POSIXct(paste(to, "23:59:59"), tz = "")
-    }
+    from <- as.POSIXct(paste(date_range()$from, "00:00:00"), tz = "")
+    to <- as.POSIXct(paste(date_range()$to, "23:59:59"), tz = "")
+
     usage_list <- get_usage(
       client,
       from = from,
