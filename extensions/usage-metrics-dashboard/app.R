@@ -605,13 +605,19 @@ server <- function(input, output, session) {
 
   usage_data_meta <- reactive({
     req(active_user_role %in% c("administrator", "publisher"))
-    dat <- get_usage(
+    from <- as.POSIXct(paste(date_range()$from, "00:00:00"), tz = "")
+    to <- as.POSIXct(paste(date_range()$to, "23:59:59"), tz = "")
+
+    usage_list <- get_usage(
       client,
-      from = date_range()$from,
-      to = date_range()$to
+      from = from,
+      to = to
     )
+    usage_tbl <- as_tibble(usage_list) |>
+      filter(!grepl("^ContentHealthMonitor/", user_agent)) |>
+      select(user_guid, content_guid, timestamp)
     list(
-      data = dat,
+      data = usage_tbl,
       last_updated = Sys.time()
     )
   }) |>
