@@ -57,13 +57,12 @@ jobs:
           # Replace the below with the files your content needs
           path: |
             extensions/${{ env.EXTENSION_NAME }}/app.R
-            extensions/${{ env.EXTENSION_NAME }}/connect_module.R
-            extensions/${{ env.EXTENSION_NAME }}/get_usage.R
-            extensions/${{ env.EXTENSION_NAME }}/renv.lock
-            extensions/${{ env.EXTENSION_NAME }}/version_ordering.R
-            extensions/${{ env.EXTENSION_NAME }}/supported_versions.R
+            extensions/${{ env.EXTENSION_NAME }}/R/connect_module.R
+            extensions/${{ env.EXTENSION_NAME }}/R/supported_versions.R
+            extensions/${{ env.EXTENSION_NAME }}/R/version_ordering.R
             extensions/${{ env.EXTENSION_NAME }}/www/styles.css
             extensions/${{ env.EXTENSION_NAME }}/manifest.json
+            extensions/${{ env.EXTENSION_NAME }}/renv.lock
 
       # Package up the extension into a TAR using the package-extension action
       - uses: ./.github/actions/package-extension
