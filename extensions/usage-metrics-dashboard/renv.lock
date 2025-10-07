@@ -467,7 +467,7 @@
     },
     "connectapi": {
       "Package": "connectapi",
-      "Version": "0.7.0",
+      "Version": "0.8.0",
       "Source": "Repository",
       "Type": "Package",
       "Title": "Utilities for Interacting with the 'Posit Connect' Server API",
@@ -508,6 +508,7 @@
         "rsconnect",
         "spelling",
         "testthat",
+        "tidyr",
         "webshot2",
         "withr"
       ],
@@ -516,6 +517,7 @@
       "Language": "en-US",
       "RoxygenNote": "7.3.2",
       "Config/testthat/edition": "3",
+      "Collate": "'audits.R' 'browse.R' 'connect.R' 'connectapi-package.R' 'connectapi.R' 'content.R' 'deploy.R' 'get.R' 'git.R' 'groups.R' 'integrations.R' 'lazy.R' 'page.R' 'parse.R' 'promote.R' 'ptype.R' 'remote.R' 'runtime-caches.R' 'schedule.R' 'tags.R' 'utils.R' 'thumbnail.R' 'user.R' 'utils-ci.R' 'utils-pipe.R' 'variant.R'",
       "NeedsCompilation": "no",
       "Author": "Toph Allen [aut, cre], Neal Richardson [aut], Sean Lopp [aut], Cole Arendt [aut], Posit, PBC [cph, fnd]",
       "Maintainer": "Toph Allen <toph@posit.co>",

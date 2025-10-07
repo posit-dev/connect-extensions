@@ -1,2 +1,8 @@
-Package: runtime-version-scanner
+Package: runtime.version.scanner
+Title: Runtime Version Scanner
 Version: 1.0.1
+Authors@R: c(
+    person("Toph", "Allen", , "toph@posit.co", role = c("aut", "cre")),
+    person(given = "Posit, PBC", role = c("cph", "fnd")))
+Description: Functions to power the Runtime Version Scanner extension.
+License: MIT + file LICENSE
