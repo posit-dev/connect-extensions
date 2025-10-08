@@ -7,20 +7,7 @@ fetch_content <- function(client, content_type_filter = NULL) {
   parts <- Filter(nzchar, c(owner, type))
   query <- paste(parts, collapse = " ")
 
-  search_all_content(client, q = query, include = "owner")
-}
-
-search_all_content <- function(client, q = NULL, include = "owner,vanity_url") {
-  connectapi::page_offset(
-    client,
-    req = search_content(
-      client,
-      q = q,
-      page_number = 1,
-      page_size = 500,
-      include = include
-    )
-  )
+  search_content(client, q = query, include = "owner")
 }
 
 type_query <- function(content_types) {
@@ -44,7 +31,7 @@ type_query <- function(content_types) {
     "Other" = c("unknown")
   )
   app_modes <- paste(unlist(app_mode_groups[content_types]), collapse = ",")
-  if (length(app_modes) == 0) {
+  if (!nzchar(app_modes)) {
     return(character(0))
   }
   paste0("type:", app_modes)

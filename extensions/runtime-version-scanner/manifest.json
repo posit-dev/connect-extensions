@@ -415,40 +415,41 @@
       }
     },
     "connectapi": {
-      "Source": "CRAN",
-      "Repository": "https://packagemanager.posit.co/cran/latest",
+      "Source": "github",
+      "Repository": null,
       "description": {
         "Type": "Package",
         "Package": "connectapi",
         "Title": "Utilities for Interacting with the 'Posit Connect' Server API",
-        "Version": "0.8.0",
+        "Version": "0.8.0.9000",
         "Authors@R": "c(\n    person(given = \"Toph\",\n           family = \"Allen\",\n           role = c(\"aut\", \"cre\"),\n           email = \"toph@posit.co\"),\n    person(given = \"Neal\",\n           family = \"Richardson\",\n           role = c(\"aut\")),\n    person(given = \"Sean\",\n           family = \"Lopp\",\n           role = c(\"aut\")),\n    person(given = \"Cole\",\n           family = \"Arendt\",\n           role = c(\"aut\")),\n    person(given = \"Posit, PBC\",\n           role = c(\"cph\", \"fnd\")))",
         "Description": "Provides a helpful 'R6' class and methods for interacting with\n    the 'Posit Connect' Server API along with some meaningful utility functions\n    for regular tasks. API documentation varies by 'Posit Connect' installation\n    and version, but the latest documentation is also hosted publicly at\n    <https://docs.posit.co/connect/api/>.",
         "License": "MIT + file LICENSE",
-        "URL": "https://posit-dev.github.io/connectapi/,\nhttps://github.com/posit-dev/connectapi",
+        "URL": "https://posit-dev.github.io/connectapi/, https://github.com/posit-dev/connectapi",
         "BugReports": "https://github.com/posit-dev/connectapi/issues",
-        "Imports": "bit64, fs, glue, httr, mime, jsonlite, lifecycle, magrittr,\npurrr, R6, rlang (>= 0.4.2), tibble, uuid, vctrs (>= 0.3.0),\nbase64enc",
-        "Suggests": "covr, dbplyr, dplyr, ggplot2, gridExtra, httptest, knitr,\nlubridate, progress, rmarkdown, rprojroot, rsconnect, spelling,\ntestthat, tidyr, webshot2, withr",
+        "Imports": "bit64,\nfs,\nglue,\nhttr,\nmime,\njsonlite,\nlifecycle,\nmagrittr,\npurrr,\nR6,\nrlang (>= 0.4.2),\ntibble,\nuuid,\nvctrs (>= 0.3.0),\nbase64enc",
+        "Suggests": "covr,\ndbplyr,\ndplyr,\nggplot2,\ngridExtra,\nhttptest,\nknitr,\nlubridate,\nprogress,\nrmarkdown,\nrprojroot,\nrsconnect,\nspelling,\ntestthat,\ntidyr,\nwebshot2,\nwithr",
         "VignetteBuilder": "knitr",
         "Encoding": "UTF-8",
         "Language": "en-US",
         "RoxygenNote": "7.3.2",
+        "Roxygen": "list(markdown = TRUE)",
         "Config/testthat/edition": "3",
-        "Collate": "'audits.R' 'browse.R' 'connect.R' 'connectapi-package.R'\n'connectapi.R' 'content.R' 'deploy.R' 'get.R' 'git.R'\n'groups.R' 'integrations.R' 'lazy.R' 'page.R' 'parse.R'\n'promote.R' 'ptype.R' 'remote.R' 'runtime-caches.R'\n'schedule.R' 'tags.R' 'utils.R' 'thumbnail.R' 'user.R'\n'utils-ci.R' 'utils-pipe.R' 'variant.R'",
-        "NeedsCompilation": "no",
-        "Packaged": "2025-07-30 21:46:47 UTC; toph",
+        "Collate": "'audits.R'\n'browse.R'\n'connect.R'\n'connectapi-package.R'\n'connectapi.R'\n'content.R'\n'deploy.R'\n'get.R'\n'git.R'\n'groups.R'\n'integrations.R'\n'lazy.R'\n'page.R'\n'parse.R'\n'promote.R'\n'ptype.R'\n'remote.R'\n'runtime-caches.R'\n'schedule.R'\n'tags.R'\n'utils.R'\n'thumbnail.R'\n'user.R'\n'utils-ci.R'\n'utils-pipe.R'\n'variant.R'",
         "Author": "Toph Allen [aut, cre],\n  Neal Richardson [aut],\n  Sean Lopp [aut],\n  Cole Arendt [aut],\n  Posit, PBC [cph, fnd]",
         "Maintainer": "Toph Allen <toph@posit.co>",
-        "Repository": "RSPM",
-        "Date/Publication": "2025-07-30 22:00:11 UTC",
-        "Built": "R 4.3.0; ; 2025-07-31 10:36:47 UTC; unix",
-        "RemoteType": "standard",
-        "RemoteRef": "connectapi",
-        "RemotePkgRef": "connectapi",
-        "RemoteRepos": "https://packagemanager.posit.co/cran/latest",
-        "RemoteReposName": "CRAN",
-        "RemotePkgPlatform": "aarch64-apple-darwin20",
-        "RemoteSha": "0.8.0"
+        "Built": "R 4.3.3; ; 2025-10-08 18:39:18 UTC; unix",
+        "RemoteType": "github",
+        "RemoteHost": "api.github.com",
+        "RemoteUsername": "posit-dev",
+        "RemoteRepo": "connectapi",
+        "RemoteRef": "main",
+        "RemoteSha": "dc55d835d1b90c9dd5dba48d0951b8ae682e857a",
+        "GithubHost": "api.github.com",
+        "GithubRepo": "connectapi",
+        "GithubUsername": "posit-dev",
+        "GithubRef": "main",
+        "GithubSHA1": "dc55d835d1b90c9dd5dba48d0951b8ae682e857a"
       }
     },
     "cpp11": {
@@ -2624,10 +2625,13 @@
   },
   "files": {
     "app.R": {
-      "checksum": "7960398b11756a0ace37e183f84b7a9f"
+      "checksum": "8a431830398cb8960e4790641032e491"
     },
     "R/connect_module.R": {
       "checksum": "469dbae2ebdf431cad52f0ed98793366"
+    },
+    "R/fetch_content.R": {
+      "checksum": "3a22ff4a6498c6ad6c035141bfa27eae"
     },
     "R/supported_versions.R": {
       "checksum": "ca8c4181bddf00f8e7e0797671ae01c6"
@@ -2636,7 +2640,7 @@
       "checksum": "dc05d91a7b8cf813f03f519b5ecb72dc"
     },
     "renv.lock": {
-      "checksum": "4d741f52dfe275c669083e78147ea3f9"
+      "checksum": "d98fa015a15df805ee9ec47ea3277e7a"
     },
     "www/styles.css": {
       "checksum": "48340b42bcc9fbed7bdac0c216bb6964"
