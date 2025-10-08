@@ -733,9 +733,9 @@
       "description": "See the Python, R, and Quarto versions used by your content. Filter by version, content type, and usage to identify items that need updating. Quickly find content that uses end-of-life language versions.",
       "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/runtime-version-scanner",
       "latestVersion": {
-        "version": "1.0.0",
-        "released": "2025-07-17T21:50:47Z",
-        "url": "https://github.com/posit-dev/connect-extensions/releases/download/runtime-version-scanner%40v1.0.0/runtime-version-scanner.tar.gz",
+        "version": "1.0.1",
+        "released": "2025-10-08T18:02:30Z",
+        "url": "https://github.com/posit-dev/connect-extensions/releases/download/runtime-version-scanner%40v1.0.1/runtime-version-scanner.tar.gz",
         "minimumConnectVersion": "2025.04.0",
         "requiredFeatures": [
           "OAuth Integrations"
@@ -747,6 +747,20 @@
         }
       },
       "versions": [
+        {
+          "version": "1.0.1",
+          "released": "2025-10-08T18:02:30Z",
+          "url": "https://github.com/posit-dev/connect-extensions/releases/download/runtime-version-scanner%40v1.0.1/runtime-version-scanner.tar.gz",
+          "minimumConnectVersion": "2025.04.0",
+          "requiredFeatures": [
+            "OAuth Integrations"
+          ],
+          "requiredEnvironment": {
+            "r": {
+              "requires": "~=4.3.0"
+            }
+          }
+        },
         {
           "version": "1.0.0",
           "released": "2025-07-17T21:50:47Z",
