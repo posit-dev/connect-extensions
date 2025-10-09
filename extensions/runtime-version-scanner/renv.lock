@@ -385,8 +385,8 @@
     },
     "connectapi": {
       "Package": "connectapi",
-      "Version": "0.8.0",
-      "Source": "Repository",
+      "Version": "0.8.0.9000",
+      "Source": "GitHub",
       "Type": "Package",
       "Title": "Utilities for Interacting with the 'Posit Connect' Server API",
       "Authors@R": "c( person(given = \"Toph\", family = \"Allen\", role = c(\"aut\", \"cre\"), email = \"toph@posit.co\"), person(given = \"Neal\", family = \"Richardson\", role = c(\"aut\")), person(given = \"Sean\", family = \"Lopp\", role = c(\"aut\")), person(given = \"Cole\", family = \"Arendt\", role = c(\"aut\")), person(given = \"Posit, PBC\", role = c(\"cph\", \"fnd\")))",
@@ -434,12 +434,17 @@
       "Encoding": "UTF-8",
       "Language": "en-US",
       "RoxygenNote": "7.3.2",
+      "Roxygen": "list(markdown = TRUE)",
       "Config/testthat/edition": "3",
       "Collate": "'audits.R' 'browse.R' 'connect.R' 'connectapi-package.R' 'connectapi.R' 'content.R' 'deploy.R' 'get.R' 'git.R' 'groups.R' 'integrations.R' 'lazy.R' 'page.R' 'parse.R' 'promote.R' 'ptype.R' 'remote.R' 'runtime-caches.R' 'schedule.R' 'tags.R' 'utils.R' 'thumbnail.R' 'user.R' 'utils-ci.R' 'utils-pipe.R' 'variant.R'",
-      "NeedsCompilation": "no",
       "Author": "Toph Allen [aut, cre], Neal Richardson [aut], Sean Lopp [aut], Cole Arendt [aut], Posit, PBC [cph, fnd]",
       "Maintainer": "Toph Allen <toph@posit.co>",
-      "Repository": "CRAN"
+      "RemoteType": "github",
+      "RemoteHost": "api.github.com",
+      "RemoteUsername": "posit-dev",
+      "RemoteRepo": "connectapi",
+      "RemoteRef": "main",
+      "RemoteSha": "dc55d835d1b90c9dd5dba48d0951b8ae682e857a"
     },
     "cpp11": {
       "Package": "cpp11",

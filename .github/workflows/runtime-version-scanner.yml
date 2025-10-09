@@ -58,6 +58,7 @@ jobs:
           path: |
             extensions/${{ env.EXTENSION_NAME }}/app.R
             extensions/${{ env.EXTENSION_NAME }}/R/connect_module.R
+            extensions/${{ env.EXTENSION_NAME }}/R/fetch_content.R
             extensions/${{ env.EXTENSION_NAME }}/R/supported_versions.R
             extensions/${{ env.EXTENSION_NAME }}/R/version_ordering.R
             extensions/${{ env.EXTENSION_NAME }}/www/styles.css
