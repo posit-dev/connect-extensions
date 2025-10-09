@@ -11,7 +11,7 @@ fetch_content <- function(client, content_type_filter = NULL) {
 }
 
 type_query <- function(content_types) {
-  if (length(content_types) == 0 || is.null(content_types)) {
+  if (length(content_types) == 0) {
     return(character(0))
   }
   app_mode_groups <- list(
