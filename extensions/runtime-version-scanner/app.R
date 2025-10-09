@@ -25,25 +25,8 @@ options(
   spinner.color = "#7494b1"
 )
 
-app_mode_groups <- list(
-  "API" = c("api", "python-fastapi", "python-api", "tensorflow-saved-model"),
-  "Application" = c(
-    "shiny",
-    "python-shiny",
-    "python-dash",
-    "python-gradio",
-    "python-streamlit",
-    "python-bokeh"
-  ),
-  "Jupyter" = c("jupyter-static", "jupyter-voila"),
-  "Quarto" = c("quarto-shiny", "quarto-static"),
-  "R Markdown" = c("rmd-shiny", "rmd-static"),
-  "Pin" = c("pin"),
-  "Other" = c("unknown")
-)
-
 app_mode_lookup <- with(
-  stack(app_mode_groups),
+  stack(app_mode_groups()),
   setNames(as.character(ind), values)
 )
 
@@ -132,7 +115,7 @@ ui <- page_sidebar(
         placeholder = "All content types",
         plugins = list("remove_button")
       ),
-      choices = names(app_mode_groups),
+      choices = names(app_mode_groups()),
       multiple = TRUE
     ),
 

@@ -1,20 +1,7 @@
 library(connectapi)
 
-fetch_content <- function(client, content_type_filter = NULL) {
-  owner <- "owner:@me"
-  type <- type_query(content_type_filter)
-
-  parts <- Filter(nzchar, c(owner, type))
-  query <- paste(parts, collapse = " ")
-
-  search_content(client, q = query, include = "owner")
-}
-
-type_query <- function(content_types) {
-  if (length(content_types) == 0 || is.null(content_types)) {
-    return(character(0))
-  }
-  app_mode_groups <- list(
+app_mode_groups <- function() {
+  list(
     "API" = c("api", "python-fastapi", "python-api", "tensorflow-saved-model"),
     "Application" = c(
       "shiny",
@@ -30,7 +17,23 @@ type_query <- function(content_types) {
     "Pin" = c("pin"),
     "Other" = c("unknown")
   )
-  app_modes <- paste(unlist(app_mode_groups[content_types]), collapse = ",")
+}
+
+fetch_content <- function(client, content_type_filter = NULL) {
+  owner <- "owner:@me"
+  type <- type_query(content_type_filter)
+
+  parts <- Filter(nzchar, c(owner, type))
+  query <- paste(parts, collapse = " ")
+
+  search_content(client, q = query, include = "owner")
+}
+
+type_query <- function(content_types) {
+  if (length(content_types) == 0 || is.null(content_types)) {
+    return(character(0))
+  }
+  app_modes <- paste(unlist(app_mode_groups()[content_types]), collapse = ",")
   if (!nzchar(app_modes)) {
     return(character(0))
   }
