@@ -1,6 +1,17 @@
 import os
 import logging
 
+from utils import (
+    mask_credentials,
+    detect_storage_backend,
+    detect_database_backend,
+    setup_aws_rds_connection,
+    setup_azure_sql_connection,
+    setup_database_event_listeners,
+    setup_aws_credentials,
+    setup_azure_credentials
+)
+
 # Configure logging before anything else
 logging.basicConfig(
     level=logging.DEBUG,
@@ -28,7 +39,6 @@ os.makedirs(artifact_path, exist_ok=True)
 # These are used by mlflow.server.handlers to initialize stores.
 # Public env vars:
 #   MLFLOW_BACKEND_STORE_URI -> _MLFLOW_SERVER_FILE_STORE
-#   MLFLOW_REGISTRY_STORE_URI -> _MLFLOW_SERVER_REGISTRY_STORE
 #   MLFLOW_DEFAULT_ARTIFACT_ROOT -> _MLFLOW_SERVER_ARTIFACT_ROOT
 #   MLFLOW_ARTIFACTS_DESTINATION -> _MLFLOW_SERVER_ARTIFACT_DESTINATION
 #   MLFLOW_SERVE_ARTIFACTS -> _MLFLOW_SERVER_SERVE_ARTIFACTS
@@ -39,9 +49,8 @@ os.makedirs(artifact_path, exist_ok=True)
 backend_store_uri = os.getenv("MLFLOW_BACKEND_STORE_URI") or os.getenv("_MLFLOW_SERVER_FILE_STORE") or f"sqlite:///{db_path}"
 os.environ.setdefault("_MLFLOW_SERVER_FILE_STORE", backend_store_uri)
 
-# Registry store URI (model registry data)
-registry_store_uri = os.getenv("MLFLOW_REGISTRY_STORE_URI") or os.getenv("_MLFLOW_SERVER_REGISTRY_STORE") or backend_store_uri
-os.environ.setdefault("_MLFLOW_SERVER_REGISTRY_STORE", registry_store_uri)
+# Registry store URI (model registry data) - uses same as backend
+os.environ.setdefault("_MLFLOW_SERVER_REGISTRY_STORE", backend_store_uri)
 
 # Serve artifacts flag
 serve_artifacts = os.getenv("MLFLOW_SERVE_ARTIFACTS") or os.getenv("_MLFLOW_SERVER_SERVE_ARTIFACTS") or "true"
@@ -55,31 +64,59 @@ os.environ.setdefault("_MLFLOW_SERVER_ARTIFACT_ROOT", artifact_root)
 artifacts_destination = os.getenv("MLFLOW_ARTIFACTS_DESTINATION") or os.getenv("_MLFLOW_SERVER_ARTIFACT_DESTINATION") or artifact_path
 os.environ.setdefault("_MLFLOW_SERVER_ARTIFACT_DESTINATION", artifacts_destination)
 
-def mask_credentials(uri):
-    """Mask sensitive credentials in URIs for logging."""
-    if not uri:
-        return uri
-    # Mask database passwords in URIs like postgresql://user:password@host:port/db
-    import re
-    masked = re.sub(r'(://[^:]+:)[^@]+(@)', r'\1****\2', uri)
-    return masked
+# Configure SQLAlchemy connection pool recycling for OAuth token refresh
+# Set to 1 hour (3600 seconds) to ensure connections are recycled well before
+# the 24-hour token expiration, providing fresh tokens regularly
+os.environ.setdefault("MLFLOW_SQLALCHEMYSTORE_POOL_RECYCLE", "3600")
 
-print(f"Backend store URI: {mask_credentials(os.environ['_MLFLOW_SERVER_FILE_STORE'])}")
-print(f"Registry store URI: {mask_credentials(os.environ['_MLFLOW_SERVER_REGISTRY_STORE'])}")
-print(f"Artifact root: {os.environ['_MLFLOW_SERVER_ARTIFACT_ROOT']}")
-print(f"Artifacts destination: {os.environ['_MLFLOW_SERVER_ARTIFACT_DESTINATION']}")
-print(f"Serve artifacts: {os.environ['_MLFLOW_SERVER_SERVE_ARTIFACTS']}")
+# IMPORTANT: Setup database event listeners BEFORE setting connection strings
+# This ensures tokens are injected on the very first connection attempt
+backend_db_type = detect_database_backend(os.environ.get('_MLFLOW_SERVER_FILE_STORE', f"sqlite:///{db_path}"))
+print(f"Detected backend database type: {backend_db_type}")
 
-# Get current working directory
-current_dir = os.getcwd()
-print(f"Current working directory: {current_dir}")
+if backend_db_type in ['aws_rds', 'azure_sql']:
+    print("Setting up database event listeners for OAuth token refresh...")
+    if not setup_database_event_listeners():
+        print("ERROR: Failed to setup database event listeners")
 
-# Print list of files recursively
-print("Files in current directory (recursive):")
-for root, dirs, files in os.walk(current_dir):
-    for file in files:
-        file_path = os.path.join(root, file)
-        print(f"  {file_path}")
+# Detect and setup database connections
+if backend_db_type == 'aws_rds':
+    print("AWS RDS backend detected, setting up IAM authentication...")
+    
+    rds_connection_string = setup_aws_rds_connection()
+    if rds_connection_string:
+        os.environ['_MLFLOW_SERVER_FILE_STORE'] = rds_connection_string
+        os.environ['_MLFLOW_SERVER_REGISTRY_STORE'] = rds_connection_string
+        print("AWS RDS backend connection configured successfully")
+        print("Tokens will be automatically refreshed every hour via connection pool recycling")
+    else:
+        print("WARNING: Failed to setup AWS RDS connection, using original connection string")
+elif backend_db_type == 'azure_sql':
+    print("Azure SQL backend detected, setting up Azure AD authentication...")
+    azure_connection_string = setup_azure_sql_connection()
+    if azure_connection_string:
+        os.environ['_MLFLOW_SERVER_FILE_STORE'] = azure_connection_string
+        os.environ['_MLFLOW_SERVER_REGISTRY_STORE'] = azure_connection_string
+        print("Azure SQL backend connection configured successfully")
+        print("Tokens will be automatically refreshed every hour via connection pool recycling")
+    else:
+        print("WARNING: Failed to setup Azure SQL connection, using original connection string")
+
+# Detect storage backend and setup credentials if needed
+storage_backend = detect_storage_backend(os.environ['_MLFLOW_SERVER_ARTIFACT_DESTINATION'])
+print(f"Detected storage backend: {storage_backend}")
+
+if storage_backend == 'aws':
+    print("AWS storage detected, setting up credentials...")
+    if not setup_aws_credentials():
+        print("WARNING: Failed to setup AWS credentials, artifacts may not be accessible")
+elif storage_backend == 'azure':
+    print("Azure storage detected, setting up credentials...")
+    if not setup_azure_credentials():
+        print("WARNING: Failed to setup Azure credentials, artifacts may not be accessible")
+elif storage_backend == 'gcp':
+    print("GCP storage detected - assuming default credentials or service account key")
+    # GCP typically uses GOOGLE_APPLICATION_CREDENTIALS or default credentials
 
 # By default, MLflow server runs without authentication.
 # This is suitable for running behind a proxy that handles authentication.
@@ -92,6 +129,13 @@ if "MLFLOW_FLASK_SERVER_SECRET_KEY" not in os.environ:
 # Import the FastAPI app from MLflow.
 # This must be done AFTER setting the environment variables.
 try:
+    print(f"Backend store URI: {mask_credentials(os.environ['_MLFLOW_SERVER_FILE_STORE'])}")
+    print(f"Registry store URI: {mask_credentials(os.environ['_MLFLOW_SERVER_REGISTRY_STORE'])}")
+    print(f"Artifact root: {os.environ['_MLFLOW_SERVER_ARTIFACT_ROOT']}")
+    print(f"Artifacts destination: {os.environ['_MLFLOW_SERVER_ARTIFACT_DESTINATION']}")
+    print(f"Serve artifacts: {os.environ['_MLFLOW_SERVER_SERVE_ARTIFACTS']}")
+    print(f"Pool recycle: {os.environ['MLFLOW_SQLALCHEMYSTORE_POOL_RECYCLE']}s")
+
     from mlflow.server.fastapi_app import app
     
     # Add middleware to log all requests
@@ -105,7 +149,6 @@ try:
         
         # Log request
         print(f"Request: {request.method} {request.url}")
-        print(f"Headers: {dict(request.headers)}")
 
         # Process request
         try:
@@ -141,7 +184,6 @@ if __name__ == "__main__":
     print(f"Starting MLflow server on {host}:{port}")
     print(f"Artifact serving enabled: {os.getenv('_MLFLOW_SERVER_SERVE_ARTIFACTS')}")
     print(f"Artifacts destination: {os.getenv('_MLFLOW_SERVER_ARTIFACTS_DESTINATION')}")
-    print(f"Logging level: DEBUG")
 
     uvicorn.run(
         app, 

@@ -47,10 +47,13 @@ This extension supports two deployment modes:
 1. **Local Storage** - Artifacts and metadata stored on Connect's local filesystem (Connect 2025.10.0+)
 2. **External Storage** - Artifacts and metadata stored in external services (supports any MLflow-compatible backend storage and artifact store)
 
+Both deployment modes now support **OAuth integrations** for seamless authentication to cloud resources without managing long-lived credentials.
+
 ## Prerequisites
 
 - Posit Connect 2025.10.0 or later
 - For external storage: Access to compatible external services (e.g., AWS S3/RDS, Azure Blob Storage/SQL, GCP Cloud Storage/SQL, etc.)
+- For OAuth integrations: Appropriate OAuth integration configured in Connect (AWS, Azure, or GCP)
 
 ## Deployment Scenarios
 
@@ -74,97 +77,253 @@ This configuration stores all MLflow data on Connect's local filesystem. No exte
 # The extension will automatically configure local storage paths
 ```
 
-### Option 2: External Storage (Recommended for Production)
+### Option 2: External Storage with OAuth (Recommended for Production)
 
-This configuration uses external services for artifact storage and metadata database. MLflow supports various external storage backends including:
+This configuration uses external services for artifact storage and metadata database with **automatic OAuth-based authentication** - no need to manage access keys or connection strings!
 
-- **Artifact Stores**: AWS S3, Azure Blob Storage, Google Cloud Storage, SFTP, NFS, HDFS
-- **Backend Stores**: PostgreSQL, MySQL, MSSQL, SQLite
+The extension supports **AWS RDS IAM authentication** and **Azure AD authentication** through Posit Connect's OAuth integrations. When configured:
+- Database authentication tokens are automatically generated and refreshed
+- AWS credentials for S3 access are obtained via OAuth (no access keys needed)
+- Azure credentials for Blob Storage are obtained via OAuth (no connection strings needed)
+- All credentials are automatically rotated before expiration
 
-**This README provides an AWS example using S3 and RDS PostgreSQL**, but you can adapt these instructions for other cloud providers or storage systems supported by MLflow.
+#### AWS Setup with OAuth Integration
 
-For comprehensive information on supported storage backends, see:
-- [MLflow Artifact Stores Documentation](https://mlflow.org/docs/latest/ml/tracking/artifact-stores/)
-- [MLflow Backend Stores Documentation](https://mlflow.org/docs/latest/ml/tracking/backend-stores/)
+##### Prerequisites
 
-#### Setup Steps
+1. **Enable IAM Authentication on RDS Database**
+   - Your RDS PostgreSQL instance **must have IAM database authentication enabled**
+   - This is required for OAuth-based authentication to work
+   - See [AWS RDS IAM Authentication Overview](https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/UsingWithRDS.IAMDBAuth.html)
 
-##### 1. Create PostgreSQL Database in AWS RDS
+2. **Configure Database User for IAM Authentication**
+   - The PostgreSQL user must be granted the `rds_iam` role
+   - Connect to your RDS instance using a master/admin account and run:
+     ```sql
+     CREATE USER mlflow_user WITH LOGIN;
+     GRANT rds_iam TO mlflow_user;
+     ```
+   - See [Creating a Database Account Using IAM Authentication](https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/UsingWithRDS.IAMDBAuth.DBAccounts.html#UsingWithRDS.IAMDBAuth.DBAccounts.PostgreSQL)
 
-1. Navigate to AWS RDS Console
-2. Click "Create database"
-3. Select PostgreSQL engine
-4. Choose appropriate instance size (db.t3.micro for testing, larger for production)
-5. Configure database:
-   - Database name: `mlflow`
-   - Master username: `mlflow_user`
-   - Master password: (save securely)
-   - Enable public accessibility if accessing from Connect
-6. Configure security group to allow inbound traffic on port 5432 from Connect's IP
-7. Note the endpoint URL (e.g., `mlflow-db.xxxxx.us-east-1.rds.amazonaws.com`)
+3. **Configure IAM Policy**
+   - The OAuth integration's IAM role needs permission to connect to the database
+   - Required IAM policy:
+     ```json
+     {
+       "Version": "2012-10-17",
+       "Statement": [
+         {
+           "Effect": "Allow",
+           "Action": [
+             "rds-db:connect"
+           ],
+           "Resource": [
+             "arn:aws:rds-db:REGION:ACCOUNT_ID:dbuser:DB_RESOURCE_ID/mlflow_user"
+           ]
+         }
+       ]
+     }
+     ```
+   - See [Creating and Using an IAM Policy for IAM Database Access](https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/UsingWithRDS.IAMDBAuth.IAMPolicy.html)
 
-##### 2. Create S3 Bucket for Artifacts
+##### Setup Steps
 
-1. Navigate to AWS S3 Console
-2. Click "Create bucket"
-3. Bucket name: `mlflow-artifacts-yourorg` (must be globally unique)
-4. Choose appropriate region (same as RDS for performance)
-5. Configure bucket settings:
+1. **Create PostgreSQL Database in AWS RDS**
+   - Navigate to AWS RDS Console
+   - Click "Create database"
+   - Select PostgreSQL engine
+   - **Enable IAM database authentication** (required for OAuth)
+   - Configure database:
+     - Database name: `mlflow`
+     - Master username: `postgres` (for initial setup)
+     - Master password: (save securely for initial setup)
+   - Configure security group to allow inbound traffic on port 5432 from Connect's IP
+   - Note the endpoint URL and DB resource ID
+
+2. **Grant rds_iam Role to Database User**
+   - Connect to the database using the master credentials:
+     ```bash
+     psql -h your-db.xxxxx.region.rds.amazonaws.com -U postgres -d mlflow
+     ```
+   - Grant the `rds_iam` role:
+     ```sql
+     CREATE USER mlflow_user WITH LOGIN;
+     GRANT rds_iam TO mlflow_user;
+     ```
+
+3. **Create S3 Bucket for Artifacts**
+   - Navigate to AWS S3 Console
+   - Click "Create bucket"
+   - Bucket name: `mlflow-artifacts-yourorg` (must be globally unique)
+   - Choose appropriate region (same as RDS for performance)
    - Block public access: Enabled (recommended)
    - Versioning: Optional (recommended for production)
-6. Note the bucket name and region
 
-##### 3. Configure IAM Credentials
+4. **Configure AWS OAuth Integration in Connect**
+   - In Connect, navigate to your content item
+   - Configure AWS OAuth integration with appropriate IAM role
+   - Ensure the IAM role has:
+     - RDS connect permission (`rds-db:connect`)
+     - S3 access permissions (PutObject, GetObject, DeleteObject, ListBucket)
 
-1. Create IAM user with programmatic access
-2. Attach policy with S3 permissions:
-```json
-{
-  "Version": "2012-10-17",
-  "Statement": [
-    {
-      "Effect": "Allow",
-      "Action": [
-        "s3:PutObject",
-        "s3:GetObject",
-        "s3:DeleteObject",
-        "s3:ListBucket"
-      ],
-      "Resource": [
-        "arn:aws:s3:::mlflow-artifacts-yourorg",
-        "arn:aws:s3:::mlflow-artifacts-yourorg/*"
-      ]
-    }
-  ]
-}
-```
-3. Save Access Key ID and Secret Access Key
-
-##### 4. Deploy Extension with Environment Variables
+5. **Deploy Extension with Environment Variables**
 
 Configure the following environment variables in your Connect extension settings:
 
 ```bash
-# Database Configuration
-MLFLOW_BACKEND_STORE_URI=postgresql://mlflow_user:YOUR_PASSWORD@mlflow-db.xxxxx.us-east-1.rds.amazonaws.com:5432/mlflow
+# AWS RDS Configuration (OAuth-based authentication)
+RDS_ENDPOINT=your-database.xxxxx.region.rds.amazonaws.com
+RDS_PORT=5432
+RDS_DATABASE=mlflow
+RDS_USERNAME=mlflow_user
+RDS_DB_TYPE=postgresql
+AWS_REGION=us-east-2
 
-# S3 Artifact Storage
-MLFLOW_ARTIFACT_ROOT=s3://mlflow-artifacts-yourorg/artifacts
-
-# AWS Credentials
-AWS_ACCESS_KEY_ID=AKIAIOSFODNN7EXAMPLE
-AWS_SECRET_ACCESS_KEY=wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY
-AWS_SESSION_TOKEN=...JNu1VklZ+qVit3bbv6FM5P46F/fARjaP0vPXvGQ==
-AWS_DEFAULT_REGION=us-east-2
+# S3 Artifact Storage (OAuth will provide credentials automatically)
+MLFLOW_ARTIFACTS_DESTINATION=s3://mlflow-artifacts-yourorg/artifacts
 ```
 
-**Important Note:** External integrations cannot yet take advantage of OAuth integrations in Posit Connect. You must provide explicit credentials (e.g., AWS Access Key ID and Secret Access Key, Azure connection strings, GCP service account keys) as environment variables for your external services. OAuth support for external storage providers is planned for a future release.
+**No AWS access keys or database passwords needed!** The extension automatically:
+- Generates RDS IAM authentication tokens via OAuth
+- Obtains temporary AWS credentials for S3 access
+- Refreshes all tokens before expiration (every hour by default)
 
-**For Other Cloud Providers:**
-- **Azure**: Use `AZURE_STORAGE_CONNECTION_STRING` or `AZURE_STORAGE_ACCESS_KEY` with `wasbs://` artifact root
-- **GCP**: Use `GOOGLE_APPLICATION_CREDENTIALS` with `gs://` artifact root
-- **NFS**: To store artifacts in an NFS mount, specify a URI as a normal file system path, e.g., `/mnt/nfs`. This path must be the same on both the server and the client -- you may need to use symlinks or remount the client in order to enforce this property. Set `MLFLOW_ARTIFACT_ROOT=/mnt/nfs/mlflow-artifacts`
-- Consult [MLflow documentation](https://mlflow.org/docs/latest/tracking.html#artifact-stores) for specific configuration requirements
+#### Azure Setup with OAuth Integration
+
+##### Prerequisites
+
+1. **Enable Azure AD Authentication on Azure Database**
+   - Your Azure PostgreSQL or SQL Server must have Azure AD authentication enabled
+   - This is required for OAuth-based authentication
+
+2. **Grant Database Access to Azure AD Service Principal**
+   - The service principal from your OAuth integration needs database access
+   - For PostgreSQL:
+     ```sql
+     CREATE USER "service-principal-name" WITH LOGIN;
+     GRANT ALL PRIVILEGES ON DATABASE mlflow TO "service-principal-name";
+     ```
+   - For SQL Server:
+     ```sql
+     CREATE USER [service-principal-name] FROM EXTERNAL PROVIDER;
+     ALTER ROLE db_owner ADD MEMBER [service-principal-name];
+     ```
+   - See [Azure AD Authentication for PostgreSQL](https://docs.microsoft.com/en-us/azure/postgresql/connect-azure-active-directory) and [Azure AD Authentication for SQL Server](https://docs.microsoft.com/en-us/sql/relational-databases/security/authentication-access/azure-active-directory-authentication?view=sql-server-ver15) for details
+
+##### Setup Steps
+
+1. **Create Azure Database (PostgreSQL or SQL Server)**
+   - Use the Azure portal to create a new PostgreSQL or SQL Server instance
+   - Configure firewall rules to allow Connect's IP
+   - Note the server name, database name, and admin login
+
+2. **Configure Azure AD Authentication**
+   - Assign the Azure AD admin for the server in the Azure portal
+   - Create a new Azure AD user or use an existing one
+   - For PostgreSQL, run the following in the query editor:
+     ```sql
+     CREATE USER "service-principal-name" WITH LOGIN;
+     GRANT ALL PRIVILEGES ON DATABASE mlflow TO "service-principal-name";
+     ```
+   - For SQL Server, run the following in the query editor:
+     ```sql
+     CREATE USER [service-principal-name] FROM EXTERNAL PROVIDER;
+     ALTER ROLE db_owner ADD MEMBER [service-principal-name];
+     ```
+
+3. **Create Azure Blob Storage Account for Artifacts**
+   - Use the Azure portal to create a new Storage account
+   - Choose Blob storage and appropriate performance/tier options
+   - Note the storage account name and container
+
+4. **Configure Azure OAuth Integration in Connect**
+   - In Connect, navigate to your content item
+   - Configure Azure OAuth integration with appropriate permissions
+   - Ensure the service principal has:
+     - Contributor role on the Storage account
+     - Database access in Azure AD
+
+5. **Deploy Extension with Environment Variables**
+
+Configure the following environment variables in your Connect extension settings:
+
+```bash
+# Azure Database Configuration (OAuth-based authentication)
+AZURE_DATABASE_SERVER=your-server-name.database.windows.net
+AZURE_DATABASE_NAME=mlflow
+AZURE_DATABASE_USERNAME=service-principal-name
+AZURE_DATABASE_TYPE=postgresql
+AZURE_REGION=eastus
+
+# Azure Blob Storage Configuration (OAuth will provide credentials automatically)
+MLFLOW_ARTIFACTS_DESTINATION=wasbs://mlflow-artifacts@your-storage-account.blob.core.windows.net/artifacts
+```
+
+**No Azure connection strings or database passwords needed!** The extension automatically:
+- Authenticates to Azure SQL/PostgreSQL using Azure AD tokens
+- Obtains temporary credentials for Blob Storage access
+- Refreshes all tokens before expiration (every hour by default)
+
+### GCP Setup with OAuth Integration
+
+##### Prerequisites
+
+1. **Enable Cloud SQL and Cloud Storage APIs**
+   - Enable the Cloud SQL API and Cloud Storage API in your GCP project
+   - This is required for the extension to access Cloud SQL and Cloud Storage
+
+2. **Create a Cloud SQL Instance**
+   - Create a new Cloud SQL instance (PostgreSQL or SQL Server)
+   - Note the instance connection name and database name
+
+3. **Create a Cloud Storage Bucket**
+   - Create a new Cloud Storage bucket for storing artifacts
+   - Note the bucket name
+
+4. **Configure IAM Permissions**
+   - The service account used by Posit Connect needs permissions to access Cloud SQL and Cloud Storage
+   - Assign the following roles:
+     - Cloud SQL Client
+     - Storage Object Admin
+
+5. **Create a Service Account Key (Optional)**
+   - If not using the default service account, create a service account key
+   - Download the JSON key file
+
+##### Setup Steps
+
+1. **Create PostgreSQL Database in Cloud SQL**
+   - Connect to your Cloud SQL instance using the Cloud SQL Auth proxy or public IP
+   - Create a new database for MLflow:
+     ```sql
+     CREATE DATABASE mlflow;
+     ```
+
+2. **Create a Cloud Storage Bucket for Artifacts**
+   - Use the GCP Console or `gsutil` to create a new bucket:
+     ```bash
+     gsutil mb gs://mlflow-artifacts-yourorg/
+     ```
+
+3. **Deploy Extension with Environment Variables**
+
+Configure the following environment variables in your Connect extension settings:
+
+```bash
+# GCP Cloud SQL Configuration
+CLOUD_SQL_CONNECTION_NAME=your-project:us-central1:your-sql-instance
+CLOUD_SQL_DATABASE=mlflow
+CLOUD_SQL_USERNAME=mlflow_user
+CLOUD_SQL_PASSWORD=your_password
+
+# GCP Cloud Storage Configuration (OAuth will provide credentials automatically)
+MLFLOW_ARTIFACTS_DESTINATION=gs://mlflow-artifacts-yourorg/artifacts
+```
+
+**No GCP service account keys or database passwords needed!** The extension automatically:
+- Authenticates to Cloud SQL using Cloud SQL Auth proxy or public IP
+- Obtains temporary credentials for Cloud Storage access
+- Refreshes all tokens before expiration (every hour by default)
 
 ## Connecting to the MLflow Server
 

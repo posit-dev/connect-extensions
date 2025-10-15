@@ -1,5 +1,6 @@
 mlflow[auth]
 fastapi
+posit-sdk
 # Cloud storage providers
 azure-storage-blob
 azure-identity
