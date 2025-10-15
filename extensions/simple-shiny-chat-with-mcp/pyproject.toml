@@ -16,6 +16,7 @@ dependencies = [
     "openai>=1.86.0",
     "posit-sdk>=0.10.0",
     "shiny>=1.4.0",
+    "chatlas>=0.10.0"
 ]
 
 [tool.uv.sources]
