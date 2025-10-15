@@ -13,7 +13,5 @@ dependencies = [
     "openai>=1.91.0",
     "posit-sdk>=0.10.0",
     "shiny>=1.4.0",
+    "chatlas>=0.10.0",
 ]
-
-[tool.uv.sources]
-chatlas = { git = "https://github.com/posit-dev/chatlas", rev = "8871240172dd470f7eee10028c3be8ac9f64a5eb" }

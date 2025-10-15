@@ -40,9 +40,6 @@
     },
     "app.py": {
       "checksum": "61ea50f9418a4aaa6d56d566175f2dd7"
-    },
-    "mcp_client.py": {
-      "checksum": "4705bcd135d94c9d2d9cf18af186d9d0"
     }
   }
 }
