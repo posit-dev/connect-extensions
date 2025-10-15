@@ -19,7 +19,11 @@
     "llm",
     "chat",
     "quarto",
-    "r"
+    "r",
+    "mlflow",
+    "tracking",
+    "experiments",
+    "models"
   ],
   "requiredFeatures": [
     "API Publishing",

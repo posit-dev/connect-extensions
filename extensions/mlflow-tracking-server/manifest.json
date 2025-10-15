@@ -1,0 +1,46 @@
+{
+  "version": 1,
+  "locale": "en_US.UTF-8",
+  "metadata": {
+    "appmode": "python-fastapi",
+    "entrypoint": "main"
+  },
+  "python": {
+    "version": "3.12.7",
+    "package_manager": {
+      "name": "pip",
+      "version": "24.2",
+      "package_file": "requirements.txt"
+    }
+  },
+  "environment": {
+    "python": {
+      "requires": ">=3.10.0"
+    }
+  },
+  "extension": {
+    "name": "mlflow-tracking-server",
+    "title": "MLflow Tracking Server",
+    "description": "Provides a way to track and manage MLflow experiments and models. See extension README for setup instructions. Local storage option requires Connect version 2025.10.0+.",
+    "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/mlflow-tracking-server",
+    "category": "extension",
+    "tags": ["mlflow", "tracking", "experiments", "models"],
+    "minimumConnectVersion": "2025.04.0",
+    "requiredFeatures": [],
+    "version": "0.0.1"
+  },
+  "files": {
+    "requirements.txt": {
+      "checksum": "075a8097f9eccd0a8d8442d624606988"
+    },
+    ".gitignore": {
+      "checksum": "693ec79eaa892babde62587aaacf0d8b"
+    },
+    "README.md": {
+      "checksum": "8cb20a8fa038108b80d38fc261808cb2"
+    },
+    "main.py": {
+      "checksum": "be3fe27aebfb4440b167337bdf8aabbf"
+    }
+  }
+}

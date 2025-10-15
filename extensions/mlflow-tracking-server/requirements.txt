@@ -1,0 +1,11 @@
+mlflow[auth]
+fastapi
+# Cloud storage providers
+azure-storage-blob
+azure-identity
+google-cloud-storage
+boto3
+# Database drivers
+psycopg2-binary  # PostgreSQL
+pymysql          # MySQL
+pyodbc           # MSSQL
