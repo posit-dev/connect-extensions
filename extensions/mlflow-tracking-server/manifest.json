@@ -15,7 +15,7 @@
   },
   "environment": {
     "python": {
-      "requires": ">=3.10.0"
+      "requires": ">=3.11.0"
     }
   },
   "extension": {
@@ -24,10 +24,10 @@
     "description": "Provides a way to track and manage MLflow experiments and models. See extension README for setup instructions. Local storage option requires Connect version 2025.10.0+.",
     "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/mlflow-tracking-server",
     "category": "extension",
-    "tags": ["mlflow", "tracking", "experiments", "models"],
+    "tags": ["mlops", "mlflow", "tracking", "experiments", "models"],
     "minimumConnectVersion": "2025.04.0",
     "requiredFeatures": [],
-    "version": "0.0.1"
+    "version": "0.0.0"
   },
   "files": {
     "requirements.txt": {
