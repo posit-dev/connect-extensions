@@ -1,15 +1,16 @@
 import os
 import logging
 
-from utils import (
+from database_utils import (
     mask_credentials,
-    detect_storage_backend,
     detect_database_backend,
     setup_aws_rds_connection,
     setup_azure_sql_connection,
     setup_database_event_listeners,
-    setup_aws_credentials,
-    setup_azure_credentials
+)
+from storage_utils import (
+    detect_storage_backend,
+    register_custom_artifact_repositories,
 )
 
 # Configure logging before anything else
@@ -102,21 +103,19 @@ elif backend_db_type == 'azure_sql':
     else:
         print("WARNING: Failed to setup Azure SQL connection, using original connection string")
 
-# Detect storage backend and setup credentials if needed
+# Detect storage backend and setup OAuth-based artifact repositories if needed
 storage_backend = detect_storage_backend(os.environ['_MLFLOW_SERVER_ARTIFACT_DESTINATION'])
 print(f"Detected storage backend: {storage_backend}")
 
-if storage_backend == 'aws':
-    print("AWS storage detected, setting up credentials...")
-    if not setup_aws_credentials():
-        print("WARNING: Failed to setup AWS credentials, artifacts may not be accessible")
-elif storage_backend == 'azure':
-    print("Azure storage detected, setting up credentials...")
-    if not setup_azure_credentials():
-        print("WARNING: Failed to setup Azure credentials, artifacts may not be accessible")
+# IMPORTANT: Register custom artifact repositories BEFORE importing MLflow
+# This ensures our OAuth-enabled repositories are used for artifact operations
+# Only registers if OAuth integration is available, otherwise falls back to default credentials
+if storage_backend in ['aws', 'azure']:
+    register_custom_artifact_repositories(storage_backend)
 elif storage_backend == 'gcp':
-    print("GCP storage detected - assuming default credentials or service account key")
-    # GCP typically uses GOOGLE_APPLICATION_CREDENTIALS or default credentials
+    print("GCP storage detected - using default credentials (env vars, service account, etc.)")
+elif storage_backend == 'local':
+    print("Local storage detected - no cloud credentials needed")
 
 # By default, MLflow server runs without authentication.
 # This is suitable for running behind a proxy that handles authentication.

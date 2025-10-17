@@ -71,6 +71,12 @@ def extract_model_signature(pyfunc_model):
                 logger.info(f"Column names: {column_names}")
                 logger.info(f"Column types: {column_types}")
 
+                # Check if column names are integers (unnamed columns)
+                has_integer_columns = all(isinstance(name, (int, str)) and str(name).isdigit() for name in column_names)
+                
+                if has_integer_columns:
+                    logger.info("Model uses integer/index-based column names (model may not have named features)")
+
                 # Generate realistic example data based on column types
                 example_data = []
                 example_record = {}
@@ -84,23 +90,32 @@ def extract_model_signature(pyfunc_model):
                         # Default to float if type unknown
                         example_value = 1.0
 
-                    example_record[col_name] = example_value
+                    example_record[str(col_name)] = example_value
                     example_data.append(example_value)
 
                 # Create examples in formats that MLflow accepts
                 # Convert column names to strings to handle integer column names
+                string_column_names = [str(name) for name in column_names]
+                
                 example_input = {
                     'dataframe_split': {
-                        'columns': [str(name) for name in column_names],
+                        'columns': string_column_names,
                         'data': [example_data]
                     },
                     'dataframe_records': [example_record],
-                    'column_names': [str(name) for name in column_names],
-                    'column_types': [str(t) for t in column_types] if column_types else []
+                    'column_names': string_column_names,
+                    'column_types': [str(t) for t in column_types] if column_types else [],
+                    'has_integer_columns': has_integer_columns,
+                    'num_features': len(column_names)
                 }
 
-                # Format schema as human-readable JSON
-                model_signature_info = _format_schema_as_json("Input", column_names, column_types)
+                # Format schema as human-readable JSON with note about integer columns
+                model_signature_info = _format_schema_as_json(
+                    "Input", 
+                    column_names, 
+                    column_types,
+                    has_integer_columns
+                )
                 
         except Exception as e:
             logger.warning(f"Could not extract input schema: {e}")
@@ -132,7 +147,13 @@ def extract_model_signature(pyfunc_model):
                 }
 
                 # Append output schema to documentation
-                output_schema_info = _format_schema_as_json("Output", output_names, output_types)
+                has_integer_output = all(isinstance(name, (int, str)) and str(name).isdigit() for name in output_names)
+                output_schema_info = _format_schema_as_json(
+                    "Output", 
+                    output_names, 
+                    output_types,
+                    has_integer_output
+                )
                 if model_signature_info:
                     model_signature_info += f"\n\n{output_schema_info}"
                 else:
@@ -180,7 +201,7 @@ def _generate_example_value(col_type, is_output=False):
         return 0.95 if is_output else 1.0
 
 
-def _format_schema_as_json(schema_type, names, types):
+def _format_schema_as_json(schema_type, names, types, has_integer_columns=False):
     """
     Format a schema as a JSON code block for documentation.
     
@@ -188,11 +209,19 @@ def _format_schema_as_json(schema_type, names, types):
         schema_type (str): "Input" or "Output"
         names (list): Column/field names
         types (list): Corresponding data types
+        has_integer_columns (bool): Whether columns are integer indices
         
     Returns:
         str: Formatted JSON schema string
     """
-    schema_lines = [f"**Model {schema_type} Schema:**", "```json", "{"]
+    schema_lines = [f"**Model {schema_type} Schema:**"]
+    
+    if has_integer_columns:
+        schema_lines.append("")
+        schema_lines.append("*Note: This model uses integer-based column names (0, 1, 2, ...), indicating it may not have named features. When sending data, use these integer indices as column names.*")
+        schema_lines.append("")
+    
+    schema_lines.extend(["```json", "{"])
 
     for i, name in enumerate(names):
         # Clean up type names (remove "DataType." prefix)
@@ -274,9 +303,11 @@ The `/invocations` endpoint accepts several formats:
 
 1. **JSON (dataframe_split)**: Pandas DataFrame in split-orient format
 2. **JSON (dataframe_records)**: Pandas DataFrame in records-orient format
-3. **JSON (instances)**: TensorFlow Serving compatible format
+3. **JSON (instances)**: TensorFlow Serving compatible format (array of arrays)
 4. **JSON (inputs)**: Alternative TensorFlow format
 5. **CSV**: Standard comma-separated values
+
+**Note**: If your model uses integer-based column names (0, 1, 2, ...), you must use these integers as strings in column names or object keys.
 
 ### Authentication on Posit Connect
 
@@ -474,10 +505,26 @@ def _generate_invocations_path(model_signature_info, example_input, example_outp
     
     Includes model-specific examples and schemas when available.
     """
+    # Check if model has integer columns
+    has_integer_columns = example_input and example_input.get('has_integer_columns', False)
+    num_features = example_input.get('num_features', 2) if example_input else 2
+    
     # Build comprehensive description with examples
+    integer_column_note = ""
+    if has_integer_columns:
+        integer_column_note = """
+
+**Important**: This model uses integer-based column indices (0, 1, 2, ...) instead of named features. This typically occurs when:
+- The model was trained without explicit feature names
+- Data was provided as numpy arrays rather than DataFrames with column names
+
+When sending data, use integer strings as column names in `dataframe_split` and `dataframe_records` formats, or send a simple array for `instances` format.
+"""
+    
     description = f"""Make predictions using the deployed MLflow model.
 
 {model_signature_info if model_signature_info else ''}
+{integer_column_note}
 
 **Input Format Examples:**
 
@@ -501,7 +548,17 @@ def _generate_invocations_path(model_signature_info, example_input, example_outp
 }}
 ```
 
-3. **CSV format:**
+3. **JSON with instances (for models with integer columns):**
+```json
+{{
+  "instances": [
+    [1.0, 2.0],
+    [3.0, 4.0]
+  ]
+}}
+```
+
+4. **CSV format:**
 ```
 feature1,feature2
 1.0,2.0
@@ -515,25 +572,41 @@ feature1,feature2
 }}
 ```"""
 
-    # Prepare default examples (used when no model schema available)
-    default_split = {
-        "columns": ["feature1", "feature2"],
-        "data": [[1.0, 2.0], [3.0, 4.0]]
-    }
-    default_records = [
-        {"feature1": 1.0, "feature2": 2.0},
-        {"feature1": 3.0, "feature2": 4.0}
-    ]
-    default_csv = "feature1,feature2\n1.0,2.0\n3.0,4.0"
+    # Prepare default examples
+    if has_integer_columns:
+        # For integer columns, provide simpler examples
+        default_split = {
+            "columns": [str(i) for i in range(num_features)],
+            "data": [[1.0] * num_features, [2.0] * num_features]
+        }
+        default_records = [
+            {str(i): 1.0 for i in range(num_features)},
+            {str(i): 2.0 for i in range(num_features)}
+        ]
+        default_instances = [[1.0] * num_features, [2.0] * num_features]
+        default_csv = ','.join(str(i) for i in range(num_features)) + '\n' + ','.join(['1.0'] * num_features)
+    else:
+        # Standard named column examples
+        default_split = {
+            "columns": ["feature1", "feature2"],
+            "data": [[1.0, 2.0], [3.0, 4.0]]
+        }
+        default_records = [
+            {"feature1": 1.0, "feature2": 2.0},
+            {"feature1": 3.0, "feature2": 4.0}
+        ]
+        default_instances = [[1.0, 2.0], [3.0, 4.0]]
+        default_csv = "feature1,feature2\n1.0,2.0\n3.0,4.0"
+    
     default_output = {"predictions": [0.95, 0.87]}
 
     # Use model-based examples when available
     split_example = example_input['dataframe_split'] if example_input else default_split
     records_example = example_input['dataframe_records'] if example_input else default_records
+    instances_example = [example_input['dataframe_split']['data'][0]] if example_input else default_instances
     
     # Generate CSV example from model schema
     if example_input:
-        # Convert all column names to strings and ensure data values are also strings for CSV
         csv_example = (
             ','.join(str(name) for name in example_input['column_names']) + '\n' +
             ','.join(str(v) for v in example_input['dataframe_split']['data'][0])
@@ -542,6 +615,31 @@ feature1,feature2
         csv_example = default_csv
         
     output_example = example_output if example_output else default_output
+
+    # Build examples section
+    json_examples = {
+        "dataframe_split": {
+            "summary": "DataFrame Split Format" + (" (Model Schema)" if example_input else ""),
+            "value": {
+                "dataframe_split": split_example
+            }
+        },
+        "dataframe_records": {
+            "summary": "DataFrame Records Format" + (" (Model Schema)" if example_input else ""),
+            "value": {
+                "dataframe_records": records_example
+            }
+        }
+    }
+    
+    # Add instances format if model has integer columns
+    if has_integer_columns:
+        json_examples["instances"] = {
+            "summary": "Instances Format (Recommended for models with integer columns)",
+            "value": {
+                "instances": instances_example
+            }
+        }
 
     # Build complete endpoint specification
     return {
@@ -556,20 +654,7 @@ feature1,feature2
                         "schema": {
                             "type": "object"
                         },
-                        "examples": {
-                            "dataframe_split": {
-                                "summary": "DataFrame Split Format" + (" (Model Schema)" if example_input else ""),
-                                "value": {
-                                    "dataframe_split": split_example
-                                }
-                            },
-                            "dataframe_records": {
-                                "summary": "DataFrame Records Format" + (" (Model Schema)" if example_input else ""),
-                                "value": {
-                                    "dataframe_records": records_example
-                                }
-                            }
-                        }
+                        "examples": json_examples
                     },
                     "text/csv": {
                         "schema": {
