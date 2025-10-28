@@ -1,3 +1,13 @@
+library(otel)
+
+otel_tracer_name <- "co.posit.connect-extensions.usage-metrics-dashboard"
+
+if (is_otel_tracing()) {
+  initialization_span <- otel::start_local_active_span(
+    "initialization"
+  )
+}
+
 library(shiny)
 library(bslib)
 library(shinyjs)
@@ -61,6 +71,10 @@ content_usage_table_search_method = JS(
 )
 
 ui <- function(request) {
+  if (is_otel_tracing()) {
+    otel::start_local_active_span("ui")
+  }
+
   page_sidebar(
     useShinyjs(),
     theme = bs_theme(version = 5),
@@ -269,6 +283,9 @@ ui <- function(request) {
 }
 
 server <- function(input, output, session) {
+  if (is_otel_tracing()) {
+    otel::start_local_active_span("server")
+  }
   # Set up Connect client; handle error if Visitor API Key integration isn't
   # present.
 
@@ -604,6 +621,9 @@ server <- function(input, output, session) {
     bindCache(active_user_guid)
 
   usage_data_meta <- reactive({
+    if (is_otel_tracing()) {
+      otel::start_local_active_span("load usage data")
+    }
     req(active_user_role %in% c("administrator", "publisher"))
     from <- as.POSIXct(paste(date_range()$from, "00:00:00"), tz = "")
     to <- as.POSIXct(paste(date_range()$to, "23:59:59"), tz = "")
@@ -635,6 +655,9 @@ server <- function(input, output, session) {
 
   # Filter the raw data based on selected scope, app mode and session window
   usage_data_visits <- reactive({
+    if (is_otel_tracing()) {
+      otel::start_local_active_span("filter usage data")
+    }
     req(content())
     scope_filtered_usage <- usage_data_raw() |>
       filter(content_guid %in% content()$guid)
@@ -656,6 +679,9 @@ server <- function(input, output, session) {
 
   # Create data for the main table and summary export.
   multi_content_table_data <- reactive({
+    if (is_otel_tracing()) {
+      otel::start_local_active_span("multi-content table: process data")
+    }
     req(nrow(usage_data_visits()) > 0)
     usage_summary <- usage_data_visits() |>
       group_by(content_guid) |>
@@ -747,6 +773,9 @@ server <- function(input, output, session) {
   "
 
   output$content_usage_table <- renderReactable({
+    if (is_otel_tracing()) {
+      otel::start_local_active_span("multi-content table: render")
+    }
     data <- multi_content_table_data()
 
     table <- reactable(
@@ -894,12 +923,18 @@ server <- function(input, output, session) {
   # Single-content detail view data ----
 
   selected_content_usage <- reactive({
+    if (is_otel_tracing()) {
+      otel::start_local_active_span("single-content view: filter data")
+    }
     req(selected_guid())
     usage_data_raw() |>
       filter(content_guid == selected_guid())
   })
 
   all_visits_data <- reactive({
+    if (is_otel_tracing()) {
+      otel::start_local_active_span("single-content view: all visits data")
+    }
     all_visits <- selected_content_usage() |>
       # Compute time diffs and filter out hits within the session
       group_by(user_guid) |>
@@ -925,6 +960,11 @@ server <- function(input, output, session) {
   })
 
   aggregated_visits_data <- reactive({
+    if (is_otel_tracing()) {
+      otel::start_local_active_span(
+        "single-content view: aggregated visits data"
+      )
+    }
     filtered_visits <- selected_content_usage() |>
       group_by(user_guid) |>
 
@@ -953,6 +993,11 @@ server <- function(input, output, session) {
   # Single-content detail view UI and outputs ----
 
   output$aggregated_visits <- renderReactable({
+    if (is_otel_tracing()) {
+      otel::start_local_active_span(
+        "single-content view: render aggregated visits table"
+      )
+    }
     reactable(
       aggregated_visits_reactable_data(),
       selection = "multiple",
@@ -999,6 +1044,11 @@ server <- function(input, output, session) {
   })
 
   output$all_visits <- renderReactable({
+    if (is_otel_tracing()) {
+      otel::start_local_active_span(
+        "single-content view: render all visits table"
+      )
+    }
     reactable(
       all_visits_data(),
       defaultSorted = "timestamp",
@@ -1153,6 +1203,11 @@ server <- function(input, output, session) {
   })
 
   output$daily_visits_plot <- renderPlotly({
+    if (is_otel_tracing()) {
+      otel::start_local_active_span(
+        "single-content view: render visits plotly"
+      )
+    }
     p <- ggplot(
       daily_hit_data(),
       aes(
@@ -1168,6 +1223,11 @@ server <- function(input, output, session) {
   })
 
   output$visit_timeline_plot <- renderPlotly({
+    if (is_otel_tracing()) {
+      otel::start_local_active_span(
+        "single-content view: render visits timeline"
+      )
+    }
     visit_order <- aggregated_visits_data()$display_name
     data <- all_visits_data() |>
       mutate(display_name = factor(display_name, levels = rev(visit_order)))
@@ -1237,4 +1297,10 @@ server <- function(input, output, session) {
 }
 
 enableBookmarking("url")
+
+if (is_otel_tracing()) {
+  otel::end_span(initialization_span)
+}
+
 shinyApp(ui, server)
+

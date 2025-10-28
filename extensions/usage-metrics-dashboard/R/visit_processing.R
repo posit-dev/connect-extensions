@@ -8,6 +8,9 @@ filter_visits_by_time_window <- function(visits, session_window) {
   if (session_window == 0) {
     return(visits)
   } else {
+    if (is_otel_tracing()) {
+      otel::start_local_active_span("filter visits by time window")
+    }
     visits |>
       group_by(content_guid, user_guid) |>
       # Compute time diffs and filter out hits within the session
