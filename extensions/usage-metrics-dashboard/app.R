@@ -1,11 +1,15 @@
 library(otel)
+library(otelsdk)
 
 otel_tracer_name <- "co.posit.connect-extensions.usage-metrics-dashboard"
 
 if (is_otel_tracing()) {
+  print("OTEL ENABLED")
   initialization_span <- otel::start_local_active_span(
     "initialization"
   )
+} else {
+  print("OTEL DISABLED")
 }
 
 library(shiny)
@@ -773,6 +777,8 @@ server <- function(input, output, session) {
   "
 
   output$content_usage_table <- renderReactable({
+    otel::log("Logging from the Usage Metrics Dashboard")
+
     if (is_otel_tracing()) {
       otel::start_local_active_span("multi-content table: render")
     }
@@ -1303,4 +1309,3 @@ if (is_otel_tracing()) {
 }
 
 shinyApp(ui, server)
-
