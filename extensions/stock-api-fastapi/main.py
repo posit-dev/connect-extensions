@@ -8,6 +8,13 @@ import pandas as pd
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel, Field
 
+from opentelemetry import trace
+from opentelemetry.exporter.otlp.proto.http.trace_exporter import OTLPSpanExporter
+from opentelemetry.sdk.trace import TracerProvider
+from opentelemetry.sdk.trace.export import BatchSpanProcessor
+from opentelemetry.sdk.resources import Resource
+from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
+
 prices = pd.read_csv(
     os.path.join(os.path.dirname(__file__), "prices.csv"),
     index_col=0,
@@ -44,6 +51,26 @@ app = FastAPI(
     description="The Stocks API provides pricing and volatility data for a "
     "limited number of US equities from 2010-2018",
 )
+
+resource = Resource.create({
+    "service.name": "stock-fastapi-app",
+    "service.version": "1.0.0",
+    "deployment.environment": "dev"
+})
+
+# tracer provider
+provider = TracerProvider(resource=resource)
+
+# OTLP exporter
+# at the very least OTEL_EXPORTER_OTLP_ENDPOINT should be set in the environment for the app.
+otlp_exporter = OTLPSpanExporter()
+
+# span processor
+provider.add_span_processor(BatchSpanProcessor(otlp_exporter))
+
+trace.set_tracer_provider(provider)
+
+FastAPIInstrumentor.instrument_app(app)
 
 
 @app.get("/stocks", response_model=Tickers)
