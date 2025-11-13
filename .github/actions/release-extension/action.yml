@@ -18,8 +18,14 @@ runs:
 
     - name: Get manifest extension version
       run: |
-        MANIFEST_VERSION=$(semver -c $(jq -c -r '.extension.version' < ./extensions/${{ inputs.extension-name }}/manifest.json))
+        MANIFEST_VERSION=$(semver -c -p $(jq -c -r '.extension.version' < ./extensions/${{ inputs.extension-name }}/manifest.json))
         echo "MANIFEST_VERSION=$MANIFEST_VERSION" >> "$GITHUB_ENV"
+        if [[ "$MANIFEST_VERSION" == *"-"* ]]; then
+          PRERELEASE="true"
+        else
+          PRERELEASE="false"
+        fi
+        echo "PRERELEASE=$PRERELEASE" >> "$GITHUB_ENV"
       shell: bash
 
     # Grabs the latest version from the extensions.json file
@@ -29,7 +35,7 @@ runs:
       continue-on-error: true
       run: |
         LATEST_VERSION=$(jq -c '.extensions[] | select(.name=="${{ inputs.extension-name }}").latestVersion.version' < extensions.json)
-        LATEST_VERSION=$(semver -c "${LATEST_VERSION:-0.0.0}")
+        LATEST_VERSION=$(semver -c -p "${LATEST_VERSION:-0.0.0}")
         echo "LATEST_VERSION=$LATEST_VERSION" >> "$GITHUB_ENV"
       shell: bash
 
@@ -57,7 +63,7 @@ runs:
           echo "$VERSION_INFO" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
 
-          HIGHER_VERSION=$(semver "$MANIFEST_VERSION" "$LATEST_VERSION" | tail -n 1)
+          HIGHER_VERSION=$(semver -p "$MANIFEST_VERSION" "$LATEST_VERSION" | tail -n 1)
           if [ "$MANIFEST_VERSION" = "$HIGHER_VERSION" ] && [ "$MANIFEST_VERSION" != "$LATEST_VERSION" ]; then
             MESSAGE="🚀 Will release! The manifest version is greater than the released version."
             echo "$MESSAGE"
@@ -86,6 +92,11 @@ runs:
       run: |
         RELEASE_TAG="${{ inputs.extension-name }}@v$MANIFEST_VERSION"
         echo "RELEASE_TAG=$RELEASE_TAG" >> "$GITHUB_ENV"
+        PRERELEASE_FLAG=""
+        if [ "$PRERELEASE" = "true" ]; then
+          PRERELEASE_FLAG="--prerelease"
+        fi
+        echo "PRERELEASE_FLAG=$PRERELEASE_FLAG" >> "$GITHUB_ENV"
       shell: bash
 
     - name: Release
@@ -93,6 +104,7 @@ runs:
       run: |
         gh release create $RELEASE_TAG \
           --title "${{ inputs.extension-name }} v$MANIFEST_VERSION" \
+          $PRERELEASE_FLAG \
           ${{ inputs.extension-name }}.tar.gz
       shell: bash
 
@@ -110,6 +122,6 @@ runs:
       if: github.ref_name == 'main' && steps.should_release.outputs.should_release == 'true'
       uses: actions/upload-artifact@v4
       with:
-        name: release-${{ inputs.extension-name }}.json
+        name: release-${{ inputs.extension-name }}${{ env.PRERELEASE == 'true' && '-prerelease' || '' }}.json
         path: release-${{ inputs.extension-name }}.json
         retention-days: 1

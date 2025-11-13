@@ -189,11 +189,12 @@ class ExtensionList {
 }
 
 // Runs from ./scripts/dist so go up an additional level
+const extensionListFile = process.env.EXTENSION_LIST_FILE || "extensions.json";
 const extensionListFilePath = path.join(
   __dirname,
   "..",
   "..",
-  "extensions.json"
+  extensionListFile
 );
 
 const releases = JSON.parse(process.env.RELEASES);

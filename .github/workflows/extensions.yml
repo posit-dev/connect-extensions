@@ -275,12 +275,34 @@ jobs:
           pattern: release-*.json
           path: releases
           merge-multiple: true
+      
+      # don't add prerelease files to extensions.json on main
+      # TODO: verify this does what we want
+      - name: Remove prerelease files
+        run: rm -f releases/release-*-prerelease.json
 
       # We use jq --slurp to create a single JSON array from all the JSON files
       # to use in the `update-extension-list` job
       - name: Fetch releases
         id: fetch-releases
         run: echo "releases=$(cat releases/*.json | jq -c --slurp .)" >> "$GITHUB_OUTPUT"
+
+  fetch-prerelease-releases:
+    runs-on: ubuntu-latest
+    needs: [simple-extension-release, publisher-command-center, package-vulnerability-scanner, runtime-version-scanner, usage-metrics-dashboard]
+    if: ${{ always() }}
+    outputs:
+      releases: ${{ steps.fetch-releases.outputs.releases }}
+    steps:
+      - name: Download prerelease data
+        uses: actions/download-artifact@v4
+        with:
+          pattern: release-*-prerelease.json
+          path: releases
+          merge-multiple: true
+      - name: Fetch releases
+        id: fetch-releases
+        run: echo "releases=$(cat releases/*.json 2>/dev/null | jq -c --slurp . || echo '[]')" >> "$GITHUB_OUTPUT"
 
   # Updates the `extensions.json` file with the latest release data from
   # all extensions that were released in this workflow using the `fetch-releases`
@@ -294,6 +316,7 @@ jobs:
     # Sets the RELEASES environment variable for the extension list update
     # script to read in
     env:
+      EXTENSION_LIST_FILE: extensions.json
       RELEASES: ${{ needs.fetch-releases.outputs.releases }}
 
     steps:
@@ -324,4 +347,33 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add extensions.json
           git commit -m "Update extension list"
+          git push
+
+  update-prerelease-extension-list:
+    runs-on: ubuntu-latest
+    needs: [fetch-prerelease-releases]
+    if: ${{ always() && needs.fetch-prerelease-releases.result == 'success' && needs.fetch-prerelease-releases.outputs.releases != '[]' }}
+    env:
+      RELEASES: ${{ needs.fetch-prerelease-releases.outputs.releases }}
+      EXTENSION_LIST_FILE: extensions-prerelease.json
+    steps:
+      # Same steps as update-extension-list but for extensions-prerelease.json
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          ssh-key: ${{ secrets.DEPLOY_KEY }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "lts/*"
+          cache: "npm"
+          cache-dependency-path: scripts/package-lock.json
+      - run: npm ci
+        working-directory: ./scripts
+      - run: npm run update-extension-list
+        working-directory: ./scripts
+      - run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add extensions-prerelease.json
+          git commit -m "Update prerelease extension list"
           git push
