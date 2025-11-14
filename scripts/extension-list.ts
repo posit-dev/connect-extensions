@@ -13,12 +13,12 @@ import {
   RequiredFeature
 } from "./types";
 
-function getExtensionNameFromRelease(release: any): string {
+export function getExtensionNameFromRelease(release: any): string {
   const tag = release.tag_name as string;
   return tag.split("@")[0];
 }
 
-function getManifest(extensionName: string): ExtensionManifest {
+export function getManifest(extensionName: string): ExtensionManifest {
   // Runs from ./scripts/dist so go up an additional level
   const manifestPath = path.join(
     __dirname,
@@ -32,11 +32,11 @@ function getManifest(extensionName: string): ExtensionManifest {
 }
 
 // Sort the given extension's version in descending order
-function sortExtensionVersions(extension: Extension) {
+export function sortExtensionVersions(extension: Extension) {
   extension.versions.sort((a, b) => semverRcompare(a.version, b.version));
 }
 
-class ExtensionList {
+export class ExtensionList {
   constructor(
     public categories: Category[],
     public tags: string[],
@@ -98,7 +98,7 @@ class ExtensionList {
     return this.extensions.find((extension) => extension.name === name);
   }
 
-  private updateExtensionDetails(
+  public updateExtensionDetails(
     name: string,
     title: string,
     description: string,
@@ -116,7 +116,7 @@ class ExtensionList {
     });
   }
 
-  private addExtensionVersion(name: string, version: ExtensionVersion) {
+  public addExtensionVersion(name: string, version: ExtensionVersion) {
     const extension = this.getExtension(name);
     if (extension === undefined) {
       throw new Error(`Extension ${name} does not exist in the list`);
@@ -140,7 +140,7 @@ class ExtensionList {
     this.updateExtension(extension.name, extension);
   }
 
-  private addNewExtension(
+  public addNewExtension(
     name: string,
     title: string,
     description: string,
@@ -188,22 +188,30 @@ class ExtensionList {
   }
 }
 
-// Runs from ./scripts/dist so go up an additional level
-const extensionListFile = process.env.EXTENSION_LIST_FILE || "extensions.json";
-const extensionListFilePath = path.join(
-  __dirname,
-  "..",
-  "..",
-  extensionListFile
-);
+// Main execution function
+export function main() {
+  // Runs from ./scripts/dist so go up an additional level
+  const extensionListFile = process.env.EXTENSION_LIST_FILE || "extensions.json";
+  const extensionListFilePath = path.join(
+    __dirname,
+    "..",
+    "..",
+    extensionListFile
+  );
 
-const releases = JSON.parse(process.env.RELEASES);
-const list = ExtensionList.fromFile(extensionListFilePath);
+  const releases = JSON.parse(process.env.RELEASES);
+  const list = ExtensionList.fromFile(extensionListFilePath);
 
-releases.forEach((release) => {
-  const name = getExtensionNameFromRelease(release);
-  const manifest = getManifest(name);
-  list.addRelease(manifest, release);
-});
+  releases.forEach((release) => {
+    const name = getExtensionNameFromRelease(release);
+    const manifest = getManifest(name);
+    list.addRelease(manifest, release);
+  });
 
-fs.writeFileSync(extensionListFilePath, list.stringify());
+  fs.writeFileSync(extensionListFilePath, list.stringify());
+}
+
+// Only run main if this file is executed directly
+if (require.main === module) {
+  main();
+}
