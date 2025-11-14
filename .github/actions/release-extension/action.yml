@@ -28,13 +28,20 @@ runs:
         echo "PRERELEASE=$PRERELEASE" >> "$GITHUB_ENV"
       shell: bash
 
-    # Grabs the latest version from the extensions.json file
+    # Grabs the latest version from the appropriate extensions file
+    # For prerelease versions, check extensions-prerelease.json
+    # For stable versions, check extensions.json
     # If an extension hasn't been released yet we default to `0.0.0` so any
     # version in the manifest will be higher
     - name: Get lastest version from extension list
       continue-on-error: true
       run: |
-        LATEST_VERSION=$(jq -c '.extensions[] | select(.name=="${{ inputs.extension-name }}").latestVersion.version' < extensions.json)
+        if [ "$PRERELEASE" = "true" ]; then
+          EXTENSION_LIST_FILE="extensions-prerelease.json"
+        else
+          EXTENSION_LIST_FILE="extensions.json"
+        fi
+        LATEST_VERSION=$(jq -c '.extensions[] | select(.name=="${{ inputs.extension-name }}").latestVersion.version' < "$EXTENSION_LIST_FILE")
         LATEST_VERSION=$(semver -c -p "${LATEST_VERSION:-0.0.0}")
         echo "LATEST_VERSION=$LATEST_VERSION" >> "$GITHUB_ENV"
       shell: bash
