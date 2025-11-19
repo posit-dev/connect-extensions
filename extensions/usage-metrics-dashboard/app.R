@@ -1,15 +1,79 @@
+connect_job_key <- Sys.getenv("CONNECT_CONTENT_JOB_KEY")
+connect_content_guid <- Sys.getenv("CONNECT_CONTENT_GUID")
+
+# Build resource attributes for OTel
+resource_attrs <- c()
+if (nzchar(connect_job_key)) {
+  resource_attrs <- c(resource_attrs, paste0("connect.job_key=", connect_job_key))
+}
+if (nzchar(connect_content_guid)) {
+  resource_attrs <- c(resource_attrs, paste0("connect.content_guid=", connect_content_guid))
+}
+
+if (length(resource_attrs) > 0) {
+  existing <- Sys.getenv("OTEL_RESOURCE_ATTRIBUTES")
+  new_attrs <- if (nzchar(existing)) {
+    paste0(existing, ",", paste(resource_attrs, collapse = ","))
+  } else {
+    paste(resource_attrs, collapse = ",")
+  }
+  Sys.setenv(OTEL_RESOURCE_ATTRIBUTES = new_attrs)
+}
+
+print_env_var <- function(env_var, redact = FALSE) {
+  if (redact) {
+    display_value <- nzchar(Sys.getenv(env_var))
+  } else {
+    display_value <- Sys.getenv(env_var)
+  }
+  print(paste0(env_var, ": ", display_value))
+}
+
+print_env_var("OTEL_RESOURCE_ATTRIBUTES")
+
+
 library(otel)
 library(otelsdk)
 
+print_env_var("OTEL_ENV")
+print_env_var("OTEL_EXPORTER_OTLP_LOGS_ENDPOINT")
+print_env_var("OTEL_EXPORTER_OTLP_LOGS_HEADERS", redact = TRUE)
+print_env_var("OTEL_EXPORTER_OTLP_LOGS_PROTOCOL")
+print_env_var("OTEL_EXPORTER_OTLP_TRACES_ENDPOINT")
+print_env_var("OTEL_EXPORTER_OTLP_TRACES_PROTOCOL")
+print_env_var("OTEL_EXPORTER_OTLP_TRACES_HEADERS", redact = TRUE)
+print_env_var("OTEL_TRACES_EXPORTER")
+
+connect_env_vars <- grep("^CONNECT_", names(Sys.getenv()), value = TRUE)
+print(connect_env_vars)
+for (var in connect_env_vars) {
+  print_env_var(var)
+}
+
+# TODO: The environment variable I want is `CONNECT_CONTENT_JOB_KEY`
+
 otel_tracer_name <- "co.posit.connect-extensions.usage-metrics-dashboard"
 
+print("default_tracer_name()")
+print(default_tracer_name())
+
+print("get_default_tracer_provider()")
+print(get_default_tracer_provider())
+
+is_otel_tracing <- function() {
+  requireNamespace("otel", quietly = TRUE) && otel::is_tracing_enabled()
+}
+
 if (is_otel_tracing()) {
-  print("OTEL ENABLED")
+  print("OTel is tracing")
   initialization_span <- otel::start_local_active_span(
     "initialization"
   )
+  log_message <- paste0("POSIT_PRODUCT: ", Sys.getenv("POSIT_PRODUCT"))
+  print(paste0("Logging '", log_message, "' to OTel"))
+  otel::log(log_message)
 } else {
-  print("OTEL DISABLED")
+  print("OTel is not tracing")
 }
 
 library(shiny)
@@ -777,10 +841,9 @@ server <- function(input, output, session) {
   "
 
   output$content_usage_table <- renderReactable({
-    otel::log("Logging from the Usage Metrics Dashboard")
-
     if (is_otel_tracing()) {
       otel::start_local_active_span("multi-content table: render")
+      otel::log("Rendering the main content usage table.")
     }
     data <- multi_content_table_data()
 
