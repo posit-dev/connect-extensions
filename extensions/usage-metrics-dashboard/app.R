@@ -50,8 +50,6 @@ for (var in connect_env_vars) {
   print_env_var(var)
 }
 
-# TODO: The environment variable I want is `CONNECT_CONTENT_JOB_KEY`
-
 otel_tracer_name <- "co.posit.connect-extensions.usage-metrics-dashboard"
 
 print("default_tracer_name()")
