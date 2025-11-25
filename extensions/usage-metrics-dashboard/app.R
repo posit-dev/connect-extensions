@@ -1,8 +1,14 @@
 connect_job_key <- Sys.getenv("CONNECT_CONTENT_JOB_KEY")
 connect_content_guid <- Sys.getenv("CONNECT_CONTENT_GUID")
 
+otel_tracer_name <- "co.posit.connect-extensions.usage-metrics-dashboard"
+service_name <- otel_tracer_name
+
 # Build resource attributes for OTel
-resource_attrs <- c()
+resource_attrs <- c(
+  paste0("service.name=", service_name)
+)
+
 if (nzchar(connect_job_key)) {
   resource_attrs <- c(resource_attrs, paste0("connect.job_key=", connect_job_key))
 }
@@ -10,15 +16,13 @@ if (nzchar(connect_content_guid)) {
   resource_attrs <- c(resource_attrs, paste0("connect.content_guid=", connect_content_guid))
 }
 
-if (length(resource_attrs) > 0) {
-  existing <- Sys.getenv("OTEL_RESOURCE_ATTRIBUTES")
-  new_attrs <- if (nzchar(existing)) {
-    paste0(existing, ",", paste(resource_attrs, collapse = ","))
-  } else {
-    paste(resource_attrs, collapse = ",")
-  }
-  Sys.setenv(OTEL_RESOURCE_ATTRIBUTES = new_attrs)
+existing <- Sys.getenv("OTEL_RESOURCE_ATTRIBUTES")
+new_attrs <- if (nzchar(existing)) {
+  paste0(existing, ",", paste(resource_attrs, collapse = ","))
+} else {
+  paste(resource_attrs, collapse = ",")
 }
+Sys.setenv(OTEL_RESOURCE_ATTRIBUTES = new_attrs)
 
 print_env_var <- function(env_var, redact = FALSE) {
   if (redact) {
@@ -30,7 +34,6 @@ print_env_var <- function(env_var, redact = FALSE) {
 }
 
 print_env_var("OTEL_RESOURCE_ATTRIBUTES")
-
 
 library(otel)
 library(otelsdk)
