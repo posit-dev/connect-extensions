@@ -193,7 +193,8 @@ ui <- function(request) {
     div(
       id = "multi_content_table",
       textOutput("summary_text"),
-      withSpinner(reactableOutput("content_usage_table"))
+      withSpinner(reactableOutput("content_usage_table")),
+      uiOutput("table_footnote")
     ),
 
     # The single-content detail view is displayed when an item is selected,
@@ -356,7 +357,6 @@ server <- function(input, output, session) {
       ))
     }
   )
-  print(client)
   if (is.null(client)) {
     return()
   }
@@ -662,6 +662,7 @@ server <- function(input, output, session) {
       summarize(
         total_views = n(),
         unique_viewers = n_distinct(user_guid, na.rm = TRUE),
+        has_anonymous = any(is.na(user_guid)),
         .groups = "drop"
       )
 
@@ -688,7 +689,8 @@ server <- function(input, output, session) {
         owner_username,
         total_views,
         sparkline,
-        unique_viewers
+        unique_viewers,
+        has_anonymous
       )
   })
 
@@ -713,6 +715,15 @@ server <- function(input, output, session) {
   output$last_updated <- renderText({
     fmt <- "%Y-%m-%d %l:%M:%S %p %Z"
     paste0("Updated ", format(usage_last_updated(), fmt))
+  })
+
+  output$table_footnote <- renderUI({
+    # Only execute if anonymous visits are present
+    req(any(multi_content_table_data()$has_anonymous))
+    div(
+      style = "text-align: right; font-size: 0.875rem;",
+      "* Anonymous visitors do not contribute to the unique visitor count."
+    )
   })
 
   # JavaScript for persisting search terms across table rerenders
@@ -855,14 +866,21 @@ server <- function(input, output, session) {
 
         unique_viewers = colDef(
           name = "Unique Visitors",
-          align = "left",
+          align = "right",
           minWidth = 70,
           maxWidth = 135,
-          cell = function(value) {
-            max_val <- max(data$total_views, na.rm = TRUE)
-            format(value, width = nchar(max_val), justify = "right")
+          cell = function(value, index) {
+            if (data$has_anonymous[index]) {
+              paste0(value, "*")
+            } else {
+              paste0(value, "\u00A0") # Non-breaking space for alignment
+            }
           },
           class = "number"
+        ),
+
+        has_anonymous = colDef(
+          show = FALSE
         )
       )
     )
@@ -886,7 +904,7 @@ server <- function(input, output, session) {
     },
     content = function(file) {
       to_export <- multi_content_table_data() |>
-        select(-sparkline)
+        select(-sparkline, -has_anonymous, -unique_viewers_display)
       write.csv(to_export, file, row.names = FALSE)
     }
   )
