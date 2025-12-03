@@ -78,6 +78,10 @@ if (is_otel_tracing()) {
   initialization_span <- otel::start_local_active_span("initialization")
 }
 
+if (is_otel_tracing()) {
+  package_load_span <- otel::start_local_active_span("package_load")
+}
+
 library(shiny)
 library(bslib)
 library(shinyjs)
@@ -91,9 +95,13 @@ library(ggplot2)
 library(plotly)
 library(shinycssloaders)
 
-shinyOptions(
-  cache = cachem::cache_disk("./app_cache/cache/", max_age = 60 * 60)
-)
+if (is_otel_tracing()) {
+  otel::end_span(package_load_span)
+}
+
+# shinyOptions(
+#   cache = cachem::cache_disk("./app_cache/cache/", max_age = 60 * 60)
+# )
 
 options(
   spinner.type = 1,
@@ -528,10 +536,10 @@ server <- function(input, output, session) {
 
   # Cache invalidation button ----
 
-  cache <- cachem::cache_disk("./app_cache/cache/")
+  # cache <- cachem::cache_disk("./app_cache/cache/")
   observeEvent(input$clear_cache, {
     print("Cache cleared!")
-    cache$reset()
+    # cache$reset()
     session$reload()
   })
 
@@ -651,9 +659,9 @@ server <- function(input, output, session) {
   })
 
   content_unscoped <- reactive({
-    get_content(client)
-  }) |>
-    bindCache(active_user_guid)
+    get_content_noparse(client)
+  }) # |>
+    # bindCache(active_user_guid)
 
   content <- reactive({
     req(input$content_scope)
@@ -690,8 +698,8 @@ server <- function(input, output, session) {
         display_name = paste0(full_name, " (", username, ")")
       ) |>
       select(user_guid = guid, full_name, username, display_name, email)
-  }) |>
-    bindCache(active_user_guid)
+  }) # |>
+    # bindCache(active_user_guid)
 
   usage_data_meta <- reactive({
     if (is_otel_tracing()) {
@@ -713,8 +721,8 @@ server <- function(input, output, session) {
       data = usage_tbl,
       last_updated = Sys.time()
     )
-  }) |>
-    bindCache(active_user_guid, date_range())
+  }) # |>
+    # bindCache(active_user_guid, date_range())
 
   usage_data_raw <- reactive({
     usage_data_meta()$data
@@ -773,7 +781,8 @@ server <- function(input, output, session) {
       summarize(sparkline = list(n), .groups = "drop")
 
     content() |>
-      mutate(owner_username = map_chr(owner, "username")) |>
+      # mutate(owner_username = map_chr(owner, "username")) |>
+      mutate(owner_username = owner.username) |>
       select(title, content_guid = guid, owner_username, dashboard_url) |>
       replace_na(list(title = "[Untitled]")) |>
       right_join(usage_summary, by = "content_guid") |>
@@ -1211,7 +1220,7 @@ server <- function(input, output, session) {
     if (nrow(selected_content_info()) == 1) {
       owner <- filter(
         users(),
-        user_guid == selected_content_info()$owner[[1]]$guid
+        user_guid == selected_content_info()$owner_guid
       )
       glue::glue("Owner: {owner$display_name}")
     }
@@ -1219,7 +1228,7 @@ server <- function(input, output, session) {
 
   output$email_owner_button <- renderUI({
     owner_email <- users() |>
-      filter(user_guid == selected_content_info()$owner[[1]]$guid) |>
+      filter(user_guid == selected_content_info()$owner_guid) |>
       pull(email)
     subject <- glue::glue(
       "\"{selected_content_info()$title}\" on Posit Connect"
