@@ -721,7 +721,7 @@ server <- function(input, output, session) {
     # Only execute if anonymous visits are present
     req(any(multi_content_table_data()$has_anonymous))
     div(
-      style = "text-align: right; font-size: 0.875rem; margin-bottom: 0.5rem;",
+      style = "text-align: right; font-size: 0.875rem; padding-bottom: 0.5rem;",
       "* Anonymous visitors do not contribute to the unique visitor count."
     )
   })
