@@ -297,13 +297,21 @@ jobs:
       RELEASES: ${{ needs.fetch-releases.outputs.releases }}
 
     steps:
+      - name: Generate token for GitHub App
+        id: generate-token
+        uses: actions/create-github-app-token@v2
+        with:
+          app-id: 1129585
+          private-key: ${{ secrets.POSIT_CONNECT_PROJECTS_PEM }}
+          permission-contents: write
+
       # Checkout main to commit the updated extension list
       # reduces the chance of conflicts when updating the extension list with
       # multiple running workflows
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           ref: main
-          ssh-key: ${{ secrets.DEPLOY_KEY }}
+          token: ${{ steps.generate-token.outputs.token }}
 
       - uses: actions/setup-node@v4
         with:
