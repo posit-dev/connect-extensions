@@ -660,13 +660,9 @@ server <- function(input, output, session) {
       group_by(content_guid) |>
       summarize(
         total_views = n(),
-        unique_viewers = n_distinct(user_guid, na.rm = TRUE),
+        unique_viewers = n_distinct(user_guid),
         has_anonymous = any(is.na(user_guid)),
         .groups = "drop"
-      ) |>
-      mutate(
-        # Increment by 1 when anonymous views present to avoid "0 unique, 100 total" scenario
-        unique_viewers = if_else(has_anonymous, unique_viewers + 1L, unique_viewers)
       )
 
     # Prepare sparkline data.
