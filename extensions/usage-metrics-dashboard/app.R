@@ -193,8 +193,7 @@ ui <- function(request) {
     div(
       id = "multi_content_table",
       textOutput("summary_text"),
-      withSpinner(reactableOutput("content_usage_table")),
-      uiOutput("table_footnote")
+      withSpinner(reactableOutput("content_usage_table"))
     ),
 
     # The single-content detail view is displayed when an item is selected,
@@ -664,6 +663,10 @@ server <- function(input, output, session) {
         unique_viewers = n_distinct(user_guid, na.rm = TRUE),
         has_anonymous = any(is.na(user_guid)),
         .groups = "drop"
+      ) |>
+      mutate(
+        # Increment by 1 when anonymous views present to avoid "0 unique, 100 total" scenario
+        unique_viewers = if_else(has_anonymous, unique_viewers + 1L, unique_viewers)
       )
 
     # Prepare sparkline data.
@@ -717,16 +720,9 @@ server <- function(input, output, session) {
     paste0("Updated ", format(usage_last_updated(), fmt))
   })
 
-  output$table_footnote <- renderUI({
-    # Only execute if anonymous visits are present
-    req(any(multi_content_table_data()$has_anonymous))
-    div(
-      style = "text-align: right; font-size: 0.875rem; padding-bottom: 0.5rem;",
-      "* Anonymous visitors do not contribute to the unique visitor count."
-    )
-  })
-
-  # JavaScript for persisting search terms across table rerenders
+  # JavaScript for the table:
+  # - Persisting search terms across table rerenders
+  # - Displaying bslib tooltips in table cells
   table_js <- "
   function(el, x) {
     const tableId = el.id;
@@ -753,6 +749,32 @@ server <- function(input, output, session) {
     // Save search terms as they're entered
     searchInput.addEventListener('input', function() {
       sessionStorage.setItem(storageKey, this.value);
+    });
+
+    // Initialize Bootstrap tooltips for asterisks
+    const tooltipTriggerList = el.querySelectorAll('[data-bs-toggle=\"tooltip\"]');
+    [...tooltipTriggerList].map(tooltipTriggerEl =>
+      new bootstrap.Tooltip(tooltipTriggerEl, {
+        container: 'body',
+        html: false,
+        sanitize: true
+      })
+    );
+
+    // Re-initialize tooltips when table updates (sorting, pagination, etc.)
+    Reactable.onStateChange(tableId, function(state) {
+      setTimeout(function() {
+        const newTooltipTriggerList = el.querySelectorAll('[data-bs-toggle=\"tooltip\"]');
+        [...newTooltipTriggerList].map(tooltipTriggerEl => {
+          if (!bootstrap.Tooltip.getInstance(tooltipTriggerEl)) {
+            new bootstrap.Tooltip(tooltipTriggerEl, {
+              container: 'body',
+              html: false,
+              sanitize: true
+            });
+          }
+        });
+      }, 100);
     });
   }
   "
@@ -871,11 +893,18 @@ server <- function(input, output, session) {
           maxWidth = 135,
           cell = function(value, index) {
             if (data$has_anonymous[index]) {
-              paste0(value, "*")
+              # Use Bootstrap 5 tooltip attributes - keep inline
+              HTML(paste0(
+                '<span style="white-space: nowrap;">',
+                value,
+                '<span data-bs-toggle="tooltip" data-bs-title="Anonymous visits are counted as one unique visitor.">*</span>',
+                '</span>'
+              ))
             } else {
               paste0(value, "\u00A0") # Non-breaking space for alignment
             }
           },
+          html = TRUE,  # Required for HTML rendering
           class = "number"
         ),
 
@@ -904,7 +933,7 @@ server <- function(input, output, session) {
     },
     content = function(file) {
       to_export <- multi_content_table_data() |>
-        select(-sparkline, -has_anonymous, -unique_viewers_display)
+        select(-sparkline, -has_anonymous)
       write.csv(to_export, file, row.names = FALSE)
     }
   )
