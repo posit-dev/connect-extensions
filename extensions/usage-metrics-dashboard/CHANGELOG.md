@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [1.0.10]
 
-- Added an asterisk to Unique Visitors to indicate if anonymous visits were present in the data. (#300)
+- Added an asterisk to Unique Visitors to indicate if anonymous visits were present in the data, anonymous users are also counted as a single unique visitor for consistency. (#300)
 
 ## [1.0.8]
 
