@@ -20,7 +20,7 @@ def check_aws_bedrock_credentials():
         return True
     except Exception as e:
         print(
-            f"AWS Bedrock credentials check failed and will fallback to checking for values for the CHATLAS_CHAT_PROVIDER_MODEL env var. Err: {e}"
+            f"AWS Bedrock credentials check failed and will fall back to checking for values for the CHATLAS_CHAT_PROVIDER_MODEL env var. Err: {e}"
         )
         return False
 
