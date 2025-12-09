@@ -26,13 +26,16 @@ def check_aws_bedrock_credentials():
         return True
     except Exception as e:
         print(
-            f"AWS Bedrock credentials check failed and will fallback to checking for values for the CHATLAS_CHAT_PROVIDER and CHATLAS_CHAT_ARGS env vars. Err: {e}"
+            f"AWS Bedrock credentials check failed and will fall back to checking for values for the CHATLAS_CHAT_PROVIDER_MODEL env var. Err: {e}"
         )
         return False
 
 
+# CHATLAS_CHAT_PROVIDER and CHATLAS_CHAT_ARGS are deprecated
+# we still account the prescence of these for backwards compatibility.
 CHATLAS_CHAT_PROVIDER = os.getenv("CHATLAS_CHAT_PROVIDER")
 CHATLAS_CHAT_ARGS = os.getenv("CHATLAS_CHAT_ARGS")
+CHATLAS_CHAT_PROVIDER_MODEL = os.getenv("CHATLAS_CHAT_PROVIDER_MODEL")
 HAS_AWS_BEDROCK_CREDENTIALS = check_aws_bedrock_credentials()
 
 setup_ui = ui.page_fillable(
@@ -120,7 +123,7 @@ setup_ui = ui.page_fillable(
             ui.h2("LLM API", class_="setup-section-title"),
             ui.div(
                 ui.HTML(
-                    "This app requires the <code>CHATLAS_CHAT_PROVIDER</code> and <code>CHATLAS_CHAT_ARGS</code> environment variables to be "
+                    "This app requires the <code>CHATLAS_CHAT_PROVIDER_MODEL</code> environment variable to be "
                     "set along with an LLM API Key in the content access panel. Please set them in your environment before running the app. "
                     '<a href="https://posit-dev.github.io/chatlas/reference/ChatAuto.html" class="setup-link">See the documentation for more details.</a>'
                 ),
@@ -128,8 +131,7 @@ setup_ui = ui.page_fillable(
             ),
             ui.h3("Example for OpenAI API", class_="setup-section-title"),
             ui.pre(
-                """CHATLAS_CHAT_PROVIDER = "openai"
-CHATLAS_CHAT_ARGS = {"model": "gpt-4o"}
+                """CHATLAS_CHAT_PROVIDER_MODEL = "openai/gpt-4o"
 OPENAI_API_KEY = "<key>" """,
                 class_="setup-code-block",
             ),
@@ -234,7 +236,7 @@ def server(input: Inputs, output: Outputs, app_session: AppSession):
     Always show the raw output of the tools you call, and do not modify it. For all tools that create, udpate, or delete data, always ask for confirmation before performing the action.
     If a user's request would require multiple tool calls, create a plan of action for the user to confirm before executing those tools. The user must confirm the plan.</prime-directive>"""
 
-    if CHATLAS_CHAT_PROVIDER and not HAS_AWS_BEDROCK_CREDENTIALS:
+    if (CHATLAS_CHAT_PROVIDER_MODEL or CHATLAS_CHAT_PROVIDER) and not HAS_AWS_BEDROCK_CREDENTIALS:
         chat = chatlas.ChatAuto(system_prompt=system_prompt)
 
     if HAS_AWS_BEDROCK_CREDENTIALS:
@@ -250,7 +252,7 @@ def server(input: Inputs, output: Outputs, app_session: AppSession):
     @render.ui
     def screen():
         if (
-            CHATLAS_CHAT_PROVIDER is None and not HAS_AWS_BEDROCK_CREDENTIALS
+            CHATLAS_CHAT_PROVIDER_MODEL is None and CHATLAS_CHAT_PROVIDER is None and not HAS_AWS_BEDROCK_CREDENTIALS
         ) or not VISITOR_API_INTEGRATION_ENABLED:
             return setup_ui
         else:
