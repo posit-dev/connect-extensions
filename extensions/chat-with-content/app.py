@@ -20,7 +20,7 @@ def check_aws_bedrock_credentials():
         return True
     except Exception as e:
         print(
-            f"AWS Bedrock credentials check failed and will fallback to checking for values for the CHATLAS_CHAT_PROVIDER and CHATLAS_CHAT_ARGS env vars. Err: {e}"
+            f"AWS Bedrock credentials check failed and will fallback to checking for values for the CHATLAS_CHAT_PROVIDER_MODEL env var. Err: {e}"
         )
         return False
 
@@ -125,7 +125,7 @@ setup_ui = ui.page_fillable(
             ui.h2("LLM API", class_="setup-section-title"),
             ui.div(
                 ui.HTML(
-                    "This app requires the <code>CHATLAS_CHAT_PROVIDER</code> and <code>CHATLAS_CHAT_ARGS</code> environment variables to be "
+                    "This app requires the <code>CHATLAS_CHAT_PROVIDER_MODEL</code> environment variable to be "
                     "set along with an LLM API Key in the content access panel. Please set them in your environment before running the app. "
                     'See the <a href="https://posit-dev.github.io/chatlas/reference/ChatAuto.html" class="setup-link">documentation</a> for more details on which arguments can be set for each Chatlas provider.'
                 ),
@@ -133,8 +133,7 @@ setup_ui = ui.page_fillable(
             ),
             ui.h3("Example for OpenAI API", class_="setup-section-title"),
             ui.pre(
-                """CHATLAS_CHAT_PROVIDER = "openai"
-CHATLAS_CHAT_ARGS = {"model": "gpt-4o"}
+                """CHATLAS_CHAT_PROVIDER_MODEL = "openai/gpt-4o"
 OPENAI_API_KEY = "<key>" """,
                 class_="setup-code-block",
             ),
@@ -193,8 +192,11 @@ app_ui = ui.page_sidebar(
 
 screen_ui = ui.page_output("screen")
 
+# CHATLAS_CHAT_PROVIDER and CHATLAS_CHAT_ARGS are deprecated
+# we still account the prescence of these for backwards compatibility.
 CHATLAS_CHAT_PROVIDER = os.getenv("CHATLAS_CHAT_PROVIDER")
 CHATLAS_CHAT_ARGS = os.getenv("CHATLAS_CHAT_ARGS")
+CHATLAS_CHAT_PROVIDER_MODEL = os.getenv("CHATLAS_CHAT_PROVIDER_MODEL")
 HAS_AWS_CREDENTIALS = check_aws_bedrock_credentials()
 
 
@@ -233,9 +235,9 @@ def server(input: Inputs, output: Outputs, session: Session):
         </important>
     """
 
-    if CHATLAS_CHAT_PROVIDER and not HAS_AWS_CREDENTIALS:
+    if (CHATLAS_CHAT_PROVIDER_MODEL or CHATLAS_CHAT_PROVIDER) and not HAS_AWS_CREDENTIALS:
         # This will pull its configuration from environment variables
-        # CHATLAS_CHAT_PROVIDER and CHATLAS_CHAT_ARGS
+        # CHATLAS_CHAT_PROVIDER_MODEL, or the deprecated CHATLAS_CHAT_PROVIDER and CHATLAS_CHAT_ARGS
         chat = ChatAuto(
             system_prompt=system_prompt,
         )
@@ -250,7 +252,7 @@ def server(input: Inputs, output: Outputs, session: Session):
     @render.ui
     def screen():
         if (
-            CHATLAS_CHAT_PROVIDER is None and not HAS_AWS_CREDENTIALS
+            CHATLAS_CHAT_PROVIDER_MODEL is None and CHATLAS_CHAT_PROVIDER is None and not HAS_AWS_CREDENTIALS
         ) or not VISITOR_API_INTEGRATION_ENABLED:
             return setup_ui
         else:
