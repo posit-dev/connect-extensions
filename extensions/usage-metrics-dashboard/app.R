@@ -356,7 +356,6 @@ server <- function(input, output, session) {
       ))
     }
   )
-  print(client)
   if (is.null(client)) {
     return()
   }
@@ -661,7 +660,8 @@ server <- function(input, output, session) {
       group_by(content_guid) |>
       summarize(
         total_views = n(),
-        unique_viewers = n_distinct(user_guid, na.rm = TRUE),
+        unique_viewers = n_distinct(user_guid),
+        has_anonymous = any(is.na(user_guid)),
         .groups = "drop"
       )
 
@@ -688,7 +688,8 @@ server <- function(input, output, session) {
         owner_username,
         total_views,
         sparkline,
-        unique_viewers
+        unique_viewers,
+        has_anonymous
       )
   })
 
@@ -715,7 +716,9 @@ server <- function(input, output, session) {
     paste0("Updated ", format(usage_last_updated(), fmt))
   })
 
-  # JavaScript for persisting search terms across table rerenders
+  # JavaScript for the table:
+  # - Persisting search terms across table rerenders
+  # - Displaying bslib tooltips in table cells
   table_js <- "
   function(el, x) {
     const tableId = el.id;
@@ -742,6 +745,32 @@ server <- function(input, output, session) {
     // Save search terms as they're entered
     searchInput.addEventListener('input', function() {
       sessionStorage.setItem(storageKey, this.value);
+    });
+
+    // Initialize Bootstrap tooltips for asterisks
+    const tooltipTriggerList = el.querySelectorAll('[data-bs-toggle=\"tooltip\"]');
+    [...tooltipTriggerList].map(tooltipTriggerEl =>
+      new bootstrap.Tooltip(tooltipTriggerEl, {
+        container: 'body',
+        html: false,
+        sanitize: true
+      })
+    );
+
+    // Re-initialize tooltips when table updates (sorting, pagination, etc.)
+    Reactable.onStateChange(tableId, function(state) {
+      setTimeout(function() {
+        const newTooltipTriggerList = el.querySelectorAll('[data-bs-toggle=\"tooltip\"]');
+        [...newTooltipTriggerList].map(tooltipTriggerEl => {
+          if (!bootstrap.Tooltip.getInstance(tooltipTriggerEl)) {
+            new bootstrap.Tooltip(tooltipTriggerEl, {
+              container: 'body',
+              html: false,
+              sanitize: true
+            });
+          }
+        });
+      }, 100);
     });
   }
   "
@@ -855,14 +884,28 @@ server <- function(input, output, session) {
 
         unique_viewers = colDef(
           name = "Unique Visitors",
-          align = "left",
+          align = "right",
           minWidth = 70,
           maxWidth = 135,
-          cell = function(value) {
-            max_val <- max(data$total_views, na.rm = TRUE)
-            format(value, width = nchar(max_val), justify = "right")
+          cell = function(value, index) {
+            if (data$has_anonymous[index]) {
+              # Use Bootstrap 5 tooltip attributes - keep inline
+              HTML(paste0(
+                '<span style="white-space: nowrap;">',
+                value,
+                '<span data-bs-toggle="tooltip" data-bs-title="Anonymous visits are counted as one unique visitor.">*</span>',
+                '</span>'
+              ))
+            } else {
+              paste0(value, "\u00A0") # Non-breaking space for alignment
+            }
           },
+          html = TRUE,  # Required for HTML rendering
           class = "number"
+        ),
+
+        has_anonymous = colDef(
+          show = FALSE
         )
       )
     )
@@ -886,7 +929,7 @@ server <- function(input, output, session) {
     },
     content = function(file) {
       to_export <- multi_content_table_data() |>
-        select(-sparkline)
+        select(-sparkline, -has_anonymous)
       write.csv(to_export, file, row.names = FALSE)
     }
   )
