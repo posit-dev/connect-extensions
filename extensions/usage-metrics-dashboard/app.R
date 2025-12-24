@@ -919,7 +919,33 @@ server <- function(input, output, session) {
       paste0("content_raw_visits_", Sys.Date(), ".csv")
     },
     content = function(file) {
-      write.csv(usage_data_raw(), file, row.names = FALSE)
+      usage_data_raw() |>
+        left_join(
+          users() |> select(user_guid, username, full_name, email),
+          by = "user_guid"
+        ) |>
+        left_join(
+          content() |>
+            mutate(owner_username = map_chr(owner, "username")) |>
+            select(content_guid = guid, content_title = title, owner_username),
+          by = "content_guid"
+        ) |>
+        replace_na(list(
+          username = "[Anonymous]",
+          full_name = "[Anonymous]",
+          content_title = "[Deleted]"
+        )) |>
+        select(
+          timestamp,
+          content_title,
+          content_guid,
+          owner_username,
+          username,
+          full_name,
+          email,
+          user_guid
+        ) |>
+        write.csv(file, row.names = FALSE)
     }
   )
 
