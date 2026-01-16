@@ -33,9 +33,9 @@
       "description": "Provides a way to interact with and query content using an LLM chat interface.",
       "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/chat-with-content",
       "latestVersion": {
-        "version": "0.0.3",
-        "released": "2025-12-10T22:00:30Z",
-        "url": "https://github.com/posit-dev/connect-extensions/releases/download/chat-with-content%40v0.0.3/chat-with-content.tar.gz",
+        "version": "0.0.4",
+        "released": "2026-01-16T19:24:57Z",
+        "url": "https://github.com/posit-dev/connect-extensions/releases/download/chat-with-content%40v0.0.4/chat-with-content.tar.gz",
         "minimumConnectVersion": "2025.04.0",
         "requiredFeatures": [
           "OAuth Integrations"
@@ -47,6 +47,20 @@
         }
       },
       "versions": [
+        {
+          "version": "0.0.4",
+          "released": "2026-01-16T19:24:57Z",
+          "url": "https://github.com/posit-dev/connect-extensions/releases/download/chat-with-content%40v0.0.4/chat-with-content.tar.gz",
+          "minimumConnectVersion": "2025.04.0",
+          "requiredFeatures": [
+            "OAuth Integrations"
+          ],
+          "requiredEnvironment": {
+            "python": {
+              "requires": ">=3.10.0"
+            }
+          }
+        },
         {
           "version": "0.0.3",
           "released": "2025-12-10T22:00:30Z",
