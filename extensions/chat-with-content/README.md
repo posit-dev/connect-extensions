@@ -23,26 +23,33 @@ As a Posit Connect administrator, you need to configure the environment for this
 
 2.  **Configure Environment Variables**: In the "Vars" pane of the content settings, you need to set environment variables to configure the LLM provider. This extension uses the `chatlas` library, which supports various LLM providers like OpenAI, Google Gemini, and Anthropic on AWS Bedrock.
 
-    You must set `CHATLAS_CHAT_PROVIDER` and `CHATLAS_CHAT_ARGS`. You also need to provide the API key for the chosen service.
+    Set `CHATLAS_CHAT_PROVIDER_MODEL` to specify the provider and model in the format `provider/model`. You also need to provide the API key for the chosen service.
 
     **Example for OpenAI:**
 
-    -   `CHATLAS_CHAT_PROVIDER`: `openai`
-    -   `CHATLAS_CHAT_ARGS`: `{"model": "gpt-4o"}`
+    -   `CHATLAS_CHAT_PROVIDER_MODEL`: `openai/gpt-4o`
     -   `OPENAI_API_KEY`: `<your-openai-api-key>` (Set this as a secret)
 
     **Example for Google Gemini:**
 
-    -   `CHATLAS_CHAT_PROVIDER`: `google`
-    -   `CHATLAS_CHAT_ARGS`: `{"model": "gemini-1.5-flash"}`
+    -   `CHATLAS_CHAT_PROVIDER_MODEL`: `google/gemini-1.5-flash`
     -   `GOOGLE_API_KEY`: `<your-google-api-key>` (Set this as a secret)
+
+    **Example for Anthropic:**
+
+    -   `CHATLAS_CHAT_PROVIDER_MODEL`: `anthropic/claude-sonnet-4-20250514`
+    -   `ANTHROPIC_API_KEY`: `<your-anthropic-api-key>` (Set this as a secret)
 
     **Example for Anthropic on AWS Bedrock:**
 
-    If the Connect server is running on an EC2 instance with an IAM role that grants access to Bedrock, no environment variables are needed. The application will automatically detect and use AWS credentials. It defaults to the `us.anthropic.claude-sonnet-4-20250514-v1:0` model. Otherwise, you can set the following environment variables with your AWS credentials:
+    The application uses the [botocore](https://botocore.amazonaws.com/v1/documentation/api/latest/reference/credentials.html) credential chain for AWS authentication. If the Connect server is running on an EC2 instance with an IAM role that grants access to Bedrock, credentials are automatically detected and no configuration is needed. In this case, the application uses the `us.anthropic.claude-sonnet-4-20250514-v1:0` model by default.
 
-    -   `CHATLAS_CHAT_PROVIDER`: `bedrock-anthropic`
-    -   `CHATLAS_CHAT_ARGS`: `{"model": "us.anthropic.claude-sonnet-4-20250514-v1:0", "aws_access_key": "...", "aws_secret_key": "...", "aws_session_token": "..."}` (if not using IAM roles)
+    To use Bedrock without an IAM role, set the standard AWS environment variables in the "Vars" pane:
+
+    -   `AWS_ACCESS_KEY_ID`: `<your-aws-access-key>`
+    -   `AWS_SECRET_ACCESS_KEY`: `<your-aws-secret-key>` (Set this as a secret)
+    -   `AWS_REGION`: `<your-aws-region>` (e.g., `us-east-1`)
+    -   `AWS_SESSION_TOKEN`: `<your-session-token>` (Optional, for temporary credentials)
 
     For more details on supported providers and their arguments, see the [Chatlas documentation](https://posit-dev.github.io/chatlas/reference/ChatAuto.html).
 
