@@ -1,6 +1,5 @@
 anthropic[bedrock]>=0.54.0
 boto3>=1.38.40
-chatlas
 google-genai>=1.22.0
 markdownify>=1.1.0
 openai>=1.91.0
