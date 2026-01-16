@@ -2,7 +2,7 @@ import os
 from posit import connect
 from posit.connect.content import ContentItem
 from posit.connect.errors import ClientError
-from chatlas import ChatAuto, ChatBedrockAnthropic, Turn
+from chatlas import ChatAuto, ChatBedrockAnthropic, SystemTurn, UserTurn
 import markdownify
 from shiny import App, Inputs, Outputs, Session, ui, reactive, render
 
@@ -292,8 +292,8 @@ def server(input: Inputs, output: Outputs, session: Session):
             current_markdown.set(markdown)
 
             chat._turns = [
-                Turn(role="system", contents=chat.system_prompt),
-                Turn(role="user", contents=f"<context>{markdown}</context>"),
+                SystemTurn(chat.system_prompt),
+                UserTurn(f"<context>{markdown}</context>"),
             ]
 
             response = await chat.stream_async(
