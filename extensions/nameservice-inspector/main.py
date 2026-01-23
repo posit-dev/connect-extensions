@@ -50,12 +50,16 @@ def main():
     base_client = connect.Client()
     token = st.context.headers.get("Posit-Connect-User-Session-Token")
 
-    viewer_client = get_client_with_token(base_client, token, VIEWER_INTEGRATION_GUID, "viewer")
-    admin_client = get_client_with_token(base_client, token, ADMIN_INTEGRATION_GUID, "admin")
+    viewer_client = get_client_with_token(
+        base_client, token, VIEWER_INTEGRATION_GUID, "viewer"
+    )
+    admin_client = get_client_with_token(
+        base_client, token, ADMIN_INTEGRATION_GUID, "admin"
+    )
 
     with st.spinner("Fetching data..."):
-        users, suppl_groups_by_user, nameservice_groups, connect_groups = fetch_all_data(
-            viewer_client, admin_client
+        users, suppl_groups_by_user, nameservice_groups, connect_groups = (
+            fetch_all_data(viewer_client, admin_client)
         )
 
     users_table = [
@@ -64,7 +68,8 @@ def main():
             "POSIX UID": user.get("uid"),
             "POSIX Primary GID": user.get("gid"),
             "POSIX Supplementary Groups": ", ".join(
-                str(g.get("gid", "")) for g in suppl_groups_by_user.get(user.get("name"), [])
+                str(g.get("gid", ""))
+                for g in suppl_groups_by_user.get(user.get("name"), [])
             ),
             "Connect User ID": user.get("user_id"),
         }

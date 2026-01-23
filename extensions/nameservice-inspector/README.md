@@ -33,14 +33,18 @@ After deploying, configure the following environment variables in the content se
 | `VIEWER_INTEGRATION_GUID`  | The GUID of your Viewer API Key OAuth integration  |
 | `ADMIN_INTEGRATION_GUID`   | The GUID of your Admin API Key OAuth integration   |
 
-## Deployment
+## Post-Installation Setup
 
-```bash
-rsconnect deploy streamlit . --server <your-connect-server> --api-key <your-api-key>
-```
-
-After deployment:
+After installing from the Connect Gallery:
 
 1. Associate both OAuth integrations with the content
 2. Set the environment variables for the integration GUIDs
 3. Grant access to administrators who need to view nameservice data
+
+## Development
+
+To test changes:
+
+```bash
+rsconnect deploy manifest ./manifest.json --server <your-connect-server> --api-key <your-api-key>
+```
