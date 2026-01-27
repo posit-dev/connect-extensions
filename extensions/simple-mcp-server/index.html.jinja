@@ -172,21 +172,18 @@
   }
 }</pre>
 
-        <h3>VS Code with Continue Extension</h3>
-        <p>Add to your Continue config:</p>
+        <h3>VS Code</h3>
+        <p>Add to <code>.vscode/mcp.json</code> in your workspace (or user settings):</p>
         <pre>{
-  "mcpServers": [
-    {
-      "name": "simple-mcp",
-      "transport": {
-        "type": "streamable-http",
-        "url": "{{ endpoint }}",
-        "headers": {
-          "Authorization": "Key YOUR_POSIT_CONNECT_API_KEY"
-        }
+  "servers": {
+    "simple-mcp": {
+      "type": "http",
+      "url": "{{ endpoint }}",
+      "headers": {
+        "Authorization": "Key YOUR_POSIT_CONNECT_API_KEY"
       }
     }
-  ]
+  }
 }</pre>
 
         <h3>Cursor</h3>
