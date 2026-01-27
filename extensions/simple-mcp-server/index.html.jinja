@@ -32,6 +32,11 @@
             padding-bottom: 10px;
             margin-top: 30px;
         }
+        h3 {
+            color: #34495e;
+            margin-top: 20px;
+            margin-bottom: 10px;
+        }
         p {
             margin-bottom: 15px;
         }
@@ -100,51 +105,24 @@
             font-size: 0.9em;
             color: #27ae60;
         }
-        .integration-status {
+        pre {
+            background-color: #f4f4f4;
+            padding: 15px;
+            border-radius: 4px;
+            overflow-x: auto;
+            font-family: "Courier New", Courier, monospace;
+            font-size: 0.9em;
+        }
+        .info-box {
+            background-color: #e7f3ff;
+            border: 1px solid #b3d9ff;
+            border-left: 4px solid #2980b9;
             padding: 15px;
             border-radius: 4px;
             margin-bottom: 20px;
         }
-        .integration-status.success {
-            background-color: #d4edda;
-            border: 1px solid #c3e6cb;
-            color: #155724;
-        }
-        .integration-status.warning {
-            background-color: #fff3cd;
-            border: 1px solid #ffeeba;
-            color: #856404;
-        }
-        .integration-status.error {
-            background-color: #f8d7da;
-            border: 1px solid #f5c6cb;
-            color: #721c24;
-        }
-        .integration-status h3 {
-            margin-top: 0;
-            margin-bottom: 10px;
-        }
-        .integration-status p {
-            margin-bottom: 10px;
-        }
-        .integration-status button {
-            padding: 8px 15px;
-            background-color: #667eea;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 0.9em;
-        }
-        .integration-status button:hover {
-            background-color: #764ba2;
-        }
-        .integration-status button:disabled {
-            background-color: #ccc;
-            cursor: not-allowed;
-        }
-        .hidden {
-            display: none;
+        .info-box strong {
+            color: #2980b9;
         }
     </style>
 </head>
@@ -152,25 +130,14 @@
     <div class="container">
         <h1>{{ server_name }}</h1>
 
-        <!-- Integration Status Banner -->
-        <div id="integrationStatus" class="integration-status hidden">
-            <div id="integrationSuccess" class="hidden">
-                <h3>Visitor API Key Integration Configured</h3>
-                <p>The <code>connect_whoami</code> tool can identify visitors using their session token.</p>
-            </div>
-            <div id="integrationWarning" class="hidden">
-                <h3>Visitor API Key Integration Required</h3>
-                <p>The <code>connect_whoami</code> tool requires a Visitor API Key integration to identify visitors.</p>
-                <p id="integrationAction"></p>
-            </div>
-            <div id="integrationError" class="hidden">
-                <h3>No Integration Available</h3>
-                <p>No Visitor API Key integration is available. Please ask an administrator to create a Connect integration.</p>
-                <p>See the <a href="https://docs.posit.co/connect/user/oauth-integrations/" target="_blank">OAuth Integrations documentation</a> for more information.</p>
-            </div>
-        </div>
-
         <p>This server provides sample data-related tools via the Model Context Protocol (MCP).</p>
+
+        <div class="info-box">
+            <strong>Visitor API Integration Required:</strong> The <code>connect_whoami</code> tool requires a
+            Visitor API Key integration to identify visitors. To enable this, go to the content settings in
+            Posit Connect and add a "Connect Visitor API Key" integration under the "Integrations" section.
+            See the <a href="https://docs.posit.co/connect/user/oauth-integrations/" target="_blank">OAuth Integrations documentation</a> for more information.
+        </div>
 
         <p>Please note that it is recommended to set the minimum number of instances/processes for
         this application to >= 1 in the content settings. This will ensure that the MCP server is
@@ -182,6 +149,56 @@
             <button class="copy-button" onclick="copyToClipboard()">Copy</button>
             <span id="copyStatus"></span>
         </div>
+
+        <h2>Setup Instructions</h2>
+
+        <h3>Claude Code</h3>
+        <p>Run this command:</p>
+        <pre>claude mcp add --transport http simple-mcp {{ endpoint }} \
+  --header "Authorization: Key YOUR_POSIT_CONNECT_API_KEY"</pre>
+
+        <h3>Claude Desktop</h3>
+        <p>Add to <code>~/Library/Application Support/Claude/claude_desktop_config.json</code> (macOS)
+        or <code>%APPDATA%\Claude\claude_desktop_config.json</code> (Windows):</p>
+        <pre>{
+  "mcpServers": {
+    "simple-mcp": {
+      "type": "streamable-http",
+      "url": "{{ endpoint }}",
+      "headers": {
+        "Authorization": "Key YOUR_POSIT_CONNECT_API_KEY"
+      }
+    }
+  }
+}</pre>
+
+        <h3>VS Code with Continue Extension</h3>
+        <p>Add to your Continue config:</p>
+        <pre>{
+  "mcpServers": [
+    {
+      "name": "simple-mcp",
+      "transport": {
+        "type": "streamable-http",
+        "url": "{{ endpoint }}",
+        "headers": {
+          "Authorization": "Key YOUR_POSIT_CONNECT_API_KEY"
+        }
+      }
+    }
+  ]
+}</pre>
+
+        <h3>Cursor</h3>
+        <p>Add to your MCP settings in Cursor preferences:</p>
+        <pre>{
+  "simple-mcp": {
+    "url": "{{ endpoint }}",
+    "headers": {
+      "Authorization": "Key YOUR_POSIT_CONNECT_API_KEY"
+    }
+  }
+}</pre>
 
         <h2>Available MCP Tools:</h2>
         {% if tools %}
@@ -226,73 +243,6 @@
                 }, 2000);
             });
         }
-
-        // Integration status check
-        async function checkIntegrationStatus() {
-            const statusDiv = document.getElementById('integrationStatus');
-            const successDiv = document.getElementById('integrationSuccess');
-            const warningDiv = document.getElementById('integrationWarning');
-            const errorDiv = document.getElementById('integrationError');
-            const actionP = document.getElementById('integrationAction');
-
-            try {
-                const authResponse = await fetch('/api/visitor-auth');
-                const authData = await authResponse.json();
-
-                statusDiv.classList.remove('hidden', 'success', 'warning', 'error');
-
-                if (authData.authorized) {
-                    statusDiv.classList.add('success');
-                    successDiv.classList.remove('hidden');
-                    warningDiv.classList.add('hidden');
-                    errorDiv.classList.add('hidden');
-                } else {
-                    // Check if an integration is available to add
-                    const intResponse = await fetch('/api/integrations');
-                    const integration = await intResponse.json();
-
-                    if (integration) {
-                        statusDiv.classList.add('warning');
-                        warningDiv.classList.remove('hidden');
-                        successDiv.classList.add('hidden');
-                        errorDiv.classList.add('hidden');
-
-                        const button = document.createElement('button');
-                        button.textContent = 'Add Integration';
-                        button.onclick = async () => {
-                            button.disabled = true;
-                            button.textContent = 'Adding...';
-                            try {
-                                await fetch('/api/visitor-auth', {
-                                    method: 'PUT',
-                                    headers: { 'Content-Type': 'application/json' },
-                                    body: JSON.stringify({ integration_guid: integration.guid })
-                                });
-                                window.top.location.reload();
-                            } catch (err) {
-                                console.error('Failed to add integration', err);
-                                button.disabled = false;
-                                button.textContent = 'Add Integration';
-                            }
-                        };
-                        actionP.innerHTML = '';
-                        actionP.appendChild(button);
-                    } else {
-                        statusDiv.classList.add('error');
-                        errorDiv.classList.remove('hidden');
-                        successDiv.classList.add('hidden');
-                        warningDiv.classList.add('hidden');
-                    }
-                }
-            } catch (err) {
-                // Likely not running on Connect, hide the status
-                console.log('Integration check skipped (not on Connect):', err);
-                statusDiv.classList.add('hidden');
-            }
-        }
-
-        // Check integration status on page load
-        document.addEventListener('DOMContentLoaded', checkIntegrationStatus);
     </script>
 </body>
 </html>

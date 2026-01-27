@@ -1,11 +1,10 @@
 import contextlib
 import json
-import os
 import urllib
 
 import pandas as pd
 from cachetools import TTLCache, cached
-from fastapi import FastAPI, Request, Header, Body
+from fastapi import FastAPI, Request
 from fastapi.templating import Jinja2Templates
 from fastmcp import FastMCP, Context
 from fastmcp.exceptions import ToolError
@@ -153,55 +152,6 @@ async def get_index_page(request: Request):
             "tools": tools,
         },
     )
-
-
-# --- Visitor Integration API Endpoints ---
-@app.get("/api/visitor-auth")
-async def integration_status(posit_connect_user_session_token: str = Header(None)):
-    """
-    Check if a Visitor API Key integration is configured.
-    Returns authorized=False if no integration is set up.
-    """
-    if os.getenv("RSTUDIO_PRODUCT") == "CONNECT":
-        if not posit_connect_user_session_token:
-            return {"authorized": False}
-        try:
-            get_visitor_client(posit_connect_user_session_token)
-        except ClientError as err:
-            if err.error_code == 212:
-                return {"authorized": False}
-            raise
-
-    return {"authorized": True}
-
-
-@app.put("/api/visitor-auth")
-async def set_integration(integration_guid: str = Body(..., embed=True)):
-    """Associate a Visitor API Key integration with this content."""
-    if os.getenv("RSTUDIO_PRODUCT") == "CONNECT":
-        content_guid = os.getenv("CONNECT_CONTENT_GUID")
-        content = client.content.get(content_guid)
-        content.oauth.associations.update(integration_guid)
-    else:
-        raise ClientError(
-            error_code=400,
-            message="This endpoint is only available when running on Posit Connect.",
-        )
-    return {"status": "success"}
-
-
-@app.get("/api/integrations")
-async def get_integrations():
-    """Get available Connect Visitor API Key integrations."""
-    integrations = client.oauth.integrations.find()
-    # Filter for Connect integrations with Admin or Publisher max role
-    eligible_integrations = [
-        i
-        for i in integrations
-        if i["template"] == "connect"
-        and i["config"]["max_role"] in ("Admin", "Publisher")
-    ]
-    return eligible_integrations[0] if eligible_integrations else None
 
 
 app.mount("/", mcp_app)
