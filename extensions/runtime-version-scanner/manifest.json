@@ -11,7 +11,7 @@
   },
   "environment": {
     "r": {
-      "requires": "~=4.3.0"
+      "requires": "~=4.3"
     }
   },
   "packages": {
@@ -2658,6 +2658,6 @@
     "requiredFeatures": [
       "OAuth Integrations"
     ],
-    "version": "1.0.1"
+    "version": "1.0.2"
   }
 }
