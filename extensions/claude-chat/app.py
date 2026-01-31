@@ -16,6 +16,7 @@ import logging
 import os
 from datetime import datetime, timedelta
 from enum import Enum
+from pathlib import Path
 from typing import TYPE_CHECKING
 
 import uvicorn
@@ -581,143 +582,9 @@ def export_conversation_to_markdown(
 
 
 # =============================================================================
-# CSS Styles
+# Static Assets
 # =============================================================================
-CSS_BACKGROUND = "background: linear-gradient(135deg, #d97706 0%, #ea580c 100%);"
-
-CSS_SETUP = f"""
-body {{
-    padding: 0;
-    margin: 0;
-    {CSS_BACKGROUND}
-}}
-
-.setup-container {{
-    max-width: 800px;
-    margin: 0 auto;
-    padding: 2rem;
-    min-height: 100vh;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}}
-.setup-card {{
-    background: white;
-    border-radius: 16px;
-    padding: 3rem;
-    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
-    width: 100%;
-}}
-.setup-title {{
-    color: #2d3748;
-    font-weight: 700;
-    margin-bottom: 2rem;
-    text-align: center;
-    font-size: 2.5rem;
-}}
-.setup-section-title {{
-    color: #4a5568;
-    font-weight: 600;
-    margin-top: 2.5rem;
-    margin-bottom: 1rem;
-    font-size: 1.5rem;
-    border-left: 4px solid #d97706;
-    padding-left: 1rem;
-}}
-.setup-description {{
-    color: #718096;
-    line-height: 1.6;
-    margin-bottom: 1.5rem;
-}}
-.setup-code-block {{
-    background: #f7fafc;
-    border: 1px solid #e2e8f0;
-    border-radius: 8px;
-    padding: 1.5rem;
-    font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
-    font-size: 0.9rem;
-    color: #2d3748;
-    margin: 1rem 0;
-    overflow-x: auto;
-}}
-.setup-link {{
-    color: #d97706;
-    text-decoration: none;
-    font-weight: 500;
-}}
-.setup-link:hover {{
-    color: #ea580c;
-    text-decoration: underline;
-}}
-@media (max-width: 768px) {{
-    .setup-container {{
-        padding: 1rem;
-    }}
-    .setup-card {{
-        padding: 2rem;
-    }}
-    .setup-title {{
-        font-size: 2rem;
-    }}
-}}
-"""
-
-CSS_CHAT = f"""
-body {{
-    {CSS_BACKGROUND}
-}}
-
-/* Make chat container use full width */
-shiny-chat-container {{
-    max-width: 100% !important;
-    width: 100% !important;
-}}
-
-shiny-chat-messages {{
-    max-width: 100% !important;
-    width: 100% !important;
-}}
-
-/* Make individual messages wider */
-shiny-chat-message {{
-    max-width: 100% !important;
-    width: 100% !important;
-}}
-
-/* Style the message content */
-shiny-chat-message > * {{
-    background: white;
-    border-radius: 8px;
-    padding: 8px;
-}}
-
-/* User messages - allow full width */
-shiny-user-message,
-shiny-chat-message[data-role="user"] {{
-    max-width: 90% !important;
-}}
-
-/* Assistant messages - use full width */
-shiny-chat-message[data-role="assistant"] {{
-    max-width: 100% !important;
-}}
-
-/* Markdown content should use available space */
-shiny-markdown-stream {{
-    max-width: 100% !important;
-    width: 100% !important;
-}}
-
-/* Ensure code blocks don't cause overflow */
-shiny-chat-messages pre {{
-    max-width: 100%;
-    overflow-x: auto;
-}}
-
-shiny-chat-messages code {{
-    word-break: break-word;
-}}
-"""
+STYLESHEET = ui.tags.link(rel="stylesheet", href="style.css")
 
 # =============================================================================
 # UI Definitions
@@ -725,7 +592,7 @@ shiny-chat-messages code {{
 
 # Setup UI shown when credentials are missing
 setup_ui = ui.page_fillable(
-    ui.tags.style(CSS_SETUP),
+    STYLESHEET,
     ui.div(
         ui.div(
             ui.h1("Setup Required", class_="setup-title"),
@@ -767,13 +634,6 @@ AWS_REGION = "us-east-1"
     fillable_mobile=True,
     fillable=True,
 )
-
-# Styling for header buttons (extracted for reuse)
-CSS_HEADER_BUTTON = (
-    "background: rgba(255,255,255,0.2); color: white; border: 1px solid rgba(255,255,255,0.3); "
-    "padding: 0.5rem 1rem; border-radius: 6px; cursor: pointer; font-size: 0.9rem;"
-)
-
 
 def get_auth_status() -> str:
     """Get a human-readable authentication status string."""
@@ -858,6 +718,7 @@ def get_config_info() -> list[tuple[str, str, str]]:
 
 # Main chat UI
 app_ui = ui.page_fillable(
+    STYLESHEET,
     ui.div(
         ui.div(
             ui.div(
@@ -865,7 +726,7 @@ app_ui = ui.page_fillable(
                 ui.input_action_button(
                     "show_config",
                     "Settings",
-                    style=CSS_HEADER_BUTTON,
+                    class_="header-button",
                 ),
                 style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;",
             ),
@@ -879,7 +740,6 @@ app_ui = ui.page_fillable(
         ui.chat_ui("chat", placeholder="What would you like to know?", height="100%"),
         style="height: 100%; display: flex; flex-direction: column; padding: 1rem;",
     ),
-    ui.tags.style(CSS_CHAT),
     fillable=True,
     fillable_mobile=True,
 )
@@ -919,7 +779,8 @@ def server(input: Inputs, output: Outputs, app_session: AppSession):
             return ui.download_button(
                 "export_chat",
                 "Export Conversation",
-                style=CSS_HEADER_BUTTON + " margin-right: 0.5rem;",
+                class_="header-button",
+                style="margin-right: 0.5rem;",
             )
         return None
 
@@ -932,59 +793,37 @@ def server(input: Inputs, output: Outputs, app_session: AppSession):
         # Build table rows
         table_rows = [
             ui.tags.tr(
-                ui.tags.td(name, style="font-weight: 600; padding: 0.5rem; border-bottom: 1px solid #e2e8f0;"),
-                ui.tags.td(value, style="padding: 0.5rem; border-bottom: 1px solid #e2e8f0; font-family: monospace;"),
-                ui.tags.td(desc, style="padding: 0.5rem; border-bottom: 1px solid #e2e8f0; color: #718096; font-size: 0.9rem;"),
+                ui.tags.td(name),
+                ui.tags.td(value),
+                ui.tags.td(desc),
             )
             for name, value, desc in config_info
         ]
 
         modal = ui.modal(
-            # CSS to make modal body scrollable with scroll indicators
-            ui.tags.style("""
-                .modal { overflow: hidden !important; }
-                .modal-dialog { max-height: 85vh !important; margin: 1.75rem auto !important; }
-                .modal-content { max-height: 85vh !important; display: flex !important; flex-direction: column !important; }
-                .modal-header { flex-shrink: 0; }
-                .modal-body {
-                    overflow-y: auto !important;
-                    max-height: calc(85vh - 120px) !important;
-                    background:
-                        linear-gradient(white 30%, rgba(255,255,255,0)),
-                        linear-gradient(rgba(255,255,255,0), white 70%) 0 100%,
-                        radial-gradient(farthest-side at 50% 0, rgba(0,0,0,.15), rgba(0,0,0,0)),
-                        radial-gradient(farthest-side at 50% 100%, rgba(0,0,0,.15), rgba(0,0,0,0)) 0 100%;
-                    background-repeat: no-repeat;
-                    background-size: 100% 40px, 100% 40px, 100% 14px, 100% 14px;
-                    background-attachment: local, local, scroll, scroll;
-                }
-                .modal-footer { flex-shrink: 0; }
-                body.modal-open { overflow: hidden !important; }
-            """),
             ui.tags.p(
                 "Current configuration for this Claude Chat instance. "
                 "These settings are controlled via environment variables.",
-                style="color: #718096; margin-bottom: 1rem;",
+                class_="config-description",
             ),
             ui.tags.table(
                 ui.tags.thead(
                     ui.tags.tr(
-                        ui.tags.th("Setting", style="text-align: left; padding: 0.5rem; border-bottom: 2px solid #e2e8f0;"),
-                        ui.tags.th("Value", style="text-align: left; padding: 0.5rem; border-bottom: 2px solid #e2e8f0;"),
-                        ui.tags.th("Description", style="text-align: left; padding: 0.5rem; border-bottom: 2px solid #e2e8f0;"),
+                        ui.tags.th("Setting"),
+                        ui.tags.th("Value"),
+                        ui.tags.th("Description"),
                     ),
                 ),
                 ui.tags.tbody(*table_rows),
-                style="width: 100%; border-collapse: collapse;",
+                class_="config-table",
             ),
             ui.tags.p(
                 ui.tags.a(
                     "View documentation",
                     href="https://github.com/posit-dev/connect-extensions",
                     target="_blank",
-                    style="color: #d97706;",
                 ),
-                style="margin-top: 1rem; font-size: 0.9rem;",
+                class_="config-footer",
             ),
             title="Configuration",
             easy_close=True,
@@ -1175,7 +1014,7 @@ def server(input: Inputs, output: Outputs, app_session: AppSession):
             logger.exception("Error in session cleanup handler")
 
 
-app = App(screen_ui, server)
+app = App(screen_ui, server, static_assets=Path(__file__).parent / "www")
 
 
 # =============================================================================
@@ -1204,9 +1043,9 @@ async def shutdown_cleanup() -> None:
 
 
 @app.on_shutdown
-async def on_app_shutdown():
+def on_app_shutdown():
     """Handle app shutdown event."""
-    await shutdown_cleanup()
+    asyncio.ensure_future(shutdown_cleanup())
 
 
 if __name__ == "__main__":
