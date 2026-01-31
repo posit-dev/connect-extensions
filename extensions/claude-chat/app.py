@@ -10,8 +10,13 @@ Note: The SDK does NOT use OAuth credentials from the Claude Code CLI.
 You must provide an API key.
 """
 
+import asyncio
+import logging
 import os
 import sys
+from datetime import datetime, timedelta
+from enum import Enum
+from typing import TYPE_CHECKING
 
 import uvicorn
 from dotenv import load_dotenv
@@ -19,6 +24,15 @@ from shiny import App, Inputs, Outputs, reactive, render, ui
 from shiny.session._session import AppSession
 
 load_dotenv()
+
+# =============================================================================
+# Logging Configuration
+# =============================================================================
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+)
+logger = logging.getLogger(__name__)
 
 # =============================================================================
 # SDK Import (conditional)
@@ -36,7 +50,7 @@ try:
 
     SDK_AVAILABLE = True
 except ImportError as e:
-    print(f"Warning: Claude Agent SDK not available: {e}", file=sys.stderr)
+    logger.warning("Claude Agent SDK not available: %s", e)
     SDK_AVAILABLE = False
 
 # =============================================================================
@@ -65,7 +79,7 @@ def _parse_int_env(key: str, default: int | None = None) -> int | None:
     try:
         return int(val)
     except ValueError:
-        print(f"Warning: Invalid integer for {key}: {val}", file=sys.stderr)
+        logger.warning("Invalid integer for %s: %s", key, val)
         return default
 
 
@@ -77,7 +91,7 @@ def _parse_float_env(key: str, default: float | None = None) -> float | None:
     try:
         return float(val)
     except ValueError:
-        print(f"Warning: Invalid float for {key}: {val}", file=sys.stderr)
+        logger.warning("Invalid float for %s: %s", key, val)
         return default
 
 
@@ -106,12 +120,16 @@ SHOW_THINKING = _parse_bool_env("CLAUDE_SHOW_THINKING", default=False)
 # Show cost information after each response
 SHOW_COST = _parse_bool_env("CLAUDE_SHOW_COST", default=False)
 
-# Permission mode for tool usage:
-# - "default": Prompts for dangerous tools (not supported in this UI)
-# - "acceptEdits": Auto-accept file edits
-# - "bypassPermissions": Allow all tools without prompting
-# Default to "acceptEdits" since we can't surface permission prompts in the chat UI
-PERMISSION_MODE = os.getenv("CLAUDE_PERMISSION_MODE", "acceptEdits")
+# Permission mode for tool usage
+class PermissionMode(str, Enum):
+    """Permission modes for Claude tool usage."""
+    DEFAULT = "default"  # Prompts for dangerous tools (not supported in this UI)
+    ACCEPT_EDITS = "acceptEdits"  # Auto-accept file edits
+    BYPASS = "bypassPermissions"  # Allow all tools without prompting
+
+
+# Default to ACCEPT_EDITS since we can't surface permission prompts in the chat UI
+PERMISSION_MODE = os.getenv("CLAUDE_PERMISSION_MODE", PermissionMode.ACCEPT_EDITS.value)
 
 # Tools configuration:
 # - "all" or "claude_code": Enable all Claude Code tools
@@ -172,29 +190,27 @@ HAS_CREDENTIALS = SDK_AVAILABLE and (HAS_ANTHROPIC_KEY or HAS_BEDROCK)
 
 # Log startup status
 if not SDK_AVAILABLE:
-    print("Claude Agent SDK not available - install claude-agent-sdk package")
+    logger.error("Claude Agent SDK not available - install claude-agent-sdk package")
 elif HAS_ANTHROPIC_KEY:
-    print("Using ANTHROPIC_API_KEY for authentication")
+    logger.info("Using ANTHROPIC_API_KEY for authentication")
 elif HAS_BEDROCK:
-    print("Using AWS Bedrock for authentication")
+    logger.info("Using AWS Bedrock for authentication")
 else:
-    print("No authentication method available - set ANTHROPIC_API_KEY or configure Bedrock")
+    logger.warning("No authentication method available - set ANTHROPIC_API_KEY or configure Bedrock")
 
 # Log configuration
-print(f"Configuration: max_turns={MAX_TURNS}, max_budget_usd={MAX_BUDGET_USD}, "
-      f"partial_messages={INCLUDE_PARTIAL_MESSAGES}, show_thinking={SHOW_THINKING}, "
-      f"show_cost={SHOW_COST}, permission_mode={PERMISSION_MODE}, "
-      f"tools={TOOLS_CONFIG}, disallowed_tools={DISALLOWED_TOOLS}")
+logger.info(
+    "Configuration: max_turns=%s, max_budget_usd=%s, partial_messages=%s, "
+    "show_thinking=%s, show_cost=%s, permission_mode=%s, tools=%s, disallowed_tools=%s",
+    MAX_TURNS, MAX_BUDGET_USD, INCLUDE_PARTIAL_MESSAGES, SHOW_THINKING,
+    SHOW_COST, PERMISSION_MODE, TOOLS_CONFIG, DISALLOWED_TOOLS,
+)
 
 # =============================================================================
 # Per-Session Client Management with Automatic Cleanup
 # =============================================================================
 # Store persistent ClaudeSDKClient instances per session for conversation continuity.
 # The SDK maintains conversation state across query() calls, so we reuse the client.
-import asyncio
-from datetime import datetime, timedelta
-from typing import TYPE_CHECKING
-
 if TYPE_CHECKING:
     from claude_agent_sdk import ClaudeSDKClient
 
@@ -202,7 +218,7 @@ _session_clients: dict[str, "ClaudeSDKClient"] = {}
 _session_costs: dict[str, float] = {}
 _session_last_active: dict[str, datetime] = {}
 _clients_lock = asyncio.Lock()
-_cleanup_task: asyncio.Task | None = None
+_cleanup_task: asyncio.Task[None] | None = None
 _cleanup_started = False  # Flag to prevent race condition on startup
 
 # Configuration for session cleanup
@@ -210,7 +226,7 @@ SESSION_TIMEOUT_MINUTES = _parse_int_env("CLAUDE_SESSION_TIMEOUT_MINUTES", defau
 CLEANUP_INTERVAL_MINUTES = _parse_int_env("CLAUDE_CLEANUP_INTERVAL_MINUTES", default=15)
 
 
-async def cleanup_stale_sessions():
+async def cleanup_stale_sessions() -> None:
     """
     Background task to clean up sessions that have been inactive for too long.
     Runs periodically to prevent memory leaks from abandoned sessions.
@@ -232,8 +248,11 @@ async def cleanup_stale_sessions():
                 # Clean up stale sessions
                 for session_id in stale_sessions:
                     try:
-                        print(f"Cleaning up stale session {session_id} "
-                              f"(inactive for {(now - _session_last_active[session_id]).total_seconds() / 60:.1f} minutes)")
+                        inactive_minutes = (now - _session_last_active[session_id]).total_seconds() / 60
+                        logger.info(
+                            "Cleaning up stale session %s (inactive for %.1f minutes)",
+                            session_id, inactive_minutes,
+                        )
 
                         # Disconnect client
                         if session_id in _session_clients:
@@ -243,28 +262,30 @@ async def cleanup_stale_sessions():
                         # Clean up costs
                         if session_id in _session_costs:
                             total_cost = _session_costs.pop(session_id)
-                            print(f"Session {session_id} total cost: ${total_cost:.6f}")
+                            logger.info("Session %s total cost: $%.6f", session_id, total_cost)
 
                         # Clean up last active timestamp
                         if session_id in _session_last_active:
                             del _session_last_active[session_id]
 
                     except Exception as e:
-                        print(f"Error cleaning up stale session {session_id}: {e}")
+                        logger.exception("Error cleaning up stale session %s", session_id)
 
                 if stale_sessions:
-                    print(f"Cleaned up {len(stale_sessions)} stale session(s). "
-                          f"Active sessions: {len(_session_clients)}")
+                    logger.info(
+                        "Cleaned up %d stale session(s). Active sessions: %d",
+                        len(stale_sessions), len(_session_clients),
+                    )
 
         except asyncio.CancelledError:
-            print("Session cleanup task cancelled")
+            logger.info("Session cleanup task cancelled")
             break
         except Exception as e:
-            print(f"Error in cleanup task: {e}")
+            logger.exception("Error in cleanup task")
             # Continue running despite errors
 
 
-def start_cleanup_task():
+def start_cleanup_task() -> None:
     """Start the background cleanup task if not already running.
 
     Uses a flag to prevent race conditions when multiple sessions
@@ -275,11 +296,13 @@ def start_cleanup_task():
         return
     _cleanup_started = True
     _cleanup_task = asyncio.create_task(cleanup_stale_sessions())
-    print(f"Started session cleanup task (timeout: {SESSION_TIMEOUT_MINUTES}min, "
-          f"interval: {CLEANUP_INTERVAL_MINUTES}min)")
+    logger.info(
+        "Started session cleanup task (timeout: %dmin, interval: %dmin)",
+        SESSION_TIMEOUT_MINUTES, CLEANUP_INTERVAL_MINUTES,
+    )
 
 
-async def stop_cleanup_task():
+async def stop_cleanup_task() -> None:
     """Stop the background cleanup task."""
     global _cleanup_task, _cleanup_started
     if _cleanup_task and not _cleanup_task.done():
@@ -290,10 +313,10 @@ async def stop_cleanup_task():
             pass
     _cleanup_task = None
     _cleanup_started = False
-    print("Stopped session cleanup task")
+    logger.info("Stopped session cleanup task")
 
 
-def update_session_activity(session_id: str):
+def update_session_activity(session_id: str) -> None:
     """Update the last active timestamp for a session.
 
     Note: This is intentionally not locked - dict assignment is atomic
@@ -313,7 +336,7 @@ async def get_or_create_client(session_id: str, model: str, system_prompt: str) 
         update_session_activity(session_id)
 
         if session_id not in _session_clients:
-            print(f"Creating new ClaudeSDKClient for session {session_id}")
+            logger.info("Creating new ClaudeSDKClient for session %s", session_id)
             options = ClaudeAgentOptions(
                 model=model,
                 system_prompt=system_prompt,
@@ -332,7 +355,7 @@ async def get_or_create_client(session_id: str, model: str, system_prompt: str) 
         return _session_clients[session_id]
 
 
-async def cleanup_session(session_id: str):
+async def cleanup_session(session_id: str) -> None:
     """
     Clean up a specific session's client and data.
     Called when a session ends or needs to be reset.
@@ -340,16 +363,16 @@ async def cleanup_session(session_id: str):
     async with _clients_lock:
         if session_id in _session_clients:
             try:
-                print(f"Cleaning up client for session {session_id}")
+                logger.info("Cleaning up client for session %s", session_id)
                 await _session_clients[session_id].disconnect()
-            except Exception as e:
-                print(f"Error disconnecting client during cleanup: {e}")
+            except Exception:
+                logger.exception("Error disconnecting client during cleanup")
             finally:
                 del _session_clients[session_id]
 
         if session_id in _session_costs:
             total_cost = _session_costs.pop(session_id, 0.0)
-            print(f"Session {session_id} ended. Total cost: ${total_cost:.6f}")
+            logger.info("Session %s ended. Total cost: $%.6f", session_id, total_cost)
 
         if session_id in _session_last_active:
             del _session_last_active[session_id]
@@ -364,86 +387,152 @@ def get_session_stats() -> dict:
     }
 
 
+# =============================================================================
+# CSS Styles
+# =============================================================================
+CSS_BACKGROUND = "background: linear-gradient(135deg, #d97706 0%, #ea580c 100%);"
+
+CSS_SETUP = f"""
+body {{
+    padding: 0;
+    margin: 0;
+    {CSS_BACKGROUND}
+}}
+
+.setup-container {{
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 2rem;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}}
+.setup-card {{
+    background: white;
+    border-radius: 16px;
+    padding: 3rem;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+    width: 100%;
+}}
+.setup-title {{
+    color: #2d3748;
+    font-weight: 700;
+    margin-bottom: 2rem;
+    text-align: center;
+    font-size: 2.5rem;
+}}
+.setup-section-title {{
+    color: #4a5568;
+    font-weight: 600;
+    margin-top: 2.5rem;
+    margin-bottom: 1rem;
+    font-size: 1.5rem;
+    border-left: 4px solid #d97706;
+    padding-left: 1rem;
+}}
+.setup-description {{
+    color: #718096;
+    line-height: 1.6;
+    margin-bottom: 1.5rem;
+}}
+.setup-code-block {{
+    background: #f7fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 1.5rem;
+    font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+    font-size: 0.9rem;
+    color: #2d3748;
+    margin: 1rem 0;
+    overflow-x: auto;
+}}
+.setup-link {{
+    color: #d97706;
+    text-decoration: none;
+    font-weight: 500;
+}}
+.setup-link:hover {{
+    color: #ea580c;
+    text-decoration: underline;
+}}
+@media (max-width: 768px) {{
+    .setup-container {{
+        padding: 1rem;
+    }}
+    .setup-card {{
+        padding: 2rem;
+    }}
+    .setup-title {{
+        font-size: 2rem;
+    }}
+}}
+"""
+
+CSS_CHAT = f"""
+body {{
+    {CSS_BACKGROUND}
+}}
+
+/* Make chat container use full width */
+shiny-chat-container {{
+    max-width: 100% !important;
+    width: 100% !important;
+}}
+
+shiny-chat-messages {{
+    max-width: 100% !important;
+    width: 100% !important;
+}}
+
+/* Make individual messages wider */
+shiny-chat-message {{
+    max-width: 100% !important;
+    width: 100% !important;
+}}
+
+/* Style the message content */
+shiny-chat-message > * {{
+    background: white;
+    border-radius: 8px;
+    padding: 8px;
+}}
+
+/* User messages - allow full width */
+shiny-user-message,
+shiny-chat-message[data-role="user"] {{
+    max-width: 90% !important;
+}}
+
+/* Assistant messages - use full width */
+shiny-chat-message[data-role="assistant"] {{
+    max-width: 100% !important;
+}}
+
+/* Markdown content should use available space */
+shiny-markdown-stream {{
+    max-width: 100% !important;
+    width: 100% !important;
+}}
+
+/* Ensure code blocks don't cause overflow */
+shiny-chat-messages pre {{
+    max-width: 100%;
+    overflow-x: auto;
+}}
+
+shiny-chat-messages code {{
+    word-break: break-word;
+}}
+"""
+
+# =============================================================================
+# UI Definitions
+# =============================================================================
+
 # Setup UI shown when credentials are missing
 setup_ui = ui.page_fillable(
-    ui.tags.style(
-        """
-        body {
-            padding: 0;
-            margin: 0;
-            background: linear-gradient(135deg, #d97706 0%, #ea580c 100%);
-        }
-
-        .setup-container {
-            max-width: 800px;
-            margin: 0 auto;
-            padding: 2rem;
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        .setup-card {
-            background: white;
-            border-radius: 16px;
-            padding: 3rem;
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
-            width: 100%;
-        }
-        .setup-title {
-            color: #2d3748;
-            font-weight: 700;
-            margin-bottom: 2rem;
-            text-align: center;
-            font-size: 2.5rem;
-        }
-        .setup-section-title {
-            color: #4a5568;
-            font-weight: 600;
-            margin-top: 2.5rem;
-            margin-bottom: 1rem;
-            font-size: 1.5rem;
-            border-left: 4px solid #d97706;
-            padding-left: 1rem;
-        }
-        .setup-description {
-            color: #718096;
-            line-height: 1.6;
-            margin-bottom: 1.5rem;
-        }
-        .setup-code-block {
-            background: #f7fafc;
-            border: 1px solid #e2e8f0;
-            border-radius: 8px;
-            padding: 1.5rem;
-            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
-            font-size: 0.9rem;
-            color: #2d3748;
-            margin: 1rem 0;
-            overflow-x: auto;
-        }
-        .setup-link {
-            color: #d97706;
-            text-decoration: none;
-            font-weight: 500;
-        }
-        .setup-link:hover {
-            color: #ea580c;
-            text-decoration: underline;
-        }
-        @media (max-width: 768px) {
-            .setup-container {
-                padding: 1rem;
-            }
-            .setup-card {
-                padding: 2rem;
-            }
-            .setup-title {
-                font-size: 2rem;
-            }
-        }
-        """
-    ),
+    ui.tags.style(CSS_SETUP),
     ui.div(
         ui.div(
             ui.h1("Setup Required", class_="setup-title"),
@@ -497,64 +586,7 @@ app_ui = ui.page_fillable(
         ui.chat_ui("chat", placeholder="What would you like to know?", height="100%"),
         style="height: 100%; display: flex; flex-direction: column; padding: 1rem;",
     ),
-    ui.tags.style(
-        """
-        body {
-            background: linear-gradient(135deg, #d97706 0%, #ea580c 100%);
-        }
-
-        /* Make chat container use full width */
-        shiny-chat-container {
-            max-width: 100% !important;
-            width: 100% !important;
-        }
-
-        shiny-chat-messages {
-            max-width: 100% !important;
-            width: 100% !important;
-        }
-
-        /* Make individual messages wider */
-        shiny-chat-message {
-            max-width: 100% !important;
-            width: 100% !important;
-        }
-
-        /* Style the message content */
-        shiny-chat-message > * {
-            background: white;
-            border-radius: 8px;
-            padding: 8px;
-        }
-
-        /* User messages - allow full width */
-        shiny-user-message,
-        shiny-chat-message[data-role="user"] {
-            max-width: 90% !important;
-        }
-
-        /* Assistant messages - use full width */
-        shiny-chat-message[data-role="assistant"] {
-            max-width: 100% !important;
-        }
-
-        /* Markdown content should use available space */
-        shiny-markdown-stream {
-            max-width: 100% !important;
-            width: 100% !important;
-        }
-
-        /* Ensure code blocks don't cause overflow */
-        shiny-chat-messages pre {
-            max-width: 100%;
-            overflow-x: auto;
-        }
-
-        shiny-chat-messages code {
-            word-break: break-word;
-        }
-        """
-    ),
+    ui.tags.style(CSS_CHAT),
     fillable=True,
     fillable_mobile=True,
 )
@@ -576,7 +608,7 @@ def server(input: Inputs, output: Outputs, app_session: AppSession):
     else:
         model = DEFAULT_ANTHROPIC_MODEL
 
-    print(f"Using model: {model}")
+    logger.info("Using model: %s", model)
 
     @render.ui
     def screen():
@@ -597,7 +629,7 @@ def server(input: Inputs, output: Outputs, app_session: AppSession):
             client = await get_or_create_client(session_id, model, SYSTEM_PROMPT)
 
             # Send just the new user message - the SDK maintains conversation state
-            print(f"Sending message to existing client for session {session_id}")
+            logger.debug("Sending message to existing client for session %s", session_id)
             await client.query(user_input)
 
             # Stream response using the persistent client
@@ -606,75 +638,78 @@ def server(input: Inputs, output: Outputs, app_session: AppSession):
                 total_cost = None
                 stats = {"text_blocks": 0, "tool_uses": 0, "thinking_blocks": 0}
 
-                # Use receive_response() which terminates after ResultMessage
-                async for message in client.receive_response():
-                    # Handle partial streaming events (real-time text)
-                    if isinstance(message, StreamEvent):
-                        event = message.event
-                        # Extract text delta from streaming event
-                        if event.get("type") == "content_block_delta":
-                            delta = event.get("delta", {})
-                            if delta.get("type") == "text_delta":
-                                text = delta.get("text", "")
-                                if text:
-                                    text_yielded = True
-                                    yield text
+                try:
+                    # Use receive_response() which terminates after ResultMessage
+                    async for message in client.receive_response():
+                        # Handle partial streaming events (real-time text)
+                        if isinstance(message, StreamEvent):
+                            event = message.event
+                            # Extract text delta from streaming event
+                            if event.get("type") == "content_block_delta":
+                                delta = event.get("delta", {})
+                                if delta.get("type") == "text_delta":
+                                    text = delta.get("text", "")
+                                    if text:
+                                        text_yielded = True
+                                        yield text
 
-                    # Handle complete assistant messages
-                    elif isinstance(message, AssistantMessage):
-                        for block in message.content:
-                            if isinstance(block, TextBlock):
-                                stats["text_blocks"] += 1
-                                # Only yield if not using partial messages
-                                # (to avoid duplication)
-                                if not INCLUDE_PARTIAL_MESSAGES:
-                                    text_yielded = True
-                                    yield block.text
+                        # Handle complete assistant messages
+                        elif isinstance(message, AssistantMessage):
+                            for block in message.content:
+                                if isinstance(block, TextBlock):
+                                    stats["text_blocks"] += 1
+                                    # Only yield if not using partial messages
+                                    # (to avoid duplication)
+                                    if not INCLUDE_PARTIAL_MESSAGES:
+                                        text_yielded = True
+                                        yield block.text
 
-                            elif isinstance(block, ThinkingBlock):
-                                stats["thinking_blocks"] += 1
-                                if SHOW_THINKING:
-                                    yield f"\n\n<details><summary>Thinking...</summary>\n\n{block.thinking}\n\n</details>\n\n"
+                                elif isinstance(block, ThinkingBlock):
+                                    stats["thinking_blocks"] += 1
+                                    if SHOW_THINKING:
+                                        yield f"\n\n<details><summary>Thinking...</summary>\n\n{block.thinking}\n\n</details>\n\n"
 
-                            elif isinstance(block, ToolUseBlock):
-                                stats["tool_uses"] += 1
-                                if stats["tool_uses"] == 1:
-                                    yield "\n\n*Working...*\n\n"
+                                elif isinstance(block, ToolUseBlock):
+                                    stats["tool_uses"] += 1
+                                    if stats["tool_uses"] == 1:
+                                        yield "\n\n*Working...*\n\n"
 
-                    # Handle result message (includes cost info)
-                    elif isinstance(message, ResultMessage):
-                        if message.is_error:
-                            print(f"Agent error: {message.result}")
-                            yield f"\n\n*Error: {message.result}*"
+                        # Handle result message (includes cost info)
+                        elif isinstance(message, ResultMessage):
+                            if message.is_error:
+                                logger.error("Agent error: %s", message.result)
+                                yield f"\n\n*Error: {message.result}*"
 
-                        # Capture cost information
-                        if message.total_cost_usd is not None:
-                            total_cost = message.total_cost_usd
+                            # Capture cost information
+                            if message.total_cost_usd is not None:
+                                total_cost = message.total_cost_usd
 
-                # Update session activity after successful response
-                update_session_activity(session_id)
+                    if not text_yielded:
+                        yield "No response received from Claude."
 
-                # Log completion stats
-                print(f"=== Completed: {stats['text_blocks']} text blocks, "
-                      f"{stats['tool_uses']} tool uses, "
-                      f"{stats['thinking_blocks']} thinking blocks ===")
+                finally:
+                    # Always update session activity and log stats
+                    update_session_activity(session_id)
 
-                if total_cost is not None:
-                    print(f"Request cost: ${total_cost:.6f}")
-                    # Track cumulative cost for session
-                    _session_costs[session_id] = _session_costs.get(session_id, 0.0) + total_cost
-                    if SHOW_COST:
-                        yield f"\n\n---\n*Cost: ${total_cost:.6f} | Session: ${_session_costs[session_id]:.6f}*"
+                    logger.info(
+                        "Completed: %d text blocks, %d tool uses, %d thinking blocks",
+                        stats["text_blocks"], stats["tool_uses"], stats["thinking_blocks"],
+                    )
 
-                if not text_yielded:
-                    yield "No response received from Claude."
+                    if total_cost is not None:
+                        logger.info("Request cost: $%.6f", total_cost)
+                        # Track cumulative cost for session (use lock for thread safety)
+                        async with _clients_lock:
+                            _session_costs[session_id] = _session_costs.get(session_id, 0.0) + total_cost
+                            session_total = _session_costs[session_id]
+                        if SHOW_COST:
+                            yield f"\n\n---\n*Cost: ${total_cost:.6f} | Session: ${session_total:.6f}*"
 
             await chat_ui.append_message_stream(generate_response())
 
         except Exception as e:
-            import traceback
             # Log full error for debugging
-            print(f"Error: {traceback.format_exc()}")
+            logger.exception("Error handling user message")
 
             # On error, reset the client for this session
             await cleanup_session(session_id)
@@ -703,11 +738,42 @@ def server(input: Inputs, output: Outputs, app_session: AppSession):
     @app_session.on_ended
     async def cleanup_session_handler():
         """Clean up Claude client when user session ends."""
-        session_id = app_session.id
-        await cleanup_session(session_id)
+        try:
+            session_id = app_session.id
+            await cleanup_session(session_id)
+        except Exception:
+            logger.exception("Error in session cleanup handler")
 
 
 app = App(screen_ui, server)
+
+
+# =============================================================================
+# Graceful Shutdown
+# =============================================================================
+async def shutdown_cleanup() -> None:
+    """Clean up all sessions and stop background tasks on shutdown."""
+    logger.info("Shutting down - cleaning up %d active sessions", len(_session_clients))
+    await stop_cleanup_task()
+
+    # Disconnect all remaining clients
+    async with _clients_lock:
+        for session_id in list(_session_clients.keys()):
+            try:
+                await _session_clients[session_id].disconnect()
+            except Exception:
+                logger.exception("Error disconnecting session %s during shutdown", session_id)
+        _session_clients.clear()
+        _session_costs.clear()
+        _session_last_active.clear()
+
+    logger.info("Shutdown complete")
+
+
+@app.on_shutdown
+async def on_app_shutdown():
+    """Handle app shutdown event."""
+    await shutdown_cleanup()
 
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=8000)
