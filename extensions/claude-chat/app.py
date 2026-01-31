@@ -851,7 +851,7 @@ def server(input: Inputs, output: Outputs, app_session: AppSession):
         markdown_content = export_conversation_to_markdown(
             conversation, model, total_cost
         )
-        return markdown_content
+        yield markdown_content
 
     @chat_ui.on_user_submit
     async def handle_user_message(user_input: str):
