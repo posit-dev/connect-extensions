@@ -217,6 +217,7 @@ if TYPE_CHECKING:
 _session_clients: dict[str, "ClaudeSDKClient"] = {}
 _session_costs: dict[str, float] = {}
 _session_last_active: dict[str, datetime] = {}
+_session_conversations: dict[str, list[dict]] = {}  # Store conversation history
 _clients_lock = asyncio.Lock()
 _cleanup_task: asyncio.Task[None] | None = None
 _cleanup_started = False  # Flag to prevent race condition on startup
@@ -267,6 +268,10 @@ async def cleanup_stale_sessions() -> None:
                         # Clean up last active timestamp
                         if session_id in _session_last_active:
                             del _session_last_active[session_id]
+
+                        # Clean up conversation history
+                        if session_id in _session_conversations:
+                            del _session_conversations[session_id]
 
                     except Exception as e:
                         logger.exception("Error cleaning up stale session %s", session_id)
@@ -351,6 +356,7 @@ async def get_or_create_client(session_id: str, model: str, system_prompt: str) 
             await client.connect()
             _session_clients[session_id] = client
             _session_costs[session_id] = 0.0
+            _session_conversations[session_id] = []
 
         return _session_clients[session_id]
 
@@ -377,6 +383,9 @@ async def cleanup_session(session_id: str) -> None:
         if session_id in _session_last_active:
             del _session_last_active[session_id]
 
+        if session_id in _session_conversations:
+            del _session_conversations[session_id]
+
 
 def get_session_stats() -> dict:
     """Get current session statistics for monitoring/debugging."""
@@ -385,6 +394,111 @@ def get_session_stats() -> dict:
         "total_tracked_costs": sum(_session_costs.values()),
         "sessions_with_activity": len(_session_last_active),
     }
+
+
+async def add_conversation_message(
+    session_id: str, role: str, content: str, timestamp: str | None = None
+) -> None:
+    """
+    Add a message to the conversation history in a thread-safe manner.
+
+    Args:
+        session_id: The session ID
+        role: Message role ('user' or 'assistant')
+        content: The message content
+        timestamp: Optional timestamp string; uses current time if not provided
+    """
+    if timestamp is None:
+        timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+    async with _clients_lock:
+        if session_id not in _session_conversations:
+            _session_conversations[session_id] = []
+        _session_conversations[session_id].append({
+            "role": role,
+            "content": content,
+            "timestamp": timestamp,
+        })
+
+
+async def get_conversation_snapshot(session_id: str) -> tuple[list[dict], float]:
+    """
+    Get a thread-safe snapshot of conversation history and cost.
+
+    Args:
+        session_id: The session ID
+
+    Returns:
+        Tuple of (conversation list copy, total cost)
+    """
+    async with _clients_lock:
+        conversation = list(_session_conversations.get(session_id, []))
+        cost = _session_costs.get(session_id, 0.0)
+    return conversation, cost
+
+
+def export_conversation_to_markdown(
+    conversation: list[dict], model: str, total_cost: float = 0.0
+) -> str:
+    """
+    Export a conversation history to markdown format.
+
+    Args:
+        conversation: List of message dictionaries with 'role', 'content', 'timestamp'
+        model: The model name used for the conversation
+        total_cost: Total cost of the conversation in USD
+
+    Returns:
+        Markdown-formatted conversation history
+    """
+    if not conversation:
+        return "# Claude Chat Export\n\n*No messages in this conversation yet.*"
+
+    # Build markdown document
+    lines = [
+        "# Claude Chat Export",
+        "",
+        f"**Date**: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}",
+        f"**Model**: {model}",
+        f"**Messages**: {len(conversation)}",
+        ""
+    ]
+
+    # Add cost information if available
+    if total_cost > 0:
+        lines.append(f"**Total Cost**: ${total_cost:.6f}")
+        lines.append("")
+
+    lines.append("---")
+    lines.append("")
+
+    # Add each message
+    for i, msg in enumerate(conversation, 1):
+        role = msg.get("role", "unknown")
+        content = msg.get("content", "")
+        timestamp = msg.get("timestamp", "")
+
+        # Format role as header
+        if role == "user":
+            lines.append(f"## 👤 User")
+        elif role == "assistant":
+            lines.append(f"## 🤖 Assistant")
+        else:
+            lines.append(f"## {role.title()}")
+
+        if timestamp:
+            lines.append(f"*{timestamp}*")
+            lines.append("")
+
+        lines.append(content)
+        lines.append("")
+
+        # Add separator between messages (but not after the last one)
+        if i < len(conversation):
+            lines.append("---")
+            lines.append("")
+
+    return "\n".join(lines)
 
 
 # =============================================================================
@@ -575,13 +689,24 @@ AWS_REGION = "us-east-1"
     fillable=True,
 )
 
+# Styling for export button (extracted for reuse)
+CSS_EXPORT_BUTTON = (
+    "background: rgba(255,255,255,0.2); color: white; border: 1px solid rgba(255,255,255,0.3); "
+    "padding: 0.5rem 1rem; border-radius: 6px; cursor: pointer; font-size: 0.9rem; "
+    "margin-bottom: 1rem;"
+)
+
 # Main chat UI
 app_ui = ui.page_fillable(
     ui.div(
-        ui.h1("Claude Chat", style="color: white; margin-bottom: 0.5rem;"),
-        ui.p(
-            "Ask me anything! Powered by the Claude Agent SDK.",
-            style="color: rgba(255,255,255,0.8); margin-bottom: 1rem;",
+        ui.div(
+            ui.h1("Claude Chat", style="color: white; margin-bottom: 0.5rem;"),
+            ui.p(
+                "Ask me anything! Powered by the Claude Agent SDK.",
+                style="color: rgba(255,255,255,0.8); margin-bottom: 0.5rem;",
+            ),
+            # Export button rendered dynamically (only shown when conversation exists)
+            ui.output_ui("export_button_ui"),
         ),
         ui.chat_ui("chat", placeholder="What would you like to know?", height="100%"),
         style="height: 100%; display: flex; flex-direction: column; padding: 1rem;",
@@ -610,11 +735,33 @@ def server(input: Inputs, output: Outputs, app_session: AppSession):
 
     logger.info("Using model: %s", model)
 
+    # Track conversation state for UI updates
+    has_messages = reactive.value(False)
+
     @render.ui
     def screen():
         if not HAS_CREDENTIALS:
             return setup_ui
         return app_ui
+
+    @render.ui
+    def export_button_ui():
+        """Conditionally render export button only when conversation has messages."""
+        if has_messages():
+            return ui.download_button(
+                "export_chat",
+                "Export Conversation",
+                style=CSS_EXPORT_BUTTON,
+            )
+        return None
+
+    @render.download(filename=lambda: f"claude_chat_{datetime.now().strftime('%Y%m%d_%H%M%S')}.md")
+    async def export_chat():
+        """Export conversation history to markdown."""
+        session_id = app_session.id
+        conversation, total_cost = await get_conversation_snapshot(session_id)
+        markdown_content = export_conversation_to_markdown(conversation, model, total_cost)
+        return markdown_content
 
     @chat_ui.on_user_submit
     async def handle_user_message(user_input: str):
@@ -622,6 +769,12 @@ def server(input: Inputs, output: Outputs, app_session: AppSession):
             return
 
         session_id = app_session.id
+
+        # Track user message in conversation history (thread-safe)
+        await add_conversation_message(session_id, "user", user_input)
+
+        # Show export button now that we have messages
+        has_messages.set(True)
 
         try:
             # Get or create persistent client for this session
@@ -637,6 +790,7 @@ def server(input: Inputs, output: Outputs, app_session: AppSession):
                 text_yielded = False
                 total_cost = None
                 stats = {"text_blocks": 0, "tool_uses": 0, "thinking_blocks": 0}
+                assistant_response = []  # Collect response parts for conversation history
 
                 try:
                     # Use receive_response() which terminates after ResultMessage
@@ -651,6 +805,7 @@ def server(input: Inputs, output: Outputs, app_session: AppSession):
                                     text = delta.get("text", "")
                                     if text:
                                         text_yielded = True
+                                        assistant_response.append(text)
                                         yield text
 
                         # Handle complete assistant messages
@@ -662,17 +817,22 @@ def server(input: Inputs, output: Outputs, app_session: AppSession):
                                     # (to avoid duplication)
                                     if not INCLUDE_PARTIAL_MESSAGES:
                                         text_yielded = True
+                                        assistant_response.append(block.text)
                                         yield block.text
 
                                 elif isinstance(block, ThinkingBlock):
                                     stats["thinking_blocks"] += 1
                                     if SHOW_THINKING:
-                                        yield f"\n\n<details><summary>Thinking...</summary>\n\n{block.thinking}\n\n</details>\n\n"
+                                        thinking_text = f"\n\n<details><summary>Thinking...</summary>\n\n{block.thinking}\n\n</details>\n\n"
+                                        assistant_response.append(thinking_text)
+                                        yield thinking_text
 
                                 elif isinstance(block, ToolUseBlock):
                                     stats["tool_uses"] += 1
                                     if stats["tool_uses"] == 1:
-                                        yield "\n\n*Working...*\n\n"
+                                        working_text = "\n\n*Working...*\n\n"
+                                        assistant_response.append(working_text)
+                                        yield working_text
 
                         # Handle result message (includes cost info)
                         elif isinstance(message, ResultMessage):
@@ -685,7 +845,9 @@ def server(input: Inputs, output: Outputs, app_session: AppSession):
                                 total_cost = message.total_cost_usd
 
                     if not text_yielded:
-                        yield "No response received from Claude."
+                        no_response_text = "No response received from Claude."
+                        assistant_response.append(no_response_text)
+                        yield no_response_text
 
                 finally:
                     # Always update session activity and log stats
@@ -703,7 +865,15 @@ def server(input: Inputs, output: Outputs, app_session: AppSession):
                             _session_costs[session_id] = _session_costs.get(session_id, 0.0) + total_cost
                             session_total = _session_costs[session_id]
                         if SHOW_COST:
-                            yield f"\n\n---\n*Cost: ${total_cost:.6f} | Session: ${session_total:.6f}*"
+                            cost_text = f"\n\n---\n*Cost: ${total_cost:.6f} | Session: ${session_total:.6f}*"
+                            assistant_response.append(cost_text)
+                            yield cost_text
+
+                    # Save assistant response to conversation history (thread-safe)
+                    if assistant_response:
+                        await add_conversation_message(
+                            session_id, "assistant", "".join(assistant_response)
+                        )
 
             await chat_ui.append_message_stream(generate_response())
 
@@ -716,23 +886,26 @@ def server(input: Inputs, output: Outputs, app_session: AppSession):
 
             # Show sanitized error to user
             error_msg = str(e)
+            user_error_msg = ""
+
             # Provide more helpful error messages for common issues
             if "rate_limit" in error_msg.lower():
-                await chat_ui.append_message(
-                    "Rate limit reached. Please wait a moment and try again."
-                )
+                user_error_msg = "Rate limit reached. Please wait a moment and try again."
             elif "authentication" in error_msg.lower() or "api_key" in error_msg.lower():
-                await chat_ui.append_message(
-                    "Authentication error. Please check your API credentials."
-                )
+                user_error_msg = "Authentication error. Please check your API credentials."
             elif "billing" in error_msg.lower() or "credit" in error_msg.lower():
-                await chat_ui.append_message(
-                    "Billing error. Please check your account has available credits."
-                )
+                user_error_msg = "Billing error. Please check your account has available credits."
             else:
                 if len(error_msg) > 200:
                     error_msg = error_msg[:200] + "..."
-                await chat_ui.append_message(f"Sorry, an error occurred: {error_msg}")
+                user_error_msg = f"Sorry, an error occurred: {error_msg}"
+
+            # Track error in conversation history (thread-safe)
+            await add_conversation_message(
+                session_id, "assistant", f"*Error: {user_error_msg}*"
+            )
+
+            await chat_ui.append_message(user_error_msg)
 
     # Clean up client when session ends
     @app_session.on_ended
@@ -766,6 +939,7 @@ async def shutdown_cleanup() -> None:
         _session_clients.clear()
         _session_costs.clear()
         _session_last_active.clear()
+        _session_conversations.clear()
 
     logger.info("Shutdown complete")
 

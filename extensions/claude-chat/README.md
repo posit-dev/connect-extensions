@@ -11,7 +11,11 @@ This extension provides a simple chat interface for asking general questions usi
 - **Simple Chat Interface**: Clean Shiny-based UI for conversational interactions
 - **Claude Agent SDK**: Uses Anthropic's official SDK for Claude interactions
 - **Flexible Authentication**: Supports Anthropic API keys or AWS Bedrock
-- **Building Block**: Foundation for more complex Claude-powered extensions
+- **Multi-Turn Conversations**: Persistent sessions maintain conversation context across messages
+- **Conversation Export**: Download conversation history as formatted markdown
+- **Automatic Session Cleanup**: Stale sessions are cleaned up to prevent memory leaks
+- **Cost Tracking**: Optional per-request and cumulative session cost display
+- **Tool Support**: Configurable access to Claude Code tools (Read, Write, Edit, Bash, etc.)
 
 ## Prerequisites
 
@@ -66,6 +70,8 @@ These environment variables allow you to customize behavior:
 | `CLAUDE_PERMISSION_MODE` | `acceptEdits` | Tool permission mode (see below) |
 | `CLAUDE_TOOLS` | `all` | Tools to enable (see below) |
 | `CLAUDE_DISALLOWED_TOOLS` | None | Comma-separated list of tools to block |
+| `CLAUDE_SESSION_TIMEOUT_MINUTES` | `60` | Inactivity timeout before session cleanup |
+| `CLAUDE_CLEANUP_INTERVAL_MINUTES` | `15` | How often to check for stale sessions |
 
 **Permission modes:**
 - `acceptEdits` - Auto-accept file edits (default, recommended for this UI)
@@ -118,23 +124,31 @@ uv pip compile pyproject.toml -o requirements.txt
 Deploy this extension to your Connect server with the required environment variables configured.
 
 ### 2. Start Chatting
-Once deployed, open the application and start asking questions. Claude will respond conversationally without tool access - this is intentionally minimal to serve as a foundation.
+Once deployed, open the application and start asking questions. Claude maintains conversation context across messages within your session.
+
+### 3. Export Conversations
+After sending at least one message, an "Export Conversation" button appears. Click it to download your conversation history as a formatted markdown file, including timestamps, message content, and cost information (if enabled).
 
 ## Architecture
 
 The application uses:
-- **Shiny for Python**: Chat UI components
+- **Shiny for Python**: Chat UI components with reactive state management
 - **Claude Agent SDK**: Uses `ClaudeSDKClient` for bidirectional, streaming conversations
+- **Per-Session Client Management**: Each user session maintains its own `ClaudeSDKClient` instance for conversation continuity
 - **Async Streaming**: Real-time text display via `StreamEvent` partial messages
-- **Cost Tracking**: Captures and optionally displays per-request costs from `ResultMessage`
+- **Conversation History**: Messages are tracked per-session for export functionality
+- **Cost Tracking**: Captures and optionally displays per-request and cumulative session costs
+- **Automatic Cleanup**: Background task periodically removes inactive sessions to prevent memory leaks
+- **Graceful Shutdown**: Properly disconnects all clients when the application stops
 
 ## Extending This Extension
 
 This extension is designed as a starting point. You can extend it by:
-- Adding tools via `ClaudeAgentOptions(allowed_tools=[...])`
+- Customizing available tools via the `CLAUDE_TOOLS` environment variable
 - Connecting MCP servers for external capabilities
-- Adding session persistence for multi-turn conversations
-- Implementing user-specific context
+- Adding database-backed conversation persistence (currently in-memory only)
+- Implementing user-specific context based on Connect user identity
+- Adding file upload capabilities for document analysis
 
 See the [Claude Agent SDK documentation](https://platform.claude.com/docs/en/agent-sdk/overview) for more capabilities.
 
