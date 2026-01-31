@@ -599,12 +599,21 @@ setup_ui = ui.page_fillable(
             ui.h2("Claude Agent SDK Authentication", class_="setup-section-title"),
             ui.div(
                 ui.HTML(
-                    "This app requires an API key to use the Claude Agent SDK. "
-                    "Note: The SDK does not use OAuth credentials from the Claude Code CLI."
+                    "This app requires credentials to use the Claude Agent SDK. "
+                    "Choose one of the options below."
                 ),
                 class_="setup-description",
             ),
-            ui.h3("Option 1: Anthropic API Key", class_="setup-section-title"),
+            ui.h3("Option 1: Posit Connect AWS Integration (Recommended)", class_="setup-section-title"),
+            ui.div(
+                ui.HTML(
+                    "Associate an AWS Integration with this content that has a role granting Bedrock access. "
+                    "Credentials will be obtained automatically at runtime. "
+                    'See <a href="https://docs.posit.co/connect/admin/integrations/aws/" class="setup-link">Connect AWS Integration docs</a>.'
+                ),
+                class_="setup-description",
+            ),
+            ui.h3("Option 2: Anthropic API Key", class_="setup-section-title"),
             ui.div(
                 ui.HTML(
                     "Set the <code>ANTHROPIC_API_KEY</code> environment variable. "
@@ -616,15 +625,16 @@ setup_ui = ui.page_fillable(
                 'ANTHROPIC_API_KEY = "sk-ant-..."',
                 class_="setup-code-block",
             ),
-            ui.h3("Option 2: AWS Bedrock", class_="setup-section-title"),
+            ui.h3("Option 3: AWS Bedrock (Manual)", class_="setup-section-title"),
             ui.div(
-                "Set the following environment variables to use Claude via AWS Bedrock:",
+                "Set environment variables to use Claude via AWS Bedrock:",
                 class_="setup-description",
             ),
             ui.pre(
                 """CLAUDE_CODE_USE_BEDROCK = "1"
 AWS_REGION = "us-east-1"
-# AWS credentials are typically injected via IAM role on Connect""",
+AWS_ACCESS_KEY_ID = "..."
+AWS_SECRET_ACCESS_KEY = "...\"""",
                 class_="setup-code-block",
             ),
             class_="setup-card",
