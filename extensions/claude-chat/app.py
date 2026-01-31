@@ -187,15 +187,181 @@ print(f"Configuration: max_turns={MAX_TURNS}, max_budget_usd={MAX_BUDGET_USD}, "
       f"tools={TOOLS_CONFIG}, disallowed_tools={DISALLOWED_TOOLS}")
 
 # =============================================================================
-# Per-Session Client Management
+# Per-Session Client Management with Automatic Cleanup
 # =============================================================================
 # Store persistent ClaudeSDKClient instances per session for conversation continuity.
 # The SDK maintains conversation state across query() calls, so we reuse the client.
 import asyncio
+from datetime import datetime, timedelta
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from claude_agent_sdk import ClaudeSDKClient
 
 _session_clients: dict[str, "ClaudeSDKClient"] = {}
 _session_costs: dict[str, float] = {}
+_session_last_active: dict[str, datetime] = {}
 _clients_lock = asyncio.Lock()
+_cleanup_task: asyncio.Task | None = None
+_cleanup_started = False  # Flag to prevent race condition on startup
+
+# Configuration for session cleanup
+SESSION_TIMEOUT_MINUTES = _parse_int_env("CLAUDE_SESSION_TIMEOUT_MINUTES", default=60)
+CLEANUP_INTERVAL_MINUTES = _parse_int_env("CLAUDE_CLEANUP_INTERVAL_MINUTES", default=15)
+
+
+async def cleanup_stale_sessions():
+    """
+    Background task to clean up sessions that have been inactive for too long.
+    Runs periodically to prevent memory leaks from abandoned sessions.
+    """
+    while True:
+        try:
+            await asyncio.sleep(CLEANUP_INTERVAL_MINUTES * 60)
+
+            now = datetime.now()
+            timeout_threshold = timedelta(minutes=SESSION_TIMEOUT_MINUTES)
+            stale_sessions = []
+
+            async with _clients_lock:
+                # Find stale sessions
+                for session_id, last_active in _session_last_active.items():
+                    if now - last_active > timeout_threshold:
+                        stale_sessions.append(session_id)
+
+                # Clean up stale sessions
+                for session_id in stale_sessions:
+                    try:
+                        print(f"Cleaning up stale session {session_id} "
+                              f"(inactive for {(now - _session_last_active[session_id]).total_seconds() / 60:.1f} minutes)")
+
+                        # Disconnect client
+                        if session_id in _session_clients:
+                            await _session_clients[session_id].disconnect()
+                            del _session_clients[session_id]
+
+                        # Clean up costs
+                        if session_id in _session_costs:
+                            total_cost = _session_costs.pop(session_id)
+                            print(f"Session {session_id} total cost: ${total_cost:.6f}")
+
+                        # Clean up last active timestamp
+                        if session_id in _session_last_active:
+                            del _session_last_active[session_id]
+
+                    except Exception as e:
+                        print(f"Error cleaning up stale session {session_id}: {e}")
+
+                if stale_sessions:
+                    print(f"Cleaned up {len(stale_sessions)} stale session(s). "
+                          f"Active sessions: {len(_session_clients)}")
+
+        except asyncio.CancelledError:
+            print("Session cleanup task cancelled")
+            break
+        except Exception as e:
+            print(f"Error in cleanup task: {e}")
+            # Continue running despite errors
+
+
+def start_cleanup_task():
+    """Start the background cleanup task if not already running.
+
+    Uses a flag to prevent race conditions when multiple sessions
+    connect simultaneously.
+    """
+    global _cleanup_task, _cleanup_started
+    if _cleanup_started:
+        return
+    _cleanup_started = True
+    _cleanup_task = asyncio.create_task(cleanup_stale_sessions())
+    print(f"Started session cleanup task (timeout: {SESSION_TIMEOUT_MINUTES}min, "
+          f"interval: {CLEANUP_INTERVAL_MINUTES}min)")
+
+
+async def stop_cleanup_task():
+    """Stop the background cleanup task."""
+    global _cleanup_task, _cleanup_started
+    if _cleanup_task and not _cleanup_task.done():
+        _cleanup_task.cancel()
+        try:
+            await _cleanup_task
+        except asyncio.CancelledError:
+            pass
+    _cleanup_task = None
+    _cleanup_started = False
+    print("Stopped session cleanup task")
+
+
+def update_session_activity(session_id: str):
+    """Update the last active timestamp for a session.
+
+    Note: This is intentionally not locked - dict assignment is atomic
+    in Python (GIL), and this is always called either within a locked
+    section (get_or_create_client) or for a simple timestamp update
+    where eventual consistency is acceptable.
+    """
+    _session_last_active[session_id] = datetime.now()
+
+
+async def get_or_create_client(session_id: str, model: str, system_prompt: str) -> "ClaudeSDKClient":
+    """
+    Get existing client or create a new one for the session.
+    Updates last active timestamp.
+    """
+    async with _clients_lock:
+        update_session_activity(session_id)
+
+        if session_id not in _session_clients:
+            print(f"Creating new ClaudeSDKClient for session {session_id}")
+            options = ClaudeAgentOptions(
+                model=model,
+                system_prompt=system_prompt,
+                max_turns=MAX_TURNS,
+                max_budget_usd=MAX_BUDGET_USD,
+                include_partial_messages=INCLUDE_PARTIAL_MESSAGES,
+                permission_mode=PERMISSION_MODE,
+                tools=TOOLS_CONFIG,
+                disallowed_tools=DISALLOWED_TOOLS,
+            )
+            client = ClaudeSDKClient(options)
+            await client.connect()
+            _session_clients[session_id] = client
+            _session_costs[session_id] = 0.0
+
+        return _session_clients[session_id]
+
+
+async def cleanup_session(session_id: str):
+    """
+    Clean up a specific session's client and data.
+    Called when a session ends or needs to be reset.
+    """
+    async with _clients_lock:
+        if session_id in _session_clients:
+            try:
+                print(f"Cleaning up client for session {session_id}")
+                await _session_clients[session_id].disconnect()
+            except Exception as e:
+                print(f"Error disconnecting client during cleanup: {e}")
+            finally:
+                del _session_clients[session_id]
+
+        if session_id in _session_costs:
+            total_cost = _session_costs.pop(session_id, 0.0)
+            print(f"Session {session_id} ended. Total cost: ${total_cost:.6f}")
+
+        if session_id in _session_last_active:
+            del _session_last_active[session_id]
+
+
+def get_session_stats() -> dict:
+    """Get current session statistics for monitoring/debugging."""
+    return {
+        "active_sessions": len(_session_clients),
+        "total_tracked_costs": sum(_session_costs.values()),
+        "sessions_with_activity": len(_session_last_active),
+    }
 
 
 # Setup UI shown when credentials are missing
@@ -399,6 +565,9 @@ screen_ui = ui.page_output("screen")
 def server(input: Inputs, output: Outputs, app_session: AppSession):
     chat_ui = ui.Chat("chat")
 
+    # Start cleanup task when first server instance is created
+    start_cleanup_task()
+
     # Determine which model to use
     if CLAUDE_MODEL:
         model = CLAUDE_MODEL
@@ -424,25 +593,8 @@ def server(input: Inputs, output: Outputs, app_session: AppSession):
 
         try:
             # Get or create persistent client for this session
-            async with _clients_lock:
-                if session_id not in _session_clients:
-                    print(f"Creating new ClaudeSDKClient for session {session_id}")
-                    options = ClaudeAgentOptions(
-                        model=model,
-                        system_prompt=SYSTEM_PROMPT,
-                        max_turns=MAX_TURNS,
-                        max_budget_usd=MAX_BUDGET_USD,
-                        include_partial_messages=INCLUDE_PARTIAL_MESSAGES,
-                        permission_mode=PERMISSION_MODE,
-                        tools=TOOLS_CONFIG,
-                        disallowed_tools=DISALLOWED_TOOLS,
-                    )
-                    client = ClaudeSDKClient(options)
-                    await client.connect()
-                    _session_clients[session_id] = client
-                    _session_costs[session_id] = 0.0
-
-                client = _session_clients[session_id]
+            # This also updates the last active timestamp
+            client = await get_or_create_client(session_id, model, SYSTEM_PROMPT)
 
             # Send just the new user message - the SDK maintains conversation state
             print(f"Sending message to existing client for session {session_id}")
@@ -499,6 +651,9 @@ def server(input: Inputs, output: Outputs, app_session: AppSession):
                         if message.total_cost_usd is not None:
                             total_cost = message.total_cost_usd
 
+                # Update session activity after successful response
+                update_session_activity(session_id)
+
                 # Log completion stats
                 print(f"=== Completed: {stats['text_blocks']} text blocks, "
                       f"{stats['tool_uses']} tool uses, "
@@ -521,16 +676,8 @@ def server(input: Inputs, output: Outputs, app_session: AppSession):
             # Log full error for debugging
             print(f"Error: {traceback.format_exc()}")
 
-            # On error, reset the client for this session to force reconnection
-            async with _clients_lock:
-                if session_id in _session_clients:
-                    try:
-                        await _session_clients[session_id].disconnect()
-                    except Exception as disconnect_error:
-                        print(f"Error disconnecting client: {disconnect_error}")
-                    finally:
-                        del _session_clients[session_id]
-                        print(f"Reset client for session {session_id} due to error")
+            # On error, reset the client for this session
+            await cleanup_session(session_id)
 
             # Show sanitized error to user
             error_msg = str(e)
@@ -554,21 +701,10 @@ def server(input: Inputs, output: Outputs, app_session: AppSession):
 
     # Clean up client when session ends
     @app_session.on_ended
-    async def cleanup_session():
+    async def cleanup_session_handler():
         """Clean up Claude client when user session ends."""
         session_id = app_session.id
-        async with _clients_lock:
-            if session_id in _session_clients:
-                try:
-                    print(f"Cleaning up client for ended session {session_id}")
-                    await _session_clients[session_id].disconnect()
-                except Exception as e:
-                    print(f"Error disconnecting client during cleanup: {e}")
-                finally:
-                    del _session_clients[session_id]
-            if session_id in _session_costs:
-                total_cost = _session_costs.pop(session_id, 0.0)
-                print(f"Session {session_id} ended. Total cost: ${total_cost:.6f}")
+        await cleanup_session(session_id)
 
 
 app = App(screen_ui, server)
