@@ -205,13 +205,6 @@ class TestSDKImports:
         assert ThinkingBlock is not None
         assert StreamEvent is not None
 
-    def test_sdk_available_flag(self):
-        """Test that SDK_AVAILABLE flag is set correctly."""
-        from app import SDK_AVAILABLE
-
-        assert SDK_AVAILABLE is True
-
-
 class TestConfiguration:
     """Tests for configuration defaults and loading."""
 

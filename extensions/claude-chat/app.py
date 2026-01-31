@@ -14,12 +14,20 @@ You must provide an API key or configure an AWS integration.
 import asyncio
 import logging
 import os
-import sys
 from datetime import datetime, timedelta
 from enum import Enum
 from typing import TYPE_CHECKING
 
 import uvicorn
+from claude_agent_sdk import ClaudeAgentOptions, ClaudeSDKClient
+from claude_agent_sdk.types import (
+    AssistantMessage,
+    ResultMessage,
+    StreamEvent,
+    TextBlock,
+    ThinkingBlock,
+    ToolUseBlock,
+)
 from dotenv import load_dotenv
 from shiny import App, Inputs, Outputs, reactive, render, ui
 from shiny.session._session import AppSession
@@ -42,6 +50,7 @@ logger = logging.getLogger(__name__)
 # automatically obtain credentials via the integration. This must happen
 # before importing the Claude SDK so environment variables are set.
 CONNECT_INTEGRATION_USED = False
+
 
 def setup_connect_aws_integration() -> bool:
     """
@@ -97,25 +106,6 @@ def setup_connect_aws_integration() -> bool:
 setup_connect_aws_integration()
 
 # =============================================================================
-# SDK Import (conditional)
-# =============================================================================
-try:
-    from claude_agent_sdk import ClaudeAgentOptions, ClaudeSDKClient
-    from claude_agent_sdk.types import (
-        AssistantMessage,
-        ResultMessage,
-        StreamEvent,
-        TextBlock,
-        ThinkingBlock,
-        ToolUseBlock,
-    )
-
-    SDK_AVAILABLE = True
-except ImportError as e:
-    logger.warning("Claude Agent SDK not available: %s", e)
-    SDK_AVAILABLE = False
-
-# =============================================================================
 # Configuration via Environment Variables
 # =============================================================================
 
@@ -131,6 +121,7 @@ DEFAULT_SYSTEM_PROMPT = (
     "You are running as part of a Posit Connect extension."
 )
 SYSTEM_PROMPT = os.getenv("CLAUDE_SYSTEM_PROMPT", DEFAULT_SYSTEM_PROMPT)
+
 
 # Safety limits - None means no limit
 def _parse_int_env(key: str, default: int | None = None) -> int | None:
@@ -182,9 +173,11 @@ SHOW_THINKING = _parse_bool_env("CLAUDE_SHOW_THINKING", default=False)
 # Show cost information after each response
 SHOW_COST = _parse_bool_env("CLAUDE_SHOW_COST", default=False)
 
+
 # Permission mode for tool usage
 class PermissionMode(str, Enum):
     """Permission modes for Claude tool usage."""
+
     DEFAULT = "default"  # Prompts for dangerous tools (not supported in this UI)
     ACCEPT_EDITS = "acceptEdits"  # Auto-accept file edits
     BYPASS = "bypassPermissions"  # Allow all tools without prompting
@@ -192,6 +185,7 @@ class PermissionMode(str, Enum):
 
 # Default to ACCEPT_EDITS since we can't surface permission prompts in the chat UI
 PERMISSION_MODE = os.getenv("CLAUDE_PERMISSION_MODE", PermissionMode.ACCEPT_EDITS.value)
+
 
 # Tools configuration:
 # - "all" or "claude_code": Enable all Claude Code tools
@@ -210,6 +204,7 @@ def _parse_tools_config(val: str | None) -> list[str] | dict | None:
 
 
 TOOLS_CONFIG = _parse_tools_config(os.getenv("CLAUDE_TOOLS", "all"))
+
 
 # Disallowed tools (comma-separated list of tools to block)
 def _parse_tools_list(val: str | None) -> list[str]:
@@ -248,12 +243,10 @@ def check_aws_bedrock_credentials() -> bool:
 # It requires explicit API key or Bedrock credentials
 HAS_ANTHROPIC_KEY = check_anthropic_api_key()
 HAS_BEDROCK = check_aws_bedrock_credentials()
-HAS_CREDENTIALS = SDK_AVAILABLE and (HAS_ANTHROPIC_KEY or HAS_BEDROCK)
+HAS_CREDENTIALS = HAS_ANTHROPIC_KEY or HAS_BEDROCK
 
 # Log startup status
-if not SDK_AVAILABLE:
-    logger.error("Claude Agent SDK not available - install claude-agent-sdk package")
-elif HAS_ANTHROPIC_KEY:
+if HAS_ANTHROPIC_KEY:
     logger.info("Using ANTHROPIC_API_KEY for authentication")
 elif HAS_BEDROCK:
     if CONNECT_INTEGRATION_USED:
@@ -261,14 +254,22 @@ elif HAS_BEDROCK:
     else:
         logger.info("Using AWS Bedrock for authentication")
 else:
-    logger.warning("No authentication method available - set ANTHROPIC_API_KEY or configure Bedrock")
+    logger.warning(
+        "No authentication method available - set ANTHROPIC_API_KEY or configure Bedrock"
+    )
 
 # Log configuration
 logger.info(
     "Configuration: max_turns=%s, max_budget_usd=%s, partial_messages=%s, "
     "show_thinking=%s, show_cost=%s, permission_mode=%s, tools=%s, disallowed_tools=%s",
-    MAX_TURNS, MAX_BUDGET_USD, INCLUDE_PARTIAL_MESSAGES, SHOW_THINKING,
-    SHOW_COST, PERMISSION_MODE, TOOLS_CONFIG, DISALLOWED_TOOLS,
+    MAX_TURNS,
+    MAX_BUDGET_USD,
+    INCLUDE_PARTIAL_MESSAGES,
+    SHOW_THINKING,
+    SHOW_COST,
+    PERMISSION_MODE,
+    TOOLS_CONFIG,
+    DISALLOWED_TOOLS,
 )
 
 # =============================================================================
@@ -314,10 +315,13 @@ async def cleanup_stale_sessions() -> None:
                 # Clean up stale sessions
                 for session_id in stale_sessions:
                     try:
-                        inactive_minutes = (now - _session_last_active[session_id]).total_seconds() / 60
+                        inactive_minutes = (
+                            now - _session_last_active[session_id]
+                        ).total_seconds() / 60
                         logger.info(
                             "Cleaning up stale session %s (inactive for %.1f minutes)",
-                            session_id, inactive_minutes,
+                            session_id,
+                            inactive_minutes,
                         )
 
                         # Disconnect client
@@ -328,7 +332,9 @@ async def cleanup_stale_sessions() -> None:
                         # Clean up costs
                         if session_id in _session_costs:
                             total_cost = _session_costs.pop(session_id)
-                            logger.info("Session %s total cost: $%.6f", session_id, total_cost)
+                            logger.info(
+                                "Session %s total cost: $%.6f", session_id, total_cost
+                            )
 
                         # Clean up last active timestamp
                         if session_id in _session_last_active:
@@ -339,12 +345,15 @@ async def cleanup_stale_sessions() -> None:
                             del _session_conversations[session_id]
 
                     except Exception as e:
-                        logger.exception("Error cleaning up stale session %s", session_id)
+                        logger.exception(
+                            "Error cleaning up stale session %s", session_id
+                        )
 
                 if stale_sessions:
                     logger.info(
                         "Cleaned up %d stale session(s). Active sessions: %d",
-                        len(stale_sessions), len(_session_clients),
+                        len(stale_sessions),
+                        len(_session_clients),
                     )
 
         except asyncio.CancelledError:
@@ -368,7 +377,8 @@ def start_cleanup_task() -> None:
     _cleanup_task = asyncio.create_task(cleanup_stale_sessions())
     logger.info(
         "Started session cleanup task (timeout: %dmin, interval: %dmin)",
-        SESSION_TIMEOUT_MINUTES, CLEANUP_INTERVAL_MINUTES,
+        SESSION_TIMEOUT_MINUTES,
+        CLEANUP_INTERVAL_MINUTES,
     )
 
 
@@ -397,7 +407,9 @@ def update_session_activity(session_id: str) -> None:
     _session_last_active[session_id] = datetime.now()
 
 
-async def get_or_create_client(session_id: str, model: str, system_prompt: str) -> "ClaudeSDKClient":
+async def get_or_create_client(
+    session_id: str, model: str, system_prompt: str
+) -> "ClaudeSDKClient":
     """
     Get existing client or create a new one for the session.
     Updates last active timestamp.
@@ -479,11 +491,13 @@ async def add_conversation_message(
     async with _clients_lock:
         if session_id not in _session_conversations:
             _session_conversations[session_id] = []
-        _session_conversations[session_id].append({
-            "role": role,
-            "content": content,
-            "timestamp": timestamp,
-        })
+        _session_conversations[session_id].append(
+            {
+                "role": role,
+                "content": content,
+                "timestamp": timestamp,
+            }
+        )
 
 
 async def get_conversation_snapshot(session_id: str) -> tuple[list[dict], float]:
@@ -526,7 +540,7 @@ def export_conversation_to_markdown(
         f"**Date**: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}",
         f"**Model**: {model}",
         f"**Messages**: {len(conversation)}",
-        ""
+        "",
     ]
 
     # Add cost information if available
@@ -726,7 +740,7 @@ setup_ui = ui.page_fillable(
             ui.h3("Option 1: Anthropic API Key", class_="setup-section-title"),
             ui.div(
                 ui.HTML(
-                    'Set the <code>ANTHROPIC_API_KEY</code> environment variable. '
+                    "Set the <code>ANTHROPIC_API_KEY</code> environment variable. "
                     'Get your key from the <a href="https://console.anthropic.com/" class="setup-link">Anthropic Console</a>.'
                 ),
                 class_="setup-description",
@@ -754,18 +768,107 @@ AWS_REGION = "us-east-1"
     fillable=True,
 )
 
-# Styling for export button (extracted for reuse)
-CSS_EXPORT_BUTTON = (
+# Styling for header buttons (extracted for reuse)
+CSS_HEADER_BUTTON = (
     "background: rgba(255,255,255,0.2); color: white; border: 1px solid rgba(255,255,255,0.3); "
-    "padding: 0.5rem 1rem; border-radius: 6px; cursor: pointer; font-size: 0.9rem; "
-    "margin-bottom: 1rem;"
+    "padding: 0.5rem 1rem; border-radius: 6px; cursor: pointer; font-size: 0.9rem;"
 )
+
+
+def get_auth_status() -> str:
+    """Get a human-readable authentication status string."""
+    if HAS_ANTHROPIC_KEY:
+        return "Anthropic API Key"
+    elif HAS_BEDROCK:
+        if CONNECT_INTEGRATION_USED:
+            return "AWS Bedrock (via Posit Connect Integration)"
+        else:
+            return "AWS Bedrock"
+    else:
+        return "Not configured"
+
+
+def get_config_info() -> list[tuple[str, str, str]]:
+    """
+    Get configuration information for display.
+
+    Returns list of (name, value, description) tuples.
+    Sensitive values are masked.
+    """
+    # Determine effective model
+    if CLAUDE_MODEL:
+        effective_model = CLAUDE_MODEL
+    elif HAS_BEDROCK:
+        effective_model = DEFAULT_BEDROCK_MODEL
+    else:
+        effective_model = DEFAULT_ANTHROPIC_MODEL
+
+    config = [
+        # Authentication
+        ("Authentication", get_auth_status(), "How Claude API credentials are provided"),
+        ("Model", effective_model, "Claude model being used"),
+        # Limits
+        (
+            "CLAUDE_MAX_TURNS",
+            str(MAX_TURNS) if MAX_TURNS else "Unlimited",
+            "Maximum conversation turns per request",
+        ),
+        (
+            "CLAUDE_MAX_BUDGET_USD",
+            f"${MAX_BUDGET_USD:.2f}" if MAX_BUDGET_USD else "Unlimited",
+            "Maximum cost per request",
+        ),
+        # Features
+        (
+            "CLAUDE_PARTIAL_MESSAGES",
+            str(INCLUDE_PARTIAL_MESSAGES),
+            "Real-time text streaming enabled",
+        ),
+        (
+            "CLAUDE_SHOW_THINKING",
+            str(SHOW_THINKING),
+            "Display extended thinking blocks",
+        ),
+        ("CLAUDE_SHOW_COST", str(SHOW_COST), "Show cost after responses"),
+        # Tools
+        ("CLAUDE_PERMISSION_MODE", PERMISSION_MODE, "Tool permission mode"),
+        (
+            "CLAUDE_TOOLS",
+            "All tools" if TOOLS_CONFIG == {"type": "preset", "preset": "claude_code"} else str(TOOLS_CONFIG or "Default"),
+            "Enabled tools",
+        ),
+        (
+            "CLAUDE_DISALLOWED_TOOLS",
+            ", ".join(DISALLOWED_TOOLS) if DISALLOWED_TOOLS else "None",
+            "Blocked tools",
+        ),
+        # Session management
+        (
+            "CLAUDE_SESSION_TIMEOUT_MINUTES",
+            str(SESSION_TIMEOUT_MINUTES),
+            "Session inactivity timeout",
+        ),
+        (
+            "CLAUDE_CLEANUP_INTERVAL_MINUTES",
+            str(CLEANUP_INTERVAL_MINUTES),
+            "Cleanup check interval",
+        ),
+    ]
+    return config
 
 # Main chat UI
 app_ui = ui.page_fillable(
     ui.div(
         ui.div(
-            ui.h1("Claude Chat", style="color: white; margin-bottom: 0.5rem;"),
+            ui.div(
+                ui.h1("Claude Chat", style="color: white; margin: 0;"),
+                ui.input_action_button(
+                    "show_config",
+                    "Settings",
+                    style=CSS_HEADER_BUTTON,
+                ),
+                style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;",
+            ),
             ui.p(
                 "Ask me anything! Powered by the Claude Agent SDK.",
                 style="color: rgba(255,255,255,0.8); margin-bottom: 0.5rem;",
@@ -816,16 +919,89 @@ def server(input: Inputs, output: Outputs, app_session: AppSession):
             return ui.download_button(
                 "export_chat",
                 "Export Conversation",
-                style=CSS_EXPORT_BUTTON,
+                style=CSS_HEADER_BUTTON + " margin-right: 0.5rem;",
             )
         return None
 
-    @render.download(filename=lambda: f"claude_chat_{datetime.now().strftime('%Y%m%d_%H%M%S')}.md")
+    @reactive.effect
+    @reactive.event(input.show_config)
+    def show_config_modal():
+        """Show the configuration modal when the settings button is clicked."""
+        config_info = get_config_info()
+
+        # Build table rows
+        table_rows = [
+            ui.tags.tr(
+                ui.tags.td(name, style="font-weight: 600; padding: 0.5rem; border-bottom: 1px solid #e2e8f0;"),
+                ui.tags.td(value, style="padding: 0.5rem; border-bottom: 1px solid #e2e8f0; font-family: monospace;"),
+                ui.tags.td(desc, style="padding: 0.5rem; border-bottom: 1px solid #e2e8f0; color: #718096; font-size: 0.9rem;"),
+            )
+            for name, value, desc in config_info
+        ]
+
+        modal = ui.modal(
+            # CSS to make modal body scrollable with scroll indicators
+            ui.tags.style("""
+                .modal { overflow: hidden !important; }
+                .modal-dialog { max-height: 85vh !important; margin: 1.75rem auto !important; }
+                .modal-content { max-height: 85vh !important; display: flex !important; flex-direction: column !important; }
+                .modal-header { flex-shrink: 0; }
+                .modal-body {
+                    overflow-y: auto !important;
+                    max-height: calc(85vh - 120px) !important;
+                    background:
+                        linear-gradient(white 30%, rgba(255,255,255,0)),
+                        linear-gradient(rgba(255,255,255,0), white 70%) 0 100%,
+                        radial-gradient(farthest-side at 50% 0, rgba(0,0,0,.15), rgba(0,0,0,0)),
+                        radial-gradient(farthest-side at 50% 100%, rgba(0,0,0,.15), rgba(0,0,0,0)) 0 100%;
+                    background-repeat: no-repeat;
+                    background-size: 100% 40px, 100% 40px, 100% 14px, 100% 14px;
+                    background-attachment: local, local, scroll, scroll;
+                }
+                .modal-footer { flex-shrink: 0; }
+                body.modal-open { overflow: hidden !important; }
+            """),
+            ui.tags.p(
+                "Current configuration for this Claude Chat instance. "
+                "These settings are controlled via environment variables.",
+                style="color: #718096; margin-bottom: 1rem;",
+            ),
+            ui.tags.table(
+                ui.tags.thead(
+                    ui.tags.tr(
+                        ui.tags.th("Setting", style="text-align: left; padding: 0.5rem; border-bottom: 2px solid #e2e8f0;"),
+                        ui.tags.th("Value", style="text-align: left; padding: 0.5rem; border-bottom: 2px solid #e2e8f0;"),
+                        ui.tags.th("Description", style="text-align: left; padding: 0.5rem; border-bottom: 2px solid #e2e8f0;"),
+                    ),
+                ),
+                ui.tags.tbody(*table_rows),
+                style="width: 100%; border-collapse: collapse;",
+            ),
+            ui.tags.p(
+                ui.tags.a(
+                    "View documentation",
+                    href="https://github.com/posit-dev/connect-extensions",
+                    target="_blank",
+                    style="color: #d97706;",
+                ),
+                style="margin-top: 1rem; font-size: 0.9rem;",
+            ),
+            title="Configuration",
+            easy_close=True,
+            size="l",
+        )
+        ui.modal_show(modal)
+
+    @render.download(
+        filename=lambda: f"claude_chat_{datetime.now().strftime('%Y%m%d_%H%M%S')}.md"
+    )
     async def export_chat():
         """Export conversation history to markdown."""
         session_id = app_session.id
         conversation, total_cost = await get_conversation_snapshot(session_id)
-        markdown_content = export_conversation_to_markdown(conversation, model, total_cost)
+        markdown_content = export_conversation_to_markdown(
+            conversation, model, total_cost
+        )
         return markdown_content
 
     @chat_ui.on_user_submit
@@ -847,7 +1023,9 @@ def server(input: Inputs, output: Outputs, app_session: AppSession):
             client = await get_or_create_client(session_id, model, SYSTEM_PROMPT)
 
             # Send just the new user message - the SDK maintains conversation state
-            logger.debug("Sending message to existing client for session %s", session_id)
+            logger.debug(
+                "Sending message to existing client for session %s", session_id
+            )
             await client.query(user_input)
 
             # Stream response using the persistent client
@@ -855,7 +1033,9 @@ def server(input: Inputs, output: Outputs, app_session: AppSession):
                 text_yielded = False
                 total_cost = None
                 stats = {"text_blocks": 0, "tool_uses": 0, "thinking_blocks": 0}
-                assistant_response = []  # Collect response parts for conversation history
+                assistant_response = (
+                    []
+                )  # Collect response parts for conversation history
 
                 try:
                     # Use receive_response() which terminates after ResultMessage
@@ -920,14 +1100,18 @@ def server(input: Inputs, output: Outputs, app_session: AppSession):
 
                     logger.info(
                         "Completed: %d text blocks, %d tool uses, %d thinking blocks",
-                        stats["text_blocks"], stats["tool_uses"], stats["thinking_blocks"],
+                        stats["text_blocks"],
+                        stats["tool_uses"],
+                        stats["thinking_blocks"],
                     )
 
                     if total_cost is not None:
                         logger.info("Request cost: $%.6f", total_cost)
                         # Track cumulative cost for session (use lock for thread safety)
                         async with _clients_lock:
-                            _session_costs[session_id] = _session_costs.get(session_id, 0.0) + total_cost
+                            _session_costs[session_id] = (
+                                _session_costs.get(session_id, 0.0) + total_cost
+                            )
                             session_total = _session_costs[session_id]
                         if SHOW_COST:
                             cost_text = f"\n\n---\n*Cost: ${total_cost:.6f} | Session: ${session_total:.6f}*"
@@ -955,11 +1139,19 @@ def server(input: Inputs, output: Outputs, app_session: AppSession):
 
             # Provide more helpful error messages for common issues
             if "rate_limit" in error_msg.lower():
-                user_error_msg = "Rate limit reached. Please wait a moment and try again."
-            elif "authentication" in error_msg.lower() or "api_key" in error_msg.lower():
-                user_error_msg = "Authentication error. Please check your API credentials."
+                user_error_msg = (
+                    "Rate limit reached. Please wait a moment and try again."
+                )
+            elif (
+                "authentication" in error_msg.lower() or "api_key" in error_msg.lower()
+            ):
+                user_error_msg = (
+                    "Authentication error. Please check your API credentials."
+                )
             elif "billing" in error_msg.lower() or "credit" in error_msg.lower():
-                user_error_msg = "Billing error. Please check your account has available credits."
+                user_error_msg = (
+                    "Billing error. Please check your account has available credits."
+                )
             else:
                 if len(error_msg) > 200:
                     error_msg = error_msg[:200] + "..."
@@ -1000,7 +1192,9 @@ async def shutdown_cleanup() -> None:
             try:
                 await _session_clients[session_id].disconnect()
             except Exception:
-                logger.exception("Error disconnecting session %s during shutdown", session_id)
+                logger.exception(
+                    "Error disconnecting session %s during shutdown", session_id
+                )
         _session_clients.clear()
         _session_costs.clear()
         _session_last_active.clear()
@@ -1013,6 +1207,7 @@ async def shutdown_cleanup() -> None:
 async def on_app_shutdown():
     """Handle app shutdown event."""
     await shutdown_cleanup()
+
 
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=8000)
