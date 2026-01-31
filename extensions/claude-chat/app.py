@@ -3,11 +3,12 @@ Claude Chat - Basic chat interface using the Claude Agent SDK.
 
 This extension provides a simple chat interface for asking general questions
 using the Claude Agent SDK. It supports authentication via:
+- Posit Connect AWS Integration (automatic on Connect with configured integration)
 - ANTHROPIC_API_KEY environment variable
 - AWS Bedrock credentials (CLAUDE_CODE_USE_BEDROCK=1)
 
 Note: The SDK does NOT use OAuth credentials from the Claude Code CLI.
-You must provide an API key.
+You must provide an API key or configure an AWS integration.
 """
 
 import asyncio
@@ -33,6 +34,67 @@ logging.basicConfig(
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
 )
 logger = logging.getLogger(__name__)
+
+# =============================================================================
+# Posit Connect AWS Integration
+# =============================================================================
+# When running on Posit Connect with an AWS integration configured,
+# automatically obtain credentials via the integration. This must happen
+# before importing the Claude SDK so environment variables are set.
+CONNECT_INTEGRATION_USED = False
+
+def setup_connect_aws_integration() -> bool:
+    """
+    Set up AWS credentials from Posit Connect integration if available.
+
+    Returns True if credentials were obtained from Connect integration.
+    """
+    global CONNECT_INTEGRATION_USED
+
+    # Only attempt on Connect
+    if os.getenv("POSIT_PRODUCT") != "CONNECT":
+        return False
+
+    # Skip if explicit credentials are already set
+    if os.getenv("ANTHROPIC_API_KEY"):
+        logger.info("ANTHROPIC_API_KEY set, skipping Connect AWS integration")
+        return False
+
+    if os.getenv("AWS_ACCESS_KEY_ID") and os.getenv("AWS_SECRET_ACCESS_KEY"):
+        logger.info("AWS credentials already set, skipping Connect AWS integration")
+        return False
+
+    try:
+        from posit.connect import Client
+        from posit.connect.external import aws
+
+        client = Client()
+        credentials = aws.get_content_credentials(client)
+
+        # Set environment variables for the Claude SDK to use
+        os.environ["AWS_ACCESS_KEY_ID"] = credentials["aws_access_key_id"]
+        os.environ["AWS_SECRET_ACCESS_KEY"] = credentials["aws_secret_access_key"]
+        if credentials.get("aws_session_token"):
+            os.environ["AWS_SESSION_TOKEN"] = credentials["aws_session_token"]
+
+        # Enable Bedrock mode automatically
+        os.environ["CLAUDE_CODE_USE_BEDROCK"] = "1"
+
+        CONNECT_INTEGRATION_USED = True
+        logger.info("AWS credentials obtained from Posit Connect integration")
+        return True
+
+    except ImportError:
+        logger.debug("posit-sdk not available, skipping Connect AWS integration")
+        return False
+    except Exception as e:
+        # Integration may not be configured - this is not an error
+        logger.debug("Connect AWS integration not available: %s", e)
+        return False
+
+
+# Attempt to set up Connect integration before SDK import
+setup_connect_aws_integration()
 
 # =============================================================================
 # SDK Import (conditional)
@@ -194,7 +256,10 @@ if not SDK_AVAILABLE:
 elif HAS_ANTHROPIC_KEY:
     logger.info("Using ANTHROPIC_API_KEY for authentication")
 elif HAS_BEDROCK:
-    logger.info("Using AWS Bedrock for authentication")
+    if CONNECT_INTEGRATION_USED:
+        logger.info("Using AWS Bedrock via Posit Connect integration")
+    else:
+        logger.info("Using AWS Bedrock for authentication")
 else:
     logger.warning("No authentication method available - set ANTHROPIC_API_KEY or configure Bedrock")
 

@@ -21,15 +21,29 @@ This extension provides a simple chat interface for asking general questions usi
 
 ### Authentication Methods
 
-The Claude Agent SDK requires an API key. It does **not** use OAuth credentials from the Claude Code CLI.
+The Claude Agent SDK requires an API key or AWS Bedrock credentials. It does **not** use OAuth credentials from the Claude Code CLI.
 
-#### Option 1: Anthropic API Key (Recommended)
+#### Option 1: Posit Connect AWS Integration (Recommended for Connect)
+
+When deployed on Posit Connect, you can use an AWS Integration to provide Bedrock credentials automatically. This is the recommended approach as it:
+- Requires no secrets in environment variables
+- Automatically rotates credentials
+- Uses IAM role assumption for security
+
+**Setup:**
+1. Configure an AWS Integration in Connect Admin settings (see [Connect AWS Integration docs](https://docs.posit.co/connect/admin/integrations/aws/))
+2. Associate the integration with this content item
+3. Deploy - credentials are obtained automatically at runtime
+
+The app automatically detects when running on Connect with an integration and configures Bedrock mode.
+
+#### Option 2: Anthropic API Key
 ```bash
 ANTHROPIC_API_KEY="sk-ant-..."
 ```
 Get your API key from the [Anthropic Console](https://console.anthropic.com/).
 
-#### Option 2: AWS Bedrock
+#### Option 3: AWS Bedrock (Manual Configuration)
 ```bash
 CLAUDE_CODE_USE_BEDROCK="1"
 AWS_REGION="us-east-2"

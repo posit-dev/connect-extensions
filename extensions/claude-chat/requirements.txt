@@ -20,8 +20,11 @@ certifi==2026.1.4
     # via
     #   httpcore
     #   httpx
+    #   requests
 cffi==2.0.0
     # via cryptography
+charset-normalizer==3.4.4
+    # via requests
 claude-agent-sdk==0.1.26
     # via claude-chat (pyproject.toml)
 click==8.3.1
@@ -48,6 +51,7 @@ idna==3.11
     # via
     #   anyio
     #   httpx
+    #   requests
 jsonschema==4.26.0
     # via mcp
 jsonschema-specifications==2025.9.1
@@ -71,9 +75,12 @@ orjson==3.11.6
 packaging==26.0
     # via
     #   htmltools
+    #   posit-sdk
     #   shiny
 platformdirs==4.5.1
     # via shiny
+posit-sdk==0.15.1
+    # via claude-chat (pyproject.toml)
 prompt-toolkit==3.0.52
     # via
     #   questionary
@@ -104,6 +111,8 @@ referencing==0.37.0
     # via
     #   jsonschema
     #   jsonschema-specifications
+requests==2.32.5
+    # via posit-sdk
 rpds-py==0.30.0
     # via
     #   jsonschema
@@ -127,6 +136,7 @@ typing-extensions==4.15.0
     # via
     #   htmltools
     #   mcp
+    #   posit-sdk
     #   pydantic
     #   pydantic-core
     #   shiny
@@ -138,6 +148,8 @@ typing-inspection==0.4.2
     #   pydantic-settings
 uc-micro-py==1.0.3
     # via linkify-it-py
+urllib3==2.6.3
+    # via requests
 uvicorn==0.40.0
     # via
     #   claude-chat (pyproject.toml)
