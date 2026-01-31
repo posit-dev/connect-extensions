@@ -1,0 +1,46 @@
+{
+  "version": 1,
+  "locale": "en_US.UTF-8",
+  "metadata": {
+    "appmode": "python-shiny",
+    "entrypoint": "app"
+  },
+  "python": {
+    "version": "3.11.3",
+    "package_manager": {
+      "name": "pip",
+      "version": "22.3.1",
+      "package_file": "requirements.txt"
+    }
+  },
+  "environment": {
+    "python": {
+      "requires": ">=3.10"
+    }
+  },
+  "extension": {
+    "name": "claude-chat",
+    "title": "Claude Chat",
+    "description": "A basic chat interface powered by the Claude Agent SDK. Use this as a building block for exploring Claude's capabilities on Posit Connect.",
+    "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/claude-chat",
+    "category": "example",
+    "tags": ["python", "shiny", "llm", "chat"],
+    "requiredFeatures": [],
+    "minimumConnectVersion": "2025.04.0",
+    "version": "0.0.0"
+  },
+  "files": {
+    "pyproject.toml": {
+      "checksum": "placeholder"
+    },
+    "requirements.txt": {
+      "checksum": "placeholder"
+    },
+    "README.md": {
+      "checksum": "placeholder"
+    },
+    "app.py": {
+      "checksum": "placeholder"
+    }
+  }
+}
