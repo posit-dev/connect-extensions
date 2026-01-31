@@ -51,6 +51,45 @@ CLAUDE_MODEL="us.anthropic.claude-sonnet-4-5-20250929-v1:0"
 
 For Bedrock, the regional prefix (`us.`, `eu.`, etc.) is required.
 
+### Optional Configuration
+
+These environment variables allow you to customize behavior:
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `CLAUDE_SYSTEM_PROMPT` | (see below) | Custom system prompt for Claude |
+| `CLAUDE_MAX_TURNS` | None (unlimited) | Maximum conversation turns per request |
+| `CLAUDE_MAX_BUDGET_USD` | None (unlimited) | Maximum cost in USD per request |
+| `CLAUDE_PARTIAL_MESSAGES` | `true` | Enable real-time text streaming |
+| `CLAUDE_SHOW_THINKING` | `false` | Display extended thinking blocks |
+| `CLAUDE_SHOW_COST` | `false` | Show cost after each response |
+| `CLAUDE_PERMISSION_MODE` | `acceptEdits` | Tool permission mode (see below) |
+| `CLAUDE_TOOLS` | `all` | Tools to enable (see below) |
+| `CLAUDE_DISALLOWED_TOOLS` | None | Comma-separated list of tools to block |
+
+**Permission modes:**
+- `acceptEdits` - Auto-accept file edits (default, recommended for this UI)
+- `bypassPermissions` - Allow all tools without prompting
+- `default` - Prompt for dangerous tools (not supported in this UI)
+
+**Tools configuration:**
+- `all` or `claude_code` - Enable all Claude Code tools (Read, Write, Edit, Bash, etc.)
+- Comma-separated list - Enable specific tools, e.g., `Read,Write,Edit,Bash`
+- Unset - Use SDK defaults
+
+**Default system prompt:**
+```
+You are a helpful assistant. Answer questions clearly and concisely.
+You are running as part of a Posit Connect extension.
+```
+
+**Example configuration for cost control:**
+```bash
+CLAUDE_MAX_TURNS="10"
+CLAUDE_MAX_BUDGET_USD="0.50"
+CLAUDE_SHOW_COST="true"
+```
+
 ### Connect Requirements
 
 1. **Minimum Connect Version**: 2025.04.0 or later
@@ -85,8 +124,9 @@ Once deployed, open the application and start asking questions. Claude will resp
 
 The application uses:
 - **Shiny for Python**: Chat UI components
-- **Claude Agent SDK**: Handles Claude conversations with the bundled Claude Code runtime
-- **Async Streaming**: Messages are processed asynchronously for responsiveness
+- **Claude Agent SDK**: Uses `ClaudeSDKClient` for bidirectional, streaming conversations
+- **Async Streaming**: Real-time text display via `StreamEvent` partial messages
+- **Cost Tracking**: Captures and optionally displays per-request costs from `ResultMessage`
 
 ## Extending This Extension
 

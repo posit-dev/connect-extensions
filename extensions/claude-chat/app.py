@@ -11,6 +11,7 @@ You must provide an API key.
 """
 
 import os
+import sys
 
 import uvicorn
 from dotenv import load_dotenv
@@ -19,11 +20,126 @@ from shiny.session._session import AppSession
 
 load_dotenv()
 
-# Model configuration - can be overridden via environment variable
+# =============================================================================
+# SDK Import (conditional)
+# =============================================================================
+try:
+    from claude_agent_sdk import ClaudeAgentOptions, ClaudeSDKClient
+    from claude_agent_sdk.types import (
+        AssistantMessage,
+        ResultMessage,
+        StreamEvent,
+        TextBlock,
+        ThinkingBlock,
+        ToolUseBlock,
+    )
+
+    SDK_AVAILABLE = True
+except ImportError as e:
+    print(f"Warning: Claude Agent SDK not available: {e}", file=sys.stderr)
+    SDK_AVAILABLE = False
+
+# =============================================================================
+# Configuration via Environment Variables
+# =============================================================================
+
+# Model configuration
 # For Bedrock, use the regional prefix (e.g., us.anthropic.claude-sonnet-4-5-20250929-v1:0)
 DEFAULT_BEDROCK_MODEL = "us.anthropic.claude-sonnet-4-5-20250929-v1:0"
 DEFAULT_ANTHROPIC_MODEL = "claude-sonnet-4-5-20250929"
 CLAUDE_MODEL = os.getenv("CLAUDE_MODEL")
+
+# System prompt - configurable via environment variable
+DEFAULT_SYSTEM_PROMPT = (
+    "You are a helpful assistant. Answer questions clearly and concisely. "
+    "You are running as part of a Posit Connect extension."
+)
+SYSTEM_PROMPT = os.getenv("CLAUDE_SYSTEM_PROMPT", DEFAULT_SYSTEM_PROMPT)
+
+# Safety limits - None means no limit
+def _parse_int_env(key: str, default: int | None = None) -> int | None:
+    """Parse an integer environment variable, returning None if not set or invalid."""
+    val = os.getenv(key)
+    if val is None:
+        return default
+    try:
+        return int(val)
+    except ValueError:
+        print(f"Warning: Invalid integer for {key}: {val}", file=sys.stderr)
+        return default
+
+
+def _parse_float_env(key: str, default: float | None = None) -> float | None:
+    """Parse a float environment variable, returning None if not set or invalid."""
+    val = os.getenv(key)
+    if val is None:
+        return default
+    try:
+        return float(val)
+    except ValueError:
+        print(f"Warning: Invalid float for {key}: {val}", file=sys.stderr)
+        return default
+
+
+def _parse_bool_env(key: str, default: bool = False) -> bool:
+    """Parse a boolean environment variable."""
+    val = os.getenv(key, "").lower()
+    if val in ("1", "true", "yes"):
+        return True
+    if val in ("0", "false", "no"):
+        return False
+    return default
+
+
+# Max turns per conversation (None = unlimited)
+MAX_TURNS = _parse_int_env("CLAUDE_MAX_TURNS", default=None)
+
+# Max budget in USD per request (None = unlimited)
+MAX_BUDGET_USD = _parse_float_env("CLAUDE_MAX_BUDGET_USD", default=None)
+
+# Enable partial message streaming for real-time text display
+INCLUDE_PARTIAL_MESSAGES = _parse_bool_env("CLAUDE_PARTIAL_MESSAGES", default=True)
+
+# Show thinking blocks in output (for extended thinking models)
+SHOW_THINKING = _parse_bool_env("CLAUDE_SHOW_THINKING", default=False)
+
+# Show cost information after each response
+SHOW_COST = _parse_bool_env("CLAUDE_SHOW_COST", default=False)
+
+# Permission mode for tool usage:
+# - "default": Prompts for dangerous tools (not supported in this UI)
+# - "acceptEdits": Auto-accept file edits
+# - "bypassPermissions": Allow all tools without prompting
+# Default to "acceptEdits" since we can't surface permission prompts in the chat UI
+PERMISSION_MODE = os.getenv("CLAUDE_PERMISSION_MODE", "acceptEdits")
+
+# Tools configuration:
+# - "all" or "claude_code": Enable all Claude Code tools
+# - Comma-separated list: Enable specific tools (e.g., "Read,Write,Edit,Bash")
+# - Empty or unset: Use SDK defaults
+def _parse_tools_config(val: str | None) -> list[str] | dict | None:
+    """Parse tools configuration from environment variable."""
+    if not val:
+        return None
+    val = val.strip()
+    if val.lower() in ("all", "claude_code"):
+        return {"type": "preset", "preset": "claude_code"}
+    # Parse comma-separated list
+    tools = [t.strip() for t in val.split(",") if t.strip()]
+    return tools if tools else None
+
+
+TOOLS_CONFIG = _parse_tools_config(os.getenv("CLAUDE_TOOLS", "all"))
+
+# Disallowed tools (comma-separated list of tools to block)
+def _parse_tools_list(val: str | None) -> list[str]:
+    """Parse comma-separated tools list."""
+    if not val:
+        return []
+    return [t.strip() for t in val.split(",") if t.strip()]
+
+
+DISALLOWED_TOOLS = _parse_tools_list(os.getenv("CLAUDE_DISALLOWED_TOOLS"))
 
 
 def check_anthropic_api_key() -> bool:
@@ -52,15 +168,23 @@ def check_aws_bedrock_credentials() -> bool:
 # It requires explicit API key or Bedrock credentials
 HAS_ANTHROPIC_KEY = check_anthropic_api_key()
 HAS_BEDROCK = check_aws_bedrock_credentials()
-HAS_CREDENTIALS = HAS_ANTHROPIC_KEY or HAS_BEDROCK
+HAS_CREDENTIALS = SDK_AVAILABLE and (HAS_ANTHROPIC_KEY or HAS_BEDROCK)
 
-# Log which auth method will be used
-if HAS_ANTHROPIC_KEY:
+# Log startup status
+if not SDK_AVAILABLE:
+    print("Claude Agent SDK not available - install claude-agent-sdk package")
+elif HAS_ANTHROPIC_KEY:
     print("Using ANTHROPIC_API_KEY for authentication")
 elif HAS_BEDROCK:
     print("Using AWS Bedrock for authentication")
 else:
     print("No authentication method available - set ANTHROPIC_API_KEY or configure Bedrock")
+
+# Log configuration
+print(f"Configuration: max_turns={MAX_TURNS}, max_budget_usd={MAX_BUDGET_USD}, "
+      f"partial_messages={INCLUDE_PARTIAL_MESSAGES}, show_thinking={SHOW_THINKING}, "
+      f"show_cost={SHOW_COST}, permission_mode={PERMISSION_MODE}, "
+      f"tools={TOOLS_CONFIG}, disallowed_tools={DISALLOWED_TOOLS}")
 
 
 # Setup UI shown when credentials are missing
@@ -202,10 +326,55 @@ app_ui = ui.page_fillable(
             background: linear-gradient(135deg, #d97706 0%, #ea580c 100%);
         }
 
-        shiny-chat-messages > * {
+        /* Make chat container use full width */
+        shiny-chat-container {
+            max-width: 100% !important;
+            width: 100% !important;
+        }
+
+        shiny-chat-messages {
+            max-width: 100% !important;
+            width: 100% !important;
+        }
+
+        /* Make individual messages wider */
+        shiny-chat-message {
+            max-width: 100% !important;
+            width: 100% !important;
+        }
+
+        /* Style the message content */
+        shiny-chat-message > * {
             background: white;
             border-radius: 8px;
             padding: 8px;
+        }
+
+        /* User messages - allow full width */
+        shiny-user-message,
+        shiny-chat-message[data-role="user"] {
+            max-width: 90% !important;
+        }
+
+        /* Assistant messages - use full width */
+        shiny-chat-message[data-role="assistant"] {
+            max-width: 100% !important;
+        }
+
+        /* Markdown content should use available space */
+        shiny-markdown-stream {
+            max-width: 100% !important;
+            width: 100% !important;
+        }
+
+        /* Ensure code blocks don't cause overflow */
+        shiny-chat-messages pre {
+            max-width: 100%;
+            overflow-x: auto;
+        }
+
+        shiny-chat-messages code {
+            word-break: break-word;
         }
         """
     ),
@@ -241,70 +410,110 @@ def server(input: Inputs, output: Outputs, app_session: AppSession):
             return
 
         try:
-            from claude_agent_sdk import ClaudeAgentOptions, query
-
-            # Get conversation history from the chat UI
+            # Get conversation history from the chat UI for context
             messages = chat_ui.messages()
 
             # Build conversation context from history
-            # messages is a tuple of dicts with 'role' and 'content'
-            conversation_context = ""
+            # The SDK's ClaudeSDKClient doesn't persist state between requests,
+            # so we need to include history in the prompt
+            conversation_parts = []
             if messages:
-                conversation_context = "Previous conversation:\n"
+                conversation_parts.append("Previous conversation:")
                 for msg in messages:
                     role = msg.get("role", "unknown")
                     content = msg.get("content", "")
                     if role == "user":
-                        conversation_context += f"User: {content}\n"
+                        conversation_parts.append(f"User: {content}")
                     elif role == "assistant":
-                        conversation_context += f"Assistant: {content}\n"
-                conversation_context += "\nNow respond to the user's latest message."
+                        conversation_parts.append(f"Assistant: {content}")
+                conversation_parts.append("\nContinue the conversation naturally.")
 
             # Build the full prompt with context
-            if conversation_context:
-                full_prompt = f"{conversation_context}\n\nUser: {user_input}"
+            if conversation_parts:
+                full_prompt = "\n".join(conversation_parts) + f"\n\nUser: {user_input}"
             else:
                 full_prompt = user_input
 
             print(f"Sending prompt with {len(messages) if messages else 0} previous messages")
 
+            # Configure SDK options with all settings
             options = ClaudeAgentOptions(
-                allowed_tools=[],
                 model=model,
-                system_prompt=(
-                    "You are a helpful assistant. Answer questions clearly and concisely. "
-                    "You are running as part of a Posit Connect extension. "
-                    "When given conversation history, continue the conversation naturally."
-                ),
+                system_prompt=SYSTEM_PROMPT,
+                max_turns=MAX_TURNS,
+                max_budget_usd=MAX_BUDGET_USD,
+                include_partial_messages=INCLUDE_PARTIAL_MESSAGES,
+                permission_mode=PERMISSION_MODE,
+                tools=TOOLS_CONFIG,
+                disallowed_tools=DISALLOWED_TOOLS,
             )
 
-            # Stream response - the SDK yields messages as they arrive
+            # Stream response using ClaudeSDKClient for better control
             async def generate_response():
-                from claude_agent_sdk import AssistantMessage, ResultMessage
-                from claude_agent_sdk.types import TextBlock, ToolUseBlock
+                text_yielded = False
+                total_cost = None
+                stats = {"text_blocks": 0, "tool_uses": 0, "thinking_blocks": 0}
 
-                text_block_count = 0
-                tool_use_count = 0
+                async with ClaudeSDKClient(options) as client:
+                    await client.query(full_prompt)
 
-                async for message in query(prompt=full_prompt, options=options):
-                    if isinstance(message, AssistantMessage):
-                        for block in message.content:
-                            if isinstance(block, TextBlock):
-                                text_block_count += 1
-                                yield block.text
+                    # Use receive_response() which terminates after ResultMessage
+                    # (receive_messages() continues indefinitely)
+                    async for message in client.receive_response():
+                        # Handle partial streaming events (real-time text)
+                        if isinstance(message, StreamEvent):
+                            event = message.event
+                            # Extract text delta from streaming event
+                            if event.get("type") == "content_block_delta":
+                                delta = event.get("delta", {})
+                                if delta.get("type") == "text_delta":
+                                    text = delta.get("text", "")
+                                    if text:
+                                        text_yielded = True
+                                        yield text
 
-                            elif isinstance(block, ToolUseBlock):
-                                tool_use_count += 1
-                                if tool_use_count == 1:
-                                    yield "\n\n*Working...*\n\n"
+                        # Handle complete assistant messages
+                        elif isinstance(message, AssistantMessage):
+                            for block in message.content:
+                                if isinstance(block, TextBlock):
+                                    stats["text_blocks"] += 1
+                                    # Only yield if not using partial messages
+                                    # (to avoid duplication)
+                                    if not INCLUDE_PARTIAL_MESSAGES:
+                                        text_yielded = True
+                                        yield block.text
 
-                    elif isinstance(message, ResultMessage):
-                        if message.is_error:
-                            print(f"Agent error: {message.result}")
+                                elif isinstance(block, ThinkingBlock):
+                                    stats["thinking_blocks"] += 1
+                                    if SHOW_THINKING:
+                                        yield f"\n\n<details><summary>Thinking...</summary>\n\n{block.thinking}\n\n</details>\n\n"
 
-                print(f"=== Completed: {tool_use_count} tool uses, {text_block_count} text blocks ===")
+                                elif isinstance(block, ToolUseBlock):
+                                    stats["tool_uses"] += 1
+                                    if stats["tool_uses"] == 1:
+                                        yield "\n\n*Working...*\n\n"
 
-                if text_block_count == 0:
+                        # Handle result message (includes cost info)
+                        elif isinstance(message, ResultMessage):
+                            if message.is_error:
+                                print(f"Agent error: {message.result}")
+                                yield f"\n\n*Error: {message.result}*"
+
+                            # Capture cost information
+                            if message.total_cost_usd is not None:
+                                total_cost = message.total_cost_usd
+
+                # Log completion stats
+                print(f"=== Completed: {stats['text_blocks']} text blocks, "
+                      f"{stats['tool_uses']} tool uses, "
+                      f"{stats['thinking_blocks']} thinking blocks ===")
+
+                if total_cost is not None:
+                    print(f"Request cost: ${total_cost:.6f}")
+                    if SHOW_COST:
+                        yield f"\n\n---\n*Cost: ${total_cost:.6f}*"
+
+                if not text_yielded:
                     yield "No response received from Claude."
 
             await chat_ui.append_message_stream(generate_response())
@@ -315,9 +524,23 @@ def server(input: Inputs, output: Outputs, app_session: AppSession):
             print(f"Error: {traceback.format_exc()}")
             # Show sanitized error to user
             error_msg = str(e)
-            if len(error_msg) > 200:
-                error_msg = error_msg[:200] + "..."
-            await chat_ui.append_message(f"Sorry, an error occurred: {error_msg}")
+            # Provide more helpful error messages for common issues
+            if "rate_limit" in error_msg.lower():
+                await chat_ui.append_message(
+                    "Rate limit reached. Please wait a moment and try again."
+                )
+            elif "authentication" in error_msg.lower() or "api_key" in error_msg.lower():
+                await chat_ui.append_message(
+                    "Authentication error. Please check your API credentials."
+                )
+            elif "billing" in error_msg.lower() or "credit" in error_msg.lower():
+                await chat_ui.append_message(
+                    "Billing error. Please check your account has available credits."
+                )
+            else:
+                if len(error_msg) > 200:
+                    error_msg = error_msg[:200] + "..."
+                await chat_ui.append_message(f"Sorry, an error occurred: {error_msg}")
 
 
 app = App(screen_ui, server)
