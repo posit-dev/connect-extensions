@@ -186,6 +186,17 @@ print(f"Configuration: max_turns={MAX_TURNS}, max_budget_usd={MAX_BUDGET_USD}, "
       f"show_cost={SHOW_COST}, permission_mode={PERMISSION_MODE}, "
       f"tools={TOOLS_CONFIG}, disallowed_tools={DISALLOWED_TOOLS}")
 
+# =============================================================================
+# Per-Session Client Management
+# =============================================================================
+# Store persistent ClaudeSDKClient instances per session for conversation continuity.
+# The SDK maintains conversation state across query() calls, so we reuse the client.
+import asyncio
+
+_session_clients: dict[str, "ClaudeSDKClient"] = {}
+_session_costs: dict[str, float] = {}
+_clients_lock = asyncio.Lock()
+
 
 # Setup UI shown when credentials are missing
 setup_ui = ui.page_fillable(
@@ -409,99 +420,84 @@ def server(input: Inputs, output: Outputs, app_session: AppSession):
         if not HAS_CREDENTIALS:
             return
 
+        session_id = app_session.id
+
         try:
-            # Get conversation history from the chat UI for context
-            messages = chat_ui.messages()
+            # Get or create persistent client for this session
+            async with _clients_lock:
+                if session_id not in _session_clients:
+                    print(f"Creating new ClaudeSDKClient for session {session_id}")
+                    options = ClaudeAgentOptions(
+                        model=model,
+                        system_prompt=SYSTEM_PROMPT,
+                        max_turns=MAX_TURNS,
+                        max_budget_usd=MAX_BUDGET_USD,
+                        include_partial_messages=INCLUDE_PARTIAL_MESSAGES,
+                        permission_mode=PERMISSION_MODE,
+                        tools=TOOLS_CONFIG,
+                        disallowed_tools=DISALLOWED_TOOLS,
+                    )
+                    client = ClaudeSDKClient(options)
+                    await client.connect()
+                    _session_clients[session_id] = client
+                    _session_costs[session_id] = 0.0
 
-            # Build conversation context from history
-            # The SDK's ClaudeSDKClient doesn't persist state between requests,
-            # so we need to include history in the prompt
-            conversation_parts = []
-            if messages:
-                conversation_parts.append("Previous conversation:")
-                for msg in messages:
-                    role = msg.get("role", "unknown")
-                    content = msg.get("content", "")
-                    if role == "user":
-                        conversation_parts.append(f"User: {content}")
-                    elif role == "assistant":
-                        conversation_parts.append(f"Assistant: {content}")
-                conversation_parts.append("\nContinue the conversation naturally.")
+                client = _session_clients[session_id]
 
-            # Build the full prompt with context
-            if conversation_parts:
-                full_prompt = "\n".join(conversation_parts) + f"\n\nUser: {user_input}"
-            else:
-                full_prompt = user_input
+            # Send just the new user message - the SDK maintains conversation state
+            print(f"Sending message to existing client for session {session_id}")
+            await client.query(user_input)
 
-            print(f"Sending prompt with {len(messages) if messages else 0} previous messages")
-
-            # Configure SDK options with all settings
-            options = ClaudeAgentOptions(
-                model=model,
-                system_prompt=SYSTEM_PROMPT,
-                max_turns=MAX_TURNS,
-                max_budget_usd=MAX_BUDGET_USD,
-                include_partial_messages=INCLUDE_PARTIAL_MESSAGES,
-                permission_mode=PERMISSION_MODE,
-                tools=TOOLS_CONFIG,
-                disallowed_tools=DISALLOWED_TOOLS,
-            )
-
-            # Stream response using ClaudeSDKClient for better control
+            # Stream response using the persistent client
             async def generate_response():
                 text_yielded = False
                 total_cost = None
                 stats = {"text_blocks": 0, "tool_uses": 0, "thinking_blocks": 0}
 
-                async with ClaudeSDKClient(options) as client:
-                    await client.query(full_prompt)
+                # Use receive_response() which terminates after ResultMessage
+                async for message in client.receive_response():
+                    # Handle partial streaming events (real-time text)
+                    if isinstance(message, StreamEvent):
+                        event = message.event
+                        # Extract text delta from streaming event
+                        if event.get("type") == "content_block_delta":
+                            delta = event.get("delta", {})
+                            if delta.get("type") == "text_delta":
+                                text = delta.get("text", "")
+                                if text:
+                                    text_yielded = True
+                                    yield text
 
-                    # Use receive_response() which terminates after ResultMessage
-                    # (receive_messages() continues indefinitely)
-                    async for message in client.receive_response():
-                        # Handle partial streaming events (real-time text)
-                        if isinstance(message, StreamEvent):
-                            event = message.event
-                            # Extract text delta from streaming event
-                            if event.get("type") == "content_block_delta":
-                                delta = event.get("delta", {})
-                                if delta.get("type") == "text_delta":
-                                    text = delta.get("text", "")
-                                    if text:
-                                        text_yielded = True
-                                        yield text
+                    # Handle complete assistant messages
+                    elif isinstance(message, AssistantMessage):
+                        for block in message.content:
+                            if isinstance(block, TextBlock):
+                                stats["text_blocks"] += 1
+                                # Only yield if not using partial messages
+                                # (to avoid duplication)
+                                if not INCLUDE_PARTIAL_MESSAGES:
+                                    text_yielded = True
+                                    yield block.text
 
-                        # Handle complete assistant messages
-                        elif isinstance(message, AssistantMessage):
-                            for block in message.content:
-                                if isinstance(block, TextBlock):
-                                    stats["text_blocks"] += 1
-                                    # Only yield if not using partial messages
-                                    # (to avoid duplication)
-                                    if not INCLUDE_PARTIAL_MESSAGES:
-                                        text_yielded = True
-                                        yield block.text
+                            elif isinstance(block, ThinkingBlock):
+                                stats["thinking_blocks"] += 1
+                                if SHOW_THINKING:
+                                    yield f"\n\n<details><summary>Thinking...</summary>\n\n{block.thinking}\n\n</details>\n\n"
 
-                                elif isinstance(block, ThinkingBlock):
-                                    stats["thinking_blocks"] += 1
-                                    if SHOW_THINKING:
-                                        yield f"\n\n<details><summary>Thinking...</summary>\n\n{block.thinking}\n\n</details>\n\n"
+                            elif isinstance(block, ToolUseBlock):
+                                stats["tool_uses"] += 1
+                                if stats["tool_uses"] == 1:
+                                    yield "\n\n*Working...*\n\n"
 
-                                elif isinstance(block, ToolUseBlock):
-                                    stats["tool_uses"] += 1
-                                    if stats["tool_uses"] == 1:
-                                        yield "\n\n*Working...*\n\n"
+                    # Handle result message (includes cost info)
+                    elif isinstance(message, ResultMessage):
+                        if message.is_error:
+                            print(f"Agent error: {message.result}")
+                            yield f"\n\n*Error: {message.result}*"
 
-                        # Handle result message (includes cost info)
-                        elif isinstance(message, ResultMessage):
-                            if message.is_error:
-                                print(f"Agent error: {message.result}")
-                                yield f"\n\n*Error: {message.result}*"
-
-                            # Capture cost information
-                            if message.total_cost_usd is not None:
-                                total_cost = message.total_cost_usd
+                        # Capture cost information
+                        if message.total_cost_usd is not None:
+                            total_cost = message.total_cost_usd
 
                 # Log completion stats
                 print(f"=== Completed: {stats['text_blocks']} text blocks, "
@@ -510,8 +506,10 @@ def server(input: Inputs, output: Outputs, app_session: AppSession):
 
                 if total_cost is not None:
                     print(f"Request cost: ${total_cost:.6f}")
+                    # Track cumulative cost for session
+                    _session_costs[session_id] = _session_costs.get(session_id, 0.0) + total_cost
                     if SHOW_COST:
-                        yield f"\n\n---\n*Cost: ${total_cost:.6f}*"
+                        yield f"\n\n---\n*Cost: ${total_cost:.6f} | Session: ${_session_costs[session_id]:.6f}*"
 
                 if not text_yielded:
                     yield "No response received from Claude."
@@ -522,6 +520,18 @@ def server(input: Inputs, output: Outputs, app_session: AppSession):
             import traceback
             # Log full error for debugging
             print(f"Error: {traceback.format_exc()}")
+
+            # On error, reset the client for this session to force reconnection
+            async with _clients_lock:
+                if session_id in _session_clients:
+                    try:
+                        await _session_clients[session_id].disconnect()
+                    except Exception as disconnect_error:
+                        print(f"Error disconnecting client: {disconnect_error}")
+                    finally:
+                        del _session_clients[session_id]
+                        print(f"Reset client for session {session_id} due to error")
+
             # Show sanitized error to user
             error_msg = str(e)
             # Provide more helpful error messages for common issues
@@ -541,6 +551,24 @@ def server(input: Inputs, output: Outputs, app_session: AppSession):
                 if len(error_msg) > 200:
                     error_msg = error_msg[:200] + "..."
                 await chat_ui.append_message(f"Sorry, an error occurred: {error_msg}")
+
+    # Clean up client when session ends
+    @app_session.on_ended
+    async def cleanup_session():
+        """Clean up Claude client when user session ends."""
+        session_id = app_session.id
+        async with _clients_lock:
+            if session_id in _session_clients:
+                try:
+                    print(f"Cleaning up client for ended session {session_id}")
+                    await _session_clients[session_id].disconnect()
+                except Exception as e:
+                    print(f"Error disconnecting client during cleanup: {e}")
+                finally:
+                    del _session_clients[session_id]
+            if session_id in _session_costs:
+                total_cost = _session_costs.pop(session_id, 0.0)
+                print(f"Session {session_id} ended. Total cost: ${total_cost:.6f}")
 
 
 app = App(screen_ui, server)
