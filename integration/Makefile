@@ -68,6 +68,7 @@ PYTEST_ARGS ?= "-s"
 # possible versions to test against in CI or when using the `all` target.
 CONNECT_VERSIONS := \
 	connect-preview \
+	2026.01.0 \
 	2025.07.0 \
 	2025.06.0 \
 	2025.05.0 \

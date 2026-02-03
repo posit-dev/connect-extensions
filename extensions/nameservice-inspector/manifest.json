@@ -1,0 +1,61 @@
+{
+  "version": 1,
+  "locale": "C.UTF-8",
+  "metadata": {
+    "appmode": "python-streamlit",
+    "entrypoint": "main"
+  },
+  "extension": {
+    "name": "nameservice-inspector",
+    "title": "Nameservice Inspector",
+    "description": "Visualize nameservice user and group data for Connect servers using current user execution with OAuth2, SAML, or LDAP authentication.",
+    "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/nameservice-inspector",
+    "category": "extension",
+    "tags": ["python"],
+    "minimumConnectVersion": "2026.01.0",
+    "version": "1.0.0",
+    "requiredFeatures": [
+      "Current User Execution",
+      "OAuth Integrations"
+    ]
+  },
+  "python": {
+    "version": "3.13.6",
+    "package_manager": {
+      "name": "pip",
+      "version": "25.3",
+      "package_file": "requirements.txt"
+    }
+  },
+  "environment": {
+    "python": {
+      "requires": "~=3.11"
+    }
+  },
+  "files": {
+    "requirements.txt": {
+      "checksum": "2b49861a6d9371710955aca23f39e467"
+    },
+    ".gitignore": {
+      "checksum": "b138f14957efecc69df2976ccdc3ab65"
+    },
+    ".python-version": {
+      "checksum": "789ee353b44223a8ed8031aa190631dd"
+    },
+    "CHANGELOG.md": {
+      "checksum": "2a4996ddd8ae0d8dcf627898c8f17c01"
+    },
+    "README.md": {
+      "checksum": "90690c9968b45602c85f5a35ed5d9293"
+    },
+    "main.py": {
+      "checksum": "9cb86766474140602479e1bc52db44d8"
+    },
+    "pyproject.toml": {
+      "checksum": "ece9f38054d0a788da7c61b80d1b8c77"
+    },
+    "uv.lock": {
+      "checksum": "b23c11344a74aa01510034007c394021"
+    }
+  }
+}
