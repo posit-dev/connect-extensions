@@ -32,6 +32,11 @@
             padding-bottom: 10px;
             margin-top: 30px;
         }
+        h3 {
+            color: #34495e;
+            margin-top: 20px;
+            margin-bottom: 10px;
+        }
         p {
             margin-bottom: 15px;
         }
@@ -100,15 +105,77 @@
             font-size: 0.9em;
             color: #27ae60;
         }
+        pre {
+            background-color: #f4f4f4;
+            padding: 15px;
+            border-radius: 4px;
+            overflow-x: auto;
+            font-family: "Courier New", Courier, monospace;
+            font-size: 0.9em;
+        }
+        .info-box {
+            background-color: #e7f3ff;
+            border: 1px solid #b3d9ff;
+            border-left: 4px solid #2980b9;
+            padding: 15px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+        }
+        .info-box strong {
+            color: #2980b9;
+        }
+        details {
+            background-color: #f9f9f9;
+            border: 1px solid #eee;
+            border-radius: 4px;
+            margin-bottom: 10px;
+        }
+        details summary {
+            padding: 12px 15px;
+            cursor: pointer;
+            font-weight: 600;
+            color: #34495e;
+            list-style: none;
+        }
+        details summary::-webkit-details-marker {
+            display: none;
+        }
+        details summary::before {
+            content: "\25B6";
+            display: inline-block;
+            margin-right: 10px;
+            font-size: 0.8em;
+            transition: transform 0.2s;
+        }
+        details[open] summary::before {
+            transform: rotate(90deg);
+        }
+        details summary:hover {
+            background-color: #f0f0f0;
+        }
+        details .details-content {
+            padding: 0 15px 15px 15px;
+        }
+        details .details-content p {
+            margin-top: 0;
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <h1>{{ server_name }}</h1>
+
         <p>This server provides sample data-related tools via the Model Context Protocol (MCP).</p>
 
-        <p>Please note that it is recommended to set the minimum number of instances/processes for 
-        this application to >= 1 in the content settings. This will ensure that the MCP server is 
+        <div class="info-box">
+            <strong>Visitor API Integration Required:</strong> The <code>connect_whoami</code> tool requires a
+            Visitor API Key integration to identify visitors. To enable this, go to the content settings in
+            Posit Connect and add a "Connect Visitor API Key" integration under the "Integrations" section.
+            See the <a href="https://docs.posit.co/connect/user/oauth-integrations/" target="_blank">OAuth Integrations documentation</a> for more information.
+        </div>
+
+        <p>Please note that it is recommended to set the minimum number of instances/processes for
+        this application to >= 1 in the content settings. This will ensure that the MCP server is
         always available for clients to connect. See the <a href="https://docs.posit.co/connect/user/content-settings/index.html#process-configurations" target="_blank">content process configuration documentation</a>.</p>
 
         <p>The MCP endpoint is available at:</p>
@@ -117,6 +184,69 @@
             <button class="copy-button" onclick="copyToClipboard()">Copy</button>
             <span id="copyStatus"></span>
         </div>
+
+        <h2>Setup Instructions</h2>
+
+        <details>
+            <summary>Claude Code</summary>
+            <div class="details-content">
+                <p>Run this command:</p>
+                <pre>claude mcp add --transport http simple-mcp {{ endpoint }} \
+  --header "Authorization: Key YOUR_POSIT_CONNECT_API_KEY"</pre>
+            </div>
+        </details>
+
+        <details>
+            <summary>Claude Desktop</summary>
+            <div class="details-content">
+                <p>Add to <code>~/Library/Application Support/Claude/claude_desktop_config.json</code> (macOS)
+                or <code>%APPDATA%\Claude\claude_desktop_config.json</code> (Windows):</p>
+                <pre>{
+  "mcpServers": {
+    "simple-mcp": {
+      "type": "streamable-http",
+      "url": "{{ endpoint }}",
+      "headers": {
+        "Authorization": "Key YOUR_POSIT_CONNECT_API_KEY"
+      }
+    }
+  }
+}</pre>
+            </div>
+        </details>
+
+        <details>
+            <summary>VS Code</summary>
+            <div class="details-content">
+                <p>Add to <code>.vscode/mcp.json</code> in your workspace (or user settings):</p>
+                <pre>{
+  "servers": {
+    "simple-mcp": {
+      "type": "http",
+      "url": "{{ endpoint }}",
+      "headers": {
+        "Authorization": "Key YOUR_POSIT_CONNECT_API_KEY"
+      }
+    }
+  }
+}</pre>
+            </div>
+        </details>
+
+        <details>
+            <summary>Cursor</summary>
+            <div class="details-content">
+                <p>Add to your MCP settings in Cursor preferences:</p>
+                <pre>{
+  "simple-mcp": {
+    "url": "{{ endpoint }}",
+    "headers": {
+      "Authorization": "Key YOUR_POSIT_CONNECT_API_KEY"
+    }
+  }
+}</pre>
+            </div>
+        </details>
 
         <h2>Available MCP Tools:</h2>
         {% if tools %}
@@ -147,7 +277,7 @@
         function copyToClipboard() {
             const endpointUrlField = document.getElementById('mcpEndpointUrl');
             const copyStatus = document.getElementById('copyStatus');
-            
+
             navigator.clipboard.writeText(endpointUrlField.value).then(function() {
                 copyStatus.textContent = 'Copied!';
                 setTimeout(() => {

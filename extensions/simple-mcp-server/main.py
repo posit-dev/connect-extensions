@@ -1,18 +1,37 @@
 import contextlib
 import json
+import urllib
+
 import pandas as pd
-from sklearn.datasets import load_iris
+from cachetools import TTLCache, cached
 from fastapi import FastAPI, Request
 from fastapi.templating import Jinja2Templates
 from fastmcp import FastMCP, Context
 from fastmcp.exceptions import ToolError
-from posit.connect.client import Client as ConnectClient
-import urllib
+from posit import connect
+from posit.connect.errors import ClientError
+from sklearn.datasets import load_iris
+
+# --- Connect Client Initialization ---
+client = connect.Client()
+
+# Create cache with TTL=1hour for visitor clients
+client_cache = TTLCache(maxsize=float("inf"), ttl=3600)
+
+
+@cached(client_cache)
+def get_visitor_client(token: str | None) -> connect.Client:
+    """Create and cache API client per token with 1 hour TTL"""
+    if token:
+        return client.with_user_session_token(token)
+    else:
+        return client
 
 # --- FastMCP Server Initialization ---
 mcp = FastMCP(
     name="Simple MCP Server",
     instructions="MCP server for dataset operations and Connect 'whoami' via FastAPI.",
+    stateless_http=True,
 )
 
 # --- Datasets ---
@@ -51,10 +70,9 @@ def calculate_summary_statistics(dataset_name: str) -> str:
 @mcp.tool()
 async def connect_whoami(context: Context) -> str:
     """
-    Calls the Posit Connect /me endpoint using an API key from the Authorization header.
-    The Authorization header should be in the format: 'Key YOUR_API_KEY'.
+    Calls the Posit Connect /me endpoint using the visitor's session token.
+    This tool requires a Visitor API Key integration to be configured.
     """
-
     # context.request is a starlette.requests.Request
     http_request = context.request_context.request
     if http_request is None:
@@ -62,22 +80,22 @@ async def connect_whoami(context: Context) -> str:
             "Request context not available. This tool requires an HTTP-based transport."
         )
 
-    auth_header = http_request.headers.get("x-mcp-authorization")
+    session_token = http_request.headers.get("posit-connect-user-session-token")
 
-    if not auth_header:
-        raise ToolError("Authorization header is missing.")
-
-    parts = auth_header.split()
-    if len(parts) != 2 or parts[0].lower() != "key":
+    if not session_token:
         raise ToolError(
-            "Invalid Authorization header format. Expected 'Key YOUR_API_KEY'."
+            "Session token not available. This tool must be called from content running on Posit Connect."
         )
 
-    api_key = parts[1]
-
     try:
-        connect_client = ConnectClient(api_key=api_key)
-        return json.dumps(connect_client.me)
+        visitor_client = get_visitor_client(session_token)
+        return json.dumps(visitor_client.me)
+    except ClientError as e:
+        if e.error_code == 212:
+            raise ToolError(
+                "No Visitor API Key integration configured. Please add a Connect integration in the content settings."
+            )
+        raise ToolError(f"Error calling Connect API: {str(e)}")
     except Exception as e:
         raise ToolError(f"Error calling Connect API: {str(e)}")
 
