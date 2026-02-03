@@ -933,12 +933,13 @@
       "description": "A simple example of a Connect extension that serves tools via the MCP protocol. This is meant to be used with the Simple Shiny Chat with MCP Support extension.",
       "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/simple-mcp-server",
       "latestVersion": {
-        "version": "0.0.2",
-        "released": "2025-07-08T16:14:02Z",
-        "url": "https://github.com/posit-dev/connect-extensions/releases/download/simple-mcp-server%40v0.0.2/simple-mcp-server.tar.gz",
+        "version": "0.0.3",
+        "released": "2026-02-03T17:53:31Z",
+        "url": "https://github.com/posit-dev/connect-extensions/releases/download/simple-mcp-server%40v0.0.3/simple-mcp-server.tar.gz",
         "minimumConnectVersion": "2025.04.0",
         "requiredFeatures": [
-          "API Publishing"
+          "API Publishing",
+          "OAuth Integrations"
         ],
         "requiredEnvironment": {
           "python": {
@@ -947,6 +948,21 @@
         }
       },
       "versions": [
+        {
+          "version": "0.0.3",
+          "released": "2026-02-03T17:53:31Z",
+          "url": "https://github.com/posit-dev/connect-extensions/releases/download/simple-mcp-server%40v0.0.3/simple-mcp-server.tar.gz",
+          "minimumConnectVersion": "2025.04.0",
+          "requiredFeatures": [
+            "API Publishing",
+            "OAuth Integrations"
+          ],
+          "requiredEnvironment": {
+            "python": {
+              "requires": ">=3.10"
+            }
+          }
+        },
         {
           "version": "0.0.2",
           "released": "2025-07-08T16:14:02Z",
