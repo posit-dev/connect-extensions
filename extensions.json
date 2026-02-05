@@ -377,9 +377,9 @@
       "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/portfolio-dashboard",
       "category": "example",
       "latestVersion": {
-        "version": "0.0.1",
-        "released": "2025-04-11T21:32:23Z",
-        "url": "https://github.com/posit-dev/connect-extensions/releases/download/portfolio-dashboard%40v0.0.1/portfolio-dashboard.tar.gz",
+        "version": "0.0.2",
+        "released": "2026-02-05T22:30:55Z",
+        "url": "https://github.com/posit-dev/connect-extensions/releases/download/portfolio-dashboard%40v0.0.2/portfolio-dashboard.tar.gz",
         "minimumConnectVersion": "2025.04.0",
         "requiredEnvironment": {
           "r": {
@@ -388,6 +388,17 @@
         }
       },
       "versions": [
+        {
+          "version": "0.0.2",
+          "released": "2026-02-05T22:30:55Z",
+          "url": "https://github.com/posit-dev/connect-extensions/releases/download/portfolio-dashboard%40v0.0.2/portfolio-dashboard.tar.gz",
+          "minimumConnectVersion": "2025.04.0",
+          "requiredEnvironment": {
+            "r": {
+              "requires": "~=4.4"
+            }
+          }
+        },
         {
           "version": "0.0.1",
           "released": "2025-04-11T21:32:23Z",
