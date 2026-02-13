@@ -1,0 +1,15 @@
+[project]
+name = "nameservice-inspector"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "posit-sdk>=0.10.0",
+    "streamlit>=1.46.0",
+]
+
+[dependency-groups]
+dev = [
+    "watchdog>=6.0.0",
+]
