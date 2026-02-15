@@ -1,0 +1,5 @@
+htmltools
+packaging
+pandas
+posit-sdk
+shiny
