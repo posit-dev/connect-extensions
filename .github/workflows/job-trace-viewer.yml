@@ -1,0 +1,63 @@
+name: Job Trace Viewer
+
+on:
+  workflow_call:
+
+env:
+  EXTENSION_NAME: job-trace-viewer
+  GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+jobs:
+  extension:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./extensions/${{ env.EXTENSION_NAME }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: ./.github/actions/lint-extension
+        with:
+          extension-name: ${{ env.EXTENSION_NAME }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "lts/*"
+          cache: "npm"
+          cache-dependency-path: extensions/${{ env.EXTENSION_NAME }}/package-lock.json
+
+      - run: npm ci
+      - run: npm run build
+
+      - name: Upload built extension
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.EXTENSION_NAME }}
+          path: |
+            extensions/${{ env.EXTENSION_NAME }}/dist/
+            extensions/${{ env.EXTENSION_NAME }}/requirements.txt
+            extensions/${{ env.EXTENSION_NAME }}/main.py
+            extensions/${{ env.EXTENSION_NAME }}/manifest.json
+
+      - uses: ./.github/actions/package-extension
+        with:
+          extension-name: ${{ env.EXTENSION_NAME }}
+          artifact-name: ${{ env.EXTENSION_NAME }}
+
+  connect-integration-tests:
+    needs: extension
+    uses: ./.github/workflows/connect-integration-tests.yml
+    secrets: inherit
+    with:
+      extensions: '["job-trace-viewer"]'
+
+  release:
+    runs-on: ubuntu-latest
+    needs: [extension, connect-integration-tests]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: ./.github/actions/release-extension
+        with:
+          extension-name: ${{ env.EXTENSION_NAME }}

@@ -1,0 +1,12 @@
+[project]
+name = "job-trace-viewer"
+version = "1.0.0"
+description = "Browse your Connect content, select a job, and visualize OpenTelemetry trace data from job executions."
+readme = "README.md"
+requires-python = ">=3.9"
+dependencies = [
+    "fastapi[standard]>=0.115.12",
+    "starlette>=0.47.2",
+    "httpx>=0.28.1",
+    "posit-sdk>=0.10.0",
+]

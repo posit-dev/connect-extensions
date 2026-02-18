@@ -191,6 +191,7 @@ jobs:
       package-vulnerability-scanner: ${{ steps.changes.outputs.package-vulnerability-scanner }}
       runtime-version-scanner: ${{ steps.changes.outputs.runtime-version-scanner }}
       usage-metrics-dashboard: ${{ steps.changes.outputs.usage-metrics-dashboard }}
+      job-trace-viewer: ${{ steps.changes.outputs.job-trace-viewer }}
 
     steps:
       - uses: actions/checkout@v4
@@ -207,6 +208,7 @@ jobs:
             package-vulnerability-scanner: extensions/package-vulnerability-scanner/**
             runtime-version-scanner: extensions/runtime-version-scanner/**
             usage-metrics-dashboard: extensions/usage-metrics-dashboard/**
+            job-trace-viewer: extensions/job-trace-viewer/**
 
   # Creates and releases the Publisher Command Center extension using a custom
   # workflow
@@ -245,6 +247,15 @@ jobs:
     uses: ./.github/workflows/usage-metrics-dashboard.yml
     secrets: inherit
 
+  # Creates and releases the Job Trace Viewer extension using a custom workflow
+  job-trace-viewer:
+    needs: [complex-extension-changes]
+    # Only runs if the `complex-extension-changes` job detects changes in the
+    # job-trace-viewer extension directory
+    if: ${{ needs.complex-extension-changes.outputs.job-trace-viewer == 'true' }}
+    uses: ./.github/workflows/job-trace-viewer.yml
+    secrets: inherit
+
   # All extensions have been linted, packaged, and released, if necessary
   # Continuing to update the extension list with the latest release data
 
@@ -261,6 +272,7 @@ jobs:
       package-vulnerability-scanner,
       runtime-version-scanner,
       usage-metrics-dashboard,
+      job-trace-viewer,
     ]
     if: ${{ always() }}
     outputs:

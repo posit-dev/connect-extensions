@@ -1,0 +1,39 @@
+{
+  "version": 1,
+  "metadata": {
+    "appmode": "python-fastapi",
+    "entrypoint": "main.py"
+  },
+  "python": {
+    "version": "3.13.5",
+    "package_manager": {
+      "name": "pip",
+      "package_file": "requirements.txt"
+    }
+  },
+  "environment": {
+    "image": "",
+    "prebuilt": false,
+    "python": {
+      "requires": "~=3.9"
+    }
+  },
+  "packages": {},
+  "files": {},
+  "extension": {
+    "name": "job-trace-viewer",
+    "title": "Job Trace Viewer",
+    "description": "Browse your Connect content, select a job, and visualize OpenTelemetry trace data from job executions using the agent-prism trace viewer.",
+    "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/job-trace-viewer",
+    "category": "extension",
+    "minimumConnectVersion": "2026.02.0",
+    "requiredFeatures": [
+      "API Publishing"
+    ],
+    "tags": [
+      "python",
+      "fastapi"
+    ],
+    "version": "0.0.0"
+  }
+}
