@@ -1,3 +1,5 @@
+import json
+
 from fastapi import FastAPI, HTTPException
 from fastapi.staticfiles import StaticFiles
 from posit import connect
@@ -14,8 +16,11 @@ async def get_current_user():
 
 @app.get("/api/content")
 async def list_content():
-    content = client.content.find()
-    return (content for content in content if content["trace_collection_enabled"])
+    return (
+        content
+        for content in client.content.find()
+        if content["trace_collection_enabled"]
+    )
 
 
 @app.get("/api/content/{guid}/jobs")
@@ -30,7 +35,14 @@ async def list_jobs(guid: str):
 async def get_traces(guid: str, job_key: str):
     try:
         response = client.get(f"v1/content/{guid}/jobs/{job_key}/traces")
-        return response.text
+        records = []
+        for line in response.content.decode("utf-8").splitlines():
+            if line.strip():
+                try:
+                    records.append(json.loads(line))
+                except json.JSONDecodeError:
+                    pass  # skip truncated or malformed trailing line
+        return records
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
