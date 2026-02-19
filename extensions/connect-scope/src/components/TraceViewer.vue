@@ -449,11 +449,21 @@ function closeDropdown() { dropdownStep.value = 'closed'; pendingKey.value = nul
         </div>
       </div>
 
-      <div v-for="group in filteredTraceGroups" :key="group.traceId" class="mb-0.5">
+      <div
+        v-for="group in filteredTraceGroups"
+        :key="group.traceId"
+        class="rounded-lg transition-all"
+        :class="expanded.has(group.traceId)
+          ? 'mb-2 border border-gray-200 bg-white px-3 py-2'
+          : 'mb-0.5 px-1'"
+      >
 
         <!-- Header row — same layout as span rows -->
-        <div class="flex items-center gap-2 py-0.5 rounded cursor-pointer select-none hover:bg-gray-50"
-             @click="toggle(group.traceId)">
+        <div
+          class="flex items-center gap-2 py-0.5 rounded cursor-pointer select-none hover:bg-gray-50"
+          :class="expanded.has(group.traceId) ? 'border-b border-gray-100 pb-2 mb-2 hover:bg-transparent' : ''"
+          @click="toggle(group.traceId)"
+        >
           <!-- Chevron + name + timestamp -->
           <div class="w-64 shrink-0 flex items-center gap-1.5 min-w-0 pl-1">
             <svg class="w-3 h-3 shrink-0 text-gray-400 transition-transform duration-100"
