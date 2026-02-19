@@ -10,6 +10,7 @@ library(reactable)
 library(ggplot2)
 library(plotly)
 library(shinycssloaders)
+library(otelsdk)
 
 shinyOptions(
   cache = cachem::cache_disk("./app_cache/cache/", max_age = 60 * 60)
@@ -900,7 +901,7 @@ server <- function(input, output, session) {
               paste0(value, "\u00A0") # Non-breaking space for alignment
             }
           },
-          html = TRUE,  # Required for HTML rendering
+          html = TRUE, # Required for HTML rendering
           class = "number"
         ),
 
