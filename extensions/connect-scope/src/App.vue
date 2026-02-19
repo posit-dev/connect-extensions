@@ -53,7 +53,7 @@ onMounted(() => {
         {{ userStore.error }}
       </div>
 
-      <div v-else-if="userStore.user" class="max-w-2xl mx-auto">
+      <div v-else-if="userStore.user" :class="view === 'traces' ? '' : 'max-w-2xl mx-auto'">
         <!-- Breadcrumb -->
         <nav v-if="view !== 'content'" class="flex items-center gap-1 text-sm mb-6 text-gray-500">
           <button
@@ -64,14 +64,14 @@ onMounted(() => {
           </button>
           <span>/</span>
           <template v-if="view === 'jobs'">
-            <span class="text-gray-800 font-medium">Jobs</span>
+            <span class="text-gray-800 font-medium">{{ contentStore.selectedContent?.title || contentStore.selectedContent?.name }}</span>
           </template>
           <template v-else>
             <button
               class="hover:text-blue-600 hover:underline"
               @click="goBackToJobs"
             >
-              Jobs
+              {{ contentStore.selectedContent?.title || contentStore.selectedContent?.name }}
             </button>
             <span>/</span>
             <span class="text-gray-800 font-medium">Traces</span>

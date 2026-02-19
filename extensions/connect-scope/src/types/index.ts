@@ -21,3 +21,34 @@ export interface Job {
 }
 
 export type TraceData = unknown;
+
+export interface OtlpSpan {
+  name: string;
+  traceId?: string;
+  spanId?: string;
+  parentSpanId?: string;
+  startTimeUnixNano?: string;
+  endTimeUnixNano?: string;
+  status?: { code?: number }; // code 2 = ERROR
+}
+
+export interface OtlpRecord {
+  resourceSpans?: Array<{
+    scopeSpans?: Array<{
+      spans?: OtlpSpan[];
+    }>;
+  }>;
+}
+
+export interface FlatSpan {
+  name: string;
+  spanId: string;
+  parentSpanId: string | null;
+  startNs: bigint;
+  durationMs: number | null;
+  depth: number;
+  offsetPct: number; // left offset as % of total trace duration
+  widthPct: number;  // width as % of total trace duration
+  hasError: boolean;
+  isSlow: boolean;
+}
