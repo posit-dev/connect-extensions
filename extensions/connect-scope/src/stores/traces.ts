@@ -7,6 +7,7 @@ export const useTracesStore = defineStore("traces", () => {
   const traceData = ref<TraceData | null>(null);
   const isLoading = ref(false);
   const error = ref<string | null>(null);
+  const selectedTraceId = ref<string | null>(null);
 
   async function fetchTraces(guid: string, jobKey: string) {
     isLoading.value = true;
@@ -25,7 +26,8 @@ export const useTracesStore = defineStore("traces", () => {
   function clear() {
     traceData.value = null;
     error.value = null;
+    selectedTraceId.value = null;
   }
 
-  return { traceData, isLoading, error, fetchTraces, clear };
+  return { traceData, isLoading, error, fetchTraces, clear, selectedTraceId };
 });

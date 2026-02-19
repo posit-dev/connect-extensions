@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted, reactive, ref } from "vue";
+import { computed, onMounted, ref } from "vue";
 import LoadingSpinner from "./ui/LoadingSpinner.vue";
 import { useTracesStore } from "../stores/traces";
 import type { ContentItem, Job, OtlpRecord, OtlpSpan, OtlpAnyValue, FlatSpan } from "../types";
@@ -27,7 +27,6 @@ interface TraceGroup {
 }
 
 function buildTraceGroup(traceId: string, spans: OtlpSpan[]): TraceGroup {
-  // Pre-parse all timestamps once — avoids repeated BigInt construction in sort comparators
   const spanStart = new Map<OtlpSpan, bigint>();
   const spanEnd = new Map<OtlpSpan, bigint | null>();
   for (const s of spans) {
@@ -35,7 +34,6 @@ function buildTraceGroup(traceId: string, spans: OtlpSpan[]): TraceGroup {
     spanEnd.set(s, s.endTimeUnixNano != null ? BigInt(s.endTimeUnixNano) : null);
   }
 
-  // Build id -> span map, then parent -> children map in O(N) instead of O(N²) per-span filter
   const byId = new Map<string, OtlpSpan>();
   for (const s of spans) {
     if (s.spanId) byId.set(s.spanId, s);
@@ -50,16 +48,13 @@ function buildTraceGroup(traceId: string, spans: OtlpSpan[]): TraceGroup {
     }
   }
 
-  // Comparator uses pre-parsed BigInts — no per-comparison allocation
   const cmpByStart = (a: OtlpSpan, b: OtlpSpan) =>
     spanStart.get(a)! < spanStart.get(b)! ? -1 : 1;
 
-  // Pre-sort every children list once
   for (const children of childrenByParent.values()) {
     children.sort(cmpByStart);
   }
 
-  // Find trace time bounds using pre-parsed values
   let traceStartNs = BigInt("9".repeat(20));
   let traceEndNs = 0n;
   for (const s of spans) {
@@ -77,9 +72,7 @@ function buildTraceGroup(traceId: string, spans: OtlpSpan[]): TraceGroup {
     const eNs = spanEnd.get(s) ?? null;
     const durationMs = eNs != null ? Number(eNs - sNs) / 1_000_000 : null;
     const offsetPct = Number((sNs - traceStartNs) * 10000n / durationNs) / 100;
-    const widthPct = eNs != null
-      ? Number((eNs - sNs) * 10000n / durationNs) / 100
-      : 0;
+    const widthPct = eNs != null ? Number((eNs - sNs) * 10000n / durationNs) / 100 : 0;
 
     const exceptionEvent = s.events?.find(e => e.name === "exception") ?? null;
     const exAttr = (key: string) => {
@@ -145,11 +138,9 @@ const traceGroups = computed((): TraceGroup[] => {
     else byTrace.set(tid, [s]);
   }
 
-  const groups = Array.from(byTrace.entries()).map(([tid, spans]) =>
-    buildTraceGroup(tid, spans)
-  );
-
-  return groups.sort((a, b) => (a.startNs > b.startNs ? -1 : 1));
+  return Array.from(byTrace.entries())
+    .map(([tid, spans]) => buildTraceGroup(tid, spans))
+    .sort((a, b) => (a.startNs > b.startNs ? -1 : 1));
 });
 
 const maxTraceDurationMs = computed(() =>
@@ -164,40 +155,6 @@ function otlpValue(v: OtlpAnyValue): string {
   if (v.arrayValue  != null) return JSON.stringify(v.arrayValue.values ?? []);
   if (v.kvlistValue != null) return JSON.stringify(v.kvlistValue.values ?? []);
   return "";
-}
-
-const viewMode = ref<'waterfall' | 'flamegraph'>('waterfall');
-
-function maxDepth(group: TraceGroup): number {
-  return group.spans.reduce((max, s) => Math.max(max, s.depth), 0);
-}
-
-// All traces collapsed by default
-const expanded = reactive(new Set<string>());
-
-function toggle(traceId: string) {
-  if (expanded.has(traceId)) expanded.delete(traceId);
-  else expanded.add(traceId);
-}
-
-const allExpanded = computed(() =>
-  filteredTraceGroups.value.length > 0 &&
-  filteredTraceGroups.value.every(g => expanded.has(g.traceId))
-);
-
-function toggleAllTraces() {
-  if (allExpanded.value) {
-    for (const g of filteredTraceGroups.value) expanded.delete(g.traceId);
-  } else {
-    for (const g of filteredTraceGroups.value) expanded.add(g.traceId);
-  }
-}
-
-const expandedSpans = reactive(new Set<string>());
-
-function toggleSpan(spanId: string) {
-  if (expandedSpans.has(spanId)) expandedSpans.delete(spanId);
-  else expandedSpans.add(spanId);
 }
 
 function formatTime(ms: number): string {
@@ -225,6 +182,21 @@ const STATUS_COLOR: Record<number, string> = {
   1: "text-gray-400",
   2: "text-gray-400",
 };
+
+// ── Sort state ────────────────────────────────────────────────────────────────
+
+type SortKey = 'startMs' | 'totalDurationMs' | 'spanCount' | 'label';
+const sortKey = ref<SortKey>('startMs');
+const sortDir = ref<'asc' | 'desc'>('desc');
+
+function setSort(key: SortKey) {
+  if (sortKey.value === key) {
+    sortDir.value = sortDir.value === 'asc' ? 'desc' : 'asc';
+  } else {
+    sortKey.value = key;
+    sortDir.value = key === 'startMs' ? 'desc' : 'desc';
+  }
+}
 
 // ── Facet filter state ────────────────────────────────────────────────────────
 
@@ -263,7 +235,6 @@ const sortedValues = computed(() => {
   return m ? [...m.entries()].sort((a, b) => b[1] - a[1]) : [];
 });
 
-// Precomputed once per filter change — not once per span
 const activeFilterMap = computed((): Map<string, Set<string>> => {
   const m = new Map<string, Set<string>>();
   for (const f of activeFilters.value) {
@@ -274,12 +245,18 @@ const activeFilterMap = computed((): Map<string, Set<string>> => {
   return m;
 });
 
-// Precomputed for the value picker — gives O(1) lookups in the template
 const pendingKeyActiveValues = computed((): Set<string> => {
   if (!pendingKey.value) return new Set();
   const key = pendingKey.value;
   return new Set(activeFilters.value.filter(f => f.key === key).map(f => f.value));
 });
+
+function spanMatchesFilters(span: FlatSpan, filterMap: Map<string, Set<string>>): boolean {
+  for (const [key, allowed] of filterMap) {
+    if (!span.attributes.some(a => a.key === key && allowed.has(otlpValue(a.value)))) return false;
+  }
+  return true;
+}
 
 const filteredTraceGroups = computed((): TraceGroup[] => {
   if (activeFilters.value.length === 0) return traceGroups.value;
@@ -289,14 +266,20 @@ const filteredTraceGroups = computed((): TraceGroup[] => {
     .filter(g => g.spans.length > 0);
 });
 
-// ── Facet functions ───────────────────────────────────────────────────────────
+const sortedFilteredTraceGroups = computed((): TraceGroup[] => {
+  const groups = [...filteredTraceGroups.value];
+  const dir = sortDir.value === 'asc' ? 1 : -1;
+  groups.sort((a, b) => {
+    const ak = a[sortKey.value];
+    const bk = b[sortKey.value];
+    if (typeof ak === 'string' && typeof bk === 'string')
+      return ak.localeCompare(bk) * dir;
+    return ((ak as number) - (bk as number)) * dir;
+  });
+  return groups;
+});
 
-function spanMatchesFilters(span: FlatSpan, filterMap: Map<string, Set<string>>): boolean {
-  for (const [key, allowed] of filterMap) {
-    if (!span.attributes.some(a => a.key === key && allowed.has(otlpValue(a.value)))) return false;
-  }
-  return true;
-}
+// ── Facet functions ───────────────────────────────────────────────────────────
 
 function addFilter(key: string, value: string) {
   if (!activeFilters.value.some(f => f.key === key && f.value === value))
@@ -334,101 +317,58 @@ function closeDropdown() { dropdownStep.value = 'closed'; pendingKey.value = nul
     </div>
 
     <div v-else-if="traceGroups.length">
-      <div class="flex items-center justify-between mb-2">
-        <div class="flex items-center gap-2">
-          <p class="text-xs text-gray-400">
-            {{ filteredTraceGroups.length }}<template v-if="activeFilters.length"> / {{ traceGroups.length }}</template> traces
-          </p>
-          <button
-            class="text-xs text-gray-400 hover:text-gray-600"
-            @click="toggleAllTraces"
-          >{{ allExpanded ? 'Collapse all' : 'Expand all' }}</button>
-        </div>
-        <div class="flex items-center gap-0.5 border border-gray-200 rounded p-0.5">
-          <button
-            class="px-2 py-0.5 rounded text-xs transition-colors"
-            :class="viewMode === 'waterfall' ? 'bg-gray-200 text-gray-800' : 'text-gray-400 hover:text-gray-600'"
-            @click="viewMode = 'waterfall'"
-          >Waterfall</button>
-          <button
-            class="px-2 py-0.5 rounded text-xs transition-colors"
-            :class="viewMode === 'flamegraph' ? 'bg-gray-200 text-gray-800' : 'text-gray-400 hover:text-gray-600'"
-            @click="viewMode = 'flamegraph'"
-          >Flame</button>
-        </div>
+      <!-- Toolbar -->
+      <div class="flex items-center justify-between mb-3">
+        <p class="text-xs text-gray-400">
+          {{ filteredTraceGroups.length }}<template v-if="activeFilters.length"> / {{ traceGroups.length }}</template> traces
+        </p>
       </div>
 
       <!-- Filter bar -->
       <div v-if="allFacets.size > 0" class="mb-3">
         <div class="flex flex-wrap items-center gap-1.5">
-          <!-- Active filter chips -->
           <span
             v-for="f in activeFilters"
             :key="`${f.key}:${f.value}`"
             class="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-blue-50 border border-blue-200 text-xs text-blue-800 font-mono"
           >
             {{ f.key }}: {{ f.value }}
-            <button
-              class="ml-0.5 text-blue-400 hover:text-blue-700 leading-none"
-              @click="removeFilter(f.key, f.value)"
-              title="Remove filter"
-            >×</button>
+            <button class="ml-0.5 text-blue-400 hover:text-blue-700 leading-none"
+                    @click="removeFilter(f.key, f.value)" title="Remove filter">×</button>
           </span>
 
-          <!-- Add filter dropdown trigger -->
           <div class="relative z-10">
-            <!-- Click-outside scrim -->
-            <div
-              v-if="dropdownStep !== 'closed'"
-              class="fixed inset-0 z-0"
-              @click="closeDropdown"
-            />
+            <div v-if="dropdownStep !== 'closed'" class="fixed inset-0 z-0" @click="closeDropdown" />
 
             <button
               class="relative z-10 inline-flex items-center gap-1 px-2 py-0.5 rounded border border-gray-200 text-xs text-gray-600 hover:bg-gray-50"
               @click="openKeyPicker"
-            >
-              + Add filter ▾
-            </button>
+            >+ Add filter ▾</button>
 
-            <!-- Key picker -->
-            <div
-              v-if="dropdownStep === 'pick-key'"
-              class="absolute z-10 left-0 mt-1 w-64 bg-white border border-gray-200 rounded shadow-lg overflow-hidden"
-            >
+            <div v-if="dropdownStep === 'pick-key'"
+                 class="absolute z-10 left-0 mt-1 w-64 bg-white border border-gray-200 rounded shadow-lg overflow-hidden">
               <ul class="max-h-56 overflow-y-auto">
-                <li
-                  v-for="facet in sortedFacets"
-                  :key="facet.key"
-                  class="flex items-center justify-between px-3 py-1.5 text-xs cursor-pointer hover:bg-gray-50"
-                  @click.stop="selectKey(facet.key)"
-                >
+                <li v-for="facet in sortedFacets" :key="facet.key"
+                    class="flex items-center justify-between px-3 py-1.5 text-xs cursor-pointer hover:bg-gray-50"
+                    @click.stop="selectKey(facet.key)">
                   <span class="font-mono text-gray-700 truncate">{{ facet.key }}</span>
                   <span class="ml-2 shrink-0 text-gray-400">{{ facet.total }} spans</span>
                 </li>
               </ul>
             </div>
 
-            <!-- Value picker -->
-            <div
-              v-if="dropdownStep === 'pick-value'"
-              class="absolute z-10 left-0 mt-1 w-64 bg-white border border-gray-200 rounded shadow-lg overflow-hidden"
-            >
-              <div
-                class="flex items-center gap-1.5 px-3 py-1.5 border-b border-gray-100 text-xs text-gray-600 cursor-pointer hover:bg-gray-50"
-                @click.stop="dropdownStep = 'pick-key'"
-              >
+            <div v-if="dropdownStep === 'pick-value'"
+                 class="absolute z-10 left-0 mt-1 w-64 bg-white border border-gray-200 rounded shadow-lg overflow-hidden">
+              <div class="flex items-center gap-1.5 px-3 py-1.5 border-b border-gray-100 text-xs text-gray-600 cursor-pointer hover:bg-gray-50"
+                   @click.stop="dropdownStep = 'pick-key'">
                 <span>←</span>
                 <span class="font-mono font-medium truncate">{{ pendingKey }}</span>
               </div>
               <ul class="max-h-52 overflow-y-auto">
-                <li
-                  v-for="[val, count] in sortedValues"
-                  :key="val"
-                  class="flex items-center justify-between px-3 py-1.5 text-xs cursor-pointer hover:bg-gray-50"
-                  :class="pendingKeyActiveValues.has(val) ? 'text-gray-400' : 'text-gray-700'"
-                  @click.stop="selectValue(val)"
-                >
+                <li v-for="[val, count] in sortedValues" :key="val"
+                    class="flex items-center justify-between px-3 py-1.5 text-xs cursor-pointer hover:bg-gray-50"
+                    :class="pendingKeyActiveValues.has(val) ? 'text-gray-400' : 'text-gray-700'"
+                    @click.stop="selectValue(val)">
                   <span class="font-mono truncate">
                     <template v-if="pendingKeyActiveValues.has(val)">✓ </template>{{ val }}
                   </span>
@@ -438,169 +378,78 @@ function closeDropdown() { dropdownStep.value = 'closed'; pendingKey.value = nul
             </div>
           </div>
 
-          <!-- Clear all -->
-          <button
-            v-if="activeFilters.length"
-            class="px-2 py-0.5 rounded text-xs text-gray-400 hover:text-gray-600"
-            @click="activeFilters = []"
-          >
+          <button v-if="activeFilters.length"
+                  class="px-2 py-0.5 rounded text-xs text-gray-400 hover:text-gray-600"
+                  @click="activeFilters = []">
             Clear all
           </button>
         </div>
       </div>
 
-      <div
-        v-for="group in filteredTraceGroups"
-        :key="group.traceId"
-        class="rounded-lg transition-all"
-        :class="expanded.has(group.traceId)
-          ? 'mb-2 border border-gray-200 bg-white px-3 py-2'
-          : 'mb-0.5 px-1'"
-      >
-
-        <!-- Header row — same layout as span rows -->
-        <div
-          class="flex items-center gap-2 py-0.5 rounded cursor-pointer select-none hover:bg-gray-50"
-          :class="expanded.has(group.traceId) ? 'border-b border-gray-100 pb-2 mb-2 hover:bg-transparent' : ''"
-          @click="toggle(group.traceId)"
-        >
-          <!-- Chevron + name + timestamp -->
-          <div class="w-64 shrink-0 flex items-center gap-1.5 min-w-0 pl-1">
-            <svg class="w-3 h-3 shrink-0 text-gray-400 transition-transform duration-100"
-                 :class="expanded.has(group.traceId) ? 'rotate-90' : ''"
-                 viewBox="0 0 6 10" fill="none"
-                 stroke="currentColor" stroke-width="1.5"
-                 stroke-linecap="round" stroke-linejoin="round">
-              <polyline points="1,1 5,5 1,9" />
-            </svg>
-            <div class="min-w-0">
-              <div class="flex items-center gap-1.5 min-w-0">
-                <span class="text-sm font-semibold text-gray-800 truncate" :title="group.label">{{ group.label }}</span>
-                <span v-if="group.hasError" class="text-red-500 shrink-0 text-xs" title="One or more spans errored">●</span>
-              </div>
-              <div class="text-xs text-gray-400 leading-none mt-0.5">{{ formatTime(group.startMs) }} · {{ group.spanCount }} spans</div>
-            </div>
-          </div>
-          <!-- Summary bar: width proportional across all traces -->
-          <div class="relative flex-1 h-5 bg-gray-100 rounded overflow-hidden">
-            <div class="absolute inset-y-0 left-0 bg-blue-400 rounded"
-                 :style="{ width: `${(group.totalDurationMs / maxTraceDurationMs) * 100}%` }">
-            </div>
-          </div>
-          <!-- Total duration -->
-          <div class="w-16 text-right text-xs text-gray-600 shrink-0 font-mono whitespace-nowrap">
-            {{ formatDuration(group.totalDurationMs) }}
-          </div>
-        </div>
-
-        <!-- Span rows (collapsed by default) -->
-        <ul v-if="expanded.has(group.traceId) && viewMode === 'waterfall'" class="space-y-0.5 mt-0.5">
-          <li v-for="span in group.spans" :key="span.spanId"
-              class="py-0.5 cursor-pointer"
-              @click="toggleSpan(span.spanId)">
-            <div class="flex items-center gap-2">
-              <!-- Name, indented by depth -->
-              <div class="w-64 shrink-0 flex items-center min-w-0"
-                   :style="{ paddingLeft: `${span.depth * 16 + 4}px` }">
-                <span class="text-gray-300 mr-1 shrink-0 text-xs leading-none">└</span>
-                <span class="text-sm text-gray-600 truncate" :title="span.name">{{ span.name }}</span>
-                <span v-if="span.hasError" class="shrink-0 ml-1 text-xs text-gray-500" title="Error">⚠</span>
-              </div>
-              <!-- Timeline bar: position + width relative to this trace's duration -->
-              <div class="relative flex-1 h-5 bg-gray-100 rounded overflow-hidden">
-                <div class="absolute inset-y-0 rounded bg-blue-300"
-                     :style="{ left: `${span.offsetPct}%`, width: `${Math.max(span.widthPct, 0.5)}%` }">
-                </div>
-              </div>
-              <!-- Duration -->
-              <div class="w-16 text-right text-xs text-gray-500 shrink-0 font-mono whitespace-nowrap">
-                {{ span.durationMs != null ? span.durationMs.toFixed(1) + ' ms' : '—' }}
-              </div>
-            </div>
-
-            <!-- Detail panel -->
-            <div v-if="expandedSpans.has(span.spanId)"
-                 class="mt-1.5 px-2 py-2 bg-gray-50 border border-gray-100 rounded text-xs">
-
-              <!-- Attributes -->
-              <table v-if="span.attributes.length" class="w-full mb-2">
-                <tbody>
-                  <tr v-for="attr in span.attributes" :key="attr.key" class="align-top">
-                    <td class="pr-4 pb-0.5 text-gray-400 font-mono whitespace-nowrap">{{ attr.key }}</td>
-                    <td class="pb-0.5 text-gray-700 font-mono break-all">{{ otlpValue(attr.value) }}</td>
-                  </tr>
-                </tbody>
-              </table>
-              <p v-else class="text-gray-400 mb-2">No attributes</p>
-
-              <!-- Error details -->
-              <template v-if="span.statusMessage || span.exception">
-                <p class="text-gray-600 font-medium mb-1">
-                  {{ span.exception?.type ?? 'Error' }}: {{ span.statusMessage ?? span.exception?.message }}
-                </p>
-                <pre v-if="span.exception?.stacktrace"
-                     class="text-gray-500 whitespace-pre-wrap break-all bg-white border border-gray-100 rounded p-2 max-h-40 overflow-y-auto leading-relaxed">{{ span.exception.stacktrace }}</pre>
-              </template>
-            </div>
-          </li>
-        </ul>
-
-        <!-- Flamegraph (collapsed by default, same toggle as waterfall) -->
-        <div v-if="expanded.has(group.traceId) && viewMode === 'flamegraph'" class="mt-0.5">
-          <!-- Flame chart canvas -->
-          <div
-            class="relative w-full"
-            :style="{ height: `${(maxDepth(group) + 1) * 22}px` }"
+      <!-- Table -->
+      <table class="w-full text-sm border-collapse">
+        <thead>
+          <tr class="border-b border-gray-200">
+            <th class="text-left pb-2 pr-4 text-xs font-medium text-gray-500 cursor-pointer select-none hover:text-gray-700 w-64"
+                @click="setSort('label')">
+              Name
+              <span v-if="sortKey === 'label'" class="ml-0.5 text-gray-400">{{ sortDir === 'asc' ? '↑' : '↓' }}</span>
+            </th>
+            <th class="text-left pb-2 pr-4 text-xs font-medium text-gray-500 cursor-pointer select-none hover:text-gray-700 w-40"
+                @click="setSort('startMs')">
+              Time
+              <span v-if="sortKey === 'startMs'" class="ml-0.5 text-gray-400">{{ sortDir === 'asc' ? '↑' : '↓' }}</span>
+            </th>
+            <th class="text-left pb-2 pr-4 text-xs font-medium text-gray-500 cursor-pointer select-none hover:text-gray-700"
+                @click="setSort('totalDurationMs')">
+              Duration
+              <span v-if="sortKey === 'totalDurationMs'" class="ml-0.5 text-gray-400">{{ sortDir === 'asc' ? '↑' : '↓' }}</span>
+            </th>
+            <th class="text-right pb-2 text-xs font-medium text-gray-500 cursor-pointer select-none hover:text-gray-700 w-16"
+                @click="setSort('spanCount')">
+              Spans
+              <span v-if="sortKey === 'spanCount'" class="ml-0.5 text-gray-400">{{ sortDir === 'asc' ? '↑' : '↓' }}</span>
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr
+            v-for="group in sortedFilteredTraceGroups"
+            :key="group.traceId"
+            class="border-b border-gray-100 cursor-pointer hover:bg-gray-50 transition-colors"
+            @click="tracesStore.selectedTraceId = group.traceId"
           >
-            <div
-              v-for="span in group.spans"
-              :key="span.spanId"
-              class="absolute overflow-hidden cursor-pointer rounded-sm border px-1 flex items-center"
-              :class="span.hasError
-                ? (expandedSpans.has(span.spanId) ? 'bg-red-300 border-red-400' : 'bg-red-200 border-red-300 hover:bg-red-300')
-                : (expandedSpans.has(span.spanId) ? 'bg-blue-400 border-blue-500' : 'bg-blue-200 border-blue-300 hover:bg-blue-300')"
-              :style="{
-                left: `${span.offsetPct}%`,
-                width: `${Math.max(span.widthPct, 0.3)}%`,
-                top: `${span.depth * 22}px`,
-                height: '20px',
-              }"
-              :title="`${span.name}${span.durationMs != null ? ' — ' + span.durationMs.toFixed(1) + ' ms' : ''}`"
-              @click="toggleSpan(span.spanId)"
-            >
-              <span
-                v-if="span.widthPct > 2"
-                class="text-xs font-mono truncate leading-none text-gray-800 select-none"
-              >{{ span.name }}</span>
-            </div>
-          </div>
-
-          <!-- Detail panels for selected spans (below the chart) -->
-          <template v-for="span in group.spans" :key="`detail-${span.spanId}`">
-            <div v-if="expandedSpans.has(span.spanId)"
-                 class="mt-1.5 px-2 py-2 bg-gray-50 border border-gray-100 rounded text-xs">
-              <p class="font-mono font-medium text-gray-700 mb-1.5 truncate">{{ span.name }}</p>
-              <table v-if="span.attributes.length" class="w-full mb-2">
-                <tbody>
-                  <tr v-for="attr in span.attributes" :key="attr.key" class="align-top">
-                    <td class="pr-4 pb-0.5 text-gray-400 font-mono whitespace-nowrap">{{ attr.key }}</td>
-                    <td class="pb-0.5 text-gray-700 font-mono break-all">{{ otlpValue(attr.value) }}</td>
-                  </tr>
-                </tbody>
-              </table>
-              <p v-else class="text-gray-400 mb-2">No attributes</p>
-              <template v-if="span.statusMessage || span.exception">
-                <p class="text-gray-600 font-medium mb-1">
-                  {{ span.exception?.type ?? 'Error' }}: {{ span.statusMessage ?? span.exception?.message }}
-                </p>
-                <pre v-if="span.exception?.stacktrace"
-                     class="text-gray-500 whitespace-pre-wrap break-all bg-white border border-gray-100 rounded p-2 max-h-40 overflow-y-auto leading-relaxed">{{ span.exception.stacktrace }}</pre>
-              </template>
-            </div>
-          </template>
-        </div>
-
-      </div>
+            <!-- Name -->
+            <td class="py-2 pr-4">
+              <div class="flex items-center gap-1.5 min-w-0">
+                <span v-if="group.hasError" class="shrink-0 text-red-500 text-xs" title="One or more spans errored">●</span>
+                <span class="font-medium text-gray-800 truncate" :title="group.label">{{ group.label }}</span>
+              </div>
+            </td>
+            <!-- Time -->
+            <td class="py-2 pr-4 text-xs text-gray-500 whitespace-nowrap font-mono">
+              {{ formatTime(group.startMs) }}
+            </td>
+            <!-- Duration bar + text -->
+            <td class="py-2 pr-4">
+              <div class="flex items-center gap-2">
+                <div class="relative flex-1 h-3 bg-gray-100 rounded overflow-hidden">
+                  <div class="absolute inset-y-0 left-0 bg-blue-300 rounded"
+                       :style="{ width: `${(group.totalDurationMs / maxTraceDurationMs) * 100}%` }">
+                  </div>
+                </div>
+                <span class="text-xs text-gray-600 font-mono whitespace-nowrap w-16 text-right">
+                  {{ formatDuration(group.totalDurationMs) }}
+                </span>
+              </div>
+            </td>
+            <!-- Span count -->
+            <td class="py-2 text-right text-xs text-gray-500 font-mono">
+              {{ group.spanCount }}
+            </td>
+          </tr>
+        </tbody>
+      </table>
     </div>
 
     <div v-else class="text-gray-500 text-sm">No trace data available.</div>
