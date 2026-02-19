@@ -22,6 +22,15 @@ export interface Job {
 
 export type TraceData = unknown;
 
+export interface OtlpAnyValue {
+  stringValue?: string;
+  intValue?: string;    // proto3 int64 transmitted as string
+  floatValue?: number;
+  boolValue?: boolean;
+  arrayValue?: { values?: OtlpAnyValue[] };
+  kvlistValue?: { values?: Array<{ key: string; value: OtlpAnyValue }> };
+}
+
 export interface OtlpSpan {
   name: string;
   traceId?: string;
@@ -29,7 +38,13 @@ export interface OtlpSpan {
   parentSpanId?: string;
   startTimeUnixNano?: string;
   endTimeUnixNano?: string;
-  status?: { code?: number }; // code 2 = ERROR
+  attributes?: Array<{ key: string; value: OtlpAnyValue }>;
+  events?: Array<{
+    timeUnixNano?: string;
+    name: string;
+    attributes?: Array<{ key: string; value: OtlpAnyValue }>;
+  }>;
+  status?: { code?: number; message?: string }; // code 2 = ERROR
 }
 
 export interface OtlpRecord {
@@ -50,4 +65,7 @@ export interface FlatSpan {
   offsetPct: number; // left offset as % of total trace duration
   widthPct: number;  // width as % of total trace duration
   hasError: boolean;
+  attributes: Array<{ key: string; value: OtlpAnyValue }>;
+  statusMessage: string | null;
+  exception: { type?: string; message?: string; stacktrace?: string } | null;
 }

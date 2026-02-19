@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import { computed, onMounted, reactive } from "vue";
+import { computed, onMounted, reactive, ref } from "vue";
 import LoadingSpinner from "./ui/LoadingSpinner.vue";
 import { useTracesStore } from "../stores/traces";
-import type { ContentItem, Job, OtlpRecord, OtlpSpan, FlatSpan } from "../types";
+import type { ContentItem, Job, OtlpRecord, OtlpSpan, OtlpAnyValue, FlatSpan } from "../types";
 
 const props = defineProps<{
   content: ContentItem;
@@ -53,6 +53,12 @@ function buildTraceGroup(traceId: string, spans: OtlpSpan[]): TraceGroup {
       ? Number((eNs - sNs) * 10000n / durationNs) / 100
       : 0;
 
+    const exceptionEvent = s.events?.find(e => e.name === "exception") ?? null;
+    const exAttr = (key: string) => {
+      const a = exceptionEvent?.attributes?.find(a => a.key === key);
+      return a ? otlpValue(a.value) : undefined;
+    };
+
     flat.push({
       name: s.name,
       spanId: s.spanId ?? `anon-${flat.length}`,
@@ -63,6 +69,11 @@ function buildTraceGroup(traceId: string, spans: OtlpSpan[]): TraceGroup {
       offsetPct,
       widthPct,
       hasError: s.status?.code === 2,
+      attributes: s.attributes ?? [],
+      statusMessage: s.status?.message ?? null,
+      exception: exceptionEvent
+        ? { type: exAttr("exception.type"), message: exAttr("exception.message"), stacktrace: exAttr("exception.stacktrace") }
+        : null,
     });
 
     const children = spans
@@ -118,6 +129,15 @@ const maxTraceDurationMs = computed(() =>
   Math.max(1, ...traceGroups.value.map(g => g.totalDurationMs))
 );
 
+function otlpValue(v: OtlpAnyValue): string {
+  if (v.stringValue != null) return v.stringValue;
+  if (v.intValue    != null) return v.intValue;
+  if (v.floatValue  != null) return String(v.floatValue);
+  if (v.boolValue   != null) return String(v.boolValue);
+  if (v.arrayValue  != null) return JSON.stringify(v.arrayValue.values ?? []);
+  if (v.kvlistValue != null) return JSON.stringify(v.kvlistValue.values ?? []);
+  return "";
+}
 
 // All traces collapsed by default
 const expanded = reactive(new Set<string>());
@@ -125,6 +145,13 @@ const expanded = reactive(new Set<string>());
 function toggle(traceId: string) {
   if (expanded.has(traceId)) expanded.delete(traceId);
   else expanded.add(traceId);
+}
+
+const expandedSpans = reactive(new Set<string>());
+
+function toggleSpan(spanId: string) {
+  if (expandedSpans.has(spanId)) expandedSpans.delete(spanId);
+  else expandedSpans.add(spanId);
 }
 
 function formatTime(ms: number): string {
@@ -152,6 +179,78 @@ const STATUS_COLOR: Record<number, string> = {
   1: "text-gray-400",
   2: "text-gray-400",
 };
+
+// ── Facet filter state ────────────────────────────────────────────────────────
+
+const activeFilters = ref<Array<{ key: string; value: string }>>([]);
+
+type DropdownStep = 'closed' | 'pick-key' | 'pick-value';
+const dropdownStep = ref<DropdownStep>('closed');
+const pendingKey = ref<string | null>(null);
+
+// ── Facet computed ────────────────────────────────────────────────────────────
+
+const allFacets = computed((): Map<string, Map<string, number>> => {
+  const facets = new Map<string, Map<string, number>>();
+  for (const group of traceGroups.value) {
+    for (const span of group.spans) {
+      for (const attr of span.attributes) {
+        const val = otlpValue(attr.value);
+        if (!facets.has(attr.key)) facets.set(attr.key, new Map());
+        const m = facets.get(attr.key)!;
+        m.set(val, (m.get(val) ?? 0) + 1);
+      }
+    }
+  }
+  return facets;
+});
+
+const sortedFacets = computed(() =>
+  [...allFacets.value.entries()]
+    .map(([key, m]) => ({ key, total: [...m.values()].reduce((s, c) => s + c, 0) }))
+    .sort((a, b) => b.total - a.total)
+);
+
+const sortedValues = computed(() => {
+  if (!pendingKey.value) return [];
+  const m = allFacets.value.get(pendingKey.value);
+  return m ? [...m.entries()].sort((a, b) => b[1] - a[1]) : [];
+});
+
+const filteredTraceGroups = computed((): TraceGroup[] => {
+  if (activeFilters.value.length === 0) return traceGroups.value;
+  return traceGroups.value
+    .map(g => ({ ...g, spans: g.spans.filter(spanMatchesFilters) }))
+    .filter(g => g.spans.length > 0);
+});
+
+// ── Facet functions ───────────────────────────────────────────────────────────
+
+function spanMatchesFilters(span: FlatSpan): boolean {
+  const keys = [...new Set(activeFilters.value.map(f => f.key))];
+  for (const key of keys) {
+    const allowed = new Set(activeFilters.value.filter(f => f.key === key).map(f => f.value));
+    if (!span.attributes.some(a => a.key === key && allowed.has(otlpValue(a.value)))) return false;
+  }
+  return true;
+}
+
+function addFilter(key: string, value: string) {
+  if (!activeFilters.value.some(f => f.key === key && f.value === value))
+    activeFilters.value = [...activeFilters.value, { key, value }];
+}
+
+function removeFilter(key: string, value: string) {
+  activeFilters.value = activeFilters.value.filter(f => !(f.key === key && f.value === value));
+}
+
+function openKeyPicker() { dropdownStep.value = 'pick-key'; }
+function selectKey(key: string) { pendingKey.value = key; dropdownStep.value = 'pick-value'; }
+function selectValue(value: string) {
+  if (pendingKey.value) addFilter(pendingKey.value, value);
+  dropdownStep.value = 'closed'; pendingKey.value = null;
+}
+function closeDropdown() { dropdownStep.value = 'closed'; pendingKey.value = null; }
 </script>
 
 <template>
@@ -172,9 +271,102 @@ const STATUS_COLOR: Record<number, string> = {
     </div>
 
     <div v-else-if="traceGroups.length">
-      <p class="text-xs text-gray-400 mb-2">{{ traceGroups.length }} traces</p>
+      <p class="text-xs text-gray-400 mb-2">
+        {{ filteredTraceGroups.length }}<template v-if="activeFilters.length"> / {{ traceGroups.length }}</template> traces
+      </p>
 
-      <div v-for="group in traceGroups" :key="group.traceId" class="mb-0.5">
+      <!-- Filter bar -->
+      <div v-if="allFacets.size > 0" class="mb-3">
+        <div class="flex flex-wrap items-center gap-1.5">
+          <!-- Active filter chips -->
+          <span
+            v-for="f in activeFilters"
+            :key="`${f.key}:${f.value}`"
+            class="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-blue-50 border border-blue-200 text-xs text-blue-800 font-mono"
+          >
+            {{ f.key }}: {{ f.value }}
+            <button
+              class="ml-0.5 text-blue-400 hover:text-blue-700 leading-none"
+              @click="removeFilter(f.key, f.value)"
+              title="Remove filter"
+            >×</button>
+          </span>
+
+          <!-- Add filter dropdown trigger -->
+          <div class="relative z-10">
+            <!-- Click-outside scrim -->
+            <div
+              v-if="dropdownStep !== 'closed'"
+              class="fixed inset-0 z-0"
+              @click="closeDropdown"
+            />
+
+            <button
+              class="relative z-10 inline-flex items-center gap-1 px-2 py-0.5 rounded border border-gray-200 text-xs text-gray-600 hover:bg-gray-50"
+              @click="openKeyPicker"
+            >
+              + Add filter ▾
+            </button>
+
+            <!-- Key picker -->
+            <div
+              v-if="dropdownStep === 'pick-key'"
+              class="relative z-10 absolute left-0 mt-1 w-64 bg-white border border-gray-200 rounded shadow-lg overflow-hidden"
+            >
+              <ul class="max-h-56 overflow-y-auto">
+                <li
+                  v-for="facet in sortedFacets"
+                  :key="facet.key"
+                  class="flex items-center justify-between px-3 py-1.5 text-xs cursor-pointer hover:bg-gray-50"
+                  @click.stop="selectKey(facet.key)"
+                >
+                  <span class="font-mono text-gray-700 truncate">{{ facet.key }}</span>
+                  <span class="ml-2 shrink-0 text-gray-400">{{ facet.total }} spans</span>
+                </li>
+              </ul>
+            </div>
+
+            <!-- Value picker -->
+            <div
+              v-if="dropdownStep === 'pick-value'"
+              class="relative z-10 absolute left-0 mt-1 w-64 bg-white border border-gray-200 rounded shadow-lg overflow-hidden"
+            >
+              <div
+                class="flex items-center gap-1.5 px-3 py-1.5 border-b border-gray-100 text-xs text-gray-600 cursor-pointer hover:bg-gray-50"
+                @click.stop="dropdownStep = 'pick-key'"
+              >
+                <span>←</span>
+                <span class="font-mono font-medium truncate">{{ pendingKey }}</span>
+              </div>
+              <ul class="max-h-52 overflow-y-auto">
+                <li
+                  v-for="[val, count] in sortedValues"
+                  :key="val"
+                  class="flex items-center justify-between px-3 py-1.5 text-xs cursor-pointer hover:bg-gray-50"
+                  :class="activeFilters.some(f => f.key === pendingKey && f.value === val) ? 'text-gray-400' : 'text-gray-700'"
+                  @click.stop="selectValue(val)"
+                >
+                  <span class="font-mono truncate">
+                    <template v-if="activeFilters.some(f => f.key === pendingKey && f.value === val)">✓ </template>{{ val }}
+                  </span>
+                  <span class="ml-2 shrink-0 text-gray-400">{{ count }} spans</span>
+                </li>
+              </ul>
+            </div>
+          </div>
+
+          <!-- Clear all -->
+          <button
+            v-if="activeFilters.length"
+            class="px-2 py-0.5 rounded text-xs text-gray-400 hover:text-gray-600"
+            @click="activeFilters = []"
+          >
+            Clear all
+          </button>
+        </div>
+      </div>
+
+      <div v-for="group in filteredTraceGroups" :key="group.traceId" class="mb-0.5">
 
         <!-- Header row — same layout as span rows -->
         <div class="flex items-center gap-2 py-0.5 rounded cursor-pointer select-none hover:bg-gray-50"
@@ -211,23 +403,51 @@ const STATUS_COLOR: Record<number, string> = {
         <!-- Span rows (collapsed by default) -->
         <ul v-if="expanded.has(group.traceId)" class="space-y-0.5 mt-0.5">
           <li v-for="span in group.spans" :key="span.spanId"
-              class="flex items-center gap-2 py-0.5">
-            <!-- Name, indented by depth -->
-            <div class="w-64 shrink-0 flex items-center min-w-0"
-                 :style="{ paddingLeft: `${span.depth * 16 + 4}px` }">
-              <span class="text-gray-300 mr-1 shrink-0 text-xs leading-none">└</span>
-              <span class="text-sm text-gray-600 truncate" :title="span.name">{{ span.name }}</span>
-              <span v-if="span.hasError" class="shrink-0 ml-1 text-xs text-gray-500" title="Error">⚠</span>
-            </div>
-            <!-- Timeline bar: position + width relative to this trace's duration -->
-            <div class="relative flex-1 h-5 bg-gray-100 rounded overflow-hidden">
-              <div class="absolute inset-y-0 rounded bg-blue-300"
-                   :style="{ left: `${span.offsetPct}%`, width: `${Math.max(span.widthPct, 0.5)}%` }">
+              class="py-0.5 cursor-pointer"
+              @click="toggleSpan(span.spanId)">
+            <div class="flex items-center gap-2">
+              <!-- Name, indented by depth -->
+              <div class="w-64 shrink-0 flex items-center min-w-0"
+                   :style="{ paddingLeft: `${span.depth * 16 + 4}px` }">
+                <span class="text-gray-300 mr-1 shrink-0 text-xs leading-none">└</span>
+                <span class="text-sm text-gray-600 truncate" :title="span.name">{{ span.name }}</span>
+                <span v-if="span.hasError" class="shrink-0 ml-1 text-xs text-gray-500" title="Error">⚠</span>
+              </div>
+              <!-- Timeline bar: position + width relative to this trace's duration -->
+              <div class="relative flex-1 h-5 bg-gray-100 rounded overflow-hidden">
+                <div class="absolute inset-y-0 rounded bg-blue-300"
+                     :style="{ left: `${span.offsetPct}%`, width: `${Math.max(span.widthPct, 0.5)}%` }">
+                </div>
+              </div>
+              <!-- Duration -->
+              <div class="w-16 text-right text-xs text-gray-500 shrink-0 font-mono">
+                {{ span.durationMs != null ? span.durationMs.toFixed(1) + ' ms' : '—' }}
               </div>
             </div>
-            <!-- Duration -->
-            <div class="w-16 text-right text-xs text-gray-500 shrink-0 font-mono">
-              {{ span.durationMs != null ? span.durationMs.toFixed(1) + ' ms' : '—' }}
+
+            <!-- Detail panel -->
+            <div v-if="expandedSpans.has(span.spanId)"
+                 class="mt-1.5 px-2 py-2 bg-gray-50 border border-gray-100 rounded text-xs">
+
+              <!-- Attributes -->
+              <table v-if="span.attributes.length" class="w-full mb-2">
+                <tbody>
+                  <tr v-for="attr in span.attributes" :key="attr.key" class="align-top">
+                    <td class="pr-4 pb-0.5 text-gray-400 font-mono whitespace-nowrap">{{ attr.key }}</td>
+                    <td class="pb-0.5 text-gray-700 font-mono break-all">{{ otlpValue(attr.value) }}</td>
+                  </tr>
+                </tbody>
+              </table>
+              <p v-else class="text-gray-400 mb-2">No attributes</p>
+
+              <!-- Error details -->
+              <template v-if="span.statusMessage || span.exception">
+                <p class="text-gray-600 font-medium mb-1">
+                  {{ span.exception?.type ?? 'Error' }}: {{ span.statusMessage ?? span.exception?.message }}
+                </p>
+                <pre v-if="span.exception?.stacktrace"
+                     class="text-gray-500 whitespace-pre-wrap break-all bg-white border border-gray-100 rounded p-2 max-h-40 overflow-y-auto leading-relaxed">{{ span.exception.stacktrace }}</pre>
+              </template>
             </div>
           </li>
         </ul>
