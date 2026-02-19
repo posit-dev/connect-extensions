@@ -180,6 +180,19 @@ function toggle(traceId: string) {
   else expanded.add(traceId);
 }
 
+const allExpanded = computed(() =>
+  filteredTraceGroups.value.length > 0 &&
+  filteredTraceGroups.value.every(g => expanded.has(g.traceId))
+);
+
+function toggleAllTraces() {
+  if (allExpanded.value) {
+    for (const g of filteredTraceGroups.value) expanded.delete(g.traceId);
+  } else {
+    for (const g of filteredTraceGroups.value) expanded.add(g.traceId);
+  }
+}
+
 const expandedSpans = reactive(new Set<string>());
 
 function toggleSpan(spanId: string) {
@@ -322,9 +335,15 @@ function closeDropdown() { dropdownStep.value = 'closed'; pendingKey.value = nul
 
     <div v-else-if="traceGroups.length">
       <div class="flex items-center justify-between mb-2">
-        <p class="text-xs text-gray-400">
-          {{ filteredTraceGroups.length }}<template v-if="activeFilters.length"> / {{ traceGroups.length }}</template> traces
-        </p>
+        <div class="flex items-center gap-2">
+          <p class="text-xs text-gray-400">
+            {{ filteredTraceGroups.length }}<template v-if="activeFilters.length"> / {{ traceGroups.length }}</template> traces
+          </p>
+          <button
+            class="text-xs text-gray-400 hover:text-gray-600"
+            @click="toggleAllTraces"
+          >{{ allExpanded ? 'Collapse all' : 'Expand all' }}</button>
+        </div>
         <div class="flex items-center gap-0.5 border border-gray-200 rounded p-0.5">
           <button
             class="px-2 py-0.5 rounded text-xs transition-colors"
