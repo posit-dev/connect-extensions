@@ -63,7 +63,6 @@ function buildTraceGroup(traceId: string, spans: OtlpSpan[]): TraceGroup {
       offsetPct,
       widthPct,
       hasError: s.status?.code === 2,
-      isSlow: false, // set in post-pass below
     });
 
     const children = spans
@@ -76,23 +75,6 @@ function buildTraceGroup(traceId: string, spans: OtlpSpan[]): TraceGroup {
     .filter(s => !s.parentSpanId || !byId.has(s.parentSpanId))
     .sort((a, b) => (BigInt(a.startTimeUnixNano ?? "0") < BigInt(b.startTimeUnixNano ?? "0") ? -1 : 1));
   for (const root of roots) visit(root, 0);
-
-  // Mark slow spans: compare non-root spans against their within-trace median
-  const childDurations = flat
-    .filter(s => s.depth > 0 && s.durationMs != null)
-    .map(s => s.durationMs as number)
-    .sort((a, b) => a - b);
-  if (childDurations.length > 0) {
-    const mid = Math.floor(childDurations.length / 2);
-    const spanMedian = childDurations.length % 2 === 0
-      ? (childDurations[mid - 1] + childDurations[mid]) / 2
-      : childDurations[mid];
-    for (const s of flat) {
-      if (s.depth > 0 && s.durationMs != null && s.durationMs > 1.5 * spanMedian) {
-        s.isSlow = true;
-      }
-    }
-  }
 
   return {
     traceId,
@@ -136,12 +118,6 @@ const maxTraceDurationMs = computed(() =>
   Math.max(1, ...traceGroups.value.map(g => g.totalDurationMs))
 );
 
-const medianDurationMs = computed(() => {
-  const sorted = traceGroups.value.map(g => g.totalDurationMs).sort((a, b) => a - b);
-  if (sorted.length === 0) return 0;
-  const mid = Math.floor(sorted.length / 2);
-  return sorted.length % 2 === 0 ? (sorted[mid - 1] + sorted[mid]) / 2 : sorted[mid];
-});
 
 // All traces collapsed by default
 const expanded = reactive(new Set<string>());
@@ -222,8 +198,7 @@ const STATUS_COLOR: Record<number, string> = {
           </div>
           <!-- Summary bar: width proportional across all traces -->
           <div class="relative flex-1 h-5 bg-gray-100 rounded overflow-hidden">
-            <div class="absolute inset-y-0 left-0 rounded"
-                 :class="group.totalDurationMs > 1.5 * medianDurationMs ? 'bg-amber-400' : 'bg-blue-400'"
+            <div class="absolute inset-y-0 left-0 bg-blue-400 rounded"
                  :style="{ width: `${(group.totalDurationMs / maxTraceDurationMs) * 100}%` }">
             </div>
           </div>
@@ -242,11 +217,11 @@ const STATUS_COLOR: Record<number, string> = {
                  :style="{ paddingLeft: `${span.depth * 16 + 4}px` }">
               <span class="text-gray-300 mr-1 shrink-0 text-xs leading-none">└</span>
               <span class="text-sm text-gray-600 truncate" :title="span.name">{{ span.name }}</span>
+              <span v-if="span.hasError" class="shrink-0 ml-1 text-xs text-gray-500" title="Error">⚠</span>
             </div>
             <!-- Timeline bar: position + width relative to this trace's duration -->
             <div class="relative flex-1 h-5 bg-gray-100 rounded overflow-hidden">
-              <div class="absolute inset-y-0 rounded"
-                   :class="span.hasError ? 'bg-red-300' : span.isSlow ? 'bg-amber-300' : 'bg-blue-300'"
+              <div class="absolute inset-y-0 rounded bg-blue-300"
                    :style="{ left: `${span.offsetPct}%`, width: `${Math.max(span.widthPct, 0.5)}%` }">
               </div>
             </div>

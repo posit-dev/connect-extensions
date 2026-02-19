@@ -50,5 +50,4 @@ export interface FlatSpan {
   offsetPct: number; // left offset as % of total trace duration
   widthPct: number;  // width as % of total trace duration
   hasError: boolean;
-  isSlow: boolean;
 }
