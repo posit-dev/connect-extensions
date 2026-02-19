@@ -166,6 +166,12 @@ function otlpValue(v: OtlpAnyValue): string {
   return "";
 }
 
+const viewMode = ref<'waterfall' | 'flamegraph'>('waterfall');
+
+function maxDepth(group: TraceGroup): number {
+  return group.spans.reduce((max, s) => Math.max(max, s.depth), 0);
+}
+
 // All traces collapsed by default
 const expanded = reactive(new Set<string>());
 
@@ -315,9 +321,23 @@ function closeDropdown() { dropdownStep.value = 'closed'; pendingKey.value = nul
     </div>
 
     <div v-else-if="traceGroups.length">
-      <p class="text-xs text-gray-400 mb-2">
-        {{ filteredTraceGroups.length }}<template v-if="activeFilters.length"> / {{ traceGroups.length }}</template> traces
-      </p>
+      <div class="flex items-center justify-between mb-2">
+        <p class="text-xs text-gray-400">
+          {{ filteredTraceGroups.length }}<template v-if="activeFilters.length"> / {{ traceGroups.length }}</template> traces
+        </p>
+        <div class="flex items-center gap-0.5 border border-gray-200 rounded p-0.5">
+          <button
+            class="px-2 py-0.5 rounded text-xs transition-colors"
+            :class="viewMode === 'waterfall' ? 'bg-gray-200 text-gray-800' : 'text-gray-400 hover:text-gray-600'"
+            @click="viewMode = 'waterfall'"
+          >Waterfall</button>
+          <button
+            class="px-2 py-0.5 rounded text-xs transition-colors"
+            :class="viewMode === 'flamegraph' ? 'bg-gray-200 text-gray-800' : 'text-gray-400 hover:text-gray-600'"
+            @click="viewMode = 'flamegraph'"
+          >Flame</button>
+        </div>
+      </div>
 
       <!-- Filter bar -->
       <div v-if="allFacets.size > 0" class="mb-3">
@@ -445,7 +465,7 @@ function closeDropdown() { dropdownStep.value = 'closed'; pendingKey.value = nul
         </div>
 
         <!-- Span rows (collapsed by default) -->
-        <ul v-if="expanded.has(group.traceId)" class="space-y-0.5 mt-0.5">
+        <ul v-if="expanded.has(group.traceId) && viewMode === 'waterfall'" class="space-y-0.5 mt-0.5">
           <li v-for="span in group.spans" :key="span.spanId"
               class="py-0.5 cursor-pointer"
               @click="toggleSpan(span.spanId)">
@@ -495,6 +515,61 @@ function closeDropdown() { dropdownStep.value = 'closed'; pendingKey.value = nul
             </div>
           </li>
         </ul>
+
+        <!-- Flamegraph (collapsed by default, same toggle as waterfall) -->
+        <div v-if="expanded.has(group.traceId) && viewMode === 'flamegraph'" class="mt-0.5">
+          <!-- Flame chart canvas -->
+          <div
+            class="relative w-full"
+            :style="{ height: `${(maxDepth(group) + 1) * 22}px` }"
+          >
+            <div
+              v-for="span in group.spans"
+              :key="span.spanId"
+              class="absolute overflow-hidden cursor-pointer rounded-sm border px-1 flex items-center"
+              :class="span.hasError
+                ? (expandedSpans.has(span.spanId) ? 'bg-red-300 border-red-400' : 'bg-red-200 border-red-300 hover:bg-red-300')
+                : (expandedSpans.has(span.spanId) ? 'bg-blue-400 border-blue-500' : 'bg-blue-200 border-blue-300 hover:bg-blue-300')"
+              :style="{
+                left: `${span.offsetPct}%`,
+                width: `${Math.max(span.widthPct, 0.3)}%`,
+                top: `${span.depth * 22}px`,
+                height: '20px',
+              }"
+              :title="`${span.name}${span.durationMs != null ? ' — ' + span.durationMs.toFixed(1) + ' ms' : ''}`"
+              @click="toggleSpan(span.spanId)"
+            >
+              <span
+                v-if="span.widthPct > 2"
+                class="text-xs font-mono truncate leading-none text-gray-800 select-none"
+              >{{ span.name }}</span>
+            </div>
+          </div>
+
+          <!-- Detail panels for selected spans (below the chart) -->
+          <template v-for="span in group.spans" :key="`detail-${span.spanId}`">
+            <div v-if="expandedSpans.has(span.spanId)"
+                 class="mt-1.5 px-2 py-2 bg-gray-50 border border-gray-100 rounded text-xs">
+              <p class="font-mono font-medium text-gray-700 mb-1.5 truncate">{{ span.name }}</p>
+              <table v-if="span.attributes.length" class="w-full mb-2">
+                <tbody>
+                  <tr v-for="attr in span.attributes" :key="attr.key" class="align-top">
+                    <td class="pr-4 pb-0.5 text-gray-400 font-mono whitespace-nowrap">{{ attr.key }}</td>
+                    <td class="pb-0.5 text-gray-700 font-mono break-all">{{ otlpValue(attr.value) }}</td>
+                  </tr>
+                </tbody>
+              </table>
+              <p v-else class="text-gray-400 mb-2">No attributes</p>
+              <template v-if="span.statusMessage || span.exception">
+                <p class="text-gray-600 font-medium mb-1">
+                  {{ span.exception?.type ?? 'Error' }}: {{ span.statusMessage ?? span.exception?.message }}
+                </p>
+                <pre v-if="span.exception?.stacktrace"
+                     class="text-gray-500 whitespace-pre-wrap break-all bg-white border border-gray-100 rounded p-2 max-h-40 overflow-y-auto leading-relaxed">{{ span.exception.stacktrace }}</pre>
+              </template>
+            </div>
+          </template>
+        </div>
 
       </div>
     </div>
