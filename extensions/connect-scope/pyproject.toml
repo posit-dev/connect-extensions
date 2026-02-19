@@ -1,0 +1,11 @@
+[project]
+name = "connect-scope"
+version = "0.0.0"
+description = "connect-scope"
+readme = "README.md"
+requires-python = ">=3.9"
+dependencies = [
+    "fastapi[standard]>=0.115.12",
+    "starlette>=0.47.2",
+    "posit-sdk>=0.10.0",
+]
