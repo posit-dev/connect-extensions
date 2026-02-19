@@ -355,7 +355,7 @@ function closeDropdown() { dropdownStep.value = 'closed'; pendingKey.value = nul
             <!-- Key picker -->
             <div
               v-if="dropdownStep === 'pick-key'"
-              class="relative z-10 absolute left-0 mt-1 w-64 bg-white border border-gray-200 rounded shadow-lg overflow-hidden"
+              class="absolute z-10 left-0 mt-1 w-64 bg-white border border-gray-200 rounded shadow-lg overflow-hidden"
             >
               <ul class="max-h-56 overflow-y-auto">
                 <li
@@ -373,7 +373,7 @@ function closeDropdown() { dropdownStep.value = 'closed'; pendingKey.value = nul
             <!-- Value picker -->
             <div
               v-if="dropdownStep === 'pick-value'"
-              class="relative z-10 absolute left-0 mt-1 w-64 bg-white border border-gray-200 rounded shadow-lg overflow-hidden"
+              class="absolute z-10 left-0 mt-1 w-64 bg-white border border-gray-200 rounded shadow-lg overflow-hidden"
             >
               <div
                 class="flex items-center gap-1.5 px-3 py-1.5 border-b border-gray-100 text-xs text-gray-600 cursor-pointer hover:bg-gray-50"
@@ -439,7 +439,7 @@ function closeDropdown() { dropdownStep.value = 'closed'; pendingKey.value = nul
             </div>
           </div>
           <!-- Total duration -->
-          <div class="w-16 text-right text-xs text-gray-600 shrink-0 font-mono">
+          <div class="w-16 text-right text-xs text-gray-600 shrink-0 font-mono whitespace-nowrap">
             {{ formatDuration(group.totalDurationMs) }}
           </div>
         </div>
@@ -464,7 +464,7 @@ function closeDropdown() { dropdownStep.value = 'closed'; pendingKey.value = nul
                 </div>
               </div>
               <!-- Duration -->
-              <div class="w-16 text-right text-xs text-gray-500 shrink-0 font-mono">
+              <div class="w-16 text-right text-xs text-gray-500 shrink-0 font-mono whitespace-nowrap">
                 {{ span.durationMs != null ? span.durationMs.toFixed(1) + ' ms' : '—' }}
               </div>
             </div>
