@@ -1,6 +1,7 @@
 import { defineStore } from "pinia";
 import { ref } from "vue";
 import type { Job } from "../types";
+import { apiBase } from "../api";
 
 export const useJobsStore = defineStore("jobs", () => {
   const jobs = ref<Job[]>([]);
@@ -12,7 +13,7 @@ export const useJobsStore = defineStore("jobs", () => {
     isLoading.value = true;
     error.value = null;
     try {
-      const response = await fetch(`/api/content/${guid}/jobs`);
+      const response = await fetch(`${apiBase}/api/content/${guid}/jobs`);
       if (!response.ok) throw new Error("Failed to fetch jobs");
       jobs.value = await response.json();
     } catch (e) {

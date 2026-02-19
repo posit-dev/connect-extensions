@@ -1,6 +1,7 @@
 import { defineStore } from "pinia";
 import { ref } from "vue";
 import type { TraceData } from "../types";
+import { apiBase } from "../api";
 
 export const useTracesStore = defineStore("traces", () => {
   const traceData = ref<TraceData | null>(null);
@@ -11,7 +12,7 @@ export const useTracesStore = defineStore("traces", () => {
     isLoading.value = true;
     error.value = null;
     try {
-      const response = await fetch(`/api/content/${guid}/jobs/${jobKey}/traces`);
+      const response = await fetch(`${apiBase}/api/content/${guid}/jobs/${jobKey}/traces`);
       if (!response.ok) throw new Error("Failed to fetch traces");
       traceData.value = await response.json();
     } catch (e) {

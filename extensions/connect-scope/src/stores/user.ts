@@ -1,5 +1,6 @@
 import { defineStore } from "pinia";
 import { ref } from "vue";
+import { apiBase } from "../api";
 
 interface User {
   username: string;
@@ -17,7 +18,7 @@ export const useUserStore = defineStore("user", () => {
     isLoading.value = true;
     error.value = null;
     try {
-      const response = await fetch("/api/user");
+      const response = await fetch(`${apiBase}/api/user`);
       if (!response.ok) throw new Error("Failed to fetch user");
       user.value = await response.json();
     } catch (e) {
