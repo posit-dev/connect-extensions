@@ -27,28 +27,56 @@ interface TraceGroup {
 }
 
 function buildTraceGroup(traceId: string, spans: OtlpSpan[]): TraceGroup {
+  // Pre-parse all timestamps once — avoids repeated BigInt construction in sort comparators
+  const spanStart = new Map<OtlpSpan, bigint>();
+  const spanEnd = new Map<OtlpSpan, bigint | null>();
+  for (const s of spans) {
+    spanStart.set(s, BigInt(s.startTimeUnixNano ?? "0"));
+    spanEnd.set(s, s.endTimeUnixNano != null ? BigInt(s.endTimeUnixNano) : null);
+  }
+
+  // Build id -> span map, then parent -> children map in O(N) instead of O(N²) per-span filter
   const byId = new Map<string, OtlpSpan>();
   for (const s of spans) {
     if (s.spanId) byId.set(s.spanId, s);
   }
-
-  let startNs = BigInt("9".repeat(20));
-  let endNs = 0n;
+  const childrenByParent = new Map<string, OtlpSpan[]>();
   for (const s of spans) {
-    const t0 = BigInt(s.startTimeUnixNano ?? "0");
-    const t1 = BigInt(s.endTimeUnixNano ?? s.startTimeUnixNano ?? "0");
-    if (t0 < startNs) startNs = t0;
-    if (t1 > endNs) endNs = t1;
+    const pid = s.parentSpanId;
+    if (pid && byId.has(pid)) {
+      const arr = childrenByParent.get(pid);
+      if (arr) arr.push(s);
+      else childrenByParent.set(pid, [s]);
+    }
   }
-  const durationNs = endNs - startNs || 1n;
+
+  // Comparator uses pre-parsed BigInts — no per-comparison allocation
+  const cmpByStart = (a: OtlpSpan, b: OtlpSpan) =>
+    spanStart.get(a)! < spanStart.get(b)! ? -1 : 1;
+
+  // Pre-sort every children list once
+  for (const children of childrenByParent.values()) {
+    children.sort(cmpByStart);
+  }
+
+  // Find trace time bounds using pre-parsed values
+  let traceStartNs = BigInt("9".repeat(20));
+  let traceEndNs = 0n;
+  for (const s of spans) {
+    const t0 = spanStart.get(s)!;
+    const t1 = spanEnd.get(s) ?? t0;
+    if (t0 < traceStartNs) traceStartNs = t0;
+    if (t1 > traceEndNs) traceEndNs = t1;
+  }
+  const durationNs = traceEndNs - traceStartNs || 1n;
 
   const flat: FlatSpan[] = [];
 
   const visit = (s: OtlpSpan, depth: number) => {
-    const sNs = BigInt(s.startTimeUnixNano ?? "0");
-    const eNs = s.endTimeUnixNano != null ? BigInt(s.endTimeUnixNano) : null;
+    const sNs = spanStart.get(s)!;
+    const eNs = spanEnd.get(s) ?? null;
     const durationMs = eNs != null ? Number(eNs - sNs) / 1_000_000 : null;
-    const offsetPct = Number((sNs - startNs) * 10000n / durationNs) / 100;
+    const offsetPct = Number((sNs - traceStartNs) * 10000n / durationNs) / 100;
     const widthPct = eNs != null
       ? Number((eNs - sNs) * 10000n / durationNs) / 100
       : 0;
@@ -76,23 +104,22 @@ function buildTraceGroup(traceId: string, spans: OtlpSpan[]): TraceGroup {
         : null,
     });
 
-    const children = spans
-      .filter(c => c.spanId && c.parentSpanId === s.spanId)
-      .sort((a, b) => (BigInt(a.startTimeUnixNano ?? "0") < BigInt(b.startTimeUnixNano ?? "0") ? -1 : 1));
-    for (const child of children) visit(child, depth + 1);
+    for (const child of childrenByParent.get(s.spanId ?? "") ?? []) {
+      visit(child, depth + 1);
+    }
   };
 
   const roots = spans
     .filter(s => !s.parentSpanId || !byId.has(s.parentSpanId))
-    .sort((a, b) => (BigInt(a.startTimeUnixNano ?? "0") < BigInt(b.startTimeUnixNano ?? "0") ? -1 : 1));
+    .sort(cmpByStart);
   for (const root of roots) visit(root, 0);
 
   return {
     traceId,
     label: roots[0]?.name ?? "Trace",
-    startNs,
-    startMs: Number(startNs / 1_000_000n),
-    totalDurationMs: Number(endNs - startNs) / 1_000_000,
+    startNs: traceStartNs,
+    startMs: Number(traceStartNs / 1_000_000n),
+    totalDurationMs: Number(traceEndNs - traceStartNs) / 1_000_000,
     hasError: flat.some(s => s.hasError),
     spanCount: flat.length,
     spans: flat,
@@ -217,19 +244,36 @@ const sortedValues = computed(() => {
   return m ? [...m.entries()].sort((a, b) => b[1] - a[1]) : [];
 });
 
+// Precomputed once per filter change — not once per span
+const activeFilterMap = computed((): Map<string, Set<string>> => {
+  const m = new Map<string, Set<string>>();
+  for (const f of activeFilters.value) {
+    const s = m.get(f.key);
+    if (s) s.add(f.value);
+    else m.set(f.key, new Set([f.value]));
+  }
+  return m;
+});
+
+// Precomputed for the value picker — gives O(1) lookups in the template
+const pendingKeyActiveValues = computed((): Set<string> => {
+  if (!pendingKey.value) return new Set();
+  const key = pendingKey.value;
+  return new Set(activeFilters.value.filter(f => f.key === key).map(f => f.value));
+});
+
 const filteredTraceGroups = computed((): TraceGroup[] => {
   if (activeFilters.value.length === 0) return traceGroups.value;
+  const filterMap = activeFilterMap.value;
   return traceGroups.value
-    .map(g => ({ ...g, spans: g.spans.filter(spanMatchesFilters) }))
+    .map(g => ({ ...g, spans: g.spans.filter(span => spanMatchesFilters(span, filterMap)) }))
     .filter(g => g.spans.length > 0);
 });
 
 // ── Facet functions ───────────────────────────────────────────────────────────
 
-function spanMatchesFilters(span: FlatSpan): boolean {
-  const keys = [...new Set(activeFilters.value.map(f => f.key))];
-  for (const key of keys) {
-    const allowed = new Set(activeFilters.value.filter(f => f.key === key).map(f => f.value));
+function spanMatchesFilters(span: FlatSpan, filterMap: Map<string, Set<string>>): boolean {
+  for (const [key, allowed] of filterMap) {
     if (!span.attributes.some(a => a.key === key && allowed.has(otlpValue(a.value)))) return false;
   }
   return true;
@@ -343,11 +387,11 @@ function closeDropdown() { dropdownStep.value = 'closed'; pendingKey.value = nul
                   v-for="[val, count] in sortedValues"
                   :key="val"
                   class="flex items-center justify-between px-3 py-1.5 text-xs cursor-pointer hover:bg-gray-50"
-                  :class="activeFilters.some(f => f.key === pendingKey && f.value === val) ? 'text-gray-400' : 'text-gray-700'"
+                  :class="pendingKeyActiveValues.has(val) ? 'text-gray-400' : 'text-gray-700'"
                   @click.stop="selectValue(val)"
                 >
                   <span class="font-mono truncate">
-                    <template v-if="activeFilters.some(f => f.key === pendingKey && f.value === val)">✓ </template>{{ val }}
+                    <template v-if="pendingKeyActiveValues.has(val)">✓ </template>{{ val }}
                   </span>
                   <span class="ml-2 shrink-0 text-gray-400">{{ count }} spans</span>
                 </li>
