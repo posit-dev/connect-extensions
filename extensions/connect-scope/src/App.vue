@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, computed } from "vue";
+import { onMounted, computed, watch } from "vue";
 import LoadingSpinner from "./components/ui/LoadingSpinner.vue";
 import ContentList from "./components/ContentList.vue";
 import JobList from "./components/JobList.vue";
@@ -31,8 +31,46 @@ function goBackToContent() {
   contentStore.clearSelection();
 }
 
-onMounted(() => {
-  userStore.fetchCurrentUser();
+onMounted(async () => {
+  await userStore.fetchCurrentUser();
+
+  const params = new URLSearchParams(window.location.search);
+  const contentGuid = params.get('content');
+  const jobKey = params.get('job');
+
+  if (!contentGuid) return;
+
+  await contentStore.fetchContent();
+  const content = contentStore.items.find(c => c.guid === contentGuid);
+  if (!content) return;
+  contentStore.selectContent(content);
+
+  if (!jobKey) return;
+
+  await jobsStore.fetchJobs(contentGuid);
+  const job = jobsStore.jobs.find(j => j.key === jobKey);
+  if (job) jobsStore.selectJob(job);
+});
+
+watch(() => contentStore.selectedContent, (content) => {
+  const url = new URL(window.location.href);
+  if (content) {
+    url.searchParams.set('content', content.guid);
+  } else {
+    url.searchParams.delete('content');
+    url.searchParams.delete('job');
+  }
+  history.replaceState({}, '', url);
+});
+
+watch(() => jobsStore.selectedJob, (job) => {
+  const url = new URL(window.location.href);
+  if (job) {
+    url.searchParams.set('job', job.key);
+  } else {
+    url.searchParams.delete('job');
+  }
+  history.replaceState({}, '', url);
 });
 </script>
 
