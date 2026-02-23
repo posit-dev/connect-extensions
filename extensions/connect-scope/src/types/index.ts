@@ -5,6 +5,16 @@ export interface ContentItem {
   app_mode: string | null;
   created_time: string;
   last_deployed_time: string | null;
+  owner_guid: string;
+  owner?: {
+    guid: string;
+    username: string;
+    first_name: string;
+    last_name: string;
+  };
+  description: string | null;
+  content_url: string | null;
+  dashboard_url: string | null;
 }
 
 export type JobStatus = 0 | 1 | 2; // 0=Active, 1=Finished, 2=Finalized

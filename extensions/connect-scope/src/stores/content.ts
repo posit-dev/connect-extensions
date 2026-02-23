@@ -1,7 +1,10 @@
 import { defineStore } from "pinia";
-import { ref } from "vue";
+import { computed, ref } from "vue";
 import type { ContentItem } from "../types";
 import { apiBase } from "../api";
+import { useUserStore } from "./user";
+
+export type OwnerFilter = "mine" | "all";
 
 export const useContentStore = defineStore("content", () => {
   const items = ref<ContentItem[]>([]);
@@ -9,8 +12,35 @@ export const useContentStore = defineStore("content", () => {
   const isLoading = ref(false);
   const error = ref<string | null>(null);
 
+  const search = ref("");
+  const ownerFilter = ref<OwnerFilter>("mine");
+
+  const filteredItems = computed(() => {
+    const userStore = useUserStore();
+    let result = items.value;
+
+    if (ownerFilter.value === "mine" && userStore.user?.guid) {
+      result = result.filter((item) => item.owner_guid === userStore.user!.guid);
+    }
+
+    const query = search.value.trim().toLowerCase();
+    if (query) {
+      result = result.filter((item) => {
+        const title = (item.title || "").toLowerCase();
+        const name = item.name.toLowerCase();
+        const ownerUsername = (item.owner?.username || "").toLowerCase();
+        return (
+          title.includes(query) ||
+          name.includes(query) ||
+          ownerUsername.includes(query)
+        );
+      });
+    }
+
+    return result;
+  });
+
   async function fetchContent() {
-    if (items.value.length > 0) return;
     isLoading.value = true;
     error.value = null;
     try {
@@ -32,5 +62,16 @@ export const useContentStore = defineStore("content", () => {
     selectedContent.value = null;
   }
 
-  return { items, selectedContent, isLoading, error, fetchContent, selectContent, clearSelection };
+  return {
+    items,
+    selectedContent,
+    isLoading,
+    error,
+    search,
+    ownerFilter,
+    filteredItems,
+    fetchContent,
+    selectContent,
+    clearSelection,
+  };
 });

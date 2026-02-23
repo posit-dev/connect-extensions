@@ -3,6 +3,7 @@ import { ref } from "vue";
 import { apiBase } from "../api";
 
 interface User {
+  guid: string;
   username: string;
   first_name: string;
   last_name: string;

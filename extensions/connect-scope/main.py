@@ -51,7 +51,7 @@ async def list_content(posit_connect_user_session_token: str = Header(None)):
     visitor = get_visitor_client(posit_connect_user_session_token)
     return (
         content
-        for content in visitor.content.find()
+        for content in visitor.content.find(include="owner")
         if content["trace_collection_enabled"]
     )
 
