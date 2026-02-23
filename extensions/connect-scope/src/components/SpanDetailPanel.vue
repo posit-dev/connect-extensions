@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import type { FlatSpan } from "../types";
-import { formatDuration } from "../utils/formatting";
 import { otlpValue } from "../utils/trace-builder";
 
 defineProps<{

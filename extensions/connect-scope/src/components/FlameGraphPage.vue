@@ -2,7 +2,7 @@
 import { ref, computed, onMounted, watch } from "vue";
 import type { ContentItem, Job, OtlpRecord, OtlpSpan, FlatSpan, TraceGroup } from "../types";
 import { otlpValue, buildTraceGroup } from "../utils/trace-builder";
-import { timeAgo, formatDuration } from "../utils/formatting";
+import { timeAgo } from "../utils/formatting";
 import { useTraceFilters } from "../composables/useTraceFilters";
 import { useJobsStore } from "../stores/jobs";
 import { apiBase } from "../api";
