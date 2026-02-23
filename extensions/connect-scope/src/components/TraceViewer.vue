@@ -49,6 +49,7 @@ const maxTraceDurationMs = computed(() =>
 );
 
 const viewMode = ref<'waterfall' | 'flamegraph' | 'aggregate'>('waterfall');
+const nameFilter = ref<string | null>(null);
 
 function maxDepth(group: TraceGroup): number {
   return group.spans.reduce((max, s) => Math.max(max, s.depth), 0);
@@ -148,7 +149,7 @@ const activeFilterMap = computed((): Map<string, Set<string>> => {
   return m;
 });
 
-const hasAnyFilter = computed(() => activeFilters.value.length > 0 || minDurationMs.value != null);
+const hasAnyFilter = computed(() => activeFilters.value.length > 0 || minDurationMs.value != null || nameFilter.value != null);
 
 const filteredTraceGroups = computed((): TraceGroup[] => {
   if (!hasAnyFilter.value) return traceGroups.value;
@@ -184,6 +185,7 @@ function isSpanDimmed(spanId: string): boolean {
 // ── Facet functions ───────────────────────────────────────────────────────────
 
 function spanMatchesFilters(span: FlatSpan, filterMap: Map<string, Set<string>>): boolean {
+  if (nameFilter.value != null && span.name !== nameFilter.value) return false;
   const minDur = minDurationMs.value;
   if (minDur != null && (span.durationMs === null || span.durationMs < minDur)) return false;
   for (const [key, allowed] of filterMap) {
@@ -219,6 +221,12 @@ function clearAllFilters() {
   activeFilters.value = [];
   minDurationMs.value = null;
   durationSliderValue.value = 0;
+  nameFilter.value = null;
+}
+
+function drillToOperation(name: string) {
+  nameFilter.value = name;
+  viewMode.value = 'waterfall';
 }
 
 // ── Aggregate view ────────────────────────────────────────────────────────────
@@ -371,6 +379,13 @@ const spanAggregates = computed((): SpanAggregate[] => {
               <p class="text-xs text-gray-400">
                 {{ sortedTraceGroups.length }}<template v-if="hasAnyFilter"> / {{ traceGroups.length }}</template> traces
               </p>
+              <span
+                v-if="nameFilter != null"
+                class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-blue-100 text-blue-700 text-xs font-medium"
+              >
+                {{ nameFilter }}
+                <button class="hover:text-blue-900" @click="nameFilter = null">&times;</button>
+              </span>
               <template v-if="viewMode !== 'aggregate'">
                 <div class="flex items-center gap-0.5 border border-gray-200 rounded p-0.5">
                   <button
@@ -432,7 +447,7 @@ const spanAggregates = computed((): SpanAggregate[] => {
             </tr>
           </thead>
           <tbody>
-            <tr v-for="agg in spanAggregates" :key="agg.name" class="border-t border-gray-100 hover:bg-gray-50">
+            <tr v-for="agg in spanAggregates" :key="agg.name" class="border-t border-gray-100 hover:bg-gray-50 cursor-pointer" @click="drillToOperation(agg.name)">
               <td class="px-3 py-1.5 font-mono text-gray-800">{{ agg.name }}</td>
               <td class="px-3 py-1.5 text-right tabular-nums text-gray-600">{{ agg.count }}</td>
               <td class="px-3 py-1.5 text-right tabular-nums font-mono text-gray-600">{{ formatDuration(agg.p50) }}</td>
