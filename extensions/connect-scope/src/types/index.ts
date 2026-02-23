@@ -67,5 +67,6 @@ export interface FlatSpan {
   hasError: boolean;
   attributes: Array<{ key: string; value: OtlpAnyValue }>;
   statusMessage: string | null;
+  selfTimeMs: number | null;
   exception: { type?: string; message?: string; stacktrace?: string } | null;
 }

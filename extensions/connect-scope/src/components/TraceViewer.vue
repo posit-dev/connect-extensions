@@ -99,6 +99,7 @@ function buildTraceGroup(traceId: string, spans: OtlpSpan[]): TraceGroup {
       hasError: s.status?.code === 2,
       attributes: s.attributes ?? [],
       statusMessage: s.status?.message ?? null,
+      selfTimeMs: null, // computed in second pass below
       exception: exceptionEvent
         ? { type: exAttr("exception.type"), message: exAttr("exception.message"), stacktrace: exAttr("exception.stacktrace") }
         : null,
@@ -113,6 +114,21 @@ function buildTraceGroup(traceId: string, spans: OtlpSpan[]): TraceGroup {
     .filter(s => !s.parentSpanId || !byId.has(s.parentSpanId))
     .sort(cmpByStart);
   for (const root of roots) visit(root, 0);
+
+  // Second pass: compute self-time (duration minus direct children's durations)
+  const flatById = new Map<string, FlatSpan>();
+  for (const f of flat) flatById.set(f.spanId, f);
+  const childDurationSum = new Map<string, number>();
+  for (const f of flat) {
+    if (f.parentSpanId && flatById.has(f.parentSpanId) && f.durationMs != null) {
+      childDurationSum.set(f.parentSpanId, (childDurationSum.get(f.parentSpanId) ?? 0) + f.durationMs);
+    }
+  }
+  for (const f of flat) {
+    if (f.durationMs != null) {
+      f.selfTimeMs = f.durationMs - (childDurationSum.get(f.spanId) ?? 0);
+    }
+  }
 
   return {
     traceId,
@@ -166,7 +182,7 @@ function otlpValue(v: OtlpAnyValue): string {
   return "";
 }
 
-const viewMode = ref<'waterfall' | 'flamegraph'>('waterfall');
+const viewMode = ref<'waterfall' | 'flamegraph' | 'aggregate'>('waterfall');
 
 function maxDepth(group: TraceGroup): number {
   return group.spans.reduce((max, s) => Math.max(max, s.depth), 0);
@@ -181,15 +197,15 @@ function toggle(traceId: string) {
 }
 
 const allExpanded = computed(() =>
-  filteredTraceGroups.value.length > 0 &&
-  filteredTraceGroups.value.every(g => expanded.has(g.traceId))
+  sortedTraceGroups.value.length > 0 &&
+  sortedTraceGroups.value.every(g => expanded.has(g.traceId))
 );
 
 function toggleAllTraces() {
   if (allExpanded.value) {
-    for (const g of filteredTraceGroups.value) expanded.delete(g.traceId);
+    for (const g of sortedTraceGroups.value) expanded.delete(g.traceId);
   } else {
-    for (const g of filteredTraceGroups.value) expanded.add(g.traceId);
+    for (const g of sortedTraceGroups.value) expanded.add(g.traceId);
   }
 }
 
@@ -225,6 +241,12 @@ const STATUS_COLOR: Record<number, string> = {
   1: "text-gray-400",
   2: "text-gray-400",
 };
+
+// ── Sort & duration filter state ──────────────────────────────────────────────
+
+const traceSortOrder = ref<'newest' | 'slowest'>('newest');
+const minDurationMs = ref<number | null>(null);
+const durationThresholds = [10, 50, 100, 500, 1000] as const;
 
 // ── Facet filter state ────────────────────────────────────────────────────────
 
@@ -266,15 +288,25 @@ const activeFilterMap = computed((): Map<string, Set<string>> => {
   return m;
 });
 
+const hasAnyFilter = computed(() => activeFilters.value.length > 0 || minDurationMs.value != null);
+
 const filteredTraceGroups = computed((): TraceGroup[] => {
-  if (activeFilters.value.length === 0) return traceGroups.value;
+  if (!hasAnyFilter.value) return traceGroups.value;
   const filterMap = activeFilterMap.value;
   return traceGroups.value
     .filter(g => g.spans.some(span => spanMatchesFilters(span, filterMap)));
 });
 
+const sortedTraceGroups = computed((): TraceGroup[] => {
+  const list = [...filteredTraceGroups.value];
+  if (traceSortOrder.value === 'slowest') {
+    return list.sort((a, b) => b.totalDurationMs - a.totalDurationMs);
+  }
+  return list.sort((a, b) => (a.startNs > b.startNs ? -1 : 1));
+});
+
 const matchingSpanIds = computed((): Set<string> => {
-  if (activeFilters.value.length === 0) return new Set();
+  if (!hasAnyFilter.value) return new Set();
   const filterMap = activeFilterMap.value;
   const ids = new Set<string>();
   for (const g of filteredTraceGroups.value) {
@@ -286,12 +318,14 @@ const matchingSpanIds = computed((): Set<string> => {
 });
 
 function isSpanDimmed(spanId: string): boolean {
-  return activeFilters.value.length > 0 && !matchingSpanIds.value.has(spanId);
+  return hasAnyFilter.value && !matchingSpanIds.value.has(spanId);
 }
 
 // ── Facet functions ───────────────────────────────────────────────────────────
 
 function spanMatchesFilters(span: FlatSpan, filterMap: Map<string, Set<string>>): boolean {
+  const minDur = minDurationMs.value;
+  if (minDur != null && (span.durationMs === null || span.durationMs < minDur)) return false;
   for (const [key, allowed] of filterMap) {
     if (!span.attributes.some(a => a.key === key && allowed.has(otlpValue(a.value)))) return false;
   }
@@ -320,6 +354,85 @@ function facetValues(key: string): [string, number][] {
 function activeCountForKey(key: string): number {
   return activeFilters.value.filter(f => f.key === key).length;
 }
+
+function clearAllFilters() {
+  activeFilters.value = [];
+  minDurationMs.value = null;
+}
+
+// ── Aggregate view ────────────────────────────────────────────────────────────
+
+function percentile(sorted: number[], p: number): number {
+  if (sorted.length === 0) return 0;
+  const idx = Math.ceil((p / 100) * sorted.length) - 1;
+  return sorted[Math.max(0, idx)];
+}
+
+interface SpanAggregate {
+  name: string;
+  count: number;
+  min: number;
+  max: number;
+  p50: number;
+  p95: number;
+  total: number;
+  avgSelfTime: number | null;
+}
+
+type AggSortKey = 'name' | 'count' | 'p50' | 'p95' | 'max' | 'avgSelfTime';
+const aggSortKey = ref<AggSortKey>('p95');
+const aggSortAsc = ref(false);
+
+function toggleAggSort(key: AggSortKey) {
+  if (aggSortKey.value === key) {
+    aggSortAsc.value = !aggSortAsc.value;
+  } else {
+    aggSortKey.value = key;
+    aggSortAsc.value = key === 'name'; // name defaults ascending, numbers descending
+  }
+}
+
+const spanAggregates = computed((): SpanAggregate[] => {
+  const groups = new Map<string, { durations: number[]; selfTimes: number[] }>();
+  for (const g of filteredTraceGroups.value) {
+    for (const span of g.spans) {
+      if (span.durationMs == null) continue;
+      let entry = groups.get(span.name);
+      if (!entry) {
+        entry = { durations: [], selfTimes: [] };
+        groups.set(span.name, entry);
+      }
+      entry.durations.push(span.durationMs);
+      if (span.selfTimeMs != null) entry.selfTimes.push(span.selfTimeMs);
+    }
+  }
+  const result: SpanAggregate[] = [];
+  for (const [name, { durations, selfTimes }] of groups) {
+    durations.sort((a, b) => a - b);
+    selfTimes.sort((a, b) => a - b);
+    result.push({
+      name,
+      count: durations.length,
+      min: durations[0],
+      max: durations[durations.length - 1],
+      p50: percentile(durations, 50),
+      p95: percentile(durations, 95),
+      total: durations.reduce((s, d) => s + d, 0),
+      avgSelfTime: selfTimes.length > 0 ? selfTimes.reduce((s, d) => s + d, 0) / selfTimes.length : null,
+    });
+  }
+  const key = aggSortKey.value;
+  const dir = aggSortAsc.value ? 1 : -1;
+  return result.sort((a, b) => {
+    const av = a[key];
+    const bv = b[key];
+    if (av == null && bv == null) return 0;
+    if (av == null) return 1;
+    if (bv == null) return -1;
+    if (typeof av === 'string') return dir * av.localeCompare(bv as string);
+    return dir * ((av as number) - (bv as number));
+  });
+});
 </script>
 
 <template>
@@ -346,10 +459,27 @@ function activeCountForKey(key: string): number {
           <div class="flex items-center justify-between mb-2">
             <h3 class="text-xs font-semibold text-gray-500 uppercase tracking-wide">Filters</h3>
             <button
-              v-if="activeFilters.length"
+              v-if="hasAnyFilter"
               class="text-xs text-blue-600 hover:text-blue-800"
-              @click="activeFilters = []"
+              @click="clearAllFilters"
             >Clear all</button>
+          </div>
+          <div class="mb-3">
+            <h4 class="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5">Duration</h4>
+            <div class="flex flex-wrap gap-1">
+              <button
+                class="px-2 py-0.5 rounded-full text-xs transition-colors"
+                :class="minDurationMs == null ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-500 hover:bg-gray-200'"
+                @click="minDurationMs = null"
+              >Any</button>
+              <button
+                v-for="t in durationThresholds"
+                :key="t"
+                class="px-2 py-0.5 rounded-full text-xs transition-colors"
+                :class="minDurationMs === t ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-500 hover:bg-gray-200'"
+                @click="minDurationMs = t"
+              >&gt;{{ t >= 1000 ? `${t / 1000}s` : `${t}ms` }}</button>
+            </div>
           </div>
           <div class="space-y-0.5">
             <div v-for="facet in sortedFacets" :key="facet.key">
@@ -395,12 +525,26 @@ function activeCountForKey(key: string): number {
           <div class="flex items-center justify-between mb-2">
             <div class="flex items-center gap-2">
               <p class="text-xs text-gray-400">
-                {{ filteredTraceGroups.length }}<template v-if="activeFilters.length"> / {{ traceGroups.length }}</template> traces
+                {{ sortedTraceGroups.length }}<template v-if="hasAnyFilter"> / {{ traceGroups.length }}</template> traces
               </p>
-              <button
-                class="text-xs text-gray-400 hover:text-gray-600"
-                @click="toggleAllTraces"
-              >{{ allExpanded ? 'Collapse all' : 'Expand all' }}</button>
+              <template v-if="viewMode !== 'aggregate'">
+                <div class="flex items-center gap-0.5 border border-gray-200 rounded p-0.5">
+                  <button
+                    class="px-2 py-0.5 rounded text-xs transition-colors"
+                    :class="traceSortOrder === 'newest' ? 'bg-gray-200 text-gray-800' : 'text-gray-400 hover:text-gray-600'"
+                    @click="traceSortOrder = 'newest'"
+                  >Newest</button>
+                  <button
+                    class="px-2 py-0.5 rounded text-xs transition-colors"
+                    :class="traceSortOrder === 'slowest' ? 'bg-gray-200 text-gray-800' : 'text-gray-400 hover:text-gray-600'"
+                    @click="traceSortOrder = 'slowest'"
+                  >Slowest</button>
+                </div>
+                <button
+                  class="text-xs text-gray-400 hover:text-gray-600"
+                  @click="toggleAllTraces"
+                >{{ allExpanded ? 'Collapse all' : 'Expand all' }}</button>
+              </template>
             </div>
             <div class="flex items-center gap-0.5 border border-gray-200 rounded p-0.5">
               <button
@@ -413,11 +557,56 @@ function activeCountForKey(key: string): number {
                 :class="viewMode === 'flamegraph' ? 'bg-gray-200 text-gray-800' : 'text-gray-400 hover:text-gray-600'"
                 @click="viewMode = 'flamegraph'"
               >Flame</button>
+              <button
+                class="px-2 py-0.5 rounded text-xs transition-colors"
+                :class="viewMode === 'aggregate' ? 'bg-gray-200 text-gray-800' : 'text-gray-400 hover:text-gray-600'"
+                @click="viewMode = 'aggregate'"
+              >Aggregate</button>
             </div>
           </div>
 
+      <!-- Aggregate table view -->
+      <div v-if="viewMode === 'aggregate'" class="border border-gray-200 rounded-lg overflow-hidden">
+        <table class="w-full text-xs">
+          <thead>
+            <tr class="bg-gray-50 text-gray-500 uppercase tracking-wide">
+              <th class="text-left px-3 py-2 font-semibold cursor-pointer select-none hover:text-gray-700" @click="toggleAggSort('name')">
+                Operation<span v-if="aggSortKey === 'name'" class="ml-0.5">{{ aggSortAsc ? '↑' : '↓' }}</span>
+              </th>
+              <th class="text-right px-3 py-2 font-semibold cursor-pointer select-none hover:text-gray-700" @click="toggleAggSort('count')">
+                Count<span v-if="aggSortKey === 'count'" class="ml-0.5">{{ aggSortAsc ? '↑' : '↓' }}</span>
+              </th>
+              <th class="text-right px-3 py-2 font-semibold cursor-pointer select-none hover:text-gray-700" @click="toggleAggSort('p50')">
+                p50<span v-if="aggSortKey === 'p50'" class="ml-0.5">{{ aggSortAsc ? '↑' : '↓' }}</span>
+              </th>
+              <th class="text-right px-3 py-2 font-semibold cursor-pointer select-none hover:text-gray-700" @click="toggleAggSort('p95')">
+                p95<span v-if="aggSortKey === 'p95'" class="ml-0.5">{{ aggSortAsc ? '↑' : '↓' }}</span>
+              </th>
+              <th class="text-right px-3 py-2 font-semibold cursor-pointer select-none hover:text-gray-700" @click="toggleAggSort('max')">
+                Max<span v-if="aggSortKey === 'max'" class="ml-0.5">{{ aggSortAsc ? '↑' : '↓' }}</span>
+              </th>
+              <th class="text-right px-3 py-2 font-semibold cursor-pointer select-none hover:text-gray-700" @click="toggleAggSort('avgSelfTime')">
+                Avg Self<span v-if="aggSortKey === 'avgSelfTime'" class="ml-0.5">{{ aggSortAsc ? '↑' : '↓' }}</span>
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="agg in spanAggregates" :key="agg.name" class="border-t border-gray-100 hover:bg-gray-50">
+              <td class="px-3 py-1.5 font-mono text-gray-800">{{ agg.name }}</td>
+              <td class="px-3 py-1.5 text-right tabular-nums text-gray-600">{{ agg.count }}</td>
+              <td class="px-3 py-1.5 text-right tabular-nums font-mono text-gray-600">{{ formatDuration(agg.p50) }}</td>
+              <td class="px-3 py-1.5 text-right tabular-nums font-mono text-gray-600">{{ formatDuration(agg.p95) }}</td>
+              <td class="px-3 py-1.5 text-right tabular-nums font-mono text-gray-600">{{ formatDuration(agg.max) }}</td>
+              <td class="px-3 py-1.5 text-right tabular-nums font-mono text-gray-600">{{ agg.avgSelfTime != null ? formatDuration(agg.avgSelfTime) : '—' }}</td>
+            </tr>
+          </tbody>
+        </table>
+        <p v-if="spanAggregates.length === 0" class="px-3 py-4 text-gray-400 text-center text-sm">No matching spans</p>
+      </div>
+
+      <template v-else>
       <div
-        v-for="group in filteredTraceGroups"
+        v-for="group in sortedTraceGroups"
         :key="group.traceId"
         class="rounded-lg transition-all"
         :class="expanded.has(group.traceId)
@@ -481,14 +670,31 @@ function activeCountForKey(key: string): number {
                 </div>
               </div>
               <!-- Duration -->
-              <div class="w-16 text-right text-xs text-gray-500 shrink-0 font-mono whitespace-nowrap">
-                {{ span.durationMs != null ? span.durationMs.toFixed(1) + ' ms' : '—' }}
+              <div class="text-right text-xs text-gray-500 shrink-0 font-mono whitespace-nowrap">
+                <template v-if="span.durationMs != null">
+                  {{ formatDuration(span.durationMs) }}<span v-if="span.selfTimeMs != null && span.selfTimeMs !== span.durationMs" class="text-gray-400"> (self: {{ formatDuration(span.selfTimeMs) }})</span>
+                </template>
+                <template v-else>—</template>
               </div>
             </div>
 
             <!-- Detail panel -->
             <div v-if="expandedSpans.has(span.spanId)"
                  class="mt-1.5 px-2 py-2 bg-gray-50 border border-gray-100 rounded text-xs">
+
+              <!-- Timing -->
+              <table class="w-full mb-2">
+                <tbody>
+                  <tr v-if="span.durationMs != null" class="align-top">
+                    <td class="pr-4 pb-0.5 text-gray-400 font-mono whitespace-nowrap">duration</td>
+                    <td class="pb-0.5 text-gray-700 font-mono break-all">{{ formatDuration(span.durationMs) }}</td>
+                  </tr>
+                  <tr v-if="span.selfTimeMs != null" class="align-top">
+                    <td class="pr-4 pb-0.5 text-gray-400 font-mono whitespace-nowrap">self time</td>
+                    <td class="pb-0.5 text-gray-700 font-mono break-all">{{ formatDuration(span.selfTimeMs) }}</td>
+                  </tr>
+                </tbody>
+              </table>
 
               <!-- Attributes -->
               <table v-if="span.attributes.length" class="w-full mb-2">
@@ -551,6 +757,20 @@ function activeCountForKey(key: string): number {
             <div v-if="expandedSpans.has(span.spanId)"
                  class="mt-1.5 px-2 py-2 bg-gray-50 border border-gray-100 rounded text-xs">
               <p class="font-mono font-medium text-gray-700 mb-1.5 truncate">{{ span.name }}</p>
+              <!-- Timing -->
+              <table class="w-full mb-2">
+                <tbody>
+                  <tr v-if="span.durationMs != null" class="align-top">
+                    <td class="pr-4 pb-0.5 text-gray-400 font-mono whitespace-nowrap">duration</td>
+                    <td class="pb-0.5 text-gray-700 font-mono break-all">{{ formatDuration(span.durationMs) }}</td>
+                  </tr>
+                  <tr v-if="span.selfTimeMs != null" class="align-top">
+                    <td class="pr-4 pb-0.5 text-gray-400 font-mono whitespace-nowrap">self time</td>
+                    <td class="pb-0.5 text-gray-700 font-mono break-all">{{ formatDuration(span.selfTimeMs) }}</td>
+                  </tr>
+                </tbody>
+              </table>
+              <!-- Attributes -->
               <table v-if="span.attributes.length" class="w-full mb-2">
                 <tbody>
                   <tr v-for="attr in span.attributes" :key="attr.key" class="align-top">
@@ -572,6 +792,7 @@ function activeCountForKey(key: string): number {
         </div>
 
       </div>
+      </template>
         </div><!-- /flex-1 -->
       </div><!-- /flex -->
     </div>
