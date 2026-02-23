@@ -230,9 +230,7 @@ const STATUS_COLOR: Record<number, string> = {
 
 const activeFilters = ref<Array<{ key: string; value: string }>>([]);
 
-type DropdownStep = 'closed' | 'pick-key' | 'pick-value';
-const dropdownStep = ref<DropdownStep>('closed');
-const pendingKey = ref<string | null>(null);
+const expandedFacets = reactive(new Set<string>());
 
 // ── Facet computed ────────────────────────────────────────────────────────────
 
@@ -257,12 +255,6 @@ const sortedFacets = computed(() =>
     .sort((a, b) => b.total - a.total)
 );
 
-const sortedValues = computed(() => {
-  if (!pendingKey.value) return [];
-  const m = allFacets.value.get(pendingKey.value);
-  return m ? [...m.entries()].sort((a, b) => b[1] - a[1]) : [];
-});
-
 // Precomputed once per filter change — not once per span
 const activeFilterMap = computed((): Map<string, Set<string>> => {
   const m = new Map<string, Set<string>>();
@@ -274,20 +266,28 @@ const activeFilterMap = computed((): Map<string, Set<string>> => {
   return m;
 });
 
-// Precomputed for the value picker — gives O(1) lookups in the template
-const pendingKeyActiveValues = computed((): Set<string> => {
-  if (!pendingKey.value) return new Set();
-  const key = pendingKey.value;
-  return new Set(activeFilters.value.filter(f => f.key === key).map(f => f.value));
-});
-
 const filteredTraceGroups = computed((): TraceGroup[] => {
   if (activeFilters.value.length === 0) return traceGroups.value;
   const filterMap = activeFilterMap.value;
   return traceGroups.value
-    .map(g => ({ ...g, spans: g.spans.filter(span => spanMatchesFilters(span, filterMap)) }))
-    .filter(g => g.spans.length > 0);
+    .filter(g => g.spans.some(span => spanMatchesFilters(span, filterMap)));
 });
+
+const matchingSpanIds = computed((): Set<string> => {
+  if (activeFilters.value.length === 0) return new Set();
+  const filterMap = activeFilterMap.value;
+  const ids = new Set<string>();
+  for (const g of filteredTraceGroups.value) {
+    for (const span of g.spans) {
+      if (spanMatchesFilters(span, filterMap)) ids.add(span.spanId);
+    }
+  }
+  return ids;
+});
+
+function isSpanDimmed(spanId: string): boolean {
+  return activeFilters.value.length > 0 && !matchingSpanIds.value.has(spanId);
+}
 
 // ── Facet functions ───────────────────────────────────────────────────────────
 
@@ -307,13 +307,19 @@ function removeFilter(key: string, value: string) {
   activeFilters.value = activeFilters.value.filter(f => !(f.key === key && f.value === value));
 }
 
-function openKeyPicker() { dropdownStep.value = 'pick-key'; }
-function selectKey(key: string) { pendingKey.value = key; dropdownStep.value = 'pick-value'; }
-function selectValue(value: string) {
-  if (pendingKey.value) addFilter(pendingKey.value, value);
-  dropdownStep.value = 'closed'; pendingKey.value = null;
+function toggleFacet(key: string) {
+  if (expandedFacets.has(key)) expandedFacets.delete(key);
+  else expandedFacets.add(key);
 }
-function closeDropdown() { dropdownStep.value = 'closed'; pendingKey.value = null; }
+
+function facetValues(key: string): [string, number][] {
+  const m = allFacets.value.get(key);
+  return m ? [...m.entries()].sort((a, b) => b[1] - a[1]) : [];
+}
+
+function activeCountForKey(key: string): number {
+  return activeFilters.value.filter(f => f.key === key).length;
+}
 </script>
 
 <template>
@@ -334,120 +340,81 @@ function closeDropdown() { dropdownStep.value = 'closed'; pendingKey.value = nul
     </div>
 
     <div v-else-if="traceGroups.length">
-      <div class="flex items-center justify-between mb-2">
-        <div class="flex items-center gap-2">
-          <p class="text-xs text-gray-400">
-            {{ filteredTraceGroups.length }}<template v-if="activeFilters.length"> / {{ traceGroups.length }}</template> traces
-          </p>
-          <button
-            class="text-xs text-gray-400 hover:text-gray-600"
-            @click="toggleAllTraces"
-          >{{ allExpanded ? 'Collapse all' : 'Expand all' }}</button>
-        </div>
-        <div class="flex items-center gap-0.5 border border-gray-200 rounded p-0.5">
-          <button
-            class="px-2 py-0.5 rounded text-xs transition-colors"
-            :class="viewMode === 'waterfall' ? 'bg-gray-200 text-gray-800' : 'text-gray-400 hover:text-gray-600'"
-            @click="viewMode = 'waterfall'"
-          >Waterfall</button>
-          <button
-            class="px-2 py-0.5 rounded text-xs transition-colors"
-            :class="viewMode === 'flamegraph' ? 'bg-gray-200 text-gray-800' : 'text-gray-400 hover:text-gray-600'"
-            @click="viewMode = 'flamegraph'"
-          >Flame</button>
-        </div>
-      </div>
-
-      <!-- Filter bar -->
-      <div v-if="allFacets.size > 0" class="mb-3">
-        <div class="flex flex-wrap items-center gap-1.5">
-          <!-- Active filter chips -->
-          <span
-            v-for="f in activeFilters"
-            :key="`${f.key}:${f.value}`"
-            class="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-blue-50 border border-blue-200 text-xs text-blue-800 font-mono"
-          >
-            {{ f.key }}: {{ f.value }}
+      <div class="flex gap-6">
+        <!-- Sidebar filters -->
+        <aside v-if="allFacets.size > 0" class="w-56 shrink-0">
+          <div class="flex items-center justify-between mb-2">
+            <h3 class="text-xs font-semibold text-gray-500 uppercase tracking-wide">Filters</h3>
             <button
-              class="ml-0.5 text-blue-400 hover:text-blue-700 leading-none"
-              @click="removeFilter(f.key, f.value)"
-              title="Remove filter"
-            >×</button>
-          </span>
-
-          <!-- Add filter dropdown trigger -->
-          <div class="relative z-10">
-            <!-- Click-outside scrim -->
-            <div
-              v-if="dropdownStep !== 'closed'"
-              class="fixed inset-0 z-0"
-              @click="closeDropdown"
-            />
-
-            <button
-              class="relative z-10 inline-flex items-center gap-1 px-2 py-0.5 rounded border border-gray-200 text-xs text-gray-600 hover:bg-gray-50"
-              @click="openKeyPicker"
-            >
-              + Add filter ▾
-            </button>
-
-            <!-- Key picker -->
-            <div
-              v-if="dropdownStep === 'pick-key'"
-              class="absolute z-10 left-0 mt-1 w-64 bg-white border border-gray-200 rounded shadow-lg overflow-hidden"
-            >
-              <ul class="max-h-56 overflow-y-auto">
-                <li
-                  v-for="facet in sortedFacets"
-                  :key="facet.key"
-                  class="flex items-center justify-between px-3 py-1.5 text-xs cursor-pointer hover:bg-gray-50"
-                  @click.stop="selectKey(facet.key)"
-                >
-                  <span class="font-mono text-gray-700 truncate">{{ facet.key }}</span>
-                  <span class="ml-2 shrink-0 text-gray-400">{{ facet.total }} spans</span>
-                </li>
-              </ul>
-            </div>
-
-            <!-- Value picker -->
-            <div
-              v-if="dropdownStep === 'pick-value'"
-              class="absolute z-10 left-0 mt-1 w-64 bg-white border border-gray-200 rounded shadow-lg overflow-hidden"
-            >
-              <div
-                class="flex items-center gap-1.5 px-3 py-1.5 border-b border-gray-100 text-xs text-gray-600 cursor-pointer hover:bg-gray-50"
-                @click.stop="dropdownStep = 'pick-key'"
+              v-if="activeFilters.length"
+              class="text-xs text-blue-600 hover:text-blue-800"
+              @click="activeFilters = []"
+            >Clear all</button>
+          </div>
+          <div class="space-y-0.5">
+            <div v-for="facet in sortedFacets" :key="facet.key">
+              <button
+                class="w-full flex items-center gap-1.5 px-2 py-1.5 rounded text-left text-xs hover:bg-gray-50"
+                @click="toggleFacet(facet.key)"
               >
-                <span>←</span>
-                <span class="font-mono font-medium truncate">{{ pendingKey }}</span>
-              </div>
-              <ul class="max-h-52 overflow-y-auto">
+                <svg class="w-3 h-3 shrink-0 text-gray-400 transition-transform duration-100"
+                     :class="expandedFacets.has(facet.key) ? 'rotate-90' : ''"
+                     viewBox="0 0 6 10" fill="none"
+                     stroke="currentColor" stroke-width="1.5"
+                     stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="1,1 5,5 1,9" />
+                </svg>
+                <span class="font-mono text-gray-700 truncate flex-1">{{ facet.key }}</span>
+                <span
+                  v-if="activeCountForKey(facet.key) > 0"
+                  class="ml-auto shrink-0 px-1.5 py-0.5 rounded-full bg-blue-100 text-blue-700 text-xs font-medium leading-none"
+                >{{ activeCountForKey(facet.key) }}</span>
+              </button>
+              <ul v-if="expandedFacets.has(facet.key)" class="max-h-48 overflow-y-auto pl-5 pr-1 pb-1">
                 <li
-                  v-for="[val, count] in sortedValues"
+                  v-for="[val, count] in facetValues(facet.key)"
                   :key="val"
-                  class="flex items-center justify-between px-3 py-1.5 text-xs cursor-pointer hover:bg-gray-50"
-                  :class="pendingKeyActiveValues.has(val) ? 'text-gray-400' : 'text-gray-700'"
-                  @click.stop="selectValue(val)"
+                  class="flex items-center gap-1.5 py-0.5"
                 >
-                  <span class="font-mono truncate">
-                    <template v-if="pendingKeyActiveValues.has(val)">✓ </template>{{ val }}
-                  </span>
-                  <span class="ml-2 shrink-0 text-gray-400">{{ count }} spans</span>
+                  <input
+                    type="checkbox"
+                    class="rounded border-gray-300 text-blue-600 focus:ring-blue-500 h-3.5 w-3.5 shrink-0"
+                    :checked="activeFilterMap.has(facet.key) && activeFilterMap.get(facet.key)!.has(val)"
+                    @change="activeFilterMap.has(facet.key) && activeFilterMap.get(facet.key)!.has(val) ? removeFilter(facet.key, val) : addFilter(facet.key, val)"
+                  />
+                  <span class="font-mono text-xs text-gray-600 truncate flex-1" :title="val">{{ val }}</span>
+                  <span class="shrink-0 text-xs text-gray-400 tabular-nums">{{ count }}</span>
                 </li>
               </ul>
             </div>
           </div>
+        </aside>
 
-          <!-- Clear all -->
-          <button
-            v-if="activeFilters.length"
-            class="px-2 py-0.5 rounded text-xs text-gray-400 hover:text-gray-600"
-            @click="activeFilters = []"
-          >
-            Clear all
-          </button>
-        </div>
-      </div>
+        <!-- Main trace content -->
+        <div class="flex-1 min-w-0">
+          <div class="flex items-center justify-between mb-2">
+            <div class="flex items-center gap-2">
+              <p class="text-xs text-gray-400">
+                {{ filteredTraceGroups.length }}<template v-if="activeFilters.length"> / {{ traceGroups.length }}</template> traces
+              </p>
+              <button
+                class="text-xs text-gray-400 hover:text-gray-600"
+                @click="toggleAllTraces"
+              >{{ allExpanded ? 'Collapse all' : 'Expand all' }}</button>
+            </div>
+            <div class="flex items-center gap-0.5 border border-gray-200 rounded p-0.5">
+              <button
+                class="px-2 py-0.5 rounded text-xs transition-colors"
+                :class="viewMode === 'waterfall' ? 'bg-gray-200 text-gray-800' : 'text-gray-400 hover:text-gray-600'"
+                @click="viewMode = 'waterfall'"
+              >Waterfall</button>
+              <button
+                class="px-2 py-0.5 rounded text-xs transition-colors"
+                :class="viewMode === 'flamegraph' ? 'bg-gray-200 text-gray-800' : 'text-gray-400 hover:text-gray-600'"
+                @click="viewMode = 'flamegraph'"
+              >Flame</button>
+            </div>
+          </div>
 
       <div
         v-for="group in filteredTraceGroups"
@@ -496,7 +463,8 @@ function closeDropdown() { dropdownStep.value = 'closed'; pendingKey.value = nul
         <!-- Span rows (collapsed by default) -->
         <ul v-if="expanded.has(group.traceId) && viewMode === 'waterfall'" class="space-y-0.5 mt-0.5">
           <li v-for="span in group.spans" :key="span.spanId"
-              class="py-0.5 cursor-pointer"
+              class="py-0.5 cursor-pointer transition-opacity"
+              :class="isSpanDimmed(span.spanId) ? 'opacity-30' : ''"
               @click="toggleSpan(span.spanId)">
             <div class="flex items-center gap-2">
               <!-- Name, indented by depth -->
@@ -555,10 +523,13 @@ function closeDropdown() { dropdownStep.value = 'closed'; pendingKey.value = nul
             <div
               v-for="span in group.spans"
               :key="span.spanId"
-              class="absolute overflow-hidden cursor-pointer rounded-sm border px-1 flex items-center"
-              :class="span.hasError
-                ? (expandedSpans.has(span.spanId) ? 'bg-red-300 border-red-400' : 'bg-red-200 border-red-300 hover:bg-red-300')
-                : (expandedSpans.has(span.spanId) ? 'bg-blue-400 border-blue-500' : 'bg-blue-200 border-blue-300 hover:bg-blue-300')"
+              class="absolute overflow-hidden cursor-pointer rounded-sm border px-1 flex items-center transition-opacity"
+              :class="[
+                span.hasError
+                  ? (expandedSpans.has(span.spanId) ? 'bg-red-300 border-red-400' : 'bg-red-200 border-red-300 hover:bg-red-300')
+                  : (expandedSpans.has(span.spanId) ? 'bg-blue-400 border-blue-500' : 'bg-blue-200 border-blue-300 hover:bg-blue-300'),
+                isSpanDimmed(span.spanId) ? 'opacity-30' : '',
+              ]"
               :style="{
                 left: `${span.offsetPct}%`,
                 width: `${Math.max(span.widthPct, 0.3)}%`,
@@ -601,6 +572,8 @@ function closeDropdown() { dropdownStep.value = 'closed'; pendingKey.value = nul
         </div>
 
       </div>
+        </div><!-- /flex-1 -->
+      </div><!-- /flex -->
     </div>
 
     <div v-else class="text-gray-500 text-sm">No trace data available.</div>
