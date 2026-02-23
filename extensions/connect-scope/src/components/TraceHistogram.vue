@@ -58,7 +58,7 @@ const bins = computed(() => {
       Math.floor(((span.offsetPct - vpStart) / vpRange) * NUM_BINS),
       NUM_BINS - 1,
     );
-    counts[bin]++;
+    counts[bin]!++;
     if (span.hasError) hasError[bin] = true;
   }
 

@@ -23,7 +23,7 @@ export function useTraceFilters(traceGroups: () => TraceGroup[]) {
     durations.sort((a, b) => a - b);
     const pct = (p: number) => {
       const idx = Math.ceil((p / 100) * durations.length) - 1;
-      return durations[Math.max(0, idx)];
+      return durations[Math.max(0, idx)]!;
     };
     const raw = [pct(10), pct(25), pct(50), pct(75), pct(90), pct(99)];
     // Deduplicate and round to nice values
