@@ -39,11 +39,15 @@ defineEmits<{
 
     <!-- Error details -->
     <template v-if="span.statusMessage || span.exception">
-      <p class="text-gray-600 font-medium mb-1">
-        {{ span.exception?.type ?? 'Error' }}: {{ span.statusMessage ?? span.exception?.message }}
-      </p>
-      <pre v-if="span.exception?.stacktrace"
-           class="text-gray-500 whitespace-pre-wrap break-all bg-white border border-gray-100 rounded p-2 max-h-40 overflow-y-auto leading-relaxed">{{ span.exception.stacktrace }}</pre>
+      <div class="mt-1 border border-red-100 bg-red-50 rounded p-2">
+        <p class="font-mono font-medium text-red-700 mb-1">
+          {{ span.exception?.type ?? 'Error' }}
+        </p>
+        <p v-if="span.statusMessage || span.exception?.message"
+           class="text-red-600 whitespace-pre-wrap break-words mb-1">{{ span.statusMessage ?? span.exception?.message }}</p>
+        <pre v-if="span.exception?.stacktrace"
+             class="text-gray-600 whitespace-pre-wrap break-all bg-white border border-red-100 rounded p-2 mt-1.5 max-h-60 overflow-y-auto leading-relaxed font-mono">{{ span.exception.stacktrace }}</pre>
+      </div>
     </template>
   </div>
 </template>

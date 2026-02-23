@@ -70,10 +70,11 @@ const detailSpanId = ref<string | null>(null);
 
 function onSelectSpan(spanId: string | null) {
   selectedSpanId.value = spanId;
-  detailSpanId.value = null;
+  detailSpanId.value = spanId;
 }
 
 function onDetailSelectSpan(spanId: string | null) {
+  selectedSpanId.value = spanId;
   detailSpanId.value = spanId;
 }
 
@@ -302,12 +303,25 @@ const STATUS_CLASSES: Record<number, string> = {
         </div>
 
         <template v-else>
+          <!-- Color legend -->
+          <div class="flex items-center gap-3 mb-2 text-xs text-gray-500">
+            <span class="flex items-center gap-1">
+              <span class="w-3 h-3 rounded-sm bg-blue-200 border border-blue-300"></span>
+              Normal
+            </span>
+            <span class="flex items-center gap-1">
+              <span class="w-3 h-3 rounded-sm bg-red-200 border border-red-300"></span>
+              Error
+            </span>
+          </div>
+
           <FlameChart
             :spans="flameData.spans"
             :max-depth="flameData.maxDepth"
             :total-duration-ms="flameData.totalDurationMs"
             :matching-span-ids="matchingSpanIds"
             :has-any-filter="hasAnyFilter"
+            :selected-span-id="selectedSpanId"
             @select-span="onSelectSpan"
           />
 
@@ -336,6 +350,7 @@ const STATUS_CLASSES: Record<number, string> = {
               :total-duration-ms="selectedTraceGroup.totalDurationMs"
               :matching-span-ids="matchingSpanIds"
               :has-any-filter="hasAnyFilter"
+              :selected-span-id="detailSpanId"
               @select-span="onDetailSelectSpan"
             />
 

@@ -14,6 +14,7 @@ const props = defineProps<{
   totalDurationMs: number;
   matchingSpanIds?: Set<string>;
   hasAnyFilter?: boolean;
+  selectedSpanId?: string | null;
 }>();
 
 // --- State ---
@@ -22,7 +23,6 @@ const containerRef = ref<HTMLDivElement | null>(null);
 const svgWidth = ref(800);
 const hoveredSpan = ref<FlatSpan | null>(null);
 const tooltipPos = ref({ x: 0, y: 0 });
-const selectedSpanId = ref<string | null>(null);
 
 // Zoom: percentage range of the trace (0–100)
 const viewport = ref({ start: 0, end: 100 });
@@ -129,8 +129,7 @@ const emit = defineEmits<{
 }>();
 
 function onSpanClick(spanId: string) {
-  const next = selectedSpanId.value === spanId ? null : spanId;
-  selectedSpanId.value = next;
+  const next = props.selectedSpanId === spanId ? null : spanId;
   emit('selectSpan', next);
 }
 
@@ -176,8 +175,7 @@ function resetZoom() {
 // --- Keyboard ---
 function onKeyDown(e: KeyboardEvent) {
   if (e.key === "Escape") {
-    if (selectedSpanId.value) {
-      selectedSpanId.value = null;
+    if (props.selectedSpanId) {
       emit('selectSpan', null);
       e.preventDefault();
     } else if (isZoomed.value) {
@@ -192,7 +190,6 @@ onUnmounted(() => window.removeEventListener("keydown", onKeyDown));
 
 watch(() => props.spans, () => {
   viewport.value = { start: 0, end: 100 };
-  selectedSpanId.value = null;
 });
 
 function isSpanDimmed(spanId: string): boolean {
@@ -301,18 +298,6 @@ const selectionRect = computed(() => {
           {{ formatDuration(hoveredSpan.durationMs) }}
         </div>
       </div>
-    </div>
-
-    <!-- Color legend -->
-    <div class="flex items-center gap-3 mt-2 text-xs text-gray-500">
-      <span class="flex items-center gap-1">
-        <span class="w-3 h-3 rounded-sm bg-blue-200 border border-blue-300"></span>
-        Normal
-      </span>
-      <span class="flex items-center gap-1">
-        <span class="w-3 h-3 rounded-sm bg-red-200 border border-red-300"></span>
-        Error
-      </span>
     </div>
 
   </div>
