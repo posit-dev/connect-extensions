@@ -89,7 +89,6 @@ export function buildTraceGroup(traceId: string, spans: OtlpSpan[]): TraceGroup 
       hasError: s.status?.code === 2,
       attributes: s.attributes ?? [],
       statusMessage: s.status?.message ?? null,
-      selfTimeMs: null, // computed in second pass below
       exception: exceptionEvent
         ? { type: exAttr("exception.type"), message: exAttr("exception.message"), stacktrace: exAttr("exception.stacktrace") }
         : null,
@@ -104,21 +103,6 @@ export function buildTraceGroup(traceId: string, spans: OtlpSpan[]): TraceGroup 
     .filter(s => !s.parentSpanId || !byId.has(s.parentSpanId))
     .sort(cmpByStart);
   for (const root of roots) visit(root, 0);
-
-  // Second pass: compute self-time (duration minus direct children's durations)
-  const flatById = new Map<string, FlatSpan>();
-  for (const f of flat) flatById.set(f.spanId, f);
-  const childDurationSum = new Map<string, number>();
-  for (const f of flat) {
-    if (f.parentSpanId && flatById.has(f.parentSpanId) && f.durationMs != null) {
-      childDurationSum.set(f.parentSpanId, (childDurationSum.get(f.parentSpanId) ?? 0) + f.durationMs);
-    }
-  }
-  for (const f of flat) {
-    if (f.durationMs != null) {
-      f.selfTimeMs = f.durationMs - (childDurationSum.get(f.spanId) ?? 0);
-    }
-  }
 
   return {
     traceId,

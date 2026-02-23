@@ -236,23 +236,21 @@ function toggleAggSort(key: AggSortKey) {
 }
 
 const spanAggregates = computed((): SpanAggregate[] => {
-  const groups = new Map<string, { durations: number[]; selfTimes: number[] }>();
+  const groups = new Map<string, number[]>();
   for (const g of filteredTraceGroups.value) {
     for (const span of g.spans) {
       if (span.durationMs == null) continue;
-      let entry = groups.get(span.name);
-      if (!entry) {
-        entry = { durations: [], selfTimes: [] };
-        groups.set(span.name, entry);
+      let durations = groups.get(span.name);
+      if (!durations) {
+        durations = [];
+        groups.set(span.name, durations);
       }
-      entry.durations.push(span.durationMs);
-      if (span.selfTimeMs != null) entry.selfTimes.push(span.selfTimeMs);
+      durations.push(span.durationMs);
     }
   }
   const result: SpanAggregate[] = [];
-  for (const [name, { durations, selfTimes }] of groups) {
+  for (const [name, durations] of groups) {
     durations.sort((a, b) => a - b);
-    selfTimes.sort((a, b) => a - b);
     result.push({
       name,
       count: durations.length,
@@ -261,7 +259,6 @@ const spanAggregates = computed((): SpanAggregate[] => {
       p50: percentile(durations, 50),
       p95: percentile(durations, 95),
       total: durations.reduce((s, d) => s + d, 0),
-      avgSelfTime: selfTimes.length > 0 ? selfTimes.reduce((s, d) => s + d, 0) / selfTimes.length : null,
     });
   }
   const key = aggSortKey.value;
@@ -432,9 +429,6 @@ const spanAggregates = computed((): SpanAggregate[] => {
               <th class="text-right px-3 py-2 font-semibold cursor-pointer select-none hover:text-gray-700" @click="toggleAggSort('max')">
                 Max<span v-if="aggSortKey === 'max'" class="ml-0.5">{{ aggSortAsc ? '↑' : '↓' }}</span>
               </th>
-              <th class="text-right px-3 py-2 font-semibold cursor-pointer select-none hover:text-gray-700" @click="toggleAggSort('avgSelfTime')">
-                Avg Self<span v-if="aggSortKey === 'avgSelfTime'" class="ml-0.5">{{ aggSortAsc ? '↑' : '↓' }}</span>
-              </th>
             </tr>
           </thead>
           <tbody>
@@ -444,7 +438,6 @@ const spanAggregates = computed((): SpanAggregate[] => {
               <td class="px-3 py-1.5 text-right tabular-nums font-mono text-gray-600">{{ formatDuration(agg.p50) }}</td>
               <td class="px-3 py-1.5 text-right tabular-nums font-mono text-gray-600">{{ formatDuration(agg.p95) }}</td>
               <td class="px-3 py-1.5 text-right tabular-nums font-mono text-gray-600">{{ formatDuration(agg.max) }}</td>
-              <td class="px-3 py-1.5 text-right tabular-nums font-mono text-gray-600">{{ agg.avgSelfTime != null ? formatDuration(agg.avgSelfTime) : '—' }}</td>
             </tr>
           </tbody>
         </table>
@@ -512,14 +505,15 @@ const spanAggregates = computed((): SpanAggregate[] => {
               </div>
               <!-- Timeline bar: position + width relative to this trace's duration -->
               <div class="relative flex-1 h-5 bg-gray-100 rounded overflow-hidden">
-                <div class="absolute inset-y-0 rounded bg-blue-300"
+                <div class="absolute inset-y-0 rounded"
+                     :class="span.hasError ? 'bg-red-300' : 'bg-blue-300'"
                      :style="{ left: `${span.offsetPct}%`, width: `${Math.max(span.widthPct, 0.5)}%` }">
                 </div>
               </div>
               <!-- Duration -->
               <div class="text-right text-xs text-gray-500 shrink-0 font-mono whitespace-nowrap">
                 <template v-if="span.durationMs != null">
-                  {{ formatDuration(span.durationMs) }}<span v-if="span.selfTimeMs != null && span.selfTimeMs !== span.durationMs" class="text-gray-400"> (self: {{ formatDuration(span.selfTimeMs) }})</span>
+                  {{ formatDuration(span.durationMs) }}
                 </template>
                 <template v-else>—</template>
               </div>

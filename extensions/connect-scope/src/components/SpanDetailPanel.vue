@@ -13,30 +13,19 @@ defineProps<{
   <div class="mt-1.5 px-2 py-2 bg-gray-50 border border-gray-100 rounded text-xs">
     <p v-if="showName" class="font-mono font-medium text-gray-700 mb-1.5 truncate">{{ span.name }}</p>
 
-    <!-- Timing -->
     <table class="w-full mb-2">
       <tbody>
         <tr v-if="span.durationMs != null" class="align-top">
           <td class="pr-4 pb-0.5 text-gray-400 font-mono whitespace-nowrap">duration</td>
           <td class="pb-0.5 text-gray-700 font-mono break-all">{{ formatDuration(span.durationMs) }}</td>
         </tr>
-        <tr v-if="span.selfTimeMs != null" class="align-top">
-          <td class="pr-4 pb-0.5 text-gray-400 font-mono whitespace-nowrap">self time</td>
-          <td class="pb-0.5 text-gray-700 font-mono break-all">{{ formatDuration(span.selfTimeMs) }}</td>
-        </tr>
-      </tbody>
-    </table>
-
-    <!-- Attributes -->
-    <table v-if="span.attributes.length" class="w-full mb-2">
-      <tbody>
         <tr v-for="attr in span.attributes" :key="attr.key" class="align-top">
           <td class="pr-4 pb-0.5 text-gray-400 font-mono whitespace-nowrap">{{ attr.key }}</td>
           <td class="pb-0.5 text-gray-700 font-mono break-all">{{ otlpValue(attr.value) }}</td>
         </tr>
       </tbody>
     </table>
-    <p v-else class="text-gray-400 mb-2">No attributes</p>
+    <p v-if="!span.attributes.length && span.durationMs == null" class="text-gray-400 mb-2">No attributes</p>
 
     <!-- Error details -->
     <template v-if="span.statusMessage || span.exception">

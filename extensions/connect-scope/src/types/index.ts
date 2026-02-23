@@ -67,7 +67,6 @@ export interface FlatSpan {
   hasError: boolean;
   attributes: Array<{ key: string; value: OtlpAnyValue }>;
   statusMessage: string | null;
-  selfTimeMs: number | null;
   exception: { type?: string; message?: string; stacktrace?: string } | null;
 }
 
@@ -90,7 +89,6 @@ export interface SpanAggregate {
   p50: number;
   p95: number;
   total: number;
-  avgSelfTime: number | null;
 }
 
-export type AggSortKey = 'name' | 'count' | 'p50' | 'p95' | 'max' | 'avgSelfTime';
+export type AggSortKey = 'name' | 'count' | 'p50' | 'p95' | 'max';
