@@ -362,8 +362,7 @@ const STATUS_CLASSES: Record<number, string> = {
               <div>
                 <h3 class="text-sm font-semibold text-gray-800">{{ selectedTraceGroup.label }}</h3>
                 <p class="text-xs text-gray-500 mt-0.5">
-                  {{ selectedTraceGroup.spanCount }} spans &middot;
-                  {{ formatDuration(selectedTraceGroup.totalDurationMs) }}
+                  {{ selectedTraceGroup.spanCount }} spans
                 </p>
               </div>
               <button
