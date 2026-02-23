@@ -40,8 +40,13 @@ function selectJob(job: Job) {
 const isLoading = ref(false);
 const error = ref<string | null>(null);
 const records = ref<OtlpRecord[]>([]);
+let fetchController: AbortController | null = null;
 
 async function fetchTraces(job: Job) {
+  fetchController?.abort();
+  const controller = new AbortController();
+  fetchController = controller;
+
   isLoading.value = true;
   error.value = null;
   records.value = [];
@@ -49,14 +54,20 @@ async function fetchTraces(job: Job) {
   detailSpanId.value = null;
   try {
     const response = await fetch(
-      `${apiBase}/api/content/${props.content.guid}/jobs/${job.key}/traces`
+      `${apiBase}/api/content/${props.content.guid}/jobs/${job.key}/traces`,
+      { signal: controller.signal }
     );
     if (!response.ok) throw new Error("Failed to fetch traces");
-    records.value = await response.json();
+    const data = await response.json();
+    if (controller.signal.aborted) return;
+    records.value = data;
   } catch (e) {
+    if (controller.signal.aborted) return;
     error.value = e instanceof Error ? e.message : "Unknown error";
   } finally {
-    isLoading.value = false;
+    if (!controller.signal.aborted) {
+      isLoading.value = false;
+    }
   }
 }
 
