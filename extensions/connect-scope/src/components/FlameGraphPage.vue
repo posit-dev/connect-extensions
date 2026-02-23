@@ -196,9 +196,10 @@ const flameData = computed(() => {
       const sNs = startMap.get(s)!;
       const eNs = endMap.get(s) ?? null;
       const durationMs = eNs != null ? Number(eNs - sNs) / 1_000_000 : null;
-      const offsetPct = Number((sNs - globalStart) * 10000n / globalDurationNs) / 100;
+      const globalDurationF = Number(globalDurationNs);
+      const offsetPct = Number(sNs - globalStart) / globalDurationF * 100;
       const widthPct = eNs != null
-        ? Number((eNs - sNs) * 10000n / globalDurationNs) / 100
+        ? Number(eNs - sNs) / globalDurationF * 100
         : 0;
 
       const exceptionEvent = s.events?.find(e => e.name === "exception") ?? null;
