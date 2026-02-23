@@ -7,6 +7,7 @@ import { useTraceFilters } from "../composables/useTraceFilters";
 import { useJobsStore } from "../stores/jobs";
 import { apiBase } from "../api";
 import FlameChart from "./FlameChart.vue";
+import TraceHistogram from "./TraceHistogram.vue";
 import TraceFilterSidebar from "./TraceFilterSidebar.vue";
 import SpanDetailPanel from "./SpanDetailPanel.vue";
 import LoadingSpinner from "./ui/LoadingSpinner.vue";
@@ -85,7 +86,9 @@ function onSelectSpan(spanId: string | null) {
 }
 
 function onDetailSelectSpan(spanId: string | null) {
-  selectedSpanId.value = spanId;
+  if (spanId) {
+    selectedSpanId.value = spanId;
+  }
   detailSpanId.value = spanId;
 }
 
@@ -262,6 +265,13 @@ const {
   toggleFacet, clearAllFilters,
 } = useTraceFilters(() => syntheticTraceGroups.value);
 
+// --- Shared viewport between histogram and global flame chart ---
+const globalViewport = ref({ start: 0, end: 100 });
+
+watch(flameData, () => {
+  globalViewport.value = { start: 0, end: 100 };
+});
+
 const STATUS_LABEL: Record<number, string> = { 0: "Active", 1: "Finished", 2: "Finalized" };
 const STATUS_CLASSES: Record<number, string> = {
   0: "bg-green-100 text-green-700",
@@ -326,6 +336,12 @@ const STATUS_CLASSES: Record<number, string> = {
             </span>
           </div>
 
+          <TraceHistogram
+            :spans="flameData.spans"
+            :total-duration-ms="flameData.totalDurationMs"
+            v-model:viewport="globalViewport"
+          />
+
           <FlameChart
             :spans="flameData.spans"
             :max-depth="flameData.maxDepth"
@@ -333,6 +349,7 @@ const STATUS_CLASSES: Record<number, string> = {
             :matching-span-ids="matchingSpanIds"
             :has-any-filter="hasAnyFilter"
             :selected-span-id="selectedSpanId"
+            v-model:viewport="globalViewport"
             @select-span="onSelectSpan"
           />
 

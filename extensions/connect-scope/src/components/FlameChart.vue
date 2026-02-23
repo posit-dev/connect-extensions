@@ -17,6 +17,8 @@ const props = defineProps<{
   selectedSpanId?: string | null;
 }>();
 
+const viewportModel = defineModel<{ start: number; end: number }>("viewport");
+
 // --- State ---
 const svgRef = ref<SVGSVGElement | null>(null);
 const containerRef = ref<HTMLDivElement | null>(null);
@@ -25,7 +27,17 @@ const hoveredSpan = ref<FlatSpan | null>(null);
 const tooltipPos = ref({ x: 0, y: 0 });
 
 // Zoom: percentage range of the trace (0–100)
-const viewport = ref({ start: 0, end: 100 });
+const localViewport = ref({ start: 0, end: 100 });
+const viewport = computed({
+  get: () => viewportModel.value ?? localViewport.value,
+  set: (v) => {
+    if (viewportModel.value !== undefined) {
+      viewportModel.value = v;
+    } else {
+      localViewport.value = v;
+    }
+  },
+});
 const isDragging = ref(false);
 const dragStartX = ref(0);
 const dragCurrentX = ref(0);
@@ -49,11 +61,9 @@ function spanColor(span: FlatSpan, selected: boolean): { fill: string; stroke: s
 // --- Layout ---
 const visibleSpans = computed(() => {
   const { start, end } = viewport.value;
-  const range = end - start;
-  const minPct = range / svgWidth.value; // 1px threshold in percent
   return props.spans.filter((s) => {
     const sEnd = s.offsetPct + s.widthPct;
-    return sEnd >= start && s.offsetPct <= end && s.widthPct >= minPct;
+    return sEnd >= start && s.offsetPct <= end;
   });
 });
 
@@ -189,7 +199,10 @@ onMounted(() => window.addEventListener("keydown", onKeyDown));
 onUnmounted(() => window.removeEventListener("keydown", onKeyDown));
 
 watch(() => props.spans, () => {
-  viewport.value = { start: 0, end: 100 };
+  // Only auto-reset when using local viewport (no external model)
+  if (viewportModel.value === undefined) {
+    localViewport.value = { start: 0, end: 100 };
+  }
 });
 
 function isSpanDimmed(spanId: string): boolean {
