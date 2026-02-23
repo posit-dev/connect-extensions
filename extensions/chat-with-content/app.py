@@ -137,6 +137,13 @@ setup_ui = ui.page_fillable(
 OPENAI_API_KEY = "<key>" """,
                 class_="setup-code-block",
             ),
+            ui.div(
+                ui.HTML(
+                    'For other provider examples (Azure OpenAI, Anthropic, AWS Bedrock, etc.), see the '
+                    '<a href="https://github.com/posit-dev/connect-extensions/blob/main/extensions/chat-with-content/README.md" class="setup-link">README</a>.'
+                ),
+                class_="setup-description",
+            ),
             ui.h2("Connect Visitor API Key", class_="setup-section-title"),
             ui.div(
                 "Before you are able to use this app, you need to add a Connect Visitor API Key integration in the access panel.",
