@@ -1,9 +1,10 @@
 <script setup lang="ts">
-import { ref, computed, onMounted } from "vue";
+import { ref, computed, onMounted, watch } from "vue";
 import type { ContentItem, Job, OtlpRecord, OtlpSpan, FlatSpan, TraceGroup } from "../types";
 import { otlpValue, buildTraceGroup } from "../utils/trace-builder";
 import { timeAgo, formatDuration } from "../utils/formatting";
 import { useTraceFilters } from "../composables/useTraceFilters";
+import { useJobsStore } from "../stores/jobs";
 import { apiBase } from "../api";
 import FlameChart from "./FlameChart.vue";
 import TraceFilterSidebar from "./TraceFilterSidebar.vue";
@@ -12,12 +13,56 @@ import LoadingSpinner from "./ui/LoadingSpinner.vue";
 
 const props = defineProps<{
   content: ContentItem;
-  job: Job;
 }>();
 
+const jobsStore = useJobsStore();
+
+const selectedJob = computed(() => jobsStore.selectedJob);
+
+// --- Fetch jobs on mount, auto-select first ---
+onMounted(async () => {
+  if (jobsStore.jobs.length === 0) {
+    await jobsStore.fetchJobs(props.content.guid);
+  }
+  const first = jobsStore.jobs[0];
+  if (!jobsStore.selectedJob && first) {
+    jobsStore.selectJob(first);
+  }
+});
+
+function selectJob(job: Job) {
+  jobsStore.selectJob(job);
+  selectedSpanId.value = null;
+  detailSpanId.value = null;
+}
+
+// --- Trace data for selected job ---
 const isLoading = ref(false);
 const error = ref<string | null>(null);
 const records = ref<OtlpRecord[]>([]);
+
+async function fetchTraces(job: Job) {
+  isLoading.value = true;
+  error.value = null;
+  records.value = [];
+  selectedSpanId.value = null;
+  detailSpanId.value = null;
+  try {
+    const response = await fetch(
+      `${apiBase}/api/content/${props.content.guid}/jobs/${job.key}/traces`
+    );
+    if (!response.ok) throw new Error("Failed to fetch traces");
+    records.value = await response.json();
+  } catch (e) {
+    error.value = e instanceof Error ? e.message : "Unknown error";
+  } finally {
+    isLoading.value = false;
+  }
+}
+
+watch(selectedJob, (job) => {
+  if (job) fetchTraces(job);
+}, { immediate: true });
 
 // --- Selected span / trace detail ---
 const selectedSpanId = ref<string | null>(null);
@@ -37,22 +82,6 @@ const detailSpan = computed(() => {
   return selectedTraceGroup.value.spans.find(s => s.spanId === detailSpanId.value) ?? null;
 });
 
-onMounted(async () => {
-  isLoading.value = true;
-  error.value = null;
-  try {
-    const response = await fetch(
-      `${apiBase}/api/content/${props.content.guid}/jobs/${props.job.key}/traces`
-    );
-    if (!response.ok) throw new Error("Failed to fetch traces");
-    records.value = await response.json();
-  } catch (e) {
-    error.value = e instanceof Error ? e.message : "Unknown error";
-  } finally {
-    isLoading.value = false;
-  }
-});
-
 // --- Raw spans ---
 const rawSpans = computed((): OtlpSpan[] =>
   records.value
@@ -61,7 +90,7 @@ const rawSpans = computed((): OtlpSpan[] =>
     .flatMap(ss => ss.spans ?? [])
 );
 
-// --- Per-trace groups (for the waterfall detail view) ---
+// --- Per-trace groups (for the detail view) ---
 const perTraceGroups = computed((): Map<string, TraceGroup> => {
   const byTrace = new Map<string, OtlpSpan[]>();
   for (const s of rawSpans.value) {
@@ -102,7 +131,6 @@ const flameData = computed(() => {
   const raw = rawSpans.value;
   if (raw.length === 0) return { spans: [] as FlatSpan[], maxDepth: 0, totalDurationMs: 0, startNs: 0n };
 
-  // Pre-parse timestamps
   const startMap = new Map<OtlpSpan, bigint>();
   const endMap = new Map<OtlpSpan, bigint | null>();
   for (const s of raw) {
@@ -110,7 +138,6 @@ const flameData = computed(() => {
     endMap.set(s, s.endTimeUnixNano != null ? BigInt(s.endTimeUnixNano) : null);
   }
 
-  // Global time bounds across all traces in this job
   let globalStart = BigInt("9".repeat(20));
   let globalEnd = 0n;
   for (const s of raw) {
@@ -121,7 +148,6 @@ const flameData = computed(() => {
   }
   const globalDurationNs = globalEnd - globalStart || 1n;
 
-  // Group by trace
   const byTrace = new Map<string, OtlpSpan[]>();
   for (const s of raw) {
     const tid = s.traceId ?? "unknown";
@@ -200,9 +226,6 @@ const flameData = computed(() => {
   return { spans: flat, maxDepth, totalDurationMs, startNs: globalStart };
 });
 
-/**
- * Wrap the flat spans in a synthetic TraceGroup so we can reuse useTraceFilters.
- */
 const syntheticTraceGroups = computed((): TraceGroup[] => {
   const d = flameData.value;
   if (d.spans.length === 0) return [];
@@ -228,32 +251,23 @@ const {
 } = useTraceFilters(() => syntheticTraceGroups.value);
 
 const STATUS_LABEL: Record<number, string> = { 0: "Active", 1: "Finished", 2: "Finalized" };
-const STATUS_COLOR: Record<number, string> = { 0: "text-green-600", 1: "text-gray-400", 2: "text-gray-400" };
+const STATUS_CLASSES: Record<number, string> = {
+  0: "bg-green-100 text-green-700",
+  1: "bg-gray-100 text-gray-600",
+  2: "bg-blue-100 text-blue-700",
+};
 </script>
 
 <template>
   <div>
     <div class="mb-4">
       <h2 class="text-lg font-semibold text-gray-800">{{ content.title || content.name }}</h2>
-      <div class="flex flex-wrap items-center gap-x-3 gap-y-0.5 mt-0.5 text-sm text-gray-500">
-        <span class="font-mono text-xs text-gray-400">{{ job.key }}</span>
-        <span>started {{ timeAgo(job.start_time) }}</span>
-        <span :class="STATUS_COLOR[job.status]">{{ STATUS_LABEL[job.status] }}</span>
-      </div>
     </div>
 
-    <LoadingSpinner v-if="isLoading" message="Loading traces..." class="mt-16" />
-
-    <div v-else-if="error" class="text-sm text-red-600">
-      {{ error }}
-    </div>
-
-    <div v-else-if="flameData.spans.length === 0" class="text-sm text-gray-400 mt-8 text-center">
-      No trace data found for this job.
-    </div>
-
-    <div v-else class="flex gap-6">
+    <div class="flex gap-6">
+      <!-- Left: filters -->
       <TraceFilterSidebar
+        v-if="flameData.spans.length > 0"
         :duration-stops="durationStops"
         :duration-slider-value="durationSliderValue"
         :sorted-facets="sortedFacets"
@@ -271,52 +285,95 @@ const STATUS_COLOR: Record<number, string> = { 0: "text-green-600", 1: "text-gra
         @clear-all-filters="clearAllFilters"
       />
 
+      <!-- Center: flame graph -->
       <div class="flex-1 min-w-0">
-        <FlameChart
-          :spans="flameData.spans"
-          :max-depth="flameData.maxDepth"
-          :total-duration-ms="flameData.totalDurationMs"
-          :matching-span-ids="matchingSpanIds"
-          :has-any-filter="hasAnyFilter"
-          @select-span="onSelectSpan"
-        />
+        <LoadingSpinner v-if="isLoading" message="Loading traces..." class="mt-16" />
 
-        <!-- Trace detail panel -->
-        <div
-          v-if="selectedTraceGroup"
-          class="mt-4 border border-gray-200 bg-white rounded-lg px-4 py-3"
-        >
-          <div class="flex items-center justify-between mb-2">
-            <div>
-              <h3 class="text-sm font-semibold text-gray-800">{{ selectedTraceGroup.label }}</h3>
-              <p class="text-xs text-gray-500 mt-0.5">
-                {{ selectedTraceGroup.spanCount }} spans &middot;
-                {{ formatDuration(selectedTraceGroup.totalDurationMs) }}
-              </p>
-            </div>
-            <button
-              class="px-2 py-1 text-xs text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded transition-colors"
-              @click="onSelectSpan(null)"
-            >Close</button>
-          </div>
+        <div v-else-if="error" class="text-sm text-red-600">
+          {{ error }}
+        </div>
 
+        <div v-else-if="!selectedJob" class="text-sm text-gray-400 mt-8 text-center">
+          Select a job to view its flame graph.
+        </div>
+
+        <div v-else-if="flameData.spans.length === 0" class="text-sm text-gray-400 mt-8 text-center">
+          No trace data found for this job.
+        </div>
+
+        <template v-else>
           <FlameChart
-            :spans="selectedTraceGroup.spans"
-            :max-depth="selectedTraceGroup.maxDepth"
-            :total-duration-ms="selectedTraceGroup.totalDurationMs"
+            :spans="flameData.spans"
+            :max-depth="flameData.maxDepth"
+            :total-duration-ms="flameData.totalDurationMs"
             :matching-span-ids="matchingSpanIds"
             :has-any-filter="hasAnyFilter"
-            @select-span="onDetailSelectSpan"
+            @select-span="onSelectSpan"
           />
 
-          <SpanDetailPanel
-            v-if="detailSpan"
-            :span="detailSpan"
-            :show-name="true"
-            @close="detailSpanId = null"
-          />
-        </div>
+          <!-- Trace detail panel -->
+          <div
+            v-if="selectedTraceGroup"
+            class="mt-4 border border-gray-200 bg-white rounded-lg px-4 py-3"
+          >
+            <div class="flex items-center justify-between mb-2">
+              <div>
+                <h3 class="text-sm font-semibold text-gray-800">{{ selectedTraceGroup.label }}</h3>
+                <p class="text-xs text-gray-500 mt-0.5">
+                  {{ selectedTraceGroup.spanCount }} spans &middot;
+                  {{ formatDuration(selectedTraceGroup.totalDurationMs) }}
+                </p>
+              </div>
+              <button
+                class="px-2 py-1 text-xs text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded transition-colors"
+                @click="onSelectSpan(null)"
+              >Close</button>
+            </div>
+
+            <FlameChart
+              :spans="selectedTraceGroup.spans"
+              :max-depth="selectedTraceGroup.maxDepth"
+              :total-duration-ms="selectedTraceGroup.totalDurationMs"
+              :matching-span-ids="matchingSpanIds"
+              :has-any-filter="hasAnyFilter"
+              @select-span="onDetailSelectSpan"
+            />
+
+            <SpanDetailPanel
+              v-if="detailSpan"
+              :span="detailSpan"
+              :show-name="true"
+              @close="detailSpanId = null"
+            />
+          </div>
+        </template>
       </div>
+
+      <!-- Right: job list -->
+      <aside class="w-56 shrink-0">
+        <h3 class="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Jobs</h3>
+        <div v-if="jobsStore.isLoading" class="text-xs text-gray-400">Loading...</div>
+        <ul v-else class="space-y-1">
+          <li
+            v-for="job in jobsStore.jobs"
+            :key="job.id"
+            class="px-2 py-1.5 rounded cursor-pointer text-xs transition-colors"
+            :class="selectedJob?.key === job.key
+              ? 'bg-blue-50 border border-blue-200'
+              : 'hover:bg-gray-50 border border-transparent'"
+            @click="selectJob(job)"
+          >
+            <div class="flex items-center justify-between">
+              <span class="font-mono text-gray-800 truncate">{{ job.key }}</span>
+              <span
+                class="text-[10px] font-medium px-1.5 py-0.5 rounded-full shrink-0 ml-1"
+                :class="STATUS_CLASSES[job.status]"
+              >{{ STATUS_LABEL[job.status] }}</span>
+            </div>
+            <p class="text-gray-400 mt-0.5 truncate">{{ timeAgo(job.start_time) }}</p>
+          </li>
+        </ul>
+      </aside>
     </div>
   </div>
 </template>

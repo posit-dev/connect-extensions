@@ -2,7 +2,6 @@
 import { onMounted, computed, watch } from "vue";
 import LoadingSpinner from "./components/ui/LoadingSpinner.vue";
 import ContentList from "./components/ContentList.vue";
-import JobList from "./components/JobList.vue";
 import FlameGraphPage from "./components/FlameGraphPage.vue";
 import { useUserStore } from "./stores/user";
 import { useContentStore } from "./stores/content";
@@ -13,14 +12,9 @@ const contentStore = useContentStore();
 const jobsStore = useJobsStore();
 
 const view = computed(() => {
-  if (contentStore.selectedContent && jobsStore.selectedJob) return "flamegraph";
-  if (contentStore.selectedContent) return "jobs";
+  if (contentStore.selectedContent) return "flamegraph";
   return "content";
 });
-
-function goBackToJobs() {
-  jobsStore.selectedJob = null;
-}
 
 function goBackToContent() {
   jobsStore.clearSelection();
@@ -97,33 +91,15 @@ watch(() => jobsStore.selectedJob, (job) => {
             Content
           </button>
           <span>/</span>
-          <template v-if="view === 'jobs'">
-            <span class="text-gray-800 font-medium">{{ contentStore.selectedContent?.title || contentStore.selectedContent?.name }}</span>
-          </template>
-          <template v-else>
-            <button
-              class="hover:text-blue-600 hover:underline"
-              @click="goBackToJobs"
-            >
-              {{ contentStore.selectedContent?.title || contentStore.selectedContent?.name }}
-            </button>
-            <span>/</span>
-            <span class="text-gray-800 font-medium">Flame graph</span>
-          </template>
+          <span class="text-gray-800 font-medium">{{ contentStore.selectedContent?.title || contentStore.selectedContent?.name }}</span>
         </nav>
 
         <!-- Views -->
         <ContentList v-if="view === 'content'" />
 
-        <JobList
-          v-else-if="view === 'jobs' && contentStore.selectedContent"
-          :content="contentStore.selectedContent"
-        />
-
         <FlameGraphPage
-          v-else-if="view === 'flamegraph' && contentStore.selectedContent && jobsStore.selectedJob"
+          v-else-if="view === 'flamegraph' && contentStore.selectedContent"
           :content="contentStore.selectedContent"
-          :job="jobsStore.selectedJob"
         />
       </div>
     </main>
