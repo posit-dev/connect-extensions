@@ -1,46 +1,30 @@
 <script setup lang="ts">
-import { onMounted, computed, watch, ref } from "vue";
+import { onMounted, computed, watch } from "vue";
 import LoadingSpinner from "./components/ui/LoadingSpinner.vue";
 import ContentList from "./components/ContentList.vue";
 import JobList from "./components/JobList.vue";
-import TraceViewer from "./components/TraceViewer.vue";
 import FlameGraphPage from "./components/FlameGraphPage.vue";
 import { useUserStore } from "./stores/user";
 import { useContentStore } from "./stores/content";
 import { useJobsStore } from "./stores/jobs";
-import { useTracesStore } from "./stores/traces";
-import type { Job } from "./types";
 
 const userStore = useUserStore();
 const contentStore = useContentStore();
 const jobsStore = useJobsStore();
-const tracesStore = useTracesStore();
-
-const flameGraphMode = ref(false);
 
 const view = computed(() => {
-  if (contentStore.selectedContent && jobsStore.selectedJob && flameGraphMode.value) return "flamegraph";
-  if (contentStore.selectedContent && jobsStore.selectedJob) return "traces";
+  if (contentStore.selectedContent && jobsStore.selectedJob) return "flamegraph";
   if (contentStore.selectedContent) return "jobs";
   return "content";
 });
 
 function goBackToJobs() {
-  tracesStore.clear();
   jobsStore.selectedJob = null;
-  flameGraphMode.value = false;
 }
 
 function goBackToContent() {
-  tracesStore.clear();
   jobsStore.clearSelection();
   contentStore.clearSelection();
-  flameGraphMode.value = false;
-}
-
-function openFlameGraph(job: Job) {
-  jobsStore.selectJob(job);
-  flameGraphMode.value = true;
 }
 
 onMounted(async () => {
@@ -61,13 +45,7 @@ onMounted(async () => {
 
   await jobsStore.fetchJobs(contentGuid);
   const job = jobsStore.jobs.find(j => j.key === jobKey);
-  if (!job) return;
-  jobsStore.selectJob(job);
-
-  const viewParam = params.get('view');
-  if (viewParam === 'flamegraph') {
-    flameGraphMode.value = true;
-  }
+  if (job) jobsStore.selectJob(job);
 });
 
 watch(() => contentStore.selectedContent, (content) => {
@@ -77,7 +55,6 @@ watch(() => contentStore.selectedContent, (content) => {
   } else {
     url.searchParams.delete('content');
     url.searchParams.delete('job');
-    url.searchParams.delete('view');
   }
   history.replaceState({}, '', url);
 });
@@ -88,17 +65,6 @@ watch(() => jobsStore.selectedJob, (job) => {
     url.searchParams.set('job', job.key);
   } else {
     url.searchParams.delete('job');
-    url.searchParams.delete('view');
-  }
-  history.replaceState({}, '', url);
-});
-
-watch(flameGraphMode, (fg) => {
-  const url = new URL(window.location.href);
-  if (fg) {
-    url.searchParams.set('view', 'flamegraph');
-  } else {
-    url.searchParams.delete('view');
   }
   history.replaceState({}, '', url);
 });
@@ -121,7 +87,7 @@ watch(flameGraphMode, (fg) => {
         {{ userStore.error }}
       </div>
 
-      <div v-else-if="userStore.user" :class="view === 'traces' || view === 'flamegraph' ? '' : 'max-w-2xl mx-auto'">
+      <div v-else-if="userStore.user" :class="view === 'flamegraph' ? '' : 'max-w-2xl mx-auto'">
         <!-- Breadcrumb -->
         <nav v-if="view !== 'content'" class="flex items-center gap-1 text-sm mb-6 text-gray-500">
           <button
@@ -142,7 +108,7 @@ watch(flameGraphMode, (fg) => {
               {{ contentStore.selectedContent?.title || contentStore.selectedContent?.name }}
             </button>
             <span>/</span>
-            <span class="text-gray-800 font-medium">{{ view === 'flamegraph' ? 'Flame graph' : 'Traces' }}</span>
+            <span class="text-gray-800 font-medium">Flame graph</span>
           </template>
         </nav>
 
@@ -152,13 +118,6 @@ watch(flameGraphMode, (fg) => {
         <JobList
           v-else-if="view === 'jobs' && contentStore.selectedContent"
           :content="contentStore.selectedContent"
-          @open-flame-graph="openFlameGraph"
-        />
-
-        <TraceViewer
-          v-else-if="view === 'traces' && contentStore.selectedContent && jobsStore.selectedJob"
-          :content="contentStore.selectedContent"
-          :job="jobsStore.selectedJob"
         />
 
         <FlameGraphPage

@@ -1,12 +1,13 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from "vue";
 import type { ContentItem, Job, OtlpRecord, OtlpSpan, FlatSpan, TraceGroup } from "../types";
-import { otlpValue } from "../utils/trace-builder";
-import { timeAgo } from "../utils/formatting";
+import { otlpValue, buildTraceGroup } from "../utils/trace-builder";
+import { timeAgo, formatDuration } from "../utils/formatting";
 import { useTraceFilters } from "../composables/useTraceFilters";
 import { apiBase } from "../api";
 import FlameChart from "./FlameChart.vue";
 import TraceFilterSidebar from "./TraceFilterSidebar.vue";
+import SpanDetailPanel from "./SpanDetailPanel.vue";
 import LoadingSpinner from "./ui/LoadingSpinner.vue";
 
 const props = defineProps<{
@@ -17,6 +18,24 @@ const props = defineProps<{
 const isLoading = ref(false);
 const error = ref<string | null>(null);
 const records = ref<OtlpRecord[]>([]);
+
+// --- Selected span / trace detail ---
+const selectedSpanId = ref<string | null>(null);
+const detailSpanId = ref<string | null>(null);
+
+function onSelectSpan(spanId: string | null) {
+  selectedSpanId.value = spanId;
+  detailSpanId.value = null;
+}
+
+function onDetailSelectSpan(spanId: string | null) {
+  detailSpanId.value = spanId;
+}
+
+const detailSpan = computed(() => {
+  if (!detailSpanId.value || !selectedTraceGroup.value) return null;
+  return selectedTraceGroup.value.spans.find(s => s.spanId === detailSpanId.value) ?? null;
+});
 
 onMounted(async () => {
   isLoading.value = true;
@@ -34,16 +53,53 @@ onMounted(async () => {
   }
 });
 
+// --- Raw spans ---
+const rawSpans = computed((): OtlpSpan[] =>
+  records.value
+    .flatMap(r => r.resourceSpans ?? [])
+    .flatMap(rs => rs.scopeSpans ?? [])
+    .flatMap(ss => ss.spans ?? [])
+);
+
+// --- Per-trace groups (for the waterfall detail view) ---
+const perTraceGroups = computed((): Map<string, TraceGroup> => {
+  const byTrace = new Map<string, OtlpSpan[]>();
+  for (const s of rawSpans.value) {
+    const tid = s.traceId ?? "unknown";
+    const arr = byTrace.get(tid);
+    if (arr) arr.push(s);
+    else byTrace.set(tid, [s]);
+  }
+  const groups = new Map<string, TraceGroup>();
+  for (const [tid, spans] of byTrace) {
+    groups.set(tid, buildTraceGroup(tid, spans));
+  }
+  return groups;
+});
+
+// --- spanId → traceId lookup ---
+const spanToTrace = computed((): Map<string, string> => {
+  const m = new Map<string, string>();
+  for (const s of rawSpans.value) {
+    if (s.spanId && s.traceId) m.set(s.spanId, s.traceId);
+  }
+  return m;
+});
+
+// --- Selected trace group ---
+const selectedTraceGroup = computed((): TraceGroup | null => {
+  if (!selectedSpanId.value) return null;
+  const traceId = spanToTrace.value.get(selectedSpanId.value);
+  if (!traceId) return null;
+  return perTraceGroups.value.get(traceId) ?? null;
+});
+
 /**
  * Build a single flat span list across all traces in this job,
  * with offsets computed relative to the global time range.
  */
 const flameData = computed(() => {
-  const raw: OtlpSpan[] = records.value
-    .flatMap(r => r.resourceSpans ?? [])
-    .flatMap(rs => rs.scopeSpans ?? [])
-    .flatMap(ss => ss.spans ?? []);
-
+  const raw = rawSpans.value;
   if (raw.length === 0) return { spans: [] as FlatSpan[], maxDepth: 0, totalDurationMs: 0, startNs: 0n };
 
   // Pre-parse timestamps
@@ -77,7 +133,6 @@ const flameData = computed(() => {
   const flat: FlatSpan[] = [];
 
   for (const [, traceSpans] of byTrace) {
-    // Build parent-child map
     const byId = new Map<string, OtlpSpan>();
     for (const s of traceSpans) {
       if (s.spanId) byId.set(s.spanId, s);
@@ -148,7 +203,7 @@ const flameData = computed(() => {
 /**
  * Wrap the flat spans in a synthetic TraceGroup so we can reuse useTraceFilters.
  */
-const traceGroups = computed((): TraceGroup[] => {
+const syntheticTraceGroups = computed((): TraceGroup[] => {
   const d = flameData.value;
   if (d.spans.length === 0) return [];
   return [{
@@ -170,7 +225,7 @@ const {
   hasAnyFilter, matchingSpanIds,
   onDurationSlider, addFilter, removeFilter,
   toggleFacet, clearAllFilters,
-} = useTraceFilters(() => traceGroups.value);
+} = useTraceFilters(() => syntheticTraceGroups.value);
 
 const STATUS_LABEL: Record<number, string> = { 0: "Active", 1: "Finished", 2: "Finalized" };
 const STATUS_COLOR: Record<number, string> = { 0: "text-green-600", 1: "text-gray-400", 2: "text-gray-400" };
@@ -223,7 +278,44 @@ const STATUS_COLOR: Record<number, string> = { 0: "text-green-600", 1: "text-gra
           :total-duration-ms="flameData.totalDurationMs"
           :matching-span-ids="matchingSpanIds"
           :has-any-filter="hasAnyFilter"
+          @select-span="onSelectSpan"
         />
+
+        <!-- Trace detail panel -->
+        <div
+          v-if="selectedTraceGroup"
+          class="mt-4 border border-gray-200 bg-white rounded-lg px-4 py-3"
+        >
+          <div class="flex items-center justify-between mb-2">
+            <div>
+              <h3 class="text-sm font-semibold text-gray-800">{{ selectedTraceGroup.label }}</h3>
+              <p class="text-xs text-gray-500 mt-0.5">
+                {{ selectedTraceGroup.spanCount }} spans &middot;
+                {{ formatDuration(selectedTraceGroup.totalDurationMs) }}
+              </p>
+            </div>
+            <button
+              class="px-2 py-1 text-xs text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded transition-colors"
+              @click="onSelectSpan(null)"
+            >Close</button>
+          </div>
+
+          <FlameChart
+            :spans="selectedTraceGroup.spans"
+            :max-depth="selectedTraceGroup.maxDepth"
+            :total-duration-ms="selectedTraceGroup.totalDurationMs"
+            :matching-span-ids="matchingSpanIds"
+            :has-any-filter="hasAnyFilter"
+            @select-span="onDetailSelectSpan"
+          />
+
+          <SpanDetailPanel
+            v-if="detailSpan"
+            :span="detailSpan"
+            :show-name="true"
+            @close="detailSpanId = null"
+          />
+        </div>
       </div>
     </div>
   </div>

@@ -2,14 +2,10 @@
 import { onMounted } from "vue";
 import LoadingSpinner from "./ui/LoadingSpinner.vue";
 import { useJobsStore } from "../stores/jobs";
-import type { ContentItem, Job } from "../types";
+import type { ContentItem } from "../types";
 
 const props = defineProps<{
   content: ContentItem;
-}>();
-
-const emit = defineEmits<{
-  'open-flame-graph': [job: Job];
 }>();
 
 const jobsStore = useJobsStore();
@@ -55,14 +51,7 @@ onMounted(() => {
         @click="jobsStore.selectJob(job)"
       >
         <div class="flex items-center justify-between">
-          <div class="flex items-center gap-2">
-            <p class="font-medium text-gray-800 font-mono text-sm">{{ job.key }}</p>
-            <button
-              class="px-1.5 py-0.5 text-xs text-blue-500 hover:text-blue-700 hover:bg-blue-50 rounded transition-colors"
-              title="Open flame graph"
-              @click.stop="emit('open-flame-graph', job)"
-            >Flame graph</button>
-          </div>
+          <p class="font-medium text-gray-800 font-mono text-sm">{{ job.key }}</p>
           <span
             class="text-xs font-medium px-2 py-0.5 rounded-full"
             :class="STATUS_CLASSES[job.status]"

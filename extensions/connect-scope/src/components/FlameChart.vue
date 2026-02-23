@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted, watch } from "vue";
 import type { FlatSpan } from "../types";
-import SpanDetailPanel from "./SpanDetailPanel.vue";
 import { formatDuration } from "../utils/formatting";
 
 const ROW_HEIGHT = 24;
@@ -34,10 +33,6 @@ const dragCurrentX = ref(0);
 const isZoomed = computed(() => viewport.value.start > 0.01 || viewport.value.end < 99.99);
 const svgHeight = computed(() => AXIS_HEIGHT + (props.maxDepth + 1) * ROW_HEIGHT);
 const viewRange = computed(() => viewport.value.end - viewport.value.start);
-
-const selectedSpan = computed(() =>
-  selectedSpanId.value ? props.spans.find(s => s.spanId === selectedSpanId.value) ?? null : null
-);
 
 // --- Colors ---
 function spanColor(span: FlatSpan, selected: boolean): { fill: string; stroke: string } {
@@ -129,8 +124,14 @@ function onSpanHover(e: MouseEvent, span: FlatSpan) {
 }
 
 // --- Click to select ---
+const emit = defineEmits<{
+  selectSpan: [spanId: string | null];
+}>();
+
 function onSpanClick(spanId: string) {
-  selectedSpanId.value = selectedSpanId.value === spanId ? null : spanId;
+  const next = selectedSpanId.value === spanId ? null : spanId;
+  selectedSpanId.value = next;
+  emit('selectSpan', next);
 }
 
 // --- Drag-to-zoom ---
@@ -177,6 +178,7 @@ function onKeyDown(e: KeyboardEvent) {
   if (e.key === "Escape") {
     if (selectedSpanId.value) {
       selectedSpanId.value = null;
+      emit('selectSpan', null);
       e.preventDefault();
     } else if (isZoomed.value) {
       resetZoom();
@@ -313,32 +315,5 @@ const selectionRect = computed(() => {
       </span>
     </div>
 
-    <!-- Detail panel for selected span -->
-    <Transition name="panel">
-      <SpanDetailPanel
-        v-if="selectedSpan"
-        :span="selectedSpan"
-        :show-name="true"
-        @close="selectedSpanId = null"
-      />
-    </Transition>
   </div>
 </template>
-
-<style scoped>
-.panel-enter-active,
-.panel-leave-active {
-  transition: opacity 0.15s ease, max-height 0.15s ease;
-  overflow: hidden;
-}
-.panel-enter-from,
-.panel-leave-to {
-  opacity: 0;
-  max-height: 0;
-}
-.panel-enter-to,
-.panel-leave-from {
-  opacity: 1;
-  max-height: 500px;
-}
-</style>
