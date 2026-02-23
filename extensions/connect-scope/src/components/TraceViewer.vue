@@ -1,8 +1,11 @@
 <script setup lang="ts">
 import { computed, onMounted, reactive, ref } from "vue";
 import LoadingSpinner from "./ui/LoadingSpinner.vue";
+import SpanDetailPanel from "./SpanDetailPanel.vue";
 import { useTracesStore } from "../stores/traces";
-import type { ContentItem, Job, OtlpRecord, OtlpSpan, OtlpAnyValue, FlatSpan } from "../types";
+import type { ContentItem, Job, OtlpRecord, OtlpSpan, FlatSpan, TraceGroup, SpanAggregate, AggSortKey } from "../types";
+import { formatTime, formatDuration, timeAgo } from "../utils/formatting";
+import { otlpValue, buildTraceGroup, percentile } from "../utils/trace-builder";
 
 const props = defineProps<{
   content: ContentItem;
@@ -14,133 +17,6 @@ const tracesStore = useTracesStore();
 onMounted(() => {
   tracesStore.fetchTraces(props.content.guid, props.job.key);
 });
-
-interface TraceGroup {
-  traceId: string;
-  label: string;
-  startNs: bigint;
-  startMs: number;
-  totalDurationMs: number;
-  hasError: boolean;
-  spanCount: number;
-  spans: FlatSpan[];
-}
-
-function buildTraceGroup(traceId: string, spans: OtlpSpan[]): TraceGroup {
-  // Pre-parse all timestamps once — avoids repeated BigInt construction in sort comparators
-  const spanStart = new Map<OtlpSpan, bigint>();
-  const spanEnd = new Map<OtlpSpan, bigint | null>();
-  for (const s of spans) {
-    spanStart.set(s, BigInt(s.startTimeUnixNano ?? "0"));
-    spanEnd.set(s, s.endTimeUnixNano != null ? BigInt(s.endTimeUnixNano) : null);
-  }
-
-  // Build id -> span map, then parent -> children map in O(N) instead of O(N²) per-span filter
-  const byId = new Map<string, OtlpSpan>();
-  for (const s of spans) {
-    if (s.spanId) byId.set(s.spanId, s);
-  }
-  const childrenByParent = new Map<string, OtlpSpan[]>();
-  for (const s of spans) {
-    const pid = s.parentSpanId;
-    if (pid && byId.has(pid)) {
-      const arr = childrenByParent.get(pid);
-      if (arr) arr.push(s);
-      else childrenByParent.set(pid, [s]);
-    }
-  }
-
-  // Comparator uses pre-parsed BigInts — no per-comparison allocation
-  const cmpByStart = (a: OtlpSpan, b: OtlpSpan) =>
-    spanStart.get(a)! < spanStart.get(b)! ? -1 : 1;
-
-  // Pre-sort every children list once
-  for (const children of childrenByParent.values()) {
-    children.sort(cmpByStart);
-  }
-
-  // Find trace time bounds using pre-parsed values
-  let traceStartNs = BigInt("9".repeat(20));
-  let traceEndNs = 0n;
-  for (const s of spans) {
-    const t0 = spanStart.get(s)!;
-    const t1 = spanEnd.get(s) ?? t0;
-    if (t0 < traceStartNs) traceStartNs = t0;
-    if (t1 > traceEndNs) traceEndNs = t1;
-  }
-  const durationNs = traceEndNs - traceStartNs || 1n;
-
-  const flat: FlatSpan[] = [];
-
-  const visit = (s: OtlpSpan, depth: number) => {
-    const sNs = spanStart.get(s)!;
-    const eNs = spanEnd.get(s) ?? null;
-    const durationMs = eNs != null ? Number(eNs - sNs) / 1_000_000 : null;
-    const offsetPct = Number((sNs - traceStartNs) * 10000n / durationNs) / 100;
-    const widthPct = eNs != null
-      ? Number((eNs - sNs) * 10000n / durationNs) / 100
-      : 0;
-
-    const exceptionEvent = s.events?.find(e => e.name === "exception") ?? null;
-    const exAttr = (key: string) => {
-      const a = exceptionEvent?.attributes?.find(a => a.key === key);
-      return a ? otlpValue(a.value) : undefined;
-    };
-
-    flat.push({
-      name: s.name,
-      spanId: s.spanId ?? `anon-${flat.length}`,
-      parentSpanId: s.parentSpanId ?? null,
-      startNs: sNs,
-      durationMs,
-      depth,
-      offsetPct,
-      widthPct,
-      hasError: s.status?.code === 2,
-      attributes: s.attributes ?? [],
-      statusMessage: s.status?.message ?? null,
-      selfTimeMs: null, // computed in second pass below
-      exception: exceptionEvent
-        ? { type: exAttr("exception.type"), message: exAttr("exception.message"), stacktrace: exAttr("exception.stacktrace") }
-        : null,
-    });
-
-    for (const child of childrenByParent.get(s.spanId ?? "") ?? []) {
-      visit(child, depth + 1);
-    }
-  };
-
-  const roots = spans
-    .filter(s => !s.parentSpanId || !byId.has(s.parentSpanId))
-    .sort(cmpByStart);
-  for (const root of roots) visit(root, 0);
-
-  // Second pass: compute self-time (duration minus direct children's durations)
-  const flatById = new Map<string, FlatSpan>();
-  for (const f of flat) flatById.set(f.spanId, f);
-  const childDurationSum = new Map<string, number>();
-  for (const f of flat) {
-    if (f.parentSpanId && flatById.has(f.parentSpanId) && f.durationMs != null) {
-      childDurationSum.set(f.parentSpanId, (childDurationSum.get(f.parentSpanId) ?? 0) + f.durationMs);
-    }
-  }
-  for (const f of flat) {
-    if (f.durationMs != null) {
-      f.selfTimeMs = f.durationMs - (childDurationSum.get(f.spanId) ?? 0);
-    }
-  }
-
-  return {
-    traceId,
-    label: roots[0]?.name ?? "Trace",
-    startNs: traceStartNs,
-    startMs: Number(traceStartNs / 1_000_000n),
-    totalDurationMs: Number(traceEndNs - traceStartNs) / 1_000_000,
-    hasError: flat.some(s => s.hasError),
-    spanCount: flat.length,
-    spans: flat,
-  };
-}
 
 const traceGroups = computed((): TraceGroup[] => {
   const records = tracesStore.traceData as OtlpRecord[] | null;
@@ -171,16 +47,6 @@ const traceGroups = computed((): TraceGroup[] => {
 const maxTraceDurationMs = computed(() =>
   Math.max(1, ...traceGroups.value.map(g => g.totalDurationMs))
 );
-
-function otlpValue(v: OtlpAnyValue): string {
-  if (v.stringValue != null) return v.stringValue;
-  if (v.intValue    != null) return v.intValue;
-  if (v.floatValue  != null) return String(v.floatValue);
-  if (v.boolValue   != null) return String(v.boolValue);
-  if (v.arrayValue  != null) return JSON.stringify(v.arrayValue.values ?? []);
-  if (v.kvlistValue != null) return JSON.stringify(v.kvlistValue.values ?? []);
-  return "";
-}
 
 const viewMode = ref<'waterfall' | 'flamegraph' | 'aggregate'>('waterfall');
 
@@ -214,25 +80,6 @@ const expandedSpans = reactive(new Set<string>());
 function toggleSpan(spanId: string) {
   if (expandedSpans.has(spanId)) expandedSpans.delete(spanId);
   else expandedSpans.add(spanId);
-}
-
-function formatTime(ms: number): string {
-  return new Date(ms).toLocaleString();
-}
-
-function formatDuration(ms: number): string {
-  if (ms >= 1000) return (ms / 1000).toFixed(2) + " s";
-  return ms.toFixed(1) + " ms";
-}
-
-function timeAgo(isoString: string): string {
-  const secs = Math.floor((Date.now() - new Date(isoString).getTime()) / 1000);
-  if (secs < 60) return "just now";
-  const mins = Math.floor(secs / 60);
-  if (mins < 60) return `${mins}m ago`;
-  const hrs = Math.floor(mins / 60);
-  if (hrs < 24) return `${hrs}h ago`;
-  return `${Math.floor(hrs / 24)}d ago`;
 }
 
 const STATUS_LABEL: Record<number, string> = { 0: "Active", 1: "Finished", 2: "Finalized" };
@@ -376,24 +223,6 @@ function clearAllFilters() {
 
 // ── Aggregate view ────────────────────────────────────────────────────────────
 
-function percentile(sorted: number[], p: number): number {
-  if (sorted.length === 0) return 0;
-  const idx = Math.ceil((p / 100) * sorted.length) - 1;
-  return sorted[Math.max(0, idx)];
-}
-
-interface SpanAggregate {
-  name: string;
-  count: number;
-  min: number;
-  max: number;
-  p50: number;
-  p95: number;
-  total: number;
-  avgSelfTime: number | null;
-}
-
-type AggSortKey = 'name' | 'count' | 'p50' | 'p95' | 'max' | 'avgSelfTime';
 const aggSortKey = ref<AggSortKey>('p95');
 const aggSortAsc = ref(false);
 
@@ -697,43 +526,7 @@ const spanAggregates = computed((): SpanAggregate[] => {
             </div>
 
             <!-- Detail panel -->
-            <div v-if="expandedSpans.has(span.spanId)"
-                 class="mt-1.5 px-2 py-2 bg-gray-50 border border-gray-100 rounded text-xs">
-
-              <!-- Timing -->
-              <table class="w-full mb-2">
-                <tbody>
-                  <tr v-if="span.durationMs != null" class="align-top">
-                    <td class="pr-4 pb-0.5 text-gray-400 font-mono whitespace-nowrap">duration</td>
-                    <td class="pb-0.5 text-gray-700 font-mono break-all">{{ formatDuration(span.durationMs) }}</td>
-                  </tr>
-                  <tr v-if="span.selfTimeMs != null" class="align-top">
-                    <td class="pr-4 pb-0.5 text-gray-400 font-mono whitespace-nowrap">self time</td>
-                    <td class="pb-0.5 text-gray-700 font-mono break-all">{{ formatDuration(span.selfTimeMs) }}</td>
-                  </tr>
-                </tbody>
-              </table>
-
-              <!-- Attributes -->
-              <table v-if="span.attributes.length" class="w-full mb-2">
-                <tbody>
-                  <tr v-for="attr in span.attributes" :key="attr.key" class="align-top">
-                    <td class="pr-4 pb-0.5 text-gray-400 font-mono whitespace-nowrap">{{ attr.key }}</td>
-                    <td class="pb-0.5 text-gray-700 font-mono break-all">{{ otlpValue(attr.value) }}</td>
-                  </tr>
-                </tbody>
-              </table>
-              <p v-else class="text-gray-400 mb-2">No attributes</p>
-
-              <!-- Error details -->
-              <template v-if="span.statusMessage || span.exception">
-                <p class="text-gray-600 font-medium mb-1">
-                  {{ span.exception?.type ?? 'Error' }}: {{ span.statusMessage ?? span.exception?.message }}
-                </p>
-                <pre v-if="span.exception?.stacktrace"
-                     class="text-gray-500 whitespace-pre-wrap break-all bg-white border border-gray-100 rounded p-2 max-h-40 overflow-y-auto leading-relaxed">{{ span.exception.stacktrace }}</pre>
-              </template>
-            </div>
+            <SpanDetailPanel v-if="expandedSpans.has(span.spanId)" :span="span" />
           </li>
         </ul>
 
@@ -772,40 +565,7 @@ const spanAggregates = computed((): SpanAggregate[] => {
 
           <!-- Detail panels for selected spans (below the chart) -->
           <template v-for="span in group.spans" :key="`detail-${span.spanId}`">
-            <div v-if="expandedSpans.has(span.spanId)"
-                 class="mt-1.5 px-2 py-2 bg-gray-50 border border-gray-100 rounded text-xs">
-              <p class="font-mono font-medium text-gray-700 mb-1.5 truncate">{{ span.name }}</p>
-              <!-- Timing -->
-              <table class="w-full mb-2">
-                <tbody>
-                  <tr v-if="span.durationMs != null" class="align-top">
-                    <td class="pr-4 pb-0.5 text-gray-400 font-mono whitespace-nowrap">duration</td>
-                    <td class="pb-0.5 text-gray-700 font-mono break-all">{{ formatDuration(span.durationMs) }}</td>
-                  </tr>
-                  <tr v-if="span.selfTimeMs != null" class="align-top">
-                    <td class="pr-4 pb-0.5 text-gray-400 font-mono whitespace-nowrap">self time</td>
-                    <td class="pb-0.5 text-gray-700 font-mono break-all">{{ formatDuration(span.selfTimeMs) }}</td>
-                  </tr>
-                </tbody>
-              </table>
-              <!-- Attributes -->
-              <table v-if="span.attributes.length" class="w-full mb-2">
-                <tbody>
-                  <tr v-for="attr in span.attributes" :key="attr.key" class="align-top">
-                    <td class="pr-4 pb-0.5 text-gray-400 font-mono whitespace-nowrap">{{ attr.key }}</td>
-                    <td class="pb-0.5 text-gray-700 font-mono break-all">{{ otlpValue(attr.value) }}</td>
-                  </tr>
-                </tbody>
-              </table>
-              <p v-else class="text-gray-400 mb-2">No attributes</p>
-              <template v-if="span.statusMessage || span.exception">
-                <p class="text-gray-600 font-medium mb-1">
-                  {{ span.exception?.type ?? 'Error' }}: {{ span.statusMessage ?? span.exception?.message }}
-                </p>
-                <pre v-if="span.exception?.stacktrace"
-                     class="text-gray-500 whitespace-pre-wrap break-all bg-white border border-gray-100 rounded p-2 max-h-40 overflow-y-auto leading-relaxed">{{ span.exception.stacktrace }}</pre>
-              </template>
-            </div>
+            <SpanDetailPanel v-if="expandedSpans.has(span.spanId)" :span="span" :show-name="true" />
           </template>
         </div>
 

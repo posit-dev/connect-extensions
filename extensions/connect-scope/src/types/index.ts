@@ -70,3 +70,27 @@ export interface FlatSpan {
   selfTimeMs: number | null;
   exception: { type?: string; message?: string; stacktrace?: string } | null;
 }
+
+export interface TraceGroup {
+  traceId: string;
+  label: string;
+  startNs: bigint;
+  startMs: number;
+  totalDurationMs: number;
+  hasError: boolean;
+  spanCount: number;
+  spans: FlatSpan[];
+}
+
+export interface SpanAggregate {
+  name: string;
+  count: number;
+  min: number;
+  max: number;
+  p50: number;
+  p95: number;
+  total: number;
+  avgSelfTime: number | null;
+}
+
+export type AggSortKey = 'name' | 'count' | 'p50' | 'p95' | 'max' | 'avgSelfTime';
