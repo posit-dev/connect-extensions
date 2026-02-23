@@ -246,7 +246,20 @@ const STATUS_COLOR: Record<number, string> = {
 
 const traceSortOrder = ref<'newest' | 'slowest'>('newest');
 const minDurationMs = ref<number | null>(null);
-const durationThresholds = [10, 50, 100, 500, 1000] as const;
+const durationStops: (number | null)[] = [null, 10, 50, 100, 500, 1000, 10000];
+const durationSliderValue = ref(0);
+
+function durationSliderLabel(index: number): string {
+  const v = durationStops[index];
+  if (v == null) return '0ms';
+  return v >= 1000 ? `${v / 1000}s` : `${v}ms`;
+}
+
+function onDurationSlider(e: Event) {
+  const val = Number((e.target as HTMLInputElement).value);
+  durationSliderValue.value = val;
+  minDurationMs.value = durationStops[val] ?? null;
+}
 
 // ── Facet filter state ────────────────────────────────────────────────────────
 
@@ -358,6 +371,7 @@ function activeCountForKey(key: string): number {
 function clearAllFilters() {
   activeFilters.value = [];
   minDurationMs.value = null;
+  durationSliderValue.value = 0;
 }
 
 // ── Aggregate view ────────────────────────────────────────────────────────────
@@ -456,6 +470,27 @@ const spanAggregates = computed((): SpanAggregate[] => {
       <div class="flex gap-6">
         <!-- Sidebar filters -->
         <aside v-if="allFacets.size > 0" class="w-56 shrink-0">
+          <div class="mb-3">
+            <div class="flex items-center justify-between mb-1">
+              <h4 class="text-xs font-semibold text-gray-500 uppercase tracking-wide">Duration</h4>
+              <span class="text-xs font-mono text-gray-600">&gt;= {{ durationSliderLabel(durationSliderValue) }}</span>
+            </div>
+            <input
+              type="range"
+              min="0"
+              :max="durationStops.length - 1"
+              step="1"
+              :value="durationSliderValue"
+              class="w-full h-1.5 bg-gray-200 rounded-full appearance-none cursor-pointer accent-blue-600"
+              @input="onDurationSlider"
+            />
+            <div class="flex justify-between mt-0.5">
+              <span v-for="(_, i) in durationStops" :key="i"
+                    class="text-[10px] text-gray-400 tabular-nums"
+                    :class="i === durationSliderValue ? 'text-blue-600 font-medium' : ''"
+              >{{ durationSliderLabel(i) }}</span>
+            </div>
+          </div>
           <div class="flex items-center justify-between mb-2">
             <h3 class="text-xs font-semibold text-gray-500 uppercase tracking-wide">Filters</h3>
             <button
@@ -463,23 +498,6 @@ const spanAggregates = computed((): SpanAggregate[] => {
               class="text-xs text-blue-600 hover:text-blue-800"
               @click="clearAllFilters"
             >Clear all</button>
-          </div>
-          <div class="mb-3">
-            <h4 class="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5">Duration</h4>
-            <div class="flex flex-wrap gap-1">
-              <button
-                class="px-2 py-0.5 rounded-full text-xs transition-colors"
-                :class="minDurationMs == null ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-500 hover:bg-gray-200'"
-                @click="minDurationMs = null"
-              >Any</button>
-              <button
-                v-for="t in durationThresholds"
-                :key="t"
-                class="px-2 py-0.5 rounded-full text-xs transition-colors"
-                :class="minDurationMs === t ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-500 hover:bg-gray-200'"
-                @click="minDurationMs = t"
-              >&gt;{{ t >= 1000 ? `${t / 1000}s` : `${t}ms` }}</button>
-            </div>
           </div>
           <div class="space-y-0.5">
             <div v-for="facet in sortedFacets" :key="facet.key">
