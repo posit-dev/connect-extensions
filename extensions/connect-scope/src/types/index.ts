@@ -78,6 +78,7 @@ export interface TraceGroup {
   totalDurationMs: number;
   hasError: boolean;
   spanCount: number;
+  maxDepth: number;
   spans: FlatSpan[];
 }
 
@@ -89,6 +90,8 @@ export interface SpanAggregate {
   p50: number;
   p95: number;
   total: number;
+  avg: number;
+  pctOfTotal: number;
 }
 
-export type AggSortKey = 'name' | 'count' | 'p50' | 'p95' | 'max';
+export type AggSortKey = 'name' | 'count' | 'avg' | 'p50' | 'p95' | 'max';

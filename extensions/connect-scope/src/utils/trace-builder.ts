@@ -104,6 +104,8 @@ export function buildTraceGroup(traceId: string, spans: OtlpSpan[]): TraceGroup 
     .sort(cmpByStart);
   for (const root of roots) visit(root, 0);
 
+  const maxDepth = flat.reduce((max, s) => Math.max(max, s.depth), 0);
+
   return {
     traceId,
     label: roots[0]?.name ?? "Trace",
@@ -112,6 +114,7 @@ export function buildTraceGroup(traceId: string, spans: OtlpSpan[]): TraceGroup 
     totalDurationMs: Number(traceEndNs - traceStartNs) / 1_000_000,
     hasError: flat.some(s => s.hasError),
     spanCount: flat.length,
+    maxDepth,
     spans: flat,
   };
 }

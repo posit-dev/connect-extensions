@@ -7,11 +7,21 @@ defineProps<{
   span: FlatSpan;
   showName?: boolean;
 }>();
+
+defineEmits<{
+  close: [];
+}>();
 </script>
 
 <template>
-  <div class="mt-1.5 px-2 py-2 bg-gray-50 border border-gray-100 rounded text-xs">
-    <p v-if="showName" class="font-mono font-medium text-gray-700 mb-1.5 truncate">{{ span.name }}</p>
+  <div class="relative mt-1.5 px-2 py-2 bg-gray-50 border border-gray-100 rounded text-xs">
+    <button
+      class="absolute top-1.5 right-1.5 w-5 h-5 flex items-center justify-center rounded text-gray-400 hover:text-gray-600 hover:bg-gray-200 transition-colors"
+      title="Close"
+      @click.stop="$emit('close')"
+    >&times;</button>
+
+    <p v-if="showName" class="font-mono font-medium text-gray-700 mb-1.5 truncate pr-6">{{ span.name }}</p>
 
     <table class="w-full mb-2">
       <tbody>
