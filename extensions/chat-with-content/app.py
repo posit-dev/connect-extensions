@@ -127,7 +127,7 @@ setup_ui = ui.page_fillable(
                 ui.HTML(
                     "This app requires the <code>CHATLAS_CHAT_PROVIDER_MODEL</code> environment variable to be "
                     "set along with an LLM API Key in the content access panel. Please set them in your environment before running the app. "
-                    'See the <a href="https://posit-dev.github.io/chatlas/reference/ChatAuto.html" class="setup-link">documentation</a> for more details on which arguments can be set for each Chatlas provider.'
+                    'See the <a href="https://posit-dev.github.io/chatlas/reference/ChatAuto.html" class="setup-link" target="_blank" rel="noopener">documentation</a> for more details on which arguments can be set for each Chatlas provider.'
                 ),
                 class_="setup-description",
             ),
@@ -140,7 +140,7 @@ OPENAI_API_KEY = "<key>" """,
             ui.div(
                 ui.HTML(
                     'For other provider examples (Azure OpenAI, Anthropic, AWS Bedrock, etc.), see the '
-                    '<a href="https://github.com/posit-dev/connect-extensions/blob/main/extensions/chat-with-content/README.md" class="setup-link">README</a>.'
+                    '<a href="https://github.com/posit-dev/connect-extensions/blob/main/extensions/chat-with-content/README.md" class="setup-link" target="_blank" rel="noopener">README</a>.'
                 ),
                 class_="setup-description",
             ),
