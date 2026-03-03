@@ -1,0 +1,9 @@
+__pycache__/
+.env
+.posit
+.venv/
+*.py[cod]
+dist/
+node_modules/
+rsconnect-python
+uv.lock
