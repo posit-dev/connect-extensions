@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, computed, watch } from "vue";
+import { onMounted, computed, watch, ref } from "vue";
 import LoadingSpinner from "./components/ui/LoadingSpinner.vue";
 import ContentList from "./components/ContentList.vue";
 import FlameGraphPage from "./components/FlameGraphPage.vue";
@@ -11,7 +11,10 @@ const userStore = useUserStore();
 const contentStore = useContentStore();
 const jobsStore = useJobsStore();
 
+const resolvingDeepLink = ref(false);
+
 const view = computed(() => {
+  if (resolvingDeepLink.value) return "loading";
   if (contentStore.selectedContent) return "flamegraph";
   return "content";
 });
@@ -22,24 +25,34 @@ function goBackToContent() {
 }
 
 onMounted(async () => {
-  await userStore.fetchCurrentUser();
-
   const params = new URLSearchParams(window.location.search);
   const contentGuid = params.get('content');
-  const jobKey = params.get('job');
+
+  if (contentGuid) {
+    resolvingDeepLink.value = true;
+  }
+
+  await userStore.fetchCurrentUser();
 
   if (!contentGuid) return;
 
+  const jobKey = params.get('job');
+
   await contentStore.fetchContent();
   const content = contentStore.items.find(c => c.guid === contentGuid);
-  if (!content) return;
+  if (!content) {
+    resolvingDeepLink.value = false;
+    return;
+  }
   contentStore.selectContent(content);
 
-  if (!jobKey) return;
+  if (jobKey) {
+    await jobsStore.fetchJobs(contentGuid);
+    const job = jobsStore.jobs.find(j => j.key === jobKey);
+    if (job) jobsStore.selectJob(job);
+  }
 
-  await jobsStore.fetchJobs(contentGuid);
-  const job = jobsStore.jobs.find(j => j.key === jobKey);
-  if (job) jobsStore.selectJob(job);
+  resolvingDeepLink.value = false;
 });
 
 watch(() => contentStore.selectedContent, (content) => {
@@ -72,7 +85,7 @@ watch(() => jobsStore.selectedJob, (job) => {
 
     <main class="flex-1 p-6">
       <LoadingSpinner
-        v-if="userStore.isLoading"
+        v-if="userStore.isLoading || view === 'loading'"
         message="Loading..."
         class="mt-16"
       />

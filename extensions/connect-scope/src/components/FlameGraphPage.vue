@@ -20,14 +20,19 @@ const jobsStore = useJobsStore();
 
 const selectedJob = computed(() => jobsStore.selectedJob);
 
-// --- Fetch jobs on mount, auto-select first ---
+// --- Fetch jobs on mount, auto-select first or fetch traces for deep-linked job ---
 onMounted(async () => {
   if (jobsStore.jobs.length === 0) {
     await jobsStore.fetchJobs(props.content.guid);
   }
-  const first = jobsStore.jobs[0];
-  if (!jobsStore.selectedJob && first) {
-    jobsStore.selectJob(first);
+  if (jobsStore.selectedJob) {
+    // Deep link: job was already selected before mount, fetch traces directly
+    fetchTraces(jobsStore.selectedJob);
+  } else {
+    const first = jobsStore.jobs[0];
+    if (first) {
+      jobsStore.selectJob(first);
+    }
   }
 });
 
