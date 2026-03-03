@@ -1,0 +1,48 @@
+{
+  "version": 1,
+  "metadata": {
+    "appmode": "python-fastapi",
+    "entrypoint": "main:app"
+  },
+  "python": {
+    "version": "3.13.12",
+    "package_manager": {
+      "name": "pip",
+      "version": "26.0.1",
+      "package_file": "requirements.txt"
+    }
+  },
+  "environment": {
+    "python": {
+      "requires": ">=3.9"
+    }
+  },
+  "files": {
+    "requirements.txt": {
+      "checksum": "0ae28f1352cba19969eff560ba67cd70"
+    },
+    "dist/assets/index-DDx0qRXz.js": {
+      "checksum": "28ca4b964317cbdd317bfdc17fb26fd4"
+    },
+    "dist/assets/index-DQr9rnlw.css": {
+      "checksum": "968991b28fea7485c180f3347f8220db"
+    },
+    "dist/index.html": {
+      "checksum": "831e6f241498640e5f59889676e5fb9f"
+    },
+    "main.py": {
+      "checksum": "d7a529385878efbc32cf1bdfeca554e9"
+    }
+  },
+  "extension": {
+    "name": "connect-scope",
+    "title": "Connect Scope",
+    "description": "connect-scope",
+    "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/connect-scope",
+    "category": "extension",
+    "tags": ["python"],
+    "minimumConnectVersion": "2026.02.0",
+    "requiredFeatures": [],
+    "version": "0.0.0"
+  }
+}
