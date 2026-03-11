@@ -244,8 +244,8 @@ def server(input: Inputs, output: Outputs, session: Session):
     """
 
     if IS_AZURE_OPENAI and not HAS_AWS_CREDENTIALS:
-        # ChatAuto has a bug where it passes `model` instead of
-        # `deployment_id` for Azure OpenAI, so we handle it directly.
+        # Azure OpenAI requires deployment id instead of model.
+    
         import json
 
         deployment_id = CHATLAS_CHAT_PROVIDER_MODEL.split("/", 1)[1]
