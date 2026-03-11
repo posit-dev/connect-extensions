@@ -2,7 +2,7 @@ import os
 from posit import connect
 from posit.connect.content import ContentItem
 from posit.connect.errors import ClientError
-from chatlas import ChatAuto, ChatBedrockAnthropic, SystemTurn, UserTurn
+from chatlas import ChatAuto, ChatAzureOpenAI, ChatBedrockAnthropic, SystemTurn, UserTurn
 import markdownify
 from shiny import App, Inputs, Outputs, Session, ui, reactive, render
 
@@ -127,7 +127,7 @@ setup_ui = ui.page_fillable(
                 ui.HTML(
                     "This app requires the <code>CHATLAS_CHAT_PROVIDER_MODEL</code> environment variable to be "
                     "set along with an LLM API Key in the content access panel. Please set them in your environment before running the app. "
-                    'See the <a href="https://posit-dev.github.io/chatlas/reference/ChatAuto.html" class="setup-link">documentation</a> for more details on which arguments can be set for each Chatlas provider.'
+                    'See the <a href="https://posit-dev.github.io/chatlas/reference/ChatAuto.html" class="setup-link" target="_blank" rel="noopener">documentation</a> for more details on which arguments can be set for each Chatlas provider.'
                 ),
                 class_="setup-description",
             ),
@@ -136,6 +136,13 @@ setup_ui = ui.page_fillable(
                 """CHATLAS_CHAT_PROVIDER_MODEL = "openai/gpt-4o"
 OPENAI_API_KEY = "<key>" """,
                 class_="setup-code-block",
+            ),
+            ui.div(
+                ui.HTML(
+                    'For other provider examples (Azure OpenAI, Anthropic, AWS Bedrock, etc.), see the '
+                    '<a href="https://github.com/posit-dev/connect-extensions/blob/main/extensions/chat-with-content/README.md" class="setup-link" target="_blank" rel="noopener">README</a>.'
+                ),
+                class_="setup-description",
             ),
             ui.h2("Connect Visitor API Key", class_="setup-section-title"),
             ui.div(
@@ -197,6 +204,7 @@ screen_ui = ui.page_output("screen")
 CHATLAS_CHAT_PROVIDER = os.getenv("CHATLAS_CHAT_PROVIDER")
 CHATLAS_CHAT_ARGS = os.getenv("CHATLAS_CHAT_ARGS")
 CHATLAS_CHAT_PROVIDER_MODEL = os.getenv("CHATLAS_CHAT_PROVIDER_MODEL")
+IS_AZURE_OPENAI = (CHATLAS_CHAT_PROVIDER_MODEL or "").startswith("azure-openai/")
 HAS_AWS_CREDENTIALS = check_aws_bedrock_credentials()
 
 
@@ -235,7 +243,21 @@ def server(input: Inputs, output: Outputs, session: Session):
         </important>
     """
 
-    if (CHATLAS_CHAT_PROVIDER_MODEL or CHATLAS_CHAT_PROVIDER) and not HAS_AWS_CREDENTIALS:
+    if IS_AZURE_OPENAI and not HAS_AWS_CREDENTIALS:
+        # Azure OpenAI requires deployment id instead of model.
+    
+        import json
+
+        deployment_id = CHATLAS_CHAT_PROVIDER_MODEL.split("/", 1)[1]
+        chat_args = json.loads(CHATLAS_CHAT_ARGS or "{}")
+        chat = ChatAzureOpenAI(
+            endpoint=os.environ["AZURE_OPENAI_ENDPOINT"],
+            deployment_id=deployment_id,
+            api_version=chat_args.get("api_version", "2025-03-01-preview"),
+            api_key=os.getenv("AZURE_OPENAI_API_KEY"),
+            system_prompt=system_prompt,
+        )
+    elif (CHATLAS_CHAT_PROVIDER_MODEL or CHATLAS_CHAT_PROVIDER) and not HAS_AWS_CREDENTIALS:
         # This will pull its configuration from environment variables
         # CHATLAS_CHAT_PROVIDER_MODEL, or the deprecated CHATLAS_CHAT_PROVIDER and CHATLAS_CHAT_ARGS
         chat = ChatAuto(
