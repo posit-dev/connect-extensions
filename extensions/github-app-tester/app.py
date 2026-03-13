@@ -1,6 +1,7 @@
 # GitHub App Integration Tester
 # A Shiny for Python app to test GitHub App (service account) integration on Posit Connect
 
+import json
 import os
 from datetime import datetime
 
@@ -316,7 +317,7 @@ def server(input, output, session):
         if not repos:
             return ui.p("No repositories accessible", class_="text-warning")
 
-        choices = {repo["full_name"]: repo["full_name"] for repo in repos}
+        choices = [repo["full_name"] for repo in repos]
 
         return ui.div(
             ui.input_select("selected_repo", "Select Repository", choices=choices),
@@ -330,33 +331,23 @@ def server(input, output, session):
             return None
         return state.get("credentials", {}).get("access_token")
 
-    @output
-    @render.ui
-    def issues_panel():
+    def get_selected_repo():
+        """Get token and selected repo, or return an error UI element."""
         token = get_access_token()
         if not token:
-            return ui.p("Not connected", class_="text-muted")
-
+            return None, None, ui.p("Not connected", class_="text-muted")
         try:
             repo = input.selected_repo()
         except Exception:
-            return ui.p("Select a repository", class_="text-muted")
-
+            repo = None
         if not repo:
-            return ui.p("Select a repository", class_="text-muted")
+            return None, None, ui.p("Select a repository", class_="text-muted")
+        return token, repo, None
 
-        # Fetch issues
-        resp = github_api_request(
-            token,
-            f"/repos/{repo}/issues",
-            {"state": "open", "per_page": 20, "sort": "updated"},
-        )
-
+    def render_api_error(resp, permission_hint):
+        """Render an API error response, or return None if the response is OK."""
         if "error" in resp:
-            return ui.div(
-                ui.p(f"Error: {resp['error']}", class_="text-danger"),
-            )
-
+            return ui.p(f"Error: {resp['error']}", class_="text-danger")
         if resp.get("status_code") != 200:
             return ui.div(
                 ui.p(
@@ -365,14 +356,30 @@ def server(input, output, session):
                 ),
                 ui.pre(str(resp.get("data", {}))),
                 ui.p(
-                    "This may indicate the token doesn't have 'issues:read' permission.",
+                    f"This may indicate the token doesn't have '{permission_hint}' permission.",
                     class_="text-muted",
                 ),
             )
+        return None
 
-        issues = resp.get("data", [])
+    @output
+    @render.ui
+    def issues_panel():
+        token, repo, err = get_selected_repo()
+        if err:
+            return err
+
+        resp = github_api_request(
+            token,
+            f"/repos/{repo}/issues",
+            {"state": "open", "per_page": 20, "sort": "updated"},
+        )
+
+        if err := render_api_error(resp, "issues:read"):
+            return err
+
         # Filter out PRs (GitHub returns PRs in issues endpoint)
-        issues = [i for i in issues if "pull_request" not in i]
+        issues = [i for i in resp.get("data", []) if "pull_request" not in i]
 
         if not issues:
             return ui.p(
@@ -406,42 +413,18 @@ def server(input, output, session):
     @output
     @render.ui
     def prs_panel():
-        token = get_access_token()
-        if not token:
-            return ui.p("Not connected", class_="text-muted")
+        token, repo, err = get_selected_repo()
+        if err:
+            return err
 
-        try:
-            repo = input.selected_repo()
-        except Exception:
-            return ui.p("Select a repository", class_="text-muted")
-
-        if not repo:
-            return ui.p("Select a repository", class_="text-muted")
-
-        # Fetch PRs
         resp = github_api_request(
             token,
             f"/repos/{repo}/pulls",
             {"state": "open", "per_page": 20, "sort": "updated"},
         )
 
-        if "error" in resp:
-            return ui.div(
-                ui.p(f"Error: {resp['error']}", class_="text-danger"),
-            )
-
-        if resp.get("status_code") != 200:
-            return ui.div(
-                ui.p(
-                    ui.strong(f"GitHub API Error ({resp.get('status_code')})"),
-                    class_="text-danger",
-                ),
-                ui.pre(str(resp.get("data", {}))),
-                ui.p(
-                    "This may indicate the token doesn't have 'pull_requests:read' permission.",
-                    class_="text-muted",
-                ),
-            )
+        if err := render_api_error(resp, "pull_requests:read"):
+            return err
 
         prs = resp.get("data", [])
 
@@ -486,38 +469,14 @@ def server(input, output, session):
     @output
     @render.ui
     def contents_panel():
-        token = get_access_token()
-        if not token:
-            return ui.p("Not connected", class_="text-muted")
+        token, repo, err = get_selected_repo()
+        if err:
+            return err
 
-        try:
-            repo = input.selected_repo()
-        except Exception:
-            return ui.p("Select a repository", class_="text-muted")
-
-        if not repo:
-            return ui.p("Select a repository", class_="text-muted")
-
-        # Fetch root contents
         resp = github_api_request(token, f"/repos/{repo}/contents")
 
-        if "error" in resp:
-            return ui.div(
-                ui.p(f"Error: {resp['error']}", class_="text-danger"),
-            )
-
-        if resp.get("status_code") != 200:
-            return ui.div(
-                ui.p(
-                    ui.strong(f"GitHub API Error ({resp.get('status_code')})"),
-                    class_="text-danger",
-                ),
-                ui.pre(str(resp.get("data", {}))),
-                ui.p(
-                    "This may indicate the token doesn't have 'contents:read' permission.",
-                    class_="text-muted",
-                ),
-            )
+        if err := render_api_error(resp, "contents:read"):
+            return err
 
         contents = resp.get("data", [])
 
@@ -552,8 +511,6 @@ def server(input, output, session):
     @output
     @render.code
     def raw_response():
-        import json
-
         state = connection_state.get()
         result = dict(state)
 
