@@ -467,7 +467,7 @@
     },
     "connectapi": {
       "Package": "connectapi",
-      "Version": "0.11.0",
+      "Version": "0.11.1",
       "Source": "Repository",
       "Type": "Package",
       "Title": "Utilities for Interacting with the 'Posit Connect' Server API",
