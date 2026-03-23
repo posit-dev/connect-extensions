@@ -1424,9 +1424,9 @@
       "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/usage-metrics-dashboard",
       "category": "extension",
       "latestVersion": {
-        "version": "1.0.12",
-        "released": "2026-02-26T23:46:36Z",
-        "url": "https://github.com/posit-dev/connect-extensions/releases/download/usage-metrics-dashboard%40v1.0.12/usage-metrics-dashboard.tar.gz",
+        "version": "1.0.13",
+        "released": "2026-03-23T19:31:17Z",
+        "url": "https://github.com/posit-dev/connect-extensions/releases/download/usage-metrics-dashboard%40v1.0.13/usage-metrics-dashboard.tar.gz",
         "minimumConnectVersion": "2025.04.0",
         "requiredFeatures": [
           "OAuth Integrations"
@@ -1438,6 +1438,20 @@
         }
       },
       "versions": [
+        {
+          "version": "1.0.13",
+          "released": "2026-03-23T19:31:17Z",
+          "url": "https://github.com/posit-dev/connect-extensions/releases/download/usage-metrics-dashboard%40v1.0.13/usage-metrics-dashboard.tar.gz",
+          "minimumConnectVersion": "2025.04.0",
+          "requiredFeatures": [
+            "OAuth Integrations"
+          ],
+          "requiredEnvironment": {
+            "r": {
+              "requires": "~=4.3"
+            }
+          }
+        },
         {
           "version": "1.0.12",
           "released": "2026-02-26T23:46:36Z",
