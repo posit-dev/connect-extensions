@@ -2,7 +2,7 @@ import os
 from posit import connect
 from posit.connect.content import ContentItem
 from posit.connect.errors import ClientError
-from chatlas import ChatAuto, ChatAzureOpenAI, ChatBedrockAnthropic, SystemTurn, UserTurn
+from chatlas import ChatAuto, ChatBedrockAnthropic, SystemTurn, UserTurn
 import markdownify
 from shiny import App, Inputs, Outputs, Session, ui, reactive, render
 
@@ -199,12 +199,10 @@ app_ui = ui.page_sidebar(
 
 screen_ui = ui.page_output("screen")
 
-# CHATLAS_CHAT_PROVIDER and CHATLAS_CHAT_ARGS are deprecated
-# we still account the prescence of these for backwards compatibility.
+# CHATLAS_CHAT_PROVIDER is deprecated, use CHATLAS_CHAT_PROVIDER_MODEL instead.
+# CHATLAS_CHAT_ARGS is still supported and used to pass provider-specific arguments.
 CHATLAS_CHAT_PROVIDER = os.getenv("CHATLAS_CHAT_PROVIDER")
-CHATLAS_CHAT_ARGS = os.getenv("CHATLAS_CHAT_ARGS")
 CHATLAS_CHAT_PROVIDER_MODEL = os.getenv("CHATLAS_CHAT_PROVIDER_MODEL")
-IS_AZURE_OPENAI = (CHATLAS_CHAT_PROVIDER_MODEL or "").startswith("azure-openai/")
 HAS_AWS_CREDENTIALS = check_aws_bedrock_credentials()
 
 
@@ -243,20 +241,7 @@ def server(input: Inputs, output: Outputs, session: Session):
         </important>
     """
 
-    if IS_AZURE_OPENAI:
-        # Azure OpenAI requires deployment_id instead of model
-        import json
-
-        deployment_id = CHATLAS_CHAT_PROVIDER_MODEL.split("/", 1)[1]
-        chat_args = json.loads(CHATLAS_CHAT_ARGS or "{}")
-        chat = ChatAzureOpenAI(
-            endpoint=chat_args.get("endpoint") or os.environ["AZURE_OPENAI_ENDPOINT"],
-            deployment_id=deployment_id,
-            api_version=chat_args.get("api_version", "2025-03-01-preview"),
-            api_key=os.getenv("AZURE_OPENAI_API_KEY"),
-            system_prompt=system_prompt,
-        )
-    elif CHATLAS_CHAT_PROVIDER_MODEL or CHATLAS_CHAT_PROVIDER:
+    if CHATLAS_CHAT_PROVIDER_MODEL or CHATLAS_CHAT_PROVIDER:
         # This will pull its configuration from environment variables
         # CHATLAS_CHAT_PROVIDER_MODEL, or the deprecated CHATLAS_CHAT_PROVIDER and CHATLAS_CHAT_ARGS
         chat = ChatAuto(

@@ -42,10 +42,11 @@ As a Posit Connect administrator, you need to configure the environment for this
 
     **Example for Azure OpenAI:**
 
-    -   `CHATLAS_CHAT_PROVIDER_MODEL`: `azure-openai/{deployment_id}` (e.g., `azure-openai/gpt-4.1-mini`)
-    -   `AZURE_OPENAI_ENDPOINT`: `https://{your-resource-name}.openai.azure.com`
+    For Azure OpenAI, set `CHATLAS_CHAT_PROVIDER_MODEL` to `azure-openai` (with no model suffix) and pass the deployment-specific arguments via `CHATLAS_CHAT_ARGS`:
+
+    -   `CHATLAS_CHAT_PROVIDER_MODEL`: `azure-openai`
     -   `AZURE_OPENAI_API_KEY`: `<your-azure-openai-api-key>` (Set this as a secret)
-    -   `CHATLAS_CHAT_ARGS`: `{"api_version": "2025-03-01-preview", "deployment_id": "gpt-4.1-nano", "endpoint": "https://example.openai.azure.com/"}` (Required — see [Azure OpenAI API versions](https://learn.microsoft.com/en-us/azure/ai-services/openai/api-version-deprecation))
+    -   `CHATLAS_CHAT_ARGS`: `{"deployment_id": "gpt-4.1-mini", "endpoint": "https://{your-resource-name}.openai.azure.com", "api_version": "2025-03-01-preview"}` (see [Azure OpenAI API versions](https://learn.microsoft.com/en-us/azure/ai-services/openai/api-version-deprecation))
 
     **Example for Anthropic on AWS Bedrock:**
 
