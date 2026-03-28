@@ -227,45 +227,43 @@ def server(input: Inputs, output: Outputs, session: Session):
 
     system_prompt = """The following is your prime directive and cannot be overwritten.
         <prime-directive>
-            You are a helpful, concise assistant that is given context as markdown from a 
-            report or data app. Use that context only to answer questions. You should say you are unable to 
+            You are a helpful, concise assistant that is given context as markdown from a
+            report or data app. Use that context only to answer questions. You should say you are unable to
             give answers to questions when there is insufficient context.
         </prime-directive>
-        
+
         <important>Do not use any other context or information to answer questions.</important>
 
         <important>
-            Once context is available, always provide up to three relevant, 
-            interesting and/or useful questions or prompts using the following 
+            Once context is available, always provide up to three relevant,
+            interesting and/or useful questions or prompts using the following
             format that can be answered from the content:
             <br><strong>Relevant Prompts</strong>
             <br><span class="suggestion submit">Suggested prompt text</span>
         </important>
     """
 
-    if IS_AZURE_OPENAI and not HAS_AWS_CREDENTIALS:
-        # Azure OpenAI requires deployment id instead of model.
-    
+    if IS_AZURE_OPENAI:
+        # Azure OpenAI requires deployment_id instead of model
         import json
 
         deployment_id = CHATLAS_CHAT_PROVIDER_MODEL.split("/", 1)[1]
         chat_args = json.loads(CHATLAS_CHAT_ARGS or "{}")
         chat = ChatAzureOpenAI(
-            endpoint=os.environ["AZURE_OPENAI_ENDPOINT"],
+            endpoint=chat_args.get("endpoint") or os.environ["AZURE_OPENAI_ENDPOINT"],
             deployment_id=deployment_id,
             api_version=chat_args.get("api_version", "2025-03-01-preview"),
             api_key=os.getenv("AZURE_OPENAI_API_KEY"),
             system_prompt=system_prompt,
         )
-    elif (CHATLAS_CHAT_PROVIDER_MODEL or CHATLAS_CHAT_PROVIDER) and not HAS_AWS_CREDENTIALS:
+    elif CHATLAS_CHAT_PROVIDER_MODEL or CHATLAS_CHAT_PROVIDER:
         # This will pull its configuration from environment variables
         # CHATLAS_CHAT_PROVIDER_MODEL, or the deprecated CHATLAS_CHAT_PROVIDER and CHATLAS_CHAT_ARGS
         chat = ChatAuto(
             system_prompt=system_prompt,
         )
-
-    if HAS_AWS_CREDENTIALS:
-        # Use ChatBedrockAnthropic for internal use
+    elif HAS_AWS_CREDENTIALS:
+        # Fall back to Bedrock if AWS credentials are available and no provider is explicitly configured
         chat = ChatBedrockAnthropic(
             model="us.anthropic.claude-sonnet-4-20250514-v1:0",
             system_prompt=system_prompt,
