@@ -200,9 +200,9 @@ app_ui = ui.page_sidebar(
 screen_ui = ui.page_output("screen")
 
 # CHATLAS_CHAT_PROVIDER is deprecated, use CHATLAS_CHAT_PROVIDER_MODEL instead.
-# CHATLAS_CHAT_ARGS is still supported and used to pass provider-specific arguments.
 CHATLAS_CHAT_PROVIDER = os.getenv("CHATLAS_CHAT_PROVIDER")
 CHATLAS_CHAT_PROVIDER_MODEL = os.getenv("CHATLAS_CHAT_PROVIDER_MODEL")
+CHATLAS_CHAT_ARGS = os.getenv("CHATLAS_CHAT_ARGS")
 HAS_AWS_CREDENTIALS = check_aws_bedrock_credentials()
 
 
