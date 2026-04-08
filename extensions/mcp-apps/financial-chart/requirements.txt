@@ -1,0 +1,4 @@
+fastapi
+fastmcp>=3.0.0
+jinja2
+uvicorn

@@ -1,0 +1,7 @@
+duckdb
+fastapi
+fastmcp>=3.0.0
+pandas
+pins
+posit-sdk>=0.8.0
+uvicorn

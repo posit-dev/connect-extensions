@@ -1,0 +1,26 @@
+{
+  "name": "mcp-apps-basic-host",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Ad-hoc MCP Apps host for local testing with Connect MCP servers",
+  "scripts": {
+    "build": "vite build",
+    "start": "npx tsx serve.ts",
+    "dev": "concurrently \"vite build --watch\" \"npx tsx --watch serve.ts\""
+  },
+  "dependencies": {
+    "@modelcontextprotocol/ext-apps": "^1.0.0",
+    "@modelcontextprotocol/sdk": "^1.24.0",
+    "cors": "^2.8.5",
+    "express": "^5.1.0"
+  },
+  "devDependencies": {
+    "@types/cors": "^2.8.19",
+    "@types/express": "^5.0.0",
+    "@types/node": "^22.10.0",
+    "concurrently": "^9.2.1",
+    "typescript": "^5.9.3",
+    "vite": "^6.0.0"
+  }
+}

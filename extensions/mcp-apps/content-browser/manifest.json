@@ -1,0 +1,34 @@
+{
+  "version": 1,
+  "locale": "en_US.UTF-8",
+  "metadata": {
+    "appmode": "python-fastapi",
+    "entrypoint": "main:app"
+  },
+  "python": {
+    "version": "3.11",
+    "package_manager": {
+      "name": "pip",
+      "version": "24.0",
+      "package_file": "requirements.txt"
+    }
+  },
+  "environment": {
+    "python": {
+      "requires": ">=3.11"
+    }
+  },
+  "mcp": {
+    "enabled": true
+  },
+  "extension": {
+    "name": "content-browser",
+    "title": "Content Browser MCP App",
+    "description": "MCP App server for searching and chatting with static content on Posit Connect. Uses visitor-scoped posit-sdk to search, preview, and send reports and documents to the LLM for discussion.",
+    "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/mcp-apps/content-browser",
+    "category": "example",
+    "tags": ["python", "fastapi", "mcp"],
+    "minimumConnectVersion": "2026.06.0",
+    "version": "0.1.0"
+  }
+}

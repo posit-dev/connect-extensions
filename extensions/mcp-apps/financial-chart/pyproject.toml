@@ -1,0 +1,14 @@
+[project]
+name = "financial-chart-mcp-app"
+version = "0.1.0"
+description = "Interactive financial chart MCP App server (FastMCP v3)"
+requires-python = ">=3.11"
+dependencies = [
+    "fastapi",
+    "fastmcp>=3.0.0",
+    "jinja2",
+    "uvicorn",
+]
+
+[project.scripts]
+serve = "main:app"

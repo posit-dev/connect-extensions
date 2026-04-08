@@ -1,0 +1,7 @@
+rsconnect-python
+.venv
+.env
+.python-version
+__pycache__/
+*.py[cod]
+node_modules/

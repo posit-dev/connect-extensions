@@ -1,0 +1,6 @@
+beautifulsoup4
+fastapi
+fastmcp>=3.0.0
+markdownify
+posit-sdk>=0.8.0
+uvicorn

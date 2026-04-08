@@ -1,0 +1,83 @@
+# MCP Apps examples — build, run, and test recipes.
+#
+# Quick start:
+#   just serve          # start financial-chart server on :3001
+#   just host           # start basic-host on :8080/:8081
+#   just dev            # start both server + host together
+#   just test           # run MCP protocol smoke test
+
+# Default server port
+port := env("PORT", "3001")
+host_port := env("HOST_PORT", "8080")
+sandbox_port := env("SANDBOX_PORT", "8081")
+servers := env("SERVERS", '["http://localhost:' + port + '/mcp"]')
+
+# --- Setup ---
+
+# Install all dependencies (Python via uv + Node)
+install: install-server install-host
+
+# Install Python dependencies for the financial-chart server via uv
+install-server:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    if [ ! -d financial-chart/.venv ]; then
+        cd financial-chart && uv venv && cd ..
+    fi
+    source financial-chart/.venv/bin/activate
+    uv pip install -r financial-chart/requirements.txt
+
+# Install Node dependencies for the basic-host
+install-host:
+    cd basic-host && npm install
+
+# --- Run ---
+
+# Start the financial-chart MCP server
+serve:
+    cd financial-chart && PORT={{port}} uv run main.py
+
+# Start the basic-host (connect to server at localhost:PORT)
+host:
+    cd basic-host && npm run build && SERVERS='{{servers}}' HOST_PORT={{host_port}} SANDBOX_PORT={{sandbox_port}} npm run start
+
+# Start both server and host together (requires server deps installed)
+dev:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    cd financial-chart && PORT={{port}} uv run main.py &
+    SERVER_PID=$!
+    sleep 2
+    cd basic-host && SERVERS='{{servers}}' HOST_PORT={{host_port}} SANDBOX_PORT={{sandbox_port}} npm run start &
+    HOST_PID=$!
+    trap "kill $SERVER_PID $HOST_PID 2>/dev/null" EXIT
+    echo ""
+    echo "Server:  http://localhost:{{port}}"
+    echo "Host:    http://localhost:{{host_port}}"
+    echo "Sandbox: http://localhost:{{sandbox_port}}"
+    echo ""
+    wait
+
+# --- Test ---
+
+# Run MCP protocol smoke test against the financial-chart server
+test:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    cd financial-chart && PORT={{port}} uv run main.py > /dev/null 2>&1 &
+    PID=$!
+    sleep 3
+    cd financial-chart && uv run test_server.py {{port}}
+    EXIT_CODE=$?
+    kill $PID 2>/dev/null
+    wait $PID 2>/dev/null || true
+    exit $EXIT_CODE
+
+# --- Cleanup ---
+
+# Kill any running servers on the default ports
+clean:
+    -lsof -ti :{{port}} | xargs kill -9 2>/dev/null
+    -lsof -ti :{{host_port}} | xargs kill -9 2>/dev/null
+    -lsof -ti :{{sandbox_port}} | xargs kill -9 2>/dev/null
+    @echo "Cleaned up processes on ports {{port}}, {{host_port}}, {{sandbox_port}}"

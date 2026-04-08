@@ -1,0 +1,17 @@
+[project]
+name = "pins-data-viewer-mcp-app"
+version = "0.1.0"
+description = "Connect pins data viewer MCP App server — browse, explore, and query pin data (FastMCP v3)"
+requires-python = ">=3.11"
+dependencies = [
+    "duckdb",
+    "fastapi",
+    "fastmcp>=3.0.0",
+    "pandas",
+    "pins",
+    "posit-sdk>=0.8.0",
+    "uvicorn",
+]
+
+[project.scripts]
+serve = "main:app"

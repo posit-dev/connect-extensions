@@ -1,0 +1,16 @@
+[project]
+name = "content-browser-mcp-app"
+version = "0.1.0"
+description = "Connect content browser MCP App server — search and chat with static content (FastMCP v3)"
+requires-python = ">=3.11"
+dependencies = [
+    "beautifulsoup4",
+    "fastapi",
+    "fastmcp>=3.0.0",
+    "markdownify",
+    "posit-sdk>=0.8.0",
+    "uvicorn",
+]
+
+[project.scripts]
+serve = "main:app"
