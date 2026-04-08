@@ -200,6 +200,7 @@ app_ui = ui.page_sidebar(
 screen_ui = ui.page_output("screen")
 
 # CHATLAS_CHAT_PROVIDER is deprecated, use CHATLAS_CHAT_PROVIDER_MODEL instead.
+# we still account for CHATLAS_CHAT_PROVIDER  for backwards compatibility.
 CHATLAS_CHAT_PROVIDER = os.getenv("CHATLAS_CHAT_PROVIDER")
 CHATLAS_CHAT_PROVIDER_MODEL = os.getenv("CHATLAS_CHAT_PROVIDER_MODEL")
 CHATLAS_CHAT_ARGS = os.getenv("CHATLAS_CHAT_ARGS")
