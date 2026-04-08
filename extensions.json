@@ -1668,6 +1668,42 @@
       ],
       "tags": [],
       "category": "example"
+    },
+    {
+      "name": "mcp-gateway",
+      "title": "MCP Gateway",
+      "description": "Single MCP endpoint for discovering and executing tools across all MCP servers on this Connect instance.",
+      "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/mcp-gateway",
+      "latestVersion": {
+        "version": "0.1.0",
+        "released": "2026-04-08T00:00:00Z",
+        "url": "https://github.com/posit-dev/connect-extensions/releases/download/mcp-gateway%40v0.1.0/mcp-gateway.tar.gz",
+        "minimumConnectVersion": "2026.02.0",
+        "requiredFeatures": [
+          "Current User Execution"
+        ],
+        "requiredEnvironment": {
+          "python": {
+            "requires": ">=3.10.0"
+          }
+        }
+      },
+      "versions": [
+        {
+          "version": "0.1.0",
+          "released": "2026-04-08T00:00:00Z",
+          "url": "https://github.com/posit-dev/connect-extensions/releases/download/mcp-gateway%40v0.1.0/mcp-gateway.tar.gz",
+          "minimumConnectVersion": "2026.02.0",
+          "requiredFeatures": [
+            "Current User Execution"
+          ],
+          "requiredEnvironment": {
+            "python": {
+              "requires": ">=3.10.0"
+            }
+          }
+        }
+      ]
     }
   ]
 }

@@ -1,0 +1,41 @@
+{
+  "version": 1,
+  "locale": "en_US.UTF-8",
+  "metadata": {
+    "appmode": "python-fastapi",
+    "entrypoint": "main:app"
+  },
+  "python": {
+    "version": "3.11",
+    "package_manager": {
+      "name": "pip",
+      "version": "23.0",
+      "package_file": "requirements.txt"
+    }
+  },
+  "environment": {
+    "python": {
+      "requires": ">=3.10.0"
+    }
+  },
+  "extension": {
+    "name": "mcp-gateway",
+    "title": "MCP Gateway",
+    "description": "Single MCP endpoint for discovering and executing tools across all MCP servers on this Connect instance.",
+    "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/mcp-gateway",
+    "category": "extension",
+    "tags": ["python", "fastapi", "mcp", "llm"],
+    "minimumConnectVersion": "2026.02.0",
+    "requiredFeatures": ["Current User Execution"],
+    "version": "0.1.0"
+  },
+  "integration_requests": [
+    {
+      "name": "MCP Gateway Visitor Identity",
+      "description": "Forwards the calling user's identity when proxying tool execution to backend MCP servers.",
+      "auth_type": "Visitor API Key",
+      "type": "connect",
+      "config": {}
+    }
+  ]
+}

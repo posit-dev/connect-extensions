@@ -1,0 +1,88 @@
+# MCP Gateway extension — local development recipes
+
+# Python virtual environment directory
+venv_dir := justfile_directory() / ".venv"
+python := venv_dir / "bin" / "python"
+ui_dir := justfile_directory() / "ui"
+
+# --- Setup ---
+
+# create a Python virtual environment and install dependencies
+setup-python:
+    uv venv {{ venv_dir }}
+    uv pip install --python {{ python }} -r requirements.txt
+
+# install UI dependencies
+setup-ui:
+    cd {{ ui_dir }} && npm install
+
+# full setup: python + ui
+setup: setup-python setup-ui
+
+# --- Running ---
+
+# run the gateway server locally with test servers
+serve *args:
+    MCP_GATEWAY_LOCAL_SERVERS="math=http://localhost:8083,weather=http://localhost:8084" \
+        {{ python }} -m uvicorn main:app --reload --host 0.0.0.0 --port 8082 {{ args }}
+
+# run the math test server on port 8083
+serve-math:
+    cd test_servers/math && {{ python }} -m uvicorn app:app --host 0.0.0.0 --port 8083
+
+# run the weather test server on port 8084
+serve-weather:
+    cd test_servers/weather && {{ python }} -m uvicorn app:app --host 0.0.0.0 --port 8084
+
+# --- UI ---
+
+# build the Vue UI into static/
+ui-build:
+    cd {{ ui_dir }} && npm run build
+
+# start the Vite dev server with HMR
+ui-dev:
+    cd {{ ui_dir }} && npm run dev
+
+# --- Model ---
+
+# download the ColBERT model from HuggingFace
+download-model:
+    {{ python }} download_model.py
+
+# --- Lint / Format ---
+
+# lint and format Python code with ruff
+lint:
+    uv tool run ruff check .
+    uv tool run ruff format --check .
+
+# auto-fix lint and format issues
+lint-fix:
+    uv tool run ruff check --fix .
+    uv tool run ruff format .
+
+# --- Testing ---
+
+# run Python tests
+test *args:
+    uv pip install --python {{ python }} pytest pytest-asyncio --quiet
+    {{ python }} -m pytest {{ args }}
+
+# --- Utilities ---
+
+# trigger a re-index via the admin API (server must be running)
+reindex host="http://localhost:8082":
+    curl -s -X POST {{ host }}/api/reindex | python3 -m json.tool
+
+# show discovered servers via the admin API
+servers host="http://localhost:8082":
+    curl -s {{ host }}/api/servers | python3 -m json.tool
+
+# search tools via the admin API
+search query host="http://localhost:8082":
+    curl -s -G {{ host }}/api/search --data-urlencode "query={{ query }}" | python3 -m json.tool
+
+# clean build artifacts and caches
+clean:
+    rm -rf {{ venv_dir }} {{ ui_dir }}/node_modules static/assets data/ __pycache__ .pytest_cache .ruff_cache

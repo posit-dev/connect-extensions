@@ -1,0 +1,16 @@
+{
+  "version": 1,
+  "locale": "en_US.UTF-8",
+  "metadata": {
+    "appmode": "python-fastapi",
+    "entrypoint": "app:app"
+  },
+  "python": {
+    "version": "3.11",
+    "package_manager": {
+      "name": "pip",
+      "version": "23.0",
+      "package_file": "requirements.txt"
+    }
+  }
+}

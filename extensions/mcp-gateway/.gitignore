@@ -1,0 +1,11 @@
+rsconnect-python
+.venv
+.env
+.python-version
+data/
+models/
+__pycache__/
+*.pyc
+.ruff_cache/
+.pytest_cache/
+ui/node_modules/
