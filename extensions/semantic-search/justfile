@@ -1,0 +1,50 @@
+set dotenv-load
+
+ui_dir := justfile_directory() / "ui"
+
+# Run the server (backend + static frontend)
+serve *args:
+    uv run uvicorn main:app --reload --host 0.0.0.0 --port 8000 {{ args }}
+
+# Run backend + frontend dev server together
+dev:
+    #!/usr/bin/env bash
+    trap 'kill 0' EXIT
+    uv run uvicorn main:app --reload --host 0.0.0.0 --port 8000 &
+    cd {{ ui_dir }} && npm run dev &
+    wait
+
+# Install Python dependencies
+sync:
+    uv sync
+
+# Download the MiniLM embedding model
+download-model:
+    uv run python -c "from embeddings import get_model; get_model(); print('Model downloaded to models/')"
+
+# Build the Vue frontend into static/
+ui-build:
+    cd {{ ui_dir }} && npm run build
+
+# Start the Vite dev server with HMR
+ui-dev:
+    cd {{ ui_dir }} && npm run dev
+
+# Install UI dependencies
+ui-setup:
+    cd {{ ui_dir }} && npm install
+
+# Full setup: Python + UI deps
+setup: sync ui-setup
+
+# Trigger a manual re-index (server must be running)
+reindex host="http://localhost:8000":
+    curl -s -X POST {{ host }}/api/reindex | python3 -m json.tool
+
+# Search via the API (server must be running)
+search query host="http://localhost:8000":
+    curl -s -G {{ host }}/api/search --data-urlencode "q={{ query }}" | python3 -m json.tool
+
+# Check indexer status
+status host="http://localhost:8000":
+    curl -s {{ host }}/api/status | python3 -m json.tool

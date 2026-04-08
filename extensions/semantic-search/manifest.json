@@ -1,0 +1,94 @@
+{
+  "version": 1,
+  "locale": "en_US.UTF-8",
+  "metadata": {
+    "appmode": "python-fastapi",
+    "entrypoint": "main"
+  },
+  "python": {
+    "version": "3.12.0",
+    "package_manager": {
+      "name": "pip",
+      "version": "24.2",
+      "package_file": "requirements.txt"
+    }
+  },
+  "environment": {
+    "python": {
+      "requires": ">=3.11"
+    }
+  },
+  "extension": {
+    "name": "semantic-search",
+    "title": "Connect Content Semantic Search",
+    "description": "A hybrid semantic search engine for Posit Connect content. Combines vector embeddings (MiniLM) and full-text search (SQLite FTS5) with Reciprocal Rank Fusion to find relevant content by meaning, not just keywords. Includes a Vue 3 single-page app frontend and a background indexer that syncs content from Connect on a configurable interval.",
+    "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/semantic-search",
+    "category": "extension",
+    "tags": ["search", "semantic", "fastapi", "python", "embeddings", "vector-search"],
+    "minimumConnectVersion": "2025.04.0",
+    "requiredFeatures": ["API Publishing"],
+    "version": "0.0.0"
+  },
+  "files": {
+    "requirements.txt": {
+      "checksum": "ab8b1e00565696a2152a7f02464f05aa"
+    },
+    "main.py": {
+      "checksum": "a9e695f6c222d54f93e5321069410560"
+    },
+    "database.py": {
+      "checksum": "4c5fa84d42e3bdfa573a8e45b51bcfc3"
+    },
+    "embeddings.py": {
+      "checksum": "b9b5967cd28686fa9abe54eff639e887"
+    },
+    "indexer.py": {
+      "checksum": "041d5998afa880c5d984526263517a31"
+    },
+    "search.py": {
+      "checksum": "a5b1321e0aee38dc7effbac9aee9f12b"
+    },
+    "pyproject.toml": {
+      "checksum": "838f6621f60fa7c6b422fd41df32ac22"
+    },
+    "justfile": {
+      "checksum": "a4f1c848b328d63503ee5be63de3ed62"
+    },
+    "static/index.html": {
+      "checksum": "a925fa33ae2825cf3e8f27159757e8b2"
+    },
+    "static/assets/index-CLC3wEz2.js": {
+      "checksum": "5b433da839f5d576b78dbf19ccae593b"
+    },
+    "static/assets/index-Qvyl4z1S.css": {
+      "checksum": "a27e54b44b4fb2a8672ccf332965d6aa"
+    },
+    "ui/package.json": {
+      "checksum": "39449c44bbcbb62219ef7a0e9e093f63"
+    },
+    "ui/vite.config.js": {
+      "checksum": "3d2820371bc4eea3ea4e1b110e93dc3d"
+    },
+    "ui/index.html": {
+      "checksum": "422cab56005765eb845160f6275bb4be"
+    },
+    "ui/src/main.js": {
+      "checksum": "458ced763272c192db10ad2668c7ea0e"
+    },
+    "ui/src/App.vue": {
+      "checksum": "e98674be55aa9b75fdaeb16ec35eb7e6"
+    },
+    "ui/src/api.js": {
+      "checksum": "9eaa0fd42791edb01d447bacd614414b"
+    },
+    "ui/src/styles.css": {
+      "checksum": "128d8a0cbb10c8950788ee6434149bde"
+    },
+    "ui/src/components/ContentCard.vue": {
+      "checksum": "b601e57e39c1f2a87772903ff903d07d"
+    },
+    "README.md": {
+      "checksum": "f1e88620dea4a6f028b4b78aed299152"
+    }
+  }
+}
