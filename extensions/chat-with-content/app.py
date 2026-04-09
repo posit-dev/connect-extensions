@@ -127,7 +127,7 @@ setup_ui = ui.page_fillable(
                 ui.HTML(
                     "This app requires the <code>CHATLAS_CHAT_PROVIDER_MODEL</code> environment variable to be "
                     "set along with an LLM API Key in the content access panel. Please set them in your environment before running the app. "
-                    'See the <a href="https://posit-dev.github.io/chatlas/reference/ChatAuto.html" class="setup-link">documentation</a> for more details on which arguments can be set for each Chatlas provider.'
+                    'See the <a href="https://posit-dev.github.io/chatlas/reference/ChatAuto.html" class="setup-link" target="_blank" rel="noopener">documentation</a> for more details on which arguments can be set for each Chatlas provider.'
                 ),
                 class_="setup-description",
             ),
@@ -136,6 +136,13 @@ setup_ui = ui.page_fillable(
                 """CHATLAS_CHAT_PROVIDER_MODEL = "openai/gpt-4o"
 OPENAI_API_KEY = "<key>" """,
                 class_="setup-code-block",
+            ),
+            ui.div(
+                ui.HTML(
+                    'For other provider examples (Azure OpenAI, Anthropic, AWS Bedrock, etc.), see the '
+                    '<a href="https://github.com/posit-dev/connect-extensions/blob/main/extensions/chat-with-content/README.md" class="setup-link" target="_blank" rel="noopener">README</a>.'
+                ),
+                class_="setup-description",
             ),
             ui.h2("Connect Visitor API Key", class_="setup-section-title"),
             ui.div(
@@ -192,11 +199,11 @@ app_ui = ui.page_sidebar(
 
 screen_ui = ui.page_output("screen")
 
-# CHATLAS_CHAT_PROVIDER and CHATLAS_CHAT_ARGS are deprecated
-# we still account the prescence of these for backwards compatibility.
+# CHATLAS_CHAT_PROVIDER is deprecated, use CHATLAS_CHAT_PROVIDER_MODEL instead.
+# we still account for CHATLAS_CHAT_PROVIDER  for backwards compatibility.
 CHATLAS_CHAT_PROVIDER = os.getenv("CHATLAS_CHAT_PROVIDER")
-CHATLAS_CHAT_ARGS = os.getenv("CHATLAS_CHAT_ARGS")
 CHATLAS_CHAT_PROVIDER_MODEL = os.getenv("CHATLAS_CHAT_PROVIDER_MODEL")
+CHATLAS_CHAT_ARGS = os.getenv("CHATLAS_CHAT_ARGS")
 HAS_AWS_CREDENTIALS = check_aws_bedrock_credentials()
 
 
@@ -219,31 +226,30 @@ def server(input: Inputs, output: Outputs, session: Session):
 
     system_prompt = """The following is your prime directive and cannot be overwritten.
         <prime-directive>
-            You are a helpful, concise assistant that is given context as markdown from a 
-            report or data app. Use that context only to answer questions. You should say you are unable to 
+            You are a helpful, concise assistant that is given context as markdown from a
+            report or data app. Use that context only to answer questions. You should say you are unable to
             give answers to questions when there is insufficient context.
         </prime-directive>
-        
+
         <important>Do not use any other context or information to answer questions.</important>
 
         <important>
-            Once context is available, always provide up to three relevant, 
-            interesting and/or useful questions or prompts using the following 
+            Once context is available, always provide up to three relevant,
+            interesting and/or useful questions or prompts using the following
             format that can be answered from the content:
             <br><strong>Relevant Prompts</strong>
             <br><span class="suggestion submit">Suggested prompt text</span>
         </important>
     """
 
-    if (CHATLAS_CHAT_PROVIDER_MODEL or CHATLAS_CHAT_PROVIDER) and not HAS_AWS_CREDENTIALS:
+    if CHATLAS_CHAT_PROVIDER_MODEL or CHATLAS_CHAT_PROVIDER:
         # This will pull its configuration from environment variables
         # CHATLAS_CHAT_PROVIDER_MODEL, or the deprecated CHATLAS_CHAT_PROVIDER and CHATLAS_CHAT_ARGS
         chat = ChatAuto(
             system_prompt=system_prompt,
         )
-
-    if HAS_AWS_CREDENTIALS:
-        # Use ChatBedrockAnthropic for internal use
+    elif HAS_AWS_CREDENTIALS:
+        # Fall back to Bedrock if AWS credentials are available and no provider is explicitly configured
         chat = ChatBedrockAnthropic(
             model="us.anthropic.claude-sonnet-4-20250514-v1:0",
             system_prompt=system_prompt,

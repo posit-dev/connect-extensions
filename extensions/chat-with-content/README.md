@@ -21,7 +21,7 @@ As a Posit Connect administrator, you need to configure the environment for this
 
 1.  **Publish the Extension**: Publish this application to Posit Connect.
 
-2.  **Configure Environment Variables**: In the "Vars" pane of the content settings, you need to set environment variables to configure the LLM provider. This extension uses the `chatlas` library, which supports various LLM providers like OpenAI, Google Gemini, and Anthropic on AWS Bedrock.
+2.  **Configure Environment Variables**: In the "Vars" pane of the content settings, you need to set environment variables to configure the LLM provider. This extension uses the `chatlas` library, which supports various LLM providers like OpenAI, Azure OpenAI, Google Gemini, Anthropic, and Anthropic on AWS Bedrock.
 
     Set `CHATLAS_CHAT_PROVIDER_MODEL` to specify the provider and model in the format `provider/model`. You also need to provide the API key for the chosen service.
 
@@ -40,6 +40,14 @@ As a Posit Connect administrator, you need to configure the environment for this
     -   `CHATLAS_CHAT_PROVIDER_MODEL`: `anthropic/claude-sonnet-4-20250514`
     -   `ANTHROPIC_API_KEY`: `<your-anthropic-api-key>` (Set this as a secret)
 
+    **Example for Azure OpenAI:**
+
+    For Azure OpenAI, set `CHATLAS_CHAT_PROVIDER_MODEL` to `azure-openai` (with no model suffix) and pass the deployment-specific arguments via `CHATLAS_CHAT_ARGS`:
+
+    -   `CHATLAS_CHAT_PROVIDER_MODEL`: `azure-openai`
+    -   `AZURE_OPENAI_API_KEY`: `<your-azure-openai-api-key>` (Set this as a secret)
+    -   `CHATLAS_CHAT_ARGS`: `{"deployment_id": "gpt-4.1-mini", "endpoint": "https://{your-resource-name}.openai.azure.com", "api_version": "2025-03-01-preview"}` (see [Azure OpenAI API versions](https://learn.microsoft.com/en-us/azure/ai-services/openai/api-version-deprecation))
+
     **Example for Anthropic on AWS Bedrock:**
 
     The application uses the [botocore](https://botocore.amazonaws.com/v1/documentation/api/latest/reference/credentials.html) credential chain for AWS authentication. If the Connect server is running on an EC2 instance with an IAM role that grants access to Bedrock, credentials are automatically detected and no configuration is needed. In this case, the application uses the `us.anthropic.claude-sonnet-4-20250514-v1:0` model by default.
@@ -51,7 +59,7 @@ As a Posit Connect administrator, you need to configure the environment for this
     -   `AWS_REGION`: `<your-aws-region>` (e.g., `us-east-1`)
     -   `AWS_SESSION_TOKEN`: `<your-session-token>` (Optional, for temporary credentials)
 
-    For more details on supported providers and their arguments, see the [Chatlas documentation](https://posit-dev.github.io/chatlas/reference/ChatAuto.html).
+    For more details on supported providers and their arguments, see the [chatlas documentation](https://posit-dev.github.io/chatlas/reference/ChatAuto.html).
 
 3.  **Enable Visitor API Key Integration**: This extension requires access to the Connect API on behalf of the visiting user to list their available content. In the "Access" pane of the content settings, add a "Connect Visitor API Key" integration.
 
