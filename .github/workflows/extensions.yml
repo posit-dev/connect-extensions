@@ -248,6 +248,82 @@ jobs:
   # All extensions have been linted, packaged, and released, if necessary
   # Continuing to update the extension list with the latest release data
 
+  # Comments on PRs when extensions won't release (to help contributors notice they need to bump version)
+  pr-release-comment:
+    runs-on: ubuntu-latest
+    if: always() && github.event_name == 'pull_request'
+    needs: [
+      simple-extension-release,
+      publisher-command-center,
+      package-vulnerability-scanner,
+      runtime-version-scanner,
+      usage-metrics-dashboard,
+    ]
+    permissions:
+      pull-requests: write
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - name: Download release check artifacts
+        uses: actions/download-artifact@v4
+        with:
+          pattern: release-check-*.json
+          path: release-checks
+          merge-multiple: true
+
+      - name: Aggregate release check data
+        run: |
+          # If no release checks exist, no extensions were processed
+          if [ ! -d "release-checks" ] || [ -z "$(ls -A release-checks 2>/dev/null)" ]; then
+            echo "[]" > no_release.json
+            exit 0
+          fi
+
+          # Filter to extensions that won't release (wouldRelease: false, excluding 0.0.0)
+          jq -s '[.[] | select(.wouldRelease == false and .manifestVersion != "0.0.0")]' \
+            release-checks/*.json > no_release.json
+
+      - name: Post or update PR comment
+        run: |
+          MARKER="<!-- release-check-comment -->"
+          NO_RELEASE=$(cat no_release.json)
+
+          # Exit if no extensions need commenting
+          if [ "$NO_RELEASE" = "[]" ] || [ -z "$NO_RELEASE" ]; then
+            echo "All changed extensions will release - no comment needed"
+            exit 0
+          fi
+
+          # Build the extension list
+          EXTENSION_LIST=$(echo "$NO_RELEASE" | jq -r '.[] | "- **\(.name)**: manifest version `\(.manifestVersion)` ≤ released version `\(.latestVersion)`"')
+
+          # Build comment body
+          COMMENT_BODY="${MARKER}
+          ## 😴 Extensions changed but won't release
+
+          The following extensions have code changes but the manifest version hasn't been incremented, so they won't be released when this PR merges:
+
+          ${EXTENSION_LIST}
+
+          If you intended to release these changes, update the \`version\` field in each extension's \`manifest.json\`.
+
+          See the [contributing guide](https://github.com/posit-dev/connect-extensions/blob/main/CONTRIBUTING.md#updating-content-in-the-connect-gallery) for details."
+
+          # Check for existing comment with marker
+          EXISTING_COMMENT_ID=$(gh api "repos/${{ github.repository }}/issues/${{ github.event.pull_request.number }}/comments" \
+            --jq ".[] | select(.body | contains(\"$MARKER\")) | .id" | head -1)
+
+          if [ -n "$EXISTING_COMMENT_ID" ]; then
+            echo "Updating existing comment (ID: $EXISTING_COMMENT_ID)..."
+            gh api "repos/${{ github.repository }}/issues/comments/$EXISTING_COMMENT_ID" \
+              -X PATCH \
+              -f body="$COMMENT_BODY"
+          else
+            echo "Creating new comment..."
+            gh api "repos/${{ github.repository }}/issues/${{ github.event.pull_request.number }}/comments" \
+              -f body="$COMMENT_BODY"
+          fi
+
   # Gathers all release data from GitHub releases triggered by this workflow
   # For use in the `update-extension-list` job
   # If no releases were triggered the output for releases will be `[]`

@@ -38,18 +38,26 @@ runs:
     # We compare that here, and echo if a release will occur
     # This can be helpful when looking at Pull Request action outputs
     # so it is clear what will happen on a merge to `main`
+    # Also writes release-check JSON for PR comment aggregation
     - name: Check if manifest has newer version
       id: should_release
       run: |
         # Add the extension name to the summary header for clarity
         echo "# Extension: ${{ inputs.extension-name }}" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
-        
+
+        # Helper to write release check artifact
+        write_release_check() {
+          echo "{\"name\": \"${{ inputs.extension-name }}\", \"manifestVersion\": \"$MANIFEST_VERSION\", \"latestVersion\": \"$LATEST_VERSION\", \"wouldRelease\": $1}" \
+            > release-check-${{ inputs.extension-name }}.json
+        }
+
         if [ "$MANIFEST_VERSION" = "0.0.0" ]; then
           MESSAGE="⚠️ Version 0.0.0 is reserved and will never be released."
           echo "$MESSAGE"
           echo "$MESSAGE" >> $GITHUB_STEP_SUMMARY
           echo "should_release=false" >> "$GITHUB_OUTPUT"
+          write_release_check false
         else
           # Normal version comparison logic
           VERSION_INFO="The manifest version is '$MANIFEST_VERSION' and the released version is '$LATEST_VERSION'"
@@ -63,11 +71,13 @@ runs:
             echo "$MESSAGE"
             echo "$MESSAGE" >> $GITHUB_STEP_SUMMARY
             echo "should_release=true" >> "$GITHUB_OUTPUT"
+            write_release_check true
           else
             MESSAGE="😴 Holding back from release: The manifest version is not greater than the released version."
             echo "$MESSAGE"
             echo "$MESSAGE" >> $GITHUB_STEP_SUMMARY
             echo "should_release=false" >> "$GITHUB_OUTPUT"
+            write_release_check false
           fi
         fi
       shell: bash
@@ -112,4 +122,13 @@ runs:
       with:
         name: release-${{ inputs.extension-name }}.json
         path: release-${{ inputs.extension-name }}.json
+        retention-days: 1
+
+    # Upload release check artifact for PR comments to aggregate
+    # This runs on all branches (not just main) so PRs can show which extensions won't release
+    - name: Upload release check data
+      uses: actions/upload-artifact@v4
+      with:
+        name: release-check-${{ inputs.extension-name }}.json
+        path: release-check-${{ inputs.extension-name }}.json
         retention-days: 1
