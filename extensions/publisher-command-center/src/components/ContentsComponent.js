@@ -18,7 +18,7 @@ const ContentsComponent = {
     }
   },
 
-  view: () => {
+  view: function () {
     if (this.error) {
       return m("div", { class: "error" }, this.error);
     }
@@ -54,80 +54,78 @@ const ContentsComponent = {
         Contents.data.map((content) => {
           const guid = content["guid"];
           const title = content["title"];
-          return m(
-            "tr",
-            [
+          return m("tr", [
+            m(
+              "td",
+              {
+                class: "link-primary content-page-link",
+                onclick: () => m.route.set(`/contents/${guid}`),
+              },
+              title || m("i", "No Name"),
+            ),
+            m("td", m(Languages, content)),
+            m("td", content?.active_jobs?.length),
+            m("td", format(content["last_deployed_time"], "MMM do, yyyy")),
+            m("td", format(content["created_time"], "MMM do, yyyy")),
+            m(
+              "td",
               m(
-                "td",
-                  {
-                    class: "link-primary content-page-link",
-                    onclick: () => m.route.set(`/contents/${guid}`),
-                  },
-                  title || m("i", "No Name"),
-              ),
-              m(
-                "td",
-                m(Languages, content)
-              ),
-              m("td", content?.active_jobs?.length),
-              m("td", format(content["last_deployed_time"], "MMM do, yyyy")),
-              m("td", format(content["created_time"], "MMM do, yyyy")),
-              m(
-                "td",
-                m("button", {
+                "button",
+                {
                   class: "action-btn",
                   ariaLabel: `Rename ${title}`,
                   title: `Rename ${title}`,
                   "data-bs-toggle": "modal",
                   "data-bs-target": `#renameModal-${guid}`,
-                }, [
-                  m("i", { class: "fa-solid fa-pencil" })
-                ]),
+                },
+                [m("i", { class: "fa-solid fa-pencil" })],
               ),
+            ),
+            m(
+              "td",
+              m(LockContentButton, {
+                contentId: guid,
+                contentTitle: title,
+                isLocked: content["locked"],
+              }),
+            ),
+            m(
+              "td",
               m(
-                "td",
-                m(LockContentButton, {
-                  contentId: guid,
-                  contentTitle: title,
-                  isLocked: content["locked"],
-                }),
-              ),
-              m(
-                "td",
-                m("button", {
+                "button",
+                {
                   class: "action-btn",
                   title: `Delete ${title}`,
                   ariaLabel: `Delete ${title}`,
                   "data-bs-toggle": "modal",
                   "data-bs-target": `#deleteModal-${guid}`,
-                }, [
-                  m("i", { class: "fa-solid fa-trash" })
-                ]),
+                },
+                [m("i", { class: "fa-solid fa-trash" })],
               ),
-              m(
-                "td",
-                m("a", {
-                  class: "fa-solid fa-arrow-up-right-from-square",
-                  href: content["content_url"],
-                  ariaLabel: `Open ${title} (opens in new tab)`,
-                  title: `Open ${title}`,
-                  target: "_blank",
-                  onclick: (e) => e.stopPropagation(),
-                }),
-              ),
-              m(DeleteModal, {
-                contentId: guid,
-                contentTitle: title,
+            ),
+            m(
+              "td",
+              m("a", {
+                class: "fa-solid fa-arrow-up-right-from-square",
+                href: content["content_url"],
+                ariaLabel: `Open ${title} (opens in new tab)`,
+                title: `Open ${title}`,
+                target: "_blank",
+                onclick: (e) => e.stopPropagation(),
               }),
-              m(RenameModal, {
-                contentId: guid,
-                contentTitle: title,
-              }),
-            ],
-          );
+            ),
+            m(DeleteModal, {
+              contentId: guid,
+              contentTitle: title,
+            }),
+            m(RenameModal, {
+              contentId: guid,
+              contentTitle: title,
+            }),
+          ]);
         }),
       ),
-    )
+    );
   },
 };
 

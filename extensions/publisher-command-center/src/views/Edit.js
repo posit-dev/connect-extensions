@@ -41,7 +41,7 @@ const Edit = {
           m(
             "a.btn.btn-md.btn-outline-primary.d-flex.align-items-center.justify-content-center.gap-2",
             {
-              onclick: () => m.route.set("/contents")
+              onclick: () => m.route.set("/contents"),
             },
             [m("i.fa-solid.fa-arrow-left"), "Back"],
           ),
@@ -52,7 +52,7 @@ const Edit = {
           {
             href: content?.dashboard_url,
             target: "_blank",
-            ariaLabel: "Open in a new tab"
+            ariaLabel: "Open in a new tab",
           },
           ["Open", m("i.fa-solid.fa-arrow-up-right-from-square")],
         ),

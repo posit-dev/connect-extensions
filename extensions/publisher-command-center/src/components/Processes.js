@@ -25,10 +25,7 @@ const StopButton = {
           m.redraw();
 
           console.log(`Stopping process ${vnode.attrs.process_id}`);
-          Processes.destroy(
-            vnode.attrs.content_id,
-            vnode.attrs.process_id
-          )
+          Processes.destroy(vnode.attrs.content_id, vnode.attrs.process_id)
             .then(() => {
               console.log(`Stopped process ${vnode.attrs.process_id}`);
               Processes.reset();
@@ -57,12 +54,11 @@ const StopButton = {
         `i.${vnode.state.isHovered ? "fa-solid" : "fa-regular"}.fa-circle-stop`,
         {
           style: "font-size: 1.2rem;",
-        }
-      )
+        },
+      ),
     );
   },
 };
-
 
 export default {
   error: null,
@@ -89,8 +85,11 @@ export default {
     if (processes === null || processes.length === 0) {
       return m(".pt-3.border-top", [
         m("h5", "Processes"),
-        m("p.text-dark", "There are no server processes running at this time...")
-      ])
+        m(
+          "p.text-dark",
+          "There are no server processes running at this time...",
+        ),
+      ]);
     }
 
     return m(".pt-3.border-top", [
