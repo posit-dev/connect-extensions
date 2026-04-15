@@ -12,4 +12,3 @@ integration.
 
 If you don't see one in the list, an administrator must enable this feature on your Connect server.
 See the [Admin Guide](https://docs.posit.co/connect/admin/integrations/oauth-integrations/connect/) for setup instructions.
-

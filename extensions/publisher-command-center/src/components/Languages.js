@@ -38,16 +38,16 @@ const getLanguages = (content) => {
 
   switch (content?.content_category) {
     case "plot":
-      languages.add("Static")
+      languages.add("Static");
       languages.add("Plot");
       break;
     case "pin":
       languages.add("Static");
-      languages.add("Pin")
+      languages.add("Pin");
       break;
     case "rmd-static":
-      languages.add("Static")
-      languages.add("Site")
+      languages.add("Static");
+      languages.add("Site");
       break;
     default:
       break;

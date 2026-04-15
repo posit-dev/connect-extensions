@@ -5,11 +5,10 @@ import "@fortawesome/fontawesome-free/css/all.min.css";
 
 import "../scss/index.scss";
 
-
 import Home from "./views/Home";
 import Edit from "./views/Edit";
-import Layout from './views/Layout';
-import UnauthorizedView from './components/UnauthorizedView';
+import Layout from "./views/Layout";
+import UnauthorizedView from "./components/UnauthorizedView";
 
 const root = document.getElementById("app");
 

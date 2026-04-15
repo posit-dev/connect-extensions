@@ -3,47 +3,49 @@ import Metrics from "../models/Metrics";
 
 const TimeseriesChart = {
   oncreate: function (vnode) {
-      // Initialize the chart when the component is created
-      const ctx = vnode.dom.getContext('2d');
-      const labels = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'];
-      const data = [10, 20, 15, 25, 30, 20];
+    // Initialize the chart when the component is created
+    const ctx = vnode.dom.getContext("2d");
+    const labels = ["Jan", "Feb", "Mar", "Apr", "May", "Jun"];
+    const data = [10, 20, 15, 25, 30, 20];
 
-      new Chart(ctx, {
-          type: 'line',
-          data: {
-              labels: labels,
-              datasets: [{
-                  label: 'Views',
-                  data: data,
-                  borderColor: 'rgba(75, 192, 192, 1)',
-                  backgroundColor: 'rgba(75, 192, 192, 0.2)',
-                  tension: 0.4 // Smooth line
-              }]
+    new Chart(ctx, {
+      type: "line",
+      data: {
+        labels: labels,
+        datasets: [
+          {
+            label: "Views",
+            data: data,
+            borderColor: "rgba(75, 192, 192, 1)",
+            backgroundColor: "rgba(75, 192, 192, 0.2)",
+            tension: 0.4, // Smooth line
           },
-          options: {
-              responsive: true,
-              maintainAspectRatio: false,
-              scales: {
-                  x: {
-                      title: {
-                          display: true,
-                          text: 'Month'
-                      }
-                  },
-                  y: {
-                      title: {
-                          display: true,
-                          text: 'Value'
-                      },
-                      beginAtZero: true
-                  }
-              }
-          }
-      });
+        ],
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+          x: {
+            title: {
+              display: true,
+              text: "Month",
+            },
+          },
+          y: {
+            title: {
+              display: true,
+              text: "Value",
+            },
+            beginAtZero: true,
+          },
+        },
+      },
+    });
   },
   view: function () {
-      return m('canvas', { style: 'width: 100%; height: 400px;' });
-  }
+    return m("canvas", { style: "width: 100%; height: 400px;" });
+  },
 };
 
 export default {
@@ -68,13 +70,12 @@ export default {
       return;
     }
 
-    const start = Math.min(...metrics.map(metric => new Date(metric?.started)))
-    const ended = Math.max(...metrics.map(metric => new Date(metric?.ended)))
-    console.log(start, ended)
+    const start = Math.min(
+      ...metrics.map((metric) => new Date(metric?.started)),
+    );
+    const ended = Math.max(...metrics.map((metric) => new Date(metric?.ended)));
+    console.log(start, ended);
 
-    return m(".pt-3.border-top", [
-      m("h5", "Metrics"),
-      m(TimeseriesChart),
-    ]);
+    return m(".pt-3.border-top", [m("h5", "Metrics"), m(TimeseriesChart)]);
   },
 };
