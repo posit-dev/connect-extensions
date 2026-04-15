@@ -286,6 +286,9 @@ jobs:
   # all extensions that were released in this workflow using the `fetch-releases`
   # job output
   update-extension-list:
+    concurrency:
+      group: update-extension-list
+      cancel-in-progress: false
     runs-on: ubuntu-latest
     needs: [fetch-releases]
     # Only runs if there are releases to update the extension list with
@@ -332,4 +335,5 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add extensions.json
           git commit -m "Update extension list"
+          git pull --rebase
           git push
