@@ -18,7 +18,7 @@ const ContentsComponent = {
     }
   },
 
-  view: () => {
+  view: function () {
     if (this.error) {
       return m("div", { class: "error" }, this.error);
     }
