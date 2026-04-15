@@ -47,7 +47,6 @@ Start the watcher to enable continuous rebuilds of the frontend:
 npm run watch
 ```
 
-
 ### Building for Production
 
 To build the frontend for production:

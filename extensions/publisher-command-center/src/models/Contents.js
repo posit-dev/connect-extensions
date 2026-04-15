@@ -35,26 +35,30 @@ export default {
   },
 
   lock: async function (guid) {
-    await m.request({
-      method: "PATCH",
-      url: `api/content/${guid}/lock`,
-    }).then((response) => {
-      const targetContent = this.data.find((c) => c.guid === guid);
-      Object.assign(targetContent, response);
-    });
+    await m
+      .request({
+        method: "PATCH",
+        url: `api/content/${guid}/lock`,
+      })
+      .then((response) => {
+        const targetContent = this.data.find((c) => c.guid === guid);
+        Object.assign(targetContent, response);
+      });
   },
 
   rename: async function (guid, newName) {
-    await m.request({
-      method: "PATCH",
-      url: `api/content/${guid}/rename`,
-      body: {
-        title: newName,
-      },
-    }).then((response) => {
-      const targetContent = this.data.find((c) => c.guid === guid);
-      Object.assign(targetContent, response);
-    });
+    await m
+      .request({
+        method: "PATCH",
+        url: `api/content/${guid}/rename`,
+        body: {
+          title: newName,
+        },
+      })
+      .then((response) => {
+        const targetContent = this.data.find((c) => c.guid === guid);
+        Object.assign(targetContent, response);
+      });
   },
 
   reset: function () {
