@@ -49,7 +49,7 @@ runs:
         # Helper to write release check artifact
         write_release_check() {
           echo "{\"name\": \"${{ inputs.extension-name }}\", \"manifestVersion\": \"$MANIFEST_VERSION\", \"latestVersion\": \"$LATEST_VERSION\", \"wouldRelease\": $1}" \
-            > release-check-${{ inputs.extension-name }}.json
+            > would-release-${{ inputs.extension-name }}.json
         }
 
         if [ "$MANIFEST_VERSION" = "0.0.0" ]; then
@@ -128,6 +128,6 @@ runs:
     - name: Upload release check data
       uses: actions/upload-artifact@v4
       with:
-        name: release-check-${{ inputs.extension-name }}.json
-        path: release-check-${{ inputs.extension-name }}.json
+        name: would-release-${{ inputs.extension-name }}.json
+        path: would-release-${{ inputs.extension-name }}.json
         retention-days: 1

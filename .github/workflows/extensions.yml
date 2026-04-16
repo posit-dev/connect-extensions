@@ -267,21 +267,21 @@ jobs:
       - name: Download release check artifacts
         uses: actions/download-artifact@v4
         with:
-          pattern: release-check-*.json
-          path: release-checks
+          pattern: would-release-*.json
+          path: would-release
           merge-multiple: true
 
       - name: Aggregate release check data
         run: |
           # If no release checks exist, no extensions were processed
-          if [ ! -d "release-checks" ] || [ -z "$(ls -A release-checks 2>/dev/null)" ]; then
+          if [ ! -d "would-release" ] || [ -z "$(ls -A would-release 2>/dev/null)" ]; then
             echo "[]" > no_release.json
             exit 0
           fi
 
           # Filter to extensions that won't release (wouldRelease: false, excluding 0.0.0)
           jq -s '[.[] | select(.wouldRelease == false and .manifestVersion != "0.0.0")]' \
-            release-checks/*.json > no_release.json
+            would-release/*.json > no_release.json
 
       - name: Post or update PR comment
         run: |
