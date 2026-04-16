@@ -124,8 +124,7 @@ runs:
         path: release-${{ inputs.extension-name }}.json
         retention-days: 1
 
-    # Upload release check artifact for PR comments to aggregate
-    # This runs on all branches (not just main) so PRs can show which extensions won't release
+    # Upload release check artifact for PR comment aggregation
     - name: Upload release check data
       uses: actions/upload-artifact@v4
       with:
