@@ -46,18 +46,9 @@ runs:
         echo "# Extension: ${{ inputs.extension-name }}" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
 
-        # Helper to write release check artifact
-        write_release_check() {
-          echo "{\"name\": \"${{ inputs.extension-name }}\", \"manifestVersion\": \"$MANIFEST_VERSION\", \"latestVersion\": \"$LATEST_VERSION\", \"wouldRelease\": $1}" \
-            > would-release-${{ inputs.extension-name }}.json
-        }
-
         if [ "$MANIFEST_VERSION" = "0.0.0" ]; then
           MESSAGE="⚠️ Version 0.0.0 is reserved and will never be released."
-          echo "$MESSAGE"
-          echo "$MESSAGE" >> $GITHUB_STEP_SUMMARY
-          echo "should_release=false" >> "$GITHUB_OUTPUT"
-          write_release_check false
+          SHOULD_RELEASE=false
         else
           # Normal version comparison logic
           VERSION_INFO="The manifest version is '$MANIFEST_VERSION' and the released version is '$LATEST_VERSION'"
@@ -68,18 +59,24 @@ runs:
           HIGHER_VERSION=$(semver "$MANIFEST_VERSION" "$LATEST_VERSION" | tail -n 1)
           if [ "$MANIFEST_VERSION" = "$HIGHER_VERSION" ] && [ "$MANIFEST_VERSION" != "$LATEST_VERSION" ]; then
             MESSAGE="🚀 Will release! The manifest version is greater than the released version."
-            echo "$MESSAGE"
-            echo "$MESSAGE" >> $GITHUB_STEP_SUMMARY
-            echo "should_release=true" >> "$GITHUB_OUTPUT"
-            write_release_check true
+            SHOULD_RELEASE=true
           else
             MESSAGE="😴 Holding back from release: The manifest version is not greater than the released version."
-            echo "$MESSAGE"
-            echo "$MESSAGE" >> $GITHUB_STEP_SUMMARY
-            echo "should_release=false" >> "$GITHUB_OUTPUT"
-            write_release_check false
+            SHOULD_RELEASE=false
           fi
         fi
+
+        echo "$MESSAGE"
+        echo "$MESSAGE" >> $GITHUB_STEP_SUMMARY
+        echo "should_release=$SHOULD_RELEASE" >> "$GITHUB_OUTPUT"
+
+        jq -n \
+          --arg name "${{ inputs.extension-name }}" \
+          --arg manifest "$MANIFEST_VERSION" \
+          --arg latest "$LATEST_VERSION" \
+          --argjson would "$SHOULD_RELEASE" \
+          '{name: $name, manifestVersion: $manifest, latestVersion: $latest, wouldRelease: $would}' \
+          > would-release-${{ inputs.extension-name }}.json
       shell: bash
 
     # Here we download the packaged extension artifact to release
@@ -124,8 +121,10 @@ runs:
         path: release-${{ inputs.extension-name }}.json
         retention-days: 1
 
-    # Upload release check artifact for PR comment aggregation
+    # Upload on PRs for any non-reserved extension so the downstream comment
+    # job can summarize both will-release and won't-release extensions.
     - name: Upload release check data
+      if: github.event_name == 'pull_request' && env.MANIFEST_VERSION != '0.0.0'
       uses: actions/upload-artifact@v4
       with:
         name: would-release-${{ inputs.extension-name }}.json
