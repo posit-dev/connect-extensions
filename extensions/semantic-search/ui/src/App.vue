@@ -83,25 +83,6 @@ onMounted(async () => {
 </script>
 
 <template>
-  <header class="header">
-    <div class="header-inner">
-      <div class="logo">
-        <svg class="logo-icon" width="22" height="22" viewBox="0 0 24 24"
-             fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
-          <circle cx="11" cy="11" r="8" />
-          <path d="m21 21-4.35-4.35" />
-        </svg>
-        Connect Semantic Search
-      </div>
-      <div class="header-actions">
-        <span v-if="status" class="status-badge">
-          {{ status.content_count }} items indexed
-        </span>
-        <button class="btn" @click="reindex">Re-index</button>
-      </div>
-    </div>
-  </header>
-
   <main class="container">
     <div class="search-input-wrapper">
       <svg class="search-icon" width="20" height="20" viewBox="0 0 24 24"
@@ -138,6 +119,10 @@ onMounted(async () => {
           <input type="radio" v-model="searchMode" value="fts"> FTS5
         </label>
       </div>
+      <span v-if="status" class="status-badge">
+        {{ status.content_count }} items indexed
+      </span>
+      <button class="btn" @click="reindex">Re-index</button>
     </div>
 
     <div v-if="loading" class="loading">Searching...</div>

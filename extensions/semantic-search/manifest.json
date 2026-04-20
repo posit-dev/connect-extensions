@@ -55,13 +55,13 @@
       "checksum": "a4f1c848b328d63503ee5be63de3ed62"
     },
     "static/index.html": {
-      "checksum": "a925fa33ae2825cf3e8f27159757e8b2"
+      "checksum": "dba09b1cb488205b8dfa21f26b5a24d6"
     },
-    "static/assets/index-CLC3wEz2.js": {
-      "checksum": "5b433da839f5d576b78dbf19ccae593b"
+    "static/assets/index-D6uURXU3.js": {
+      "checksum": "c283d171862e409722baf38b72cbabbd"
     },
-    "static/assets/index-Qvyl4z1S.css": {
-      "checksum": "a27e54b44b4fb2a8672ccf332965d6aa"
+    "static/assets/index-Cte-zjqP.css": {
+      "checksum": "dce8a02472969a3824015eb04b64c394"
     },
     "ui/package.json": {
       "checksum": "39449c44bbcbb62219ef7a0e9e093f63"
@@ -76,13 +76,13 @@
       "checksum": "458ced763272c192db10ad2668c7ea0e"
     },
     "ui/src/App.vue": {
-      "checksum": "e98674be55aa9b75fdaeb16ec35eb7e6"
+      "checksum": "65bc6b051d8035fe36ba318ef205d68a"
     },
     "ui/src/api.js": {
       "checksum": "9eaa0fd42791edb01d447bacd614414b"
     },
     "ui/src/styles.css": {
-      "checksum": "128d8a0cbb10c8950788ee6434149bde"
+      "checksum": "8fef9750dbf1cc352cf090f733dfc8b1"
     },
     "ui/src/components/ContentCard.vue": {
       "checksum": "b601e57e39c1f2a87772903ff903d07d"
