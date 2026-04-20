@@ -1,0 +1,14 @@
+[project]
+name = "azure-openai-oauth-pyshiny"
+version = "0.1.0"
+description = "to do"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "chatlas",
+    "posit-sdk>=0.10.0",
+    "shiny>=1.4.0",
+]
+
+[tool.uv.sources]
+chatlas = { git = "https://github.com/posit-dev/chatlas", rev = "main" }
