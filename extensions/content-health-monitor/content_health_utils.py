@@ -78,22 +78,22 @@ def get_env_var(var_name, state, description=""):
 
                 f"<h2>Step 2: Configure this report</h2>"
                 f"{one_tab}• Return to this report<br>"
-                f"{one_tab}• Click the <b>gear icon</b> at the top right of the screen to open <b>Content Settings</b><br>"
-                f"{one_tab}<img src=\"images/settings-gear-icon.png\" alt=\"Content Settings button\" style=\"max-width: 30%; margin: 10px 0 10px 0; border: 1px solid #ddd;\"><br>"
-                f"{one_tab}• Click the <b>Vars</b> tab<br>"
+                f"{one_tab}• Click <b>Settings</b> at the top right of the screen<br>"
+                f"{one_tab}<img src=\"images/settings-button.png\" alt=\"Settings button in toolbar\" style=\"max-width: 30%; margin: 10px 0 10px 0; border: 1px solid #ddd;\"><br>"
+                f"{one_tab}• Click the <b>Advanced</b> tab<br>"
                 f"{one_tab}• In the <b>Name</b> field enter <code>{var_name}</code><br>"
                 f"{one_tab}• In the <b>Value</b> field paste the full address you copied in the previous step<br>"
                 f"{one_tab}• It should look like the example below<br>"
-                f"{one_tab}<img src=\"images/vars.png\" alt=\"Environment Variables tab\" style=\"max-width: 30%; margin: 10px 0 10px 0; border: 1px solid #ddd;\"><br>"                
-                f"{one_tab}• Click <b>Add Variable</b><br>"
-                f"{one_tab}• Click <b>Save</b> at the top of the screen to save your changes<br><br>"
+                f"{one_tab}<img src=\"images/env-vars.png\" alt=\"Environment Variables section in Advanced tab\" style=\"max-width: 30%; margin: 10px 0 10px 0; border: 1px solid #ddd;\"><br>"
+                f"{one_tab}• Click <b>+ Add</b><br>"
+                f"{one_tab}• Click <b>Save</b> to save your changes<br><br>"
 
                 f"<h2>Step 3: Run the report to execute the health check</h2>"
-                f"{one_tab}• Click the <b>Refresh Report</b> button at the top right to run a health check against the monitored content<br>"
+                f"{one_tab}• Click the <b>Refresh</b> button at the top right to run a health check against the monitored content<br>"
+                f"{one_tab}<img src=\"images/refresh-report.png\" alt=\"Refresh button in toolbar\" style=\"max-width: 30%; margin: 10px 0 10px 0; border: 1px solid #ddd;\"><br>"
                 f"{one_tab}• The health check will run and report the status<br>"
                 f"{one_tab}• If the content is healthy, you will see a <b>PASS</b> status, otherwise you will see a <b>FAIL</b> status<br>"
-                f"{one_tab}• If you see a <b>FAIL</b> status, click the <b>View Logs</b> link to see more details about the failure<br>"
-                f"{one_tab}<img src=\"images/refresh-report.png\" alt=\"Refresh report button\" style=\"max-width: 30%; margin: 10px 0 10px 0; border: 1px solid #ddd;\"><br><br>"
+                f"{one_tab}• If you see a <b>FAIL</b> status, click <b>Logs</b> to see more details about the failure<br><br>"
 
             )
         
