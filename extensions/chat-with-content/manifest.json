@@ -27,7 +27,7 @@
     "tags": ["llm", "shiny", "chat", "python"],
     "minimumConnectVersion": "2025.04.0",
     "requiredFeatures": ["OAuth Integrations"],
-    "version": "0.0.5"
+    "version": "0.0.6"
   },
   "files": {
     "requirements.txt": {
@@ -37,10 +37,10 @@
       "checksum": "693ec79eaa892babde62587aaacf0d8b"
     },
     "README.md": {
-      "checksum": "d41d8cd98f00b204e9800998ecf8427e"
+      "checksum": "7b072eef923c062a0bf1667dde6c2b95"
     },
     "app.py": {
-      "checksum": "c004da6cd26d590b19bc0a2efd486ddf"
+      "checksum": "74b2cad1b559b06c306a1ee44ce00185"
     },
     "helpers.py": {
       "checksum": "b18f4bc0072b6e47864670a3174b0cea"
