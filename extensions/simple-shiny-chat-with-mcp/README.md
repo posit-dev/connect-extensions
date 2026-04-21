@@ -40,7 +40,7 @@ Set the appropriate API key for your chosen provider:
 1. **Minimum Connect Version**: 2025.04.0 or later
 2. **Minimum Python Version**: 3.10 or later
 3. **OAuth Integrations**: Must be enabled on your Connect server
-4. **Connect Visitor API Key**: This extension requires access to the Connect API on behalf of the visiting user to list their available content. In the "Access" pane of the content settings, add a "Connect Visitor API Key" integration.
+4. **Connect Visitor API Key**: This extension requires access to the Connect API on behalf of the visiting user to list their available content. In the content settings, add a "Connect Visitor API Key" integration.
 
 ## Setup Examples
 

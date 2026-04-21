@@ -78,15 +78,11 @@ def get_env_var(var_name, state, description=""):
 
                 f"<h2>Step 2: Configure this report</h2>"
                 f"{one_tab}• Return to this report<br>"
-                f"{one_tab}• Click the <b>gear icon</b> at the top right of the screen to open <b>Content Settings</b><br>"
-                f"{one_tab}<img src=\"images/settings-gear-icon.png\" alt=\"Content Settings button\" style=\"max-width: 30%; margin: 10px 0 10px 0; border: 1px solid #ddd;\"><br>"
-                f"{one_tab}• Click the <b>Vars</b> tab<br>"
-                f"{one_tab}• In the <b>Name</b> field enter <code>{var_name}</code><br>"
-                f"{one_tab}• In the <b>Value</b> field paste the full address you copied in the previous step<br>"
+                f"{one_tab}• Open the content settings for this report<br>"
+                f"{one_tab}• Set the environment variable <code>{var_name}</code> to the URL you copied in the previous step<br>"
                 f"{one_tab}• It should look like the example below<br>"
-                f"{one_tab}<img src=\"images/vars.png\" alt=\"Environment Variables tab\" style=\"max-width: 30%; margin: 10px 0 10px 0; border: 1px solid #ddd;\"><br>"                
-                f"{one_tab}• Click <b>Add Variable</b><br>"
-                f"{one_tab}• Click <b>Save</b> at the top of the screen to save your changes<br><br>"
+                f"{one_tab}<img src=\"images/vars.png\" alt=\"Environment variable configuration\" style=\"max-width: 30%; margin: 10px 0 10px 0; border: 1px solid #ddd;\"><br>"
+                f"{one_tab}• Save your changes<br><br>"
 
                 f"<h2>Step 3: Run the report to execute the health check</h2>"
                 f"{one_tab}• Click the <b>Refresh Report</b> button at the top right to run a health check against the monitored content<br>"
@@ -153,7 +149,7 @@ def extract_guid(input_string):
             f"The URL should contain a GUID like: <code>1d97c1ff-e56c-4074-906f-cb3557685b75</code><br><br>"
             f"The URL provided is: <a href=\"{input_string}\" target=\"_blank\" rel=\"noopener noreferrer\">{input_string}</a><br><br>"
             f"Please update your environment variable with a valid a URL containing a GUID.<br><br>"
-            f"Or copy the GUID from the bottom of the Info tab. See the <a href=\"https://docs.posit.co/connect/user/content-settings/\" target=\"_blank\" rel=\"noopener noreferrer\">Connect Content Settings User Guide</a> instructions for more information.<br><br>"
+            f"Or copy the GUID from the content settings. See the <a href=\"https://docs.posit.co/connect/user/content-settings/\" target=\"_blank\" rel=\"noopener noreferrer\">Connect Content Settings User Guide</a> for more information.<br><br>"
         )
         return input_string, error_message
     
@@ -163,7 +159,7 @@ def extract_guid(input_string):
         f"A valid GUID looks like: <code>1d97c1ff-e56c-4074-906f-cb3557685b75</code><br><br>"
         f"The provided value was: <code>{input_string}</code><br><br>"
         f"Please update your environment variable with a valid GUID or a URL containing a GUID.<br><br>"
-        f"The GUID can be found at the bottom of the Info tab. See the <a href=\"https://docs.posit.co/connect/user/content-settings/\" target=\"_blank\" rel=\"noopener noreferrer\">Connect Content Settings User Guide</a> instructions for more information.<br><br>"
+        f"The GUID can be found in the content settings. See the <a href=\"https://docs.posit.co/connect/user/content-settings/\" target=\"_blank\" rel=\"noopener noreferrer\">Connect Content Settings User Guide</a> for more information.<br><br>"
     )
     return input_string, error_message
 
