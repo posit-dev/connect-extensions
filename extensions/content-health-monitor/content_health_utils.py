@@ -80,8 +80,6 @@ def get_env_var(var_name, state, description=""):
                 f"{one_tab}• Return to this report<br>"
                 f"{one_tab}• Open the content settings for this report<br>"
                 f"{one_tab}• Set the environment variable <code>{var_name}</code> to the URL you copied in the previous step<br>"
-                f"{one_tab}• It should look like the example below<br>"
-                f"{one_tab}<img src=\"images/vars.png\" alt=\"Environment variable configuration\" style=\"max-width: 30%; margin: 10px 0 10px 0; border: 1px solid #ddd;\"><br>"
                 f"{one_tab}• Save your changes<br><br>"
 
                 f"<h2>Step 3: Run the report to execute the health check</h2>"

@@ -79,7 +79,7 @@ Deploy this extension to your Connect server with the required environment varia
 
 ### 2. Configure Access
 In the Connect dashboard:
-1. Navigate to the content access panel
+1. Open the content settings
 2. Add a "Connect Visitor API Key" integration
 3. This enables the chat application to authenticate with MCP servers
 
