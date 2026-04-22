@@ -34,19 +34,19 @@
       "checksum": "ab8b1e00565696a2152a7f02464f05aa"
     },
     "main.py": {
-      "checksum": "a9e695f6c222d54f93e5321069410560"
+      "checksum": "db6ee69a497a8e18ed6163e45453e867"
     },
     "database.py": {
-      "checksum": "4c5fa84d42e3bdfa573a8e45b51bcfc3"
+      "checksum": "b93bc8fc4cad69306649004fc1080ed7"
     },
     "embeddings.py": {
       "checksum": "b9b5967cd28686fa9abe54eff639e887"
     },
     "indexer.py": {
-      "checksum": "041d5998afa880c5d984526263517a31"
+      "checksum": "6781dd1bfa2d69cf2be45c96b7d5ca0d"
     },
     "search.py": {
-      "checksum": "a5b1321e0aee38dc7effbac9aee9f12b"
+      "checksum": "abd32ff6b42acd1ff1af2ab9b84c13a0"
     },
     "pyproject.toml": {
       "checksum": "838f6621f60fa7c6b422fd41df32ac22"
@@ -55,13 +55,13 @@
       "checksum": "a4f1c848b328d63503ee5be63de3ed62"
     },
     "static/index.html": {
-      "checksum": "dba09b1cb488205b8dfa21f26b5a24d6"
+      "checksum": "777132572a380dfaa71e96eb08c47b0d"
     },
-    "static/assets/index-D6uURXU3.js": {
-      "checksum": "c283d171862e409722baf38b72cbabbd"
+    "static/assets/index-DX_nRT70.js": {
+      "checksum": "7fe58b94bc87cbe1526440f3f34e6df4"
     },
-    "static/assets/index-Cte-zjqP.css": {
-      "checksum": "dce8a02472969a3824015eb04b64c394"
+    "static/assets/index-DtBwO8TT.css": {
+      "checksum": "9704afbff9d61b46feb7497518c24798"
     },
     "ui/package.json": {
       "checksum": "39449c44bbcbb62219ef7a0e9e093f63"
@@ -76,19 +76,22 @@
       "checksum": "458ced763272c192db10ad2668c7ea0e"
     },
     "ui/src/App.vue": {
-      "checksum": "65bc6b051d8035fe36ba318ef205d68a"
+      "checksum": "f0f7f6b4a4018f85b6c636f715844aee"
     },
     "ui/src/api.js": {
       "checksum": "9eaa0fd42791edb01d447bacd614414b"
     },
     "ui/src/styles.css": {
-      "checksum": "8fef9750dbf1cc352cf090f733dfc8b1"
+      "checksum": "2993be10d5fb407178f5e54ff7fca52f"
     },
     "ui/src/components/ContentCard.vue": {
-      "checksum": "b601e57e39c1f2a87772903ff903d07d"
+      "checksum": "daf25ed9d7b551e7a9ce29f5d082e083"
+    },
+    "ui/src/components/Settings.vue": {
+      "checksum": "ad3f0a85864223959586143db97b967e"
     },
     "README.md": {
-      "checksum": "f1e88620dea4a6f028b4b78aed299152"
+      "checksum": "7c0d57acc2d811efc572c0a9b49e260a"
     }
   }
 }

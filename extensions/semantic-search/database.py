@@ -282,3 +282,12 @@ class Database:
     def content_count(self) -> int:
         with self._tx() as conn:
             return conn.execute("SELECT count(*) FROM content").fetchone()[0]
+
+    def clear_all(self) -> None:
+        """Drop every indexed row so the next cycle re-embeds from scratch.
+
+        Used by the indexer's heal path when LanceDB is detected as corrupt.
+        """
+        with self._tx() as conn:
+            conn.execute("DELETE FROM content")
+            conn.execute("DELETE FROM content_fts")

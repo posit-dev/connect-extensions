@@ -9,14 +9,14 @@ from pathlib import Path
 
 import lancedb
 from fastapi import FastAPI, Request
-from fastapi.responses import FileResponse, JSONResponse
+from fastapi.responses import FileResponse, JSONResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 
 from database import Database
 from indexer import Indexer
 from search import HybridSearch
 
-INDEX_INTERVAL = int(os.environ.get("INDEX_INTERVAL", "1800"))
+INDEX_INTERVAL = int(os.environ.get("INDEX_INTERVAL", "60"))
 DB_PATH = os.environ.get("DB_PATH", "data/search.db")
 LANCE_PATH = os.environ.get("LANCE_PATH", "data/lancedb")
 
@@ -79,6 +79,13 @@ if static_dir.is_dir():
 
     @app.get("/{path:path}")
     async def spa_fallback(request: Request, path: str):
+        # The built index.html uses relative asset paths (./assets/…) so Connect
+        # can serve the extension under its /content/<guid>/ prefix. A trailing
+        # slash on a route like /settings/ would resolve those relative paths
+        # one directory deeper and 404 every asset — redirect so the browser
+        # requests the canonical no-trailing-slash URL.
+        if path and path != "/" and path.endswith("/"):
+            return RedirectResponse(url=f"/{path.rstrip('/')}", status_code=307)
         # Try to serve the exact file first
         file_path = static_dir / path
         if path and file_path.is_file():

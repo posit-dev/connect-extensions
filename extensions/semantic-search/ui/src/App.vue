@@ -1,7 +1,15 @@
 <script setup>
-import { ref, onMounted, watch } from 'vue';
+import { ref, computed, onMounted, onBeforeUnmount, watch } from 'vue';
 import * as api from './api.js';
 import ContentCard from './components/ContentCard.vue';
+import Settings from './components/Settings.vue';
+
+// Route without pulling in vue-router: evaluate pathname once at mount.
+// The two pages (/ and /settings) don't link to each other, so reactive
+// route tracking isn't needed.
+const isSettings = computed(() =>
+  window.location.pathname.replace(/\/+$/, '').endsWith('/settings')
+);
 
 const query = ref('');
 const results = ref([]);
@@ -10,8 +18,6 @@ const appModes = ref([]);
 const contentCategories = ref([]);
 const selectedAppMode = ref('');
 const selectedCategory = ref('');
-const searchMode = ref('hybrid');
-const status = ref(null);
 const error = ref('');
 let errorTimer = null;
 let debounceTimer = null;
@@ -32,14 +38,6 @@ async function loadFilters() {
   }
 }
 
-async function loadStatus() {
-  try {
-    status.value = await api.getStatus();
-  } catch {
-    // status unavailable
-  }
-}
-
 function onInput() {
   clearTimeout(debounceTimer);
   debounceTimer = setTimeout(doSearch, 300);
@@ -48,10 +46,10 @@ function onInput() {
 async function doSearch() {
   loading.value = true;
   try {
+    // No `mode` — backend defaults to hybrid. Algorithm toggle lives on /settings.
     const data = await api.search(query.value.trim(), {
       appMode: selectedAppMode.value || undefined,
       contentCategory: selectedCategory.value || undefined,
-      mode: searchMode.value,
     });
     results.value = data.results || [];
   } catch (e) {
@@ -62,28 +60,34 @@ async function doSearch() {
   }
 }
 
-async function reindex() {
-  try {
-    await api.triggerReindex();
-    await loadStatus();
-  } catch (e) {
-    showError(`Re-index failed: ${e.message}`);
-  }
-}
+// "Best match" split only applies when the user typed a query and there are
+// multiple results; browse mode and single results render flat.
+const hasQuery = computed(() => query.value.trim().length > 0);
+const showSplit = computed(() => hasQuery.value && results.value.length >= 2);
+const bestMatch = computed(() => (showSplit.value ? results.value[0] : null));
+const otherResults = computed(() =>
+  showSplit.value ? results.value.slice(1) : results.value
+);
 
-watch([selectedAppMode, selectedCategory, searchMode], () => {
+watch([selectedAppMode, selectedCategory], () => {
   doSearch();
 });
 
 onMounted(async () => {
+  if (isSettings.value) return;
   await loadFilters();
-  await loadStatus();
   doSearch();
+});
+
+onBeforeUnmount(() => {
+  clearTimeout(debounceTimer);
+  clearTimeout(errorTimer);
 });
 </script>
 
 <template>
-  <main class="container">
+  <Settings v-if="isSettings" />
+  <main v-else class="container">
     <div class="search-input-wrapper">
       <svg class="search-icon" width="20" height="20" viewBox="0 0 24 24"
            fill="none" stroke="currentColor" stroke-width="2">
@@ -108,32 +112,29 @@ onMounted(async () => {
         <option value="">All categories</option>
         <option v-for="c in contentCategories" :key="c" :value="c">{{ c }}</option>
       </select>
-      <div class="mode-toggle">
-        <label class="mode-option" :class="{ active: searchMode === 'hybrid' }">
-          <input type="radio" v-model="searchMode" value="hybrid"> Hybrid
-        </label>
-        <label class="mode-option" :class="{ active: searchMode === 'vector' }">
-          <input type="radio" v-model="searchMode" value="vector"> Vector
-        </label>
-        <label class="mode-option" :class="{ active: searchMode === 'fts' }">
-          <input type="radio" v-model="searchMode" value="fts"> FTS5
-        </label>
-      </div>
-      <span v-if="status" class="status-badge">
-        {{ status.content_count }} items indexed
-      </span>
-      <button class="btn" @click="reindex">Re-index</button>
     </div>
 
     <div v-if="loading" class="loading">Searching...</div>
 
-    <div v-else-if="results.length === 0 && (query.trim() || selectedAppMode || selectedCategory)" class="muted">
+    <div v-else-if="results.length === 0 && (hasQuery || selectedAppMode || selectedCategory)" class="muted">
       No matching content found.
     </div>
 
-    <div v-else class="results">
-      <ContentCard v-for="r in results" :key="r.guid" :item="r" />
-    </div>
+    <template v-else>
+      <template v-if="showSplit">
+        <div class="results-section-label">Best match</div>
+        <div class="content-card-wrapper content-card--best">
+          <ContentCard :item="bestMatch" />
+        </div>
+        <div class="results-section-label results-section-label--other">Other results</div>
+        <div class="results">
+          <ContentCard v-for="r in otherResults" :key="r.guid" :item="r" />
+        </div>
+      </template>
+      <div v-else class="results">
+        <ContentCard v-for="r in otherResults" :key="r.guid" :item="r" />
+      </div>
+    </template>
   </main>
 
   <Teleport to="body">

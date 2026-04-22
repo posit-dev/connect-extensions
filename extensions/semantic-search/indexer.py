@@ -36,7 +36,7 @@ class Indexer:
         self,
         db: Database,
         lance_db: lancedb.DBConnection,
-        interval_seconds: int = 1800,
+        interval_seconds: int = 60,
     ) -> None:
         self.db = db
         self.lance_db = lance_db
@@ -45,6 +45,8 @@ class Indexer:
         self._running = False
         self._last_run: str | None = None
         self._last_result: dict[str, Any] | None = None
+        # Heal runs at most once per process, on the first indexing cycle.
+        self._healed = False
 
     async def start(self) -> None:
         if self._task is not None:
@@ -63,7 +65,18 @@ class Indexer:
             print("[indexer] Background indexer stopped")
 
     async def run_once(self) -> dict[str, Any]:
-        return await asyncio.to_thread(self._sync_index)
+        # Re-entrancy guard: a manual /reindex click while the background loop
+        # is mid-cycle would otherwise produce concurrent _do_index runs, which
+        # is exactly how the duplicate-row bug accumulates. Single-threaded
+        # asyncio makes this check-then-set safe.
+        if self._running:
+            return {"skipped": "already running"}
+        self._running = True
+        try:
+            return await asyncio.to_thread(self._do_index)
+        finally:
+            self._running = False
+            self._last_run = datetime.now(timezone.utc).isoformat()
 
     def status(self) -> dict[str, Any]:
         return {
@@ -85,19 +98,20 @@ class Indexer:
                 print(f"[indexer] Error during indexing cycle: {e}")
             await asyncio.sleep(self.interval_seconds)
 
-    def _sync_index(self) -> dict[str, Any]:
-        self._running = True
-        try:
-            return self._do_index()
-        finally:
-            self._running = False
-            self._last_run = datetime.now(timezone.utc).isoformat()
-
     def _do_index(self) -> dict[str, Any]:
         print("[indexer] Starting indexing cycle...")
 
         # Ensure model is loaded
         get_model()
+
+        # One-time consistency check between SQLite and LanceDB. If a prior
+        # process left the index corrupt (duplicates / orphans / missing), this
+        # wipes both stores so the same cycle rebuilds from scratch. Set the
+        # flag only on success so a partial failure retries next cycle instead
+        # of being silently skipped.
+        if not self._healed:
+            self._heal_lance_duplicates()
+            self._healed = True
 
         # Fetch all content from Connect
         client = Client()
@@ -145,30 +159,31 @@ class Indexer:
         if removed_guids:
             self._lance_delete(list(removed_guids))
 
-        # Process new and changed items
+        # Process new and changed items. Order matters: embed first (pure
+        # computation), then LanceDB delete+add, and only commit SQLite
+        # checksums AFTER LanceDB succeeds. If the cycle crashes mid-way the
+        # checksum is not updated, so next cycle re-classifies the item as
+        # changed and retries — preventing "SQLite says current, LanceDB
+        # missing vectors" drift.
         items_to_embed = new_items + changed_items
         if items_to_embed:
-            # Update SQLite
-            for item, checksum in items_to_embed:
-                self.db.upsert_content(item, checksum)
-
-            # Embed and upsert into LanceDB
             texts = [content_to_text(item) for item, _ in items_to_embed]
             guids = [item["guid"] for item, _ in items_to_embed]
             print(f"[indexer] Encoding {len(texts)} documents...")
             vectors = encode(texts, show_progress=True)
 
-            # Delete old vectors for changed items
             changed_guids = [item["guid"] for item, _ in changed_items]
             if changed_guids:
                 self._lance_delete(changed_guids)
 
-            # Add new vectors
             records = [
                 {"guid": guid, "vector": vec.tolist(), "text": text}
                 for guid, vec, text in zip(guids, vectors, texts)
             ]
             self._lance_add(records)
+
+            for item, checksum in items_to_embed:
+                self.db.upsert_content(item, checksum)
 
         # Rebuild FTS5 index
         fts_count = self.db.rebuild_fts()
@@ -185,30 +200,102 @@ class Indexer:
         return result
 
     def _lance_add(self, records: list[dict[str, Any]]) -> None:
+        # Like _lance_delete, errors propagate. Swallowing them was how we
+        # ended up with SQLite claiming items are indexed while LanceDB has
+        # no vectors for them.
         if not records:
             return
-        try:
-            if TABLE_NAME in self.lance_db.table_names():
-                table = self.lance_db.open_table(TABLE_NAME)
-                table.add(records)
-            else:
-                self.lance_db.create_table(TABLE_NAME, data=records, schema=_LANCE_SCHEMA)
-        except Exception as e:
-            print(f"[indexer] LanceDB add error: {e}")
+        if TABLE_NAME in self.lance_db.table_names():
+            table = self.lance_db.open_table(TABLE_NAME)
+            table.add(records)
+        else:
+            self.lance_db.create_table(TABLE_NAME, data=records, schema=_LANCE_SCHEMA)
 
     def _lance_delete(self, guids: list[str]) -> None:
+        # Let exceptions propagate: a failed delete followed by an add is how
+        # duplicate rows accumulated in the first place. The cycle-level
+        # handler in _loop() will log and we'll retry next interval.
         if not guids:
             return
-        try:
-            if TABLE_NAME not in self.lance_db.table_names():
+        if TABLE_NAME not in self.lance_db.table_names():
+            return
+        table = self.lance_db.open_table(TABLE_NAME)
+        guid_list = ", ".join(f"'{g}'" for g in guids)
+        table.delete(f"guid IN ({guid_list})")
+
+    def _heal_lance_duplicates(self) -> None:
+        """Repair the index if SQLite and LanceDB are out of sync.
+
+        Three ways to be corrupt:
+          - duplicates: a guid has >1 vector row
+          - orphans:    a vector row's guid is not in SQLite
+          - missing:    a SQLite row has no vector (empty/dropped LanceDB)
+
+        Any of those means vector search silently returns stale or incomplete
+        results, so we wipe both stores and let the next cycle rebuild from the
+        Connect API. The operation is idempotent — if it partially fails (drop
+        succeeds, clear_all raises), the next call redoes whatever is needed.
+        """
+        sqlite_guids = set(self.db.get_checksums().keys())
+        lance_has_table = TABLE_NAME in self.lance_db.table_names()
+
+        duplicates = 0
+        lance_guids: set[str] = set()
+        if lance_has_table:
+            try:
+                table = self.lance_db.open_table(TABLE_NAME)
+                rows = table.to_pandas()[["guid"]]
+                guid_counts = rows["guid"].value_counts()
+                duplicates = int((guid_counts > 1).sum())
+                lance_guids = set(guid_counts.index.tolist())
+            except Exception as e:
+                print(f"[indexer] Heal: could not inspect LanceDB table: {e}")
                 return
-            table = self.lance_db.open_table(TABLE_NAME)
-            guid_list = ", ".join(f"'{g}'" for g in guids)
-            table.delete(f"guid IN ({guid_list})")
-        except Exception as e:
-            print(f"[indexer] LanceDB delete error: {e}")
+
+        orphans = len(lance_guids - sqlite_guids)
+        missing = len(sqlite_guids - lance_guids)
+
+        if duplicates == 0 and orphans == 0 and missing == 0:
+            return
+
+        print(
+            f"[indexer] Detected corrupt index "
+            f"({duplicates} duplicates, {orphans} orphans, {missing} missing) "
+            f"— rebuilding from scratch"
+        )
+        if lance_has_table:
+            self.lance_db.drop_table(TABLE_NAME)
+        self.db.clear_all()
 
 
 def _compute_checksum(item: dict[str, Any]) -> str:
-    serialized = json.dumps(item, sort_keys=True, default=str)
+    """Hash only the fields that affect embedding text or displayed metadata.
+
+    Excludes volatile fields like ``bundle_id`` and ``last_deployed_time`` so a
+    pure redeploy does not trigger a re-embed. The guid is the row identity and
+    is intentionally NOT part of the checksum — a rename still flows through
+    because ``title``/``name`` change.
+    """
+    owner = item.get("owner") or {}
+    tags = item.get("tags") or []
+    tag_names = sorted(t.get("name", "") for t in tags if t.get("name"))
+    relevant = {
+        "title": item.get("title"),
+        "name": item.get("name"),
+        "description": item.get("description"),
+        "app_mode": item.get("app_mode"),
+        "content_category": item.get("content_category"),
+        "access_type": item.get("access_type"),
+        "owner_username": owner.get("username"),
+        "owner_first_name": owner.get("first_name"),
+        "owner_last_name": owner.get("last_name"),
+        "tags": tag_names,
+        "vanity_url": item.get("vanity_url"),
+        # Version fields feed content_to_text; omitting them would make a
+        # runtime upgrade invisible to vector search.
+        "r_version": item.get("r_version"),
+        "py_version": item.get("py_version"),
+        "quarto_version": item.get("quarto_version"),
+    }
+    serialized = json.dumps(relevant, sort_keys=True, default=str)
     return hashlib.sha256(serialized.encode()).hexdigest()

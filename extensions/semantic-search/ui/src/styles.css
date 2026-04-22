@@ -166,6 +166,44 @@ body {
   gap: 8px;
 }
 
+/* "Best match" split — highlights the top result when the user has an
+   explicit query and multiple results came back. */
+
+.results-section-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #6c757d;
+  margin-bottom: 8px;
+}
+
+.results-section-label--other {
+  margin-top: 20px;
+}
+
+.content-card-wrapper {
+  margin-bottom: 8px;
+}
+
+.content-card--best {
+  border-left: 3px solid #447099;
+  border-radius: 8px;
+  background: #ffffff;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+}
+
+.content-card--best .content-card {
+  border: none;
+  background: transparent;
+  box-shadow: none;
+  padding: 16px 18px;
+}
+
+.content-card--best .card-title {
+  font-size: 1.0625rem;
+}
+
 .content-card {
   background: #ffffff;
   border: 1px solid #dee2e6;
@@ -334,4 +372,83 @@ body {
     opacity: 1;
     transform: translateY(0);
   }
+}
+
+/* Settings page — internal/debug surface, plain layout. */
+
+.settings-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin-bottom: 20px;
+}
+
+.settings-section {
+  background: #ffffff;
+  border: 1px solid #dee2e6;
+  border-radius: 8px;
+  padding: 16px 18px;
+  margin-bottom: 16px;
+}
+
+.settings-section h2 {
+  font-size: 0.9375rem;
+  font-weight: 600;
+  margin-bottom: 12px;
+}
+
+.settings-section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.settings-section-header h2 {
+  margin-bottom: 0;
+}
+
+.settings-kv {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  column-gap: 16px;
+  row-gap: 4px;
+  font-size: 0.8125rem;
+}
+
+.settings-kv dt {
+  color: #6c757d;
+}
+
+.settings-kv dd {
+  color: #333333;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+
+.settings-details {
+  margin-top: 12px;
+  font-size: 0.8125rem;
+}
+
+.settings-details summary {
+  cursor: pointer;
+  color: #6c757d;
+}
+
+.settings-pre {
+  margin-top: 8px;
+  background: #f5f7f9;
+  border: 1px solid #e9ecef;
+  border-radius: 6px;
+  padding: 10px 12px;
+  font-size: 0.75rem;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  white-space: pre-wrap;
+  word-break: break-word;
+  max-height: 360px;
+  overflow: auto;
+}
+
+.btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }

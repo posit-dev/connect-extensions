@@ -41,7 +41,7 @@ Frontend (ui/ → static/)
 |---|---|---|---|
 | `CONNECT_SERVER` | Yes | — | URL of your Connect server, e.g. `https://connect.example.com/` |
 | `CONNECT_API_KEY` | Yes | — | Connect API key with at least Viewer permissions to read content metadata |
-| `INDEX_INTERVAL` | No | `1800` | How often (in seconds) to re-index content from Connect |
+| `INDEX_INTERVAL` | No | `60` | How often (in seconds) to re-index content from Connect |
 | `DB_PATH` | No | `data/search.db` | Path for the SQLite database |
 | `LANCE_PATH` | No | `data/lancedb` | Path for the LanceDB vector store |
 
@@ -50,7 +50,7 @@ Create a `.env` file in the extension root (never commit this file):
 ```
 CONNECT_SERVER=https://your-connect-server.example.com/
 CONNECT_API_KEY=your_api_key_here
-INDEX_INTERVAL=1800
+INDEX_INTERVAL=60
 ```
 
 ## Running Locally

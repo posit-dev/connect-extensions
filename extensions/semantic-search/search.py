@@ -56,9 +56,12 @@ class HybridSearch:
         top_guids = [guid for guid, _ in guids_scored[: limit * 2]]
         content_map = {c["guid"]: c for c in self.db.get_content_batch(top_guids)}
 
-        results = []
+        # Dedupe by guid regardless of mode — defense in depth against any stale
+        # duplicate rows that may exist in LanceDB (see indexer heal logic).
+        results: list[dict[str, Any]] = []
+        seen: set[str] = set()
         for guid, score in guids_scored:
-            if guid not in content_map:
+            if guid in seen or guid not in content_map:
                 continue
             item = content_map[guid]
             if app_mode and item.get("app_mode") != app_mode:
@@ -67,6 +70,7 @@ class HybridSearch:
                 continue
             item["score"] = round(score, 4)
             results.append(item)
+            seen.add(guid)
             if len(results) >= limit:
                 break
 
@@ -79,9 +83,19 @@ class HybridSearch:
         try:
             query_vec = encode([query])[0].tolist()
             rows = table.search(query_vec).metric("cosine").limit(limit).to_list()
-            return [{"guid": r["guid"], "distance": r["_distance"]} for r in rows]
         except Exception:
             return []
+        # Keep only the first (lowest-distance) occurrence of each guid so
+        # duplicate vector rows don't pollute hybrid ranking.
+        seen: set[str] = set()
+        deduped: list[dict[str, Any]] = []
+        for r in rows:
+            guid = r["guid"]
+            if guid in seen:
+                continue
+            seen.add(guid)
+            deduped.append({"guid": guid, "distance": r["_distance"]})
+        return deduped
 
 
 def _rrf_merge(

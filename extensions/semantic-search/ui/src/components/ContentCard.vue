@@ -1,6 +1,8 @@
 <script setup>
 defineProps({
   item: { type: Object, required: true },
+  // Score is a debug signal — only the settings page shows it.
+  showScore: { type: Boolean, default: false },
 });
 
 function displayTitle(item) {
@@ -57,7 +59,7 @@ function appModeLabel(mode) {
       <a :href="contentLink(item)" target="_blank" class="card-title">
         {{ displayTitle(item) }}
       </a>
-      <span v-if="item.score != null" class="card-score">
+      <span v-if="showScore && item.score != null" class="card-score">
         {{ item.score }}
       </span>
     </div>
