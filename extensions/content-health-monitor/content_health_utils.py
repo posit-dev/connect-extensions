@@ -2,7 +2,19 @@ import json
 import os
 import re
 import requests
+from packaging.version import Version
 from posit import connect
+
+NEW_SETTINGS_UI_VERSION = Version("2026.03.0")
+
+
+def has_new_settings_ui(client):
+    try:
+        if client.version:
+            return Version(client.version) >= NEW_SETTINGS_UI_VERSION
+    except Exception:
+        pass
+    return True
 
 class MonitorState:
     """State container for content health monitor"""
@@ -56,51 +68,89 @@ CSS_FOOTER_STYLE = "padding-top: 8px; font-size: 0.9em; border-top: 1px solid #e
 CSS_GRID_STYLE = "display: grid; grid-template-columns: 150px auto; grid-gap: 8px; padding: 10px 0;"
 
 # Helper function to read environment variables and add instructions if missing
-def get_env_var(var_name, state, description=""):
+def get_env_var(var_name, state, description="", client=None):
     """Get environment variable and add instruction if missing"""
     value = os.environ.get(var_name, "")
     if not value:
         state.show_instructions = True
-        
+
         # Generic instruction for most variables
         if var_name != "MONITORED_CONTENT":
             instruction = f"Please set the <code>{var_name}</code> environment variable."
         # Detailed instructions for MONITORED_CONTENT
         else:
             one_tab = "&nbsp;&nbsp;&nbsp;&nbsp;"  # For indentation in HTML
-            instruction = (
-                f"To monitor a piece of content you must configure the <code>{var_name}</code> environment variable.<br><br>"
-                
-                f"<h2>Step 1: Find the content to be monitored</h2>"
-                f"{one_tab}• In a separate tab, open the content you wish to monitor<br>"
-                f"{one_tab}• In the browser address bar, copy the entire address (URL)<br><br>"
-                f"{one_tab}<img src=\"images/address-bar.png\" alt=\"Browser address bar\" style=\"max-width: 50%; margin: 10px 0 10px 0; border: 1px solid #ddd;\"><br>"                
+            use_new_ui = has_new_settings_ui(client) if client else True
 
-                f"<h2>Step 2: Configure this report</h2>"
-                f"{one_tab}• Return to this report<br>"
-                f"{one_tab}• Click <b>Settings</b> at the top right of the screen<br>"
-                f"{one_tab}<img src=\"images/settings-button.png\" alt=\"Settings button in toolbar\" style=\"max-width: 30%; margin: 10px 0 10px 0; border: 1px solid #ddd;\"><br>"
-                f"{one_tab}• Click the <b>Advanced</b> tab<br>"
-                f"{one_tab}• In the <b>Name</b> field enter <code>{var_name}</code><br>"
-                f"{one_tab}• In the <b>Value</b> field paste the full address you copied in the previous step<br>"
-                f"{one_tab}• It should look like the example below<br>"
-                f"{one_tab}<img src=\"images/env-vars.png\" alt=\"Environment Variables section in Advanced tab\" style=\"max-width: 30%; margin: 10px 0 10px 0; border: 1px solid #ddd;\"><br>"
-                f"{one_tab}• Click <b>+ Add</b><br>"
-                f"{one_tab}• Click <b>Save</b> to save your changes<br><br>"
+            if use_new_ui:
+                instruction = _build_new_ui_instructions(var_name, one_tab)
+            else:
+                instruction = _build_old_ui_instructions(var_name, one_tab)
 
-                f"<h2>Step 3: Run the report to execute the health check</h2>"
-                f"{one_tab}• Click the <b>Refresh</b> button at the top right to run a health check against the monitored content<br>"
-                f"{one_tab}<img src=\"images/refresh-report.png\" alt=\"Refresh button in toolbar\" style=\"max-width: 30%; margin: 10px 0 10px 0; border: 1px solid #ddd;\"><br>"
-                f"{one_tab}• The health check will run and report the status<br>"
-                f"{one_tab}• If the content is healthy, you will see a <b>PASS</b> status, otherwise you will see a <b>FAIL</b> status<br>"
-                f"{one_tab}• If you see a <b>FAIL</b> status, click <b>Logs</b> to see more details about the failure<br><br>"
-
-            )
-        
         if description:
             instruction += f" {description}"
         state.instructions.append(instruction)
     return value
+
+
+def _build_new_ui_instructions(var_name, one_tab):
+    return (
+        f"To monitor a piece of content you must configure the <code>{var_name}</code> environment variable.<br><br>"
+
+        f"<h2>Step 1: Find the content to be monitored</h2>"
+        f"{one_tab}• In a separate tab, open the content you wish to monitor<br>"
+        f"{one_tab}• In the browser address bar, copy the entire address (URL)<br><br>"
+        f"{one_tab}<img src=\"images/address-bar.png\" alt=\"Browser address bar\" style=\"max-width: 50%; margin: 10px 0 10px 0; border: 1px solid #ddd;\"><br>"
+
+        f"<h2>Step 2: Configure this report</h2>"
+        f"{one_tab}• Return to this report<br>"
+        f"{one_tab}• Click <b>Settings</b> at the top right of the screen<br>"
+        f"{one_tab}<img src=\"images/settings-button.png\" alt=\"Settings button in toolbar\" style=\"max-width: 30%; margin: 10px 0 10px 0; border: 1px solid #ddd;\"><br>"
+        f"{one_tab}• Click the <b>Advanced</b> tab<br>"
+        f"{one_tab}• In the <b>Name</b> field enter <code>{var_name}</code><br>"
+        f"{one_tab}• In the <b>Value</b> field paste the full address you copied in the previous step<br>"
+        f"{one_tab}• It should look like the example below<br>"
+        f"{one_tab}<img src=\"images/env-vars.png\" alt=\"Environment Variables section in Advanced tab\" style=\"max-width: 30%; margin: 10px 0 10px 0; border: 1px solid #ddd;\"><br>"
+        f"{one_tab}• Click <b>+ Add</b><br>"
+        f"{one_tab}• Click <b>Save</b> to save your changes<br><br>"
+
+        f"<h2>Step 3: Run the report to execute the health check</h2>"
+        f"{one_tab}• Click the <b>Refresh</b> button at the top right to run a health check against the monitored content<br>"
+        f"{one_tab}<img src=\"images/refresh-report.png\" alt=\"Refresh button in toolbar\" style=\"max-width: 30%; margin: 10px 0 10px 0; border: 1px solid #ddd;\"><br>"
+        f"{one_tab}• The health check will run and report the status<br>"
+        f"{one_tab}• If the content is healthy, you will see a <b>PASS</b> status, otherwise you will see a <b>FAIL</b> status<br>"
+        f"{one_tab}• If you see a <b>FAIL</b> status, click <b>Logs</b> to see more details about the failure<br><br>"
+    )
+
+
+def _build_old_ui_instructions(var_name, one_tab):
+    return (
+        f"To monitor a piece of content you must configure the <code>{var_name}</code> environment variable.<br><br>"
+
+        f"<h2>Step 1: Find the content to be monitored</h2>"
+        f"{one_tab}• In a separate tab, open the content you wish to monitor<br>"
+        f"{one_tab}• In the browser address bar, copy the entire address (URL)<br><br>"
+        f"{one_tab}<img src=\"images/address-bar.png\" alt=\"Browser address bar\" style=\"max-width: 50%; margin: 10px 0 10px 0; border: 1px solid #ddd;\"><br>"
+
+        f"<h2>Step 2: Configure this report</h2>"
+        f"{one_tab}• Return to this report<br>"
+        f"{one_tab}• Click the <b>gear icon</b> at the top right of the screen to open <b>Content Settings</b><br>"
+        f"{one_tab}<img src=\"images/settings-gear-icon.png\" alt=\"Content Settings button\" style=\"max-width: 30%; margin: 10px 0 10px 0; border: 1px solid #ddd;\"><br>"
+        f"{one_tab}• Click the <b>Vars</b> tab<br>"
+        f"{one_tab}• In the <b>Name</b> field enter <code>{var_name}</code><br>"
+        f"{one_tab}• In the <b>Value</b> field paste the full address you copied in the previous step<br>"
+        f"{one_tab}• It should look like the example below<br>"
+        f"{one_tab}<img src=\"images/vars.png\" alt=\"Environment Variables tab\" style=\"max-width: 30%; margin: 10px 0 10px 0; border: 1px solid #ddd;\"><br>"
+        f"{one_tab}• Click <b>Add Variable</b><br>"
+        f"{one_tab}• Click <b>Save</b> at the top of the screen to save your changes<br><br>"
+
+        f"<h2>Step 3: Run the report to execute the health check</h2>"
+        f"{one_tab}• Click the <b>Refresh Report</b> button at the top right to run a health check against the monitored content<br>"
+        f"{one_tab}• The health check will run and report the status<br>"
+        f"{one_tab}• If the content is healthy, you will see a <b>PASS</b> status, otherwise you will see a <b>FAIL</b> status<br>"
+        f"{one_tab}• If you see a <b>FAIL</b> status, click the <b>View Logs</b> link to see more details about the failure<br>"
+        f"{one_tab}<img src=\"images/refresh-report.png\" alt=\"Refresh report button\" style=\"max-width: 30%; margin: 10px 0 10px 0; border: 1px solid #ddd;\"><br><br>"
+    )
 
 # Helper function to extract error messages from exceptions
 def format_error_message(exception):
