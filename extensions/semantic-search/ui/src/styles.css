@@ -452,3 +452,13 @@ body {
   opacity: 0.6;
   cursor: not-allowed;
 }
+
+.stale-banner {
+  background: #fff8e1;
+  border: 1px solid #ffe0a1;
+  color: #7a5a00;
+  border-radius: 6px;
+  padding: 10px 14px;
+  font-size: 0.875rem;
+  margin-bottom: 16px;
+}

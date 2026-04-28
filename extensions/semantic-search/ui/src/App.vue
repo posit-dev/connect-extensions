@@ -19,8 +19,26 @@ const contentCategories = ref([]);
 const selectedAppMode = ref('');
 const selectedCategory = ref('');
 const error = ref('');
+const lastRun = ref(null);
 let errorTimer = null;
 let debounceTimer = null;
+
+// Indexer runs every 60s by default. Flag the index as stale only well past
+// that so transient fetch hiccups don't scare users; 30 min = 30 healthy
+// intervals.
+const STALE_AFTER_MS = 30 * 60 * 1000;
+const staleMinutes = ref(0);
+const isStale = computed(() => staleMinutes.value > 0);
+
+function updateStaleness() {
+  if (!lastRun.value) {
+    staleMinutes.value = 0;
+    return;
+  }
+  const ageMs = Date.now() - new Date(lastRun.value).getTime();
+  staleMinutes.value = ageMs > STALE_AFTER_MS ? Math.floor(ageMs / 60000) : 0;
+}
+let stalenessTimer = null;
 
 function showError(msg) {
   error.value = msg;
@@ -35,6 +53,16 @@ async function loadFilters() {
     contentCategories.value = data.content_categories || [];
   } catch {
     // filters unavailable — not critical
+  }
+}
+
+async function loadLastRun() {
+  try {
+    const s = await api.getStatus();
+    lastRun.value = s?.last_run ?? null;
+    updateStaleness();
+  } catch {
+    // status endpoint is best-effort; don't surface this to users
   }
 }
 
@@ -77,17 +105,24 @@ onMounted(async () => {
   if (isSettings.value) return;
   await loadFilters();
   doSearch();
+  loadLastRun();
+  // Re-poll periodically so the stale banner appears without a reload.
+  stalenessTimer = setInterval(loadLastRun, 60_000);
 });
 
 onBeforeUnmount(() => {
   clearTimeout(debounceTimer);
   clearTimeout(errorTimer);
+  clearInterval(stalenessTimer);
 });
 </script>
 
 <template>
   <Settings v-if="isSettings" />
   <main v-else class="container">
+    <div v-if="isStale" class="stale-banner">
+      Search results may be out of date — the index has not refreshed in {{ staleMinutes }} minutes.
+    </div>
     <div class="search-input-wrapper">
       <svg class="search-icon" width="20" height="20" viewBox="0 0 24 24"
            fill="none" stroke="currentColor" stroke-width="2">

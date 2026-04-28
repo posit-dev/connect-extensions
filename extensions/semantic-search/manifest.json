@@ -43,7 +43,7 @@
       "checksum": "b9b5967cd28686fa9abe54eff639e887"
     },
     "indexer.py": {
-      "checksum": "6781dd1bfa2d69cf2be45c96b7d5ca0d"
+      "checksum": "416abb61994d5a36740e4e0641868b79"
     },
     "search.py": {
       "checksum": "abd32ff6b42acd1ff1af2ab9b84c13a0"
@@ -55,13 +55,13 @@
       "checksum": "a4f1c848b328d63503ee5be63de3ed62"
     },
     "static/index.html": {
-      "checksum": "777132572a380dfaa71e96eb08c47b0d"
+      "checksum": "669604c2f10316b132858e29eba42860"
     },
-    "static/assets/index-DX_nRT70.js": {
-      "checksum": "7fe58b94bc87cbe1526440f3f34e6df4"
+    "static/assets/index-DeOBnnov.js": {
+      "checksum": "a54019f1ea65b9ba3b8ef4a134612ffe"
     },
-    "static/assets/index-DtBwO8TT.css": {
-      "checksum": "9704afbff9d61b46feb7497518c24798"
+    "static/assets/index-Bzoepz__.css": {
+      "checksum": "7c6dcc4ad5b17550bab685c90198d95f"
     },
     "ui/package.json": {
       "checksum": "39449c44bbcbb62219ef7a0e9e093f63"
@@ -76,13 +76,13 @@
       "checksum": "458ced763272c192db10ad2668c7ea0e"
     },
     "ui/src/App.vue": {
-      "checksum": "f0f7f6b4a4018f85b6c636f715844aee"
+      "checksum": "11dc7cc787b01db6a8a033e9c8b534ec"
     },
     "ui/src/api.js": {
       "checksum": "9eaa0fd42791edb01d447bacd614414b"
     },
     "ui/src/styles.css": {
-      "checksum": "2993be10d5fb407178f5e54ff7fca52f"
+      "checksum": "30518bd3ff4997e8601f19a6303827b8"
     },
     "ui/src/components/ContentCard.vue": {
       "checksum": "daf25ed9d7b551e7a9ce29f5d082e083"

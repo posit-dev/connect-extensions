@@ -118,8 +118,15 @@ class Indexer:
         print(f"[indexer] Connected to: {client.cfg.url}")
 
         content_items = client.content.find(include=["owner", "tags", "vanity_url"])
-        items = [dict(item) for item in content_items]
-        print(f"[indexer] Fetched {len(items)} content items")
+        # Skip undeployed stubs: bundle_id is null for content that never had a
+        # successful upload, and app_mode is "unknown" until a bundle is
+        # promoted. Connect's own /v1/content endpoint returns these but they
+        # 404 on open, so they must not enter the search index.
+        items = [
+            dict(item) for item in content_items
+            if item.get("bundle_id") and item.get("app_mode") != "unknown"
+        ]
+        print(f"[indexer] Fetched {len(items)} deployable content items")
 
         # Detect changes
         existing_checksums = self.db.get_checksums()
