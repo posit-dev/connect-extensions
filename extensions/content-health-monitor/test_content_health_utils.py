@@ -27,6 +27,7 @@ get_content = content_health_utils.get_content
 get_env_var = content_health_utils.get_env_var
 get_user = content_health_utils.get_user
 has_error = content_health_utils.has_error
+has_new_settings_ui = content_health_utils.has_new_settings_ui
 should_send_email = content_health_utils.should_send_email
 validate = content_health_utils.validate
 
@@ -1105,4 +1106,98 @@ class TestCheckServerReachable:
             assert "Connect server at" in str(excinfo.value)
             assert "500 Server Error" in str(excinfo.value)
             mock_get.assert_called_once()
+
+
+class TestHasNewSettingsUi:
+
+    def test_new_version_returns_true(self):
+        """Connect >= 2026.03.0 should use new UI instructions"""
+        client = MagicMock()
+        client.version = "2026.03.0"
+        assert has_new_settings_ui(client) is True
+
+    def test_newer_version_returns_true(self):
+        """Connect versions after 2026.03.0 should use new UI instructions"""
+        client = MagicMock()
+        client.version = "2026.05.0"
+        assert has_new_settings_ui(client) is True
+
+    def test_old_version_returns_false(self):
+        """Connect < 2026.03.0 should use old UI instructions"""
+        client = MagicMock()
+        client.version = "2025.04.0"
+        assert has_new_settings_ui(client) is False
+
+    def test_preview_version_returns_false(self):
+        """Connect 2026.02.x (new UI opt-in only) should use old UI instructions"""
+        client = MagicMock()
+        client.version = "2026.02.0"
+        assert has_new_settings_ui(client) is False
+
+    def test_none_version_defaults_to_true(self):
+        """When version is None, default to new UI instructions"""
+        client = MagicMock()
+        client.version = None
+        assert has_new_settings_ui(client) is True
+
+    def test_none_client_defaults_to_true(self):
+        """When client is None, has_new_settings_ui should not be called but
+        get_env_var should default to new UI instructions"""
+        state = MonitorState()
+        clear_env_var("MONITORED_CONTENT")
+        get_env_var("MONITORED_CONTENT", state, client=None)
+        assert len(state.instructions) == 1
+        assert "Settings</b>" in state.instructions[0]
+        assert "Advanced</b>" in state.instructions[0]
+
+    def test_exception_defaults_to_true(self):
+        """When client.version raises, default to new UI instructions"""
+        client = MagicMock()
+        type(client).version = property(lambda self: (_ for _ in ()).throw(RuntimeError("fail")))
+        assert has_new_settings_ui(client) is True
+
+
+class TestGetEnvVarVersionDetection:
+
+    def test_new_ui_instructions_for_new_version(self):
+        """MONITORED_CONTENT instructions should reference new UI for >= 2026.03.0"""
+        state = MonitorState()
+        client = MagicMock()
+        client.version = "2026.03.0"
+        clear_env_var("MONITORED_CONTENT")
+
+        get_env_var("MONITORED_CONTENT", state, client=client)
+
+        assert len(state.instructions) == 1
+        assert "Settings</b>" in state.instructions[0]
+        assert "Advanced</b>" in state.instructions[0]
+        assert "settings-button.png" in state.instructions[0]
+        assert "env-vars.png" in state.instructions[0]
+
+    def test_old_ui_instructions_for_old_version(self):
+        """MONITORED_CONTENT instructions should reference old UI for < 2026.03.0"""
+        state = MonitorState()
+        client = MagicMock()
+        client.version = "2025.04.0"
+        clear_env_var("MONITORED_CONTENT")
+
+        get_env_var("MONITORED_CONTENT", state, client=client)
+
+        assert len(state.instructions) == 1
+        assert "gear icon</b>" in state.instructions[0]
+        assert "Vars</b>" in state.instructions[0]
+        assert "settings-gear-icon.png" in state.instructions[0]
+        assert "vars.png" in state.instructions[0]
+
+    def test_non_monitored_content_var_ignores_client(self):
+        """Non-MONITORED_CONTENT vars should not be affected by client version"""
+        state = MonitorState()
+        client = MagicMock()
+        client.version = "2025.04.0"
+        clear_env_var("SOME_OTHER_VAR")
+
+        get_env_var("SOME_OTHER_VAR", state, client=client)
+
+        assert len(state.instructions) == 1
+        assert "Please set the <code>SOME_OTHER_VAR</code>" in state.instructions[0]
 
