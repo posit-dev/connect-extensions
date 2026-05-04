@@ -31,7 +31,6 @@ def get_visitor_client(token: str | None) -> connect.Client:
 mcp = FastMCP(
     name="Simple MCP Server",
     instructions="MCP server for dataset operations and Connect 'whoami' via FastAPI.",
-    stateless_http=True,
 )
 
 # --- Datasets ---
@@ -133,7 +132,7 @@ async def lifespan(app: FastAPI):
         yield
 
 
-mcp_app = mcp.http_app(path="/mcp")
+mcp_app = mcp.http_app(path="/mcp", stateless_http=True)
 app = FastAPI(title="Simple MCP Server with FastAPI", lifespan=mcp_app.lifespan)
 templates = Jinja2Templates(directory=".")
 
@@ -144,9 +143,9 @@ async def get_index_page(request: Request):
     tools = get_tools_info()
     endpoint = urllib.parse.urljoin(request.url._url, "mcp")
     return templates.TemplateResponse(
+        request,
         "index.html.jinja",
         {
-            "request": request,
             "server_name": mcp.name,
             "endpoint": endpoint,
             "tools": tools,
