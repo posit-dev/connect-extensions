@@ -30,7 +30,7 @@
     {
       "name": "chat-with-content",
       "title": "Chat with Content",
-      "description": "Provides a way to interact with and query content using an LLM chat interface.",
+      "description": "Interact with and query your published content using an LLM chat interface.",
       "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/chat-with-content",
       "latestVersion": {
         "version": "0.0.5",
@@ -129,7 +129,7 @@
     {
       "name": "connectwidgets-example",
       "title": "Connect Widgets Example",
-      "description": "connectwidgets is an R package that can be used to query for a subset of your existing content items, then organize them within htmlwidget components in an R Markdown document or Shiny application.",
+      "description": "Demonstrates the connectwidgets R package, which queries for a subset of your existing content items and organizes them within htmlwidget components in an R Markdown document or Shiny application.",
       "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/connectwidgets-example",
       "category": "example",
       "latestVersion": {
@@ -161,7 +161,7 @@
     {
       "name": "content-health-monitor",
       "title": "Content Health Monitor",
-      "description": "This report uses the publisher’s API key to monitor a single piece of content. It checks whether the content is reachable, but does not validate its functionality. When scheduled to run regularly, it will send an email alert if the content becomes unreachable.",
+      "description": "Monitors a single piece of content using the publisher's API key to check whether it is reachable. When scheduled to run regularly, it sends an email alert if the content becomes unreachable.",
       "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/content-health-monitor",
       "latestVersion": {
         "version": "1.0.0",
@@ -199,7 +199,7 @@
     {
       "name": "fastapitableau-example",
       "title": "Tableau Python Extension",
-      "description": "fastapitableau is a Python package that enables Python developers to build FastAPI APIs that function as Tableau Analytics Extensions. These extensions can be leveraged from Tableau workbooks to allow real time requests from Tableau to Python. This extension builds on top of Tableau's example Superstore dataset.",
+      "description": "Demonstrates the fastapitableau Python package, which enables developers to build FastAPI endpoints that function as Tableau Analytics Extensions. Built on top of Tableau's example Superstore dataset.",
       "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/fastapitableau-example",
       "category": "example",
       "latestVersion": {
@@ -237,7 +237,7 @@
     {
       "name": "landing-page",
       "title": "Static HTML landing page",
-      "description": "A simple static HTML web page that can be served from Connect",
+      "description": "A simple static HTML landing page that can be served from Connect.",
       "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/landing-page",
       "category": "example",
       "latestVersion": {
@@ -259,7 +259,7 @@
     {
       "name": "package-vulnerability-scanner",
       "title": "Package Vulnerability Scanner",
-      "description": "Scan for security vulnerabilities in your published content on Connect using Posit Package Manager. View an overview of CVEs (Common Vulnerabilities and Exposures) across all your apps, and get guidance on upgrading affected packages.",
+      "description": "Scans for security vulnerabilities in your published content on Connect using Posit Package Manager. View an overview of CVEs across all your apps and get guidance on upgrading affected packages.",
       "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/package-vulnerability-scanner",
       "latestVersion": {
         "version": "3.0.4",
@@ -397,7 +397,7 @@
     {
       "name": "plumbertableau-example",
       "title": "plumbertableau example",
-      "description": "plumbertableau is an R package that enables R developers to build Plumber APIs that function as Tableau Analytics Extensions. These extensions can be leveraged from Tableau workbooks to allow real time requests from Tableau to R. This extension builds on top of Tableau's example Superstore dataset.",
+      "description": "Demonstrates the plumbertableau R package, which enables developers to build Plumber APIs that function as Tableau Analytics Extensions. Built on top of Tableau's example Superstore dataset.",
       "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/plumbertableau-example",
       "category": "example",
       "latestVersion": {
@@ -435,7 +435,7 @@
     {
       "name": "portfolio-dashboard",
       "title": "Portfolio Dashboard",
-      "description": "A shiny application makes it easy to transform your analysis into an interactive dashboard using R so users can ask and answer questions in real-time, without having to touch any code.",
+      "description": "A Shiny for R application that transforms your analysis into an interactive dashboard, allowing users to ask and answer questions in real time without touching any code.",
       "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/portfolio-dashboard",
       "category": "example",
       "latestVersion": {
@@ -478,7 +478,7 @@
     {
       "name": "portfolio-report",
       "title": "Portfolio Report",
-      "description": "This R Markdown document includes parameters, making it easier for stakeholders to customize the report's assumptions and create their own version. The main document serves as a standard base template, containing your core code and analysis, so you don't have to copy, paste, and republish.",
+      "description": "An R Markdown document with parameters that allow stakeholders to customize the report's assumptions and create their own version. The main document serves as a standard base template containing your core code and analysis.",
       "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/portfolio-report",
       "category": "example",
       "latestVersion": {
@@ -510,7 +510,7 @@
     {
       "name": "pqr",
       "title": "Quarto Document with Python and R",
-      "description": "A Quarto document that executes Python and R code.",
+      "description": "A Quarto document that demonstrates executing both Python and R code.",
       "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/pqr",
       "latestVersion": {
         "version": "0.1.0",
@@ -558,7 +558,7 @@
     {
       "name": "publisher-command-center",
       "title": "Publisher Command Center",
-      "description": "An app that helps publishers view and manage details about apps and dashboards deployed to Connect. View app metadata and history for all of the apps you are collaborating on as well as see and managing running process for individual apps.",
+      "description": "Helps publishers view and manage details about apps and dashboards deployed to Connect. View app metadata and history for all of your collaborative apps, and see and manage running processes.",
       "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/publisher-command-center",
       "category": "extension",
       "latestVersion": {
@@ -673,7 +673,7 @@
     {
       "name": "quarto-document",
       "title": "Quarto Document",
-      "description": "This Quarto example shows how a basic document can present diagrams and interactivity.",
+      "description": "A Quarto example showing how a basic document can present diagrams and interactivity.",
       "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/quarto-document",
       "category": "example",
       "latestVersion": {
@@ -716,7 +716,7 @@
     {
       "name": "quarto-presentation",
       "title": "Quarto Presentation",
-      "description": "This presentation is generated using Quarto and reveal.js. It demonstrates how you might use code to highlight your work.",
+      "description": "A presentation generated using Quarto and reveal.js that demonstrates how you might use code to highlight your work.",
       "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/quarto-presentation",
       "latestVersion": {
         "version": "1.0.0",
@@ -748,7 +748,7 @@
     {
       "name": "quarto-stock-report-python",
       "title": "Quarto Stock Report using Python",
-      "description": "An example of how you might automate regular updates using a data source",
+      "description": "An example of how you might automate regular updates using a data source.",
       "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/quarto-stock-report-python",
       "category": "example",
       "latestVersion": {
@@ -800,7 +800,7 @@
     {
       "name": "quarto-stock-report-r",
       "title": "Quarto Stock Report using R",
-      "description": "This stock report is generated using Quarto and R. It is an example of how you might automate regular updates using a data source. The report also generates a custom email, sharing the results directly to stakeholders.",
+      "description": "A stock report generated using Quarto and R that demonstrates how you might automate regular updates using a data source. The report also generates a custom email to share results directly with stakeholders.",
       "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/quarto-stock-report-r",
       "latestVersion": {
         "version": "1.0.0",
@@ -838,7 +838,7 @@
     {
       "name": "quarto-website",
       "title": "Quarto Website",
-      "description": "This Quarto website uses the Posit Connect Server API together with Python to construct a dashboard that presents published content. Views showing featured and all content are included. Set the `FEATURED_TAGS` environment variable and feature content having a particular tag name.",
+      "description": "A Quarto website that uses the Posit Connect Server API with Python to construct a dashboard presenting published content. Includes views showing featured and all content. Set the FEATURED_TAGS environment variable to feature content with a particular tag.",
       "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/quarto-website",
       "category": "example",
       "latestVersion": {
@@ -876,7 +876,7 @@
     {
       "name": "runtime-version-scanner",
       "title": "Runtime Version Scanner",
-      "description": "See the Python, R, and Quarto versions used by your content. Filter by version, content type, and usage to identify items that need updating. Quickly find content that uses end-of-life language versions.",
+      "description": "Shows the Python, R, and Quarto versions used by your content. Filter by version, content type, and usage to identify items that need updating or that use end-of-life language versions.",
       "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/runtime-version-scanner",
       "latestVersion": {
         "version": "1.0.2",
@@ -942,7 +942,7 @@
     {
       "name": "script-python",
       "title": "Run a Python Script",
-      "description": "This data transformation Python script is an example of how you might automate regular imports and transformations from a data source. JSON and CSV files are exported and made available for download. Quarto is used to render the script.",
+      "description": "A data transformation Python script that demonstrates how you might automate regular imports and transformations from a data source. JSON and CSV files are exported and made available for download.",
       "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/script-python",
       "latestVersion": {
         "version": "1.0.0",
@@ -980,7 +980,7 @@
     {
       "name": "script-r",
       "title": "Run an R Script",
-      "description": "This data transformation R script is an example of how you might automate regular imports and transformations from a data source. JSON and CSV files are exported and made available for download. Quarto is used to render the script. The script also generates a custom email, with the generated CSV files as attachments.",
+      "description": "A data transformation R script that demonstrates how you might automate regular imports and transformations from a data source. JSON and CSV files are exported and made available for download. The script also generates a custom email with the generated CSV files as attachments.",
       "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/script-r",
       "latestVersion": {
         "version": "1.0.0",
@@ -1018,7 +1018,7 @@
     {
       "name": "simple-mcp-server",
       "title": "Simple MCP Server",
-      "description": "A simple example of a Connect extension that serves tools via the MCP protocol. This is meant to be used with the Simple Shiny Chat with MCP Support extension.",
+      "description": "A simple Connect extension that serves tools via the MCP protocol. Meant to be used with the Simple Shiny Chat with MCP Support extension.",
       "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/simple-mcp-server",
       "latestVersion": {
         "version": "0.0.4",
@@ -1105,7 +1105,7 @@
     {
       "name": "simple-shiny-chat-with-mcp",
       "title": "Simple Shiny Chat with MCP Support",
-      "description": "A simple Shiny chat application that demonstrates how to use the MCP client to facilitate remote tool calls. This is meant to be used with the Simple MCP Server extension.",
+      "description": "A simple Shiny chat application that demonstrates how to use the MCP client to facilitate remote tool calls. Meant to be used with the Simple MCP Server extension.",
       "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/simple-shiny-chat-with-mcp",
       "latestVersion": {
         "version": "0.0.4",
@@ -1190,7 +1190,7 @@
     {
       "name": "stock-api-fastapi",
       "title": "FastAPI Stock Pricing Service",
-      "description": "APIs are a great way for software engineering teams to use your models without translating them into different languages",
+      "description": "A FastAPI example showing how APIs let software engineering teams use your models without translating them into different languages.",
       "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/stock-api-fastapi",
       "category": "example",
       "latestVersion": {
@@ -1228,7 +1228,7 @@
     {
       "name": "stock-api-flask",
       "title": "Flask Stock Pricing Service",
-      "description": "APIs are a great way for software engineering teams to use your models without translating them into different languages",
+      "description": "A Flask example showing how APIs let software engineering teams use your models without translating them into different languages.",
       "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/stock-api-flask",
       "category": "example",
       "latestVersion": {
@@ -1266,7 +1266,7 @@
     {
       "name": "stock-api-plumber",
       "title": "Stock Pricing Service with Plumber API",
-      "description": "An API allows you to turn your models into production services that other tools and teams can use. APIs are a great way for software engineering teams to use your models without translating them into different languages.",
+      "description": "A Plumber example showing how APIs let you turn your models into production services that other tools and teams can use, without translating them into different languages.",
       "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/stock-api-plumber",
       "category": "example",
       "latestVersion": {
@@ -1304,7 +1304,7 @@
     {
       "name": "stock-dashboard-python",
       "title": "Stock Pricing Dashboard using Python Dash",
-      "description": "A Dash application makes it easy to transform your analysis into an interactive dashboard using Python so users can ask and answer questions in real-time, without having to touch any code.",
+      "description": "A Dash application that transforms your analysis into an interactive dashboard using Python, allowing users to ask and answer questions in real time without touching any code.",
       "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/stock-dashboard-python",
       "category": "example",
       "latestVersion": {
@@ -1336,7 +1336,7 @@
     {
       "name": "stock-report",
       "title": "Automated Stock Report",
-      "description": "This R Markdown document shows how to automate regular updates to a PDF. The report code also generates a custom email, re-using the plots and putting the results where stakeholders live - their inbox.",
+      "description": "An R Markdown document that demonstrates how to automate regular updates to a PDF. The report code also generates a custom email, re-using the plots and putting the results where stakeholders live \u2014 their inbox.",
       "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/stock-report",
       "latestVersion": {
         "version": "1.0.0",
@@ -1368,7 +1368,7 @@
     {
       "name": "stock-report-jupyter",
       "title": "Stock Report using Jupyter",
-      "description": "This stock report is generated using Python and Jupyter Notebook. Stock prices are populated from Quandl to generate a stock performance summary intended to run daily after market close.",
+      "description": "A stock report generated using Python and Jupyter Notebook. Stock prices are populated from Quandl to generate a stock performance summary intended to run daily after market close.",
       "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/stock-report-jupyter",
       "latestVersion": {
         "version": "1.0.0",
@@ -1400,7 +1400,7 @@
     {
       "name": "top-5-income-share-bokeh",
       "title": "Top 5% income share using Bokeh",
-      "description": "A Bokeh application makes it easy to transform your analysis into an interactive dashboard using Python so users can ask and answer questions in real-time, without having to touch any code.",
+      "description": "A Bokeh application that transforms your analysis into an interactive dashboard using Python, allowing users to ask and answer questions in real time without touching any code.",
       "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/top-5-income-share-bokeh",
       "latestVersion": {
         "version": "1.0.0",
@@ -1432,7 +1432,7 @@
     {
       "name": "top-5-income-share-shiny",
       "title": "Top 5% income share using Shiny",
-      "description": "A Shiny application makes it easy to transform your analysis into an interactive application using Python so users can ask and answer their own questions in real-time.",
+      "description": "A Shiny for Python application that transforms your analysis into an interactive application, allowing users to ask and answer their own questions in real time.",
       "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/top-5-income-share-shiny",
       "latestVersion": {
         "version": "1.0.0",
@@ -1464,7 +1464,7 @@
     {
       "name": "top-5-income-share-streamlit",
       "title": "Top 5% income share using Streamlit",
-      "description": "A Streamlit application makes it easy to transform your analysis into an interactive dashboard using Python so users can ask and answer questions in real-time, without having to touch any code.",
+      "description": "A Streamlit application that transforms your analysis into an interactive dashboard using Python, allowing users to ask and answer questions in real time without touching any code.",
       "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/top-5-income-share-streamlit",
       "latestVersion": {
         "version": "1.0.0",
@@ -1496,7 +1496,7 @@
     {
       "name": "usage-metrics-dashboard",
       "title": "Usage Metrics Dashboard",
-      "description": "Understand usage patterns across your work on Connect. Browse an overview of usage across everything you've published, and dive into detailed breakdowns of data for an individual deployment, down to the level of individual visits.",
+      "description": "Understand usage patterns across your work on Connect. Browse an overview of usage across everything you've published, and dive into detailed breakdowns for an individual deployment down to the level of individual visits.",
       "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/usage-metrics-dashboard",
       "category": "extension",
       "latestVersion": {
@@ -1715,8 +1715,8 @@
     },
     {
       "name": "voila-example",
-      "title": "Secure Hashes with Voilà",
-      "description": "Voilà allows you to convert a Jupyter Notebook into an interactive dashboard that allows you to share your work with others.",
+      "title": "Secure Hashes with Voil\u00e0",
+      "description": "Demonstrates how Voil\u00e0 converts a Jupyter Notebook into an interactive dashboard that you can share with others.",
       "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/voila-example",
       "latestVersion": {
         "version": "1.0.0",
