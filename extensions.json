@@ -558,7 +558,7 @@
     {
       "name": "publisher-command-center",
       "title": "Publisher Command Center",
-      "description": "Helps publishers view and manage details about apps and dashboards deployed to Connect. View app metadata and history for all of your collaborative apps, and see and manage running processes.",
+      "description": "Helps publishers view and manage details about apps and dashboards deployed to Connect. View app metadata and history for all of the apps you are collaborating on, and see and manage running processes.",
       "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/publisher-command-center",
       "category": "extension",
       "latestVersion": {
