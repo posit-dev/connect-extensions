@@ -9,3 +9,27 @@
 
 - Run `make test` to run tests.
 - Tests live in `tests/testthat`, and run against the code in `R/`.
+
+## Updating the manifest
+
+If updating package versions, first update them (e.g. with
+`install.packages()`), then call `renv::snapshot()`, and then update the
+manifest:
+
+```r
+rsconnect::writeManifest(
+  appFiles = c(
+    "app.R",
+    "R/integrations.R",
+    "R/ui_components.R",
+    "R/visit_processing.R",
+    "README.md",
+    "renv.lock",
+    "www/styles.css"
+  )
+)
+```
+
+By default rsconnect will adjust the `environment.r.requires` section as well as
+the `extension` section. Do not commit these changes, but _do_ manually bump
+`extension.version` as well as the `Version` field in the `DESCRIPTION` file.
