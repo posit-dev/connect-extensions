@@ -30,7 +30,7 @@
     {
       "name": "chat-with-content",
       "title": "Chat with Content",
-      "description": "Interact with and query your published content using an LLM chat interface.",
+      "description": "Provides an LLM chat interface to interact with and query your published content.",
       "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/chat-with-content",
       "latestVersion": {
         "version": "0.0.5",
