@@ -1336,7 +1336,7 @@
     {
       "name": "stock-report",
       "title": "Automated Stock Report",
-      "description": "An R Markdown document that demonstrates how to automate regular updates to a PDF. The report code also generates a custom email, re-using the plots and putting the results where stakeholders live \u2014 their inbox.",
+      "description": "An R Markdown document that demonstrates how to automate regular updates to a PDF. The report code also generates a custom email, re-using the plots and putting the results where stakeholders live - their inbox.",
       "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/stock-report",
       "latestVersion": {
         "version": "1.0.0",
