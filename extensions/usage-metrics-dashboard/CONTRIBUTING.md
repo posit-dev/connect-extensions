@@ -12,8 +12,9 @@
 
 ## Updating the manifest
 
-If updating package versions, update them and call `renv::snapshot()` first.
-Then update the manifest:
+If updating package versions, first update them (e.g. with
+`install.packages()`), then call `renv::snapshot()`, and then update the
+manifest:
 
 ```r
 rsconnect::writeManifest(
