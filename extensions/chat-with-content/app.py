@@ -126,7 +126,7 @@ setup_ui = ui.page_fillable(
             ui.div(
                 ui.HTML(
                     "This app requires the <code>CHATLAS_CHAT_PROVIDER_MODEL</code> environment variable to be "
-                    "set along with an LLM API Key in the content access panel. Please set them in your environment before running the app. "
+                    "set along with an LLM API Key in the content settings. Please set them in your environment before running the app. "
                     'See the <a href="https://posit-dev.github.io/chatlas/reference/ChatAuto.html" class="setup-link" target="_blank" rel="noopener">documentation</a> for more details on which arguments can be set for each Chatlas provider.'
                 ),
                 class_="setup-description",
@@ -146,7 +146,7 @@ OPENAI_API_KEY = "<key>" """,
             ),
             ui.h2("Connect Visitor API Key", class_="setup-section-title"),
             ui.div(
-                "Before you are able to use this app, you need to add a Connect Visitor API Key integration in the access panel.",
+                "Before you are able to use this app, you need to add a Connect Visitor API Key integration in the content settings.",
                 class_="setup-description",
             ),
             class_="setup-card",
