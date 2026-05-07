@@ -748,7 +748,7 @@
     {
       "name": "quarto-stock-report-python",
       "title": "Quarto Stock Report using Python",
-      "description": "An example of how you might automate regular updates using a data source.",
+      "description": "A stock report generated using Quarto and Python that demonstrates how you might automate regular updates using a data source. The report also generates a custom email to share results directly with stakeholders.",
       "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/quarto-stock-report-python",
       "category": "example",
       "latestVersion": {
@@ -942,7 +942,7 @@
     {
       "name": "script-python",
       "title": "Run a Python Script",
-      "description": "A data transformation Python script that demonstrates how you might automate regular imports and transformations from a data source. JSON and CSV files are exported and made available for download.",
+      "description": "A data transformation Python script that demonstrates how you might automate regular imports and transformations from a data source. JSON and CSV files are exported and made available for download. Quarto is used to render the script.",
       "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/script-python",
       "latestVersion": {
         "version": "1.0.0",
@@ -980,7 +980,7 @@
     {
       "name": "script-r",
       "title": "Run an R Script",
-      "description": "A data transformation R script that demonstrates how you might automate regular imports and transformations from a data source. JSON and CSV files are exported and made available for download. The script also generates a custom email with the generated CSV files as attachments.",
+      "description": "A data transformation R script that demonstrates how you might automate regular imports and transformations from a data source. JSON and CSV files are exported and made available for download. Quarto is used to render the script. The script also generates a custom email with the generated CSV files as attachments.",
       "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/script-r",
       "latestVersion": {
         "version": "1.0.0",
@@ -1190,7 +1190,7 @@
     {
       "name": "stock-api-fastapi",
       "title": "FastAPI Stock Pricing Service",
-      "description": "A FastAPI example showing how APIs let software engineering teams use your models without translating them into different languages.",
+      "description": "An example API built with FastAPI that turns your models into services other tools and teams can use.",
       "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/stock-api-fastapi",
       "category": "example",
       "latestVersion": {
@@ -1228,7 +1228,7 @@
     {
       "name": "stock-api-flask",
       "title": "Flask Stock Pricing Service",
-      "description": "A Flask example showing how APIs let software engineering teams use your models without translating them into different languages.",
+      "description": "An example API built with Flask that turns your models into services other tools and teams can use.",
       "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/stock-api-flask",
       "category": "example",
       "latestVersion": {
@@ -1266,7 +1266,7 @@
     {
       "name": "stock-api-plumber",
       "title": "Stock Pricing Service with Plumber API",
-      "description": "A Plumber example showing how APIs let you turn your models into production services that other tools and teams can use, without translating them into different languages.",
+      "description": "An example API built with Plumber that turns your models into services other tools and teams can use.",
       "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/stock-api-plumber",
       "category": "example",
       "latestVersion": {
