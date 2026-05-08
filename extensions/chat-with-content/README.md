@@ -21,7 +21,7 @@ As a Posit Connect administrator, you need to configure the environment for this
 
 1.  **Publish the Extension**: Publish this application to Posit Connect.
 
-2.  **Configure Environment Variables**: In the "Vars" pane of the content settings, you need to set environment variables to configure the LLM provider. This extension uses the `chatlas` library, which supports various LLM providers like OpenAI, Azure OpenAI, Google Gemini, Anthropic, and Anthropic on AWS Bedrock.
+2.  **Configure Environment Variables**: In the content settings, set the following environment variables to configure the LLM provider. This extension uses the `chatlas` library, which supports various LLM providers like OpenAI, Azure OpenAI, Google Gemini, Anthropic, and Anthropic on AWS Bedrock.
 
     Set `CHATLAS_CHAT_PROVIDER_MODEL` to specify the provider and model in the format `provider/model`. You also need to provide the API key for the chosen service.
 
@@ -52,7 +52,7 @@ As a Posit Connect administrator, you need to configure the environment for this
 
     The application uses the [botocore](https://botocore.amazonaws.com/v1/documentation/api/latest/reference/credentials.html) credential chain for AWS authentication. If the Connect server is running on an EC2 instance with an IAM role that grants access to Bedrock, credentials are automatically detected and no configuration is needed. In this case, the application uses the `us.anthropic.claude-sonnet-4-20250514-v1:0` model by default.
 
-    To use Bedrock without an IAM role, set the standard AWS environment variables in the "Vars" pane:
+    To use Bedrock without an IAM role, set the following environment variables in the content settings:
 
     -   `AWS_ACCESS_KEY_ID`: `<your-aws-access-key>`
     -   `AWS_SECRET_ACCESS_KEY`: `<your-aws-secret-key>` (Set this as a secret)
@@ -61,7 +61,7 @@ As a Posit Connect administrator, you need to configure the environment for this
 
     For more details on supported providers and their arguments, see the [chatlas documentation](https://posit-dev.github.io/chatlas/reference/ChatAuto.html).
 
-3.  **Enable Visitor API Key Integration**: This extension requires access to the Connect API on behalf of the visiting user to list their available content. In the "Access" pane of the content settings, add a "Connect Visitor API Key" integration.
+3.  **Enable Visitor API Key Integration**: This extension requires access to the Connect API on behalf of the visiting user to list their available content. In the content settings, add a "Connect Visitor API Key" integration.
 
 ### User Setup
 

@@ -6,7 +6,7 @@ A Shiny app that helps you understand usage patterns across your work on Connect
 
 After deploying this app, you'll need to add a Visitor API Key integration.
 
-In the app's control panel on the right of the screen, in the Access tab, click **"Add integration"**, then select a **Visitor API Key** integration.
+In the content settings, add a **Visitor API Key** integration.
 
 If you don't see one in the list, an administrator must enable this feature on your Connect server.
 See the [Admin Guide](https://docs.posit.co/connect/admin/integrations/oauth-integrations/connect/) for setup instructions.

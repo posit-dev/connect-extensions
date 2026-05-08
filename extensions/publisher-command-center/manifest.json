@@ -24,7 +24,7 @@
     "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/publisher-command-center",
     "minimumConnectVersion": "2025.04.0",
     "requiredFeatures": ["API Publishing", "OAuth Integrations"],
-    "version": "0.0.6"
+    "version": "0.0.7"
   },
   "files": {
     "requirements.txt": {
