@@ -30,12 +30,12 @@
     {
       "name": "chat-with-content",
       "title": "Chat with Content",
-      "description": "Provides an LLM chat interface to interact with and query your published content.",
+      "description": "Provides a way to interact with and query content using an LLM chat interface.",
       "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/chat-with-content",
       "latestVersion": {
-        "version": "0.0.5",
-        "released": "2026-04-09T01:04:10Z",
-        "url": "https://github.com/posit-dev/connect-extensions/releases/download/chat-with-content%40v0.0.5/chat-with-content.tar.gz",
+        "version": "0.0.6",
+        "released": "2026-05-08T13:58:14Z",
+        "url": "https://github.com/posit-dev/connect-extensions/releases/download/chat-with-content%40v0.0.6/chat-with-content.tar.gz",
         "minimumConnectVersion": "2025.04.0",
         "requiredFeatures": [
           "OAuth Integrations"
@@ -47,6 +47,20 @@
         }
       },
       "versions": [
+        {
+          "version": "0.0.6",
+          "released": "2026-05-08T13:58:14Z",
+          "url": "https://github.com/posit-dev/connect-extensions/releases/download/chat-with-content%40v0.0.6/chat-with-content.tar.gz",
+          "minimumConnectVersion": "2025.04.0",
+          "requiredFeatures": [
+            "OAuth Integrations"
+          ],
+          "requiredEnvironment": {
+            "python": {
+              "requires": ">=3.10.0"
+            }
+          }
+        },
         {
           "version": "0.0.5",
           "released": "2026-04-09T01:04:10Z",
@@ -161,12 +175,12 @@
     {
       "name": "content-health-monitor",
       "title": "Content Health Monitor",
-      "description": "Monitors a single piece of content using the publisher's API key to check whether it is reachable. When scheduled to run regularly, it sends an email alert if the content becomes unreachable.",
+      "description": "This report uses the publisher’s API key to monitor a single piece of content. It checks whether the content is reachable, but does not validate its functionality. When scheduled to run regularly, it will send an email alert if the content becomes unreachable.",
       "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/content-health-monitor",
       "latestVersion": {
-        "version": "1.0.0",
-        "released": "2025-08-22T20:26:22Z",
-        "url": "https://github.com/posit-dev/connect-extensions/releases/download/content-health-monitor%40v1.0.0/content-health-monitor.tar.gz",
+        "version": "1.0.1",
+        "released": "2026-05-08T13:58:19Z",
+        "url": "https://github.com/posit-dev/connect-extensions/releases/download/content-health-monitor%40v1.0.1/content-health-monitor.tar.gz",
         "minimumConnectVersion": "2025.04.0",
         "requiredEnvironment": {
           "python": {
@@ -178,6 +192,20 @@
         }
       },
       "versions": [
+        {
+          "version": "1.0.1",
+          "released": "2026-05-08T13:58:19Z",
+          "url": "https://github.com/posit-dev/connect-extensions/releases/download/content-health-monitor%40v1.0.1/content-health-monitor.tar.gz",
+          "minimumConnectVersion": "2025.04.0",
+          "requiredEnvironment": {
+            "python": {
+              "requires": "~=3.11"
+            },
+            "quarto": {
+              "requires": "~=1.4"
+            }
+          }
+        },
         {
           "version": "1.0.0",
           "released": "2025-08-22T20:26:22Z",
@@ -558,13 +586,13 @@
     {
       "name": "publisher-command-center",
       "title": "Publisher Command Center",
-      "description": "Helps publishers view and manage details about apps and dashboards deployed to Connect. View app metadata and history for all of the apps you are collaborating on, and see and manage running processes.",
+      "description": "An app that helps publishers view and manage details about apps and dashboards deployed to Connect. View app metadata and history for all of the apps you are collaborating on as well as see and managing running process for individual apps.",
       "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/publisher-command-center",
       "category": "extension",
       "latestVersion": {
-        "version": "0.0.6",
-        "released": "2026-04-15T16:57:49Z",
-        "url": "https://github.com/posit-dev/connect-extensions/releases/download/publisher-command-center%40v0.0.6/publisher-command-center.tar.gz",
+        "version": "0.0.7",
+        "released": "2026-05-08T13:56:49Z",
+        "url": "https://github.com/posit-dev/connect-extensions/releases/download/publisher-command-center%40v0.0.7/publisher-command-center.tar.gz",
         "minimumConnectVersion": "2025.04.0",
         "requiredFeatures": [
           "API Publishing",
@@ -577,6 +605,21 @@
         }
       },
       "versions": [
+        {
+          "version": "0.0.7",
+          "released": "2026-05-08T13:56:49Z",
+          "url": "https://github.com/posit-dev/connect-extensions/releases/download/publisher-command-center%40v0.0.7/publisher-command-center.tar.gz",
+          "minimumConnectVersion": "2025.04.0",
+          "requiredFeatures": [
+            "API Publishing",
+            "OAuth Integrations"
+          ],
+          "requiredEnvironment": {
+            "python": {
+              "requires": "~=3.8"
+            }
+          }
+        },
         {
           "version": "0.0.6",
           "released": "2026-04-15T16:57:49Z",
@@ -1105,12 +1148,12 @@
     {
       "name": "simple-shiny-chat-with-mcp",
       "title": "Simple Shiny Chat with MCP Support",
-      "description": "A simple Shiny chat application that demonstrates how to use the MCP client to facilitate remote tool calls. Meant to be used with the Simple MCP Server extension.",
+      "description": "A simple Shiny chat application that demonstrates how to use the MCP client to facilitate remote tool calls. This is meant to be used with the Simple MCP Server extension.",
       "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/simple-shiny-chat-with-mcp",
       "latestVersion": {
-        "version": "0.0.4",
-        "released": "2025-12-10T22:00:30Z",
-        "url": "https://github.com/posit-dev/connect-extensions/releases/download/simple-shiny-chat-with-mcp%40v0.0.4/simple-shiny-chat-with-mcp.tar.gz",
+        "version": "0.0.5",
+        "released": "2026-05-08T13:58:12Z",
+        "url": "https://github.com/posit-dev/connect-extensions/releases/download/simple-shiny-chat-with-mcp%40v0.0.5/simple-shiny-chat-with-mcp.tar.gz",
         "minimumConnectVersion": "2025.04.0",
         "requiredFeatures": [
           "OAuth Integrations"
@@ -1122,6 +1165,20 @@
         }
       },
       "versions": [
+        {
+          "version": "0.0.5",
+          "released": "2026-05-08T13:58:12Z",
+          "url": "https://github.com/posit-dev/connect-extensions/releases/download/simple-shiny-chat-with-mcp%40v0.0.5/simple-shiny-chat-with-mcp.tar.gz",
+          "minimumConnectVersion": "2025.04.0",
+          "requiredFeatures": [
+            "OAuth Integrations"
+          ],
+          "requiredEnvironment": {
+            "python": {
+              "requires": ">=3.10"
+            }
+          }
+        },
         {
           "version": "0.0.4",
           "released": "2025-12-10T22:00:30Z",
