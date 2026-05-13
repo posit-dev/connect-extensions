@@ -1,0 +1,41 @@
+{
+  "version": 1,
+  "locale": "en_US.UTF-8",
+  "metadata": {
+    "appmode": "python-shiny",
+    "entrypoint": "app"
+  },
+  "extension": {
+    "name": "github-app-tester",
+    "title": "GitHub App Integration Tester",
+    "description": "Test GitHub App (service account) integrations on Posit Connect by viewing accessible repositories, permissions, and token information.",
+    "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/github-app-tester",
+    "category": "developer-tools",
+    "minimumConnectVersion": "2026.02.0",
+    "version": "0.0.0"
+  },
+  "environment": {
+    "python": {
+      "requires": "~=3.9"
+    }
+  },
+  "python": {
+    "version": "3.13.5",
+    "package_manager": {
+      "name": "pip",
+      "version": "25.3",
+      "package_file": "requirements.txt"
+    }
+  },
+  "files": {
+    "requirements.txt": {
+      "checksum": "246ff178381302df1d29dee18a4d1d2d"
+    },
+    "README.md": {
+      "checksum": "68ea2832bf2051ed39101655eaa98055"
+    },
+    "app.py": {
+      "checksum": "42a3fe031dab844fe773f63eee625981"
+    }
+  }
+}

@@ -48,6 +48,7 @@ jobs:
             connectwidgets-example: extensions/connectwidgets-example/**
             plumbertableau-example: extensions/plumbertableau-example/**
             fastapitableau-example: extensions/fastapitableau-example/**
+            github-app-tester: extensions/github-app-tester/**
             portfolio-report: extensions/portfolio-report/**
             script-r: extensions/script-r/**
             top-5-income-share-streamlit: extensions/top-5-income-share-streamlit/**
