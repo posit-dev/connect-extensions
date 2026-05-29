@@ -6,10 +6,12 @@ from posit import connect
 import requests
 import pprint
 
-# Configuration constants - could be moved to environment variables
 MAX_RETRIES = 6
 RETRY_DELAY = 5
-BUNDLE_BASE_PATH = "/connect-extensions/integration/bundles"
+BUNDLE_BASE_PATH = os.getenv(
+    "BUNDLE_BASE_PATH",
+    str(Path(__file__).resolve().parent.parent.parent.parent / "bundles"),
+)
 
 class TestExtensionDeployment:
     def setup_method(self):

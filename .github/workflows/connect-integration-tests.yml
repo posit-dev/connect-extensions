@@ -97,15 +97,17 @@ jobs:
               exit 1
             fi
             
-            # RULE 1: Always include the preview version for all extensions
-            # This ensures we always test with the latest development version
-            matrix_pairs+=("{\"extension\":\"$ext\",\"connect_version\":\"connect-preview\"}")
-            echo "✅ Always adding connect-preview for $ext"
-            
+            # RULE 1: Always include preview and release for all extensions
+            # preview = latest development build, release = latest stable release
+            matrix_pairs+=("{\"extension\":\"$ext\",\"connect_version\":\"preview\"}")
+            echo "✅ Always adding preview for $ext"
+            matrix_pairs+=("{\"extension\":\"$ext\",\"connect_version\":\"release\"}")
+            echo "✅ Always adding release for $ext"
+
             # Process each Connect version for this extension
             for version in $(echo "$ALL_VERSIONS" | jq -r '.[]'); do
-              # Skip the preview version (already added above)
-              if [[ "$version" == "connect-preview" ]]; then
+              # Skip non-semver versions (already added above)
+              if [[ "$version" == "preview" || "$version" == "release" ]]; then
                 continue
               fi
               

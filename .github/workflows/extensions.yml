@@ -8,14 +8,14 @@ on:
 
 jobs:
   # Detects file changes in extension directories that utilize the `simple-extensions`
-  # job below
+  # job below. Also detects integration infrastructure changes — when those change,
+  # all simple extensions are tested to catch regressions.
   simple-extension-changes:
     runs-on: ubuntu-latest
     permissions:
       pull-requests: read
     outputs:
-      # Expose matched filters as 'changes' output variable
-      changes: ${{ steps.changes.outputs.changes }}
+      changes: ${{ steps.resolve.outputs.changes }}
 
     steps:
       - uses: actions/checkout@v4
@@ -29,6 +29,11 @@ jobs:
           # Be sure the extension name and directory name are the same
           # e.g. `extension-name: extensions/extension-name/**`
           filters: |
+            _infra:
+              - integration/**
+              - .github/actions/connect-integration-test/**
+              - .github/workflows/connect-integration-tests.yml
+              - .github/workflows/extensions.yml
             reaper: extensions/reaper/**
             integration-session-manager: extensions/integration-session-manager/**
             quarto-stock-report-python: extensions/quarto-stock-report-python/**
@@ -57,6 +62,23 @@ jobs:
             simple-shiny-chat-with-mcp: extensions/simple-shiny-chat-with-mcp/**
             chat-with-content: extensions/chat-with-content/**
             pqr: extensions/pqr/**
+
+      # When infra changed, test all simple extensions; otherwise use the filter output
+      - id: resolve
+        run: |
+          if [[ "${{ steps.changes.outputs._infra }}" == "true" ]]; then
+            echo "Infrastructure changed — testing all simple extensions"
+            changes=$(find extensions -maxdepth 1 -mindepth 1 -type d -printf '%f\n' \
+              | while read -r ext; do
+                  if jq -e '.extension.minimumConnectVersion' "extensions/$ext/manifest.json" > /dev/null 2>&1; then
+                    echo "$ext"
+                  fi
+                done \
+              | jq -R -s -c 'split("\n") | map(select(length > 0))')
+          else
+            changes='${{ steps.changes.outputs.changes }}'
+          fi
+          echo "changes=$changes" >> $GITHUB_OUTPUT
 
   # Runs for each extension that has changed from `simple-extension-changes`
   # Lints and packages in preparation for tests and and release.
@@ -185,10 +207,10 @@ jobs:
       # filter and the step output variable below
       # e.g. `extension-name: ${{ steps.changes.outputs.extension-name }}`
       # Be sure the extension name and directory name it is in are the same
-      publisher-command-center: ${{ steps.changes.outputs.publisher-command-center }}
-      package-vulnerability-scanner: ${{ steps.changes.outputs.package-vulnerability-scanner }}
-      runtime-version-scanner: ${{ steps.changes.outputs.runtime-version-scanner }}
-      usage-metrics-dashboard: ${{ steps.changes.outputs.usage-metrics-dashboard }}
+      publisher-command-center: ${{ steps.resolve.outputs.publisher-command-center }}
+      package-vulnerability-scanner: ${{ steps.resolve.outputs.package-vulnerability-scanner }}
+      runtime-version-scanner: ${{ steps.resolve.outputs.runtime-version-scanner }}
+      usage-metrics-dashboard: ${{ steps.resolve.outputs.usage-metrics-dashboard }}
 
     steps:
       - uses: actions/checkout@v4
@@ -201,10 +223,31 @@ jobs:
           # Be sure the extension name and directory have the same name
           # e.g. `extension-name: extensions/extension-name/**`
           filters: |
+            _infra:
+              - integration/**
+              - .github/actions/connect-integration-test/**
+              - .github/workflows/connect-integration-tests.yml
+              - .github/workflows/extensions.yml
             publisher-command-center: extensions/publisher-command-center/**
             package-vulnerability-scanner: extensions/package-vulnerability-scanner/**
             runtime-version-scanner: extensions/runtime-version-scanner/**
             usage-metrics-dashboard: extensions/usage-metrics-dashboard/**
+
+      # When infra changed, trigger all complex extensions too
+      - id: resolve
+        run: |
+          infra="${{ steps.changes.outputs._infra }}"
+          if [[ "$infra" == "true" ]]; then
+            echo "publisher-command-center=true" >> $GITHUB_OUTPUT
+            echo "package-vulnerability-scanner=true" >> $GITHUB_OUTPUT
+            echo "runtime-version-scanner=true" >> $GITHUB_OUTPUT
+            echo "usage-metrics-dashboard=true" >> $GITHUB_OUTPUT
+          else
+            echo "publisher-command-center=${{ steps.changes.outputs.publisher-command-center }}" >> $GITHUB_OUTPUT
+            echo "package-vulnerability-scanner=${{ steps.changes.outputs.package-vulnerability-scanner }}" >> $GITHUB_OUTPUT
+            echo "runtime-version-scanner=${{ steps.changes.outputs.runtime-version-scanner }}" >> $GITHUB_OUTPUT
+            echo "usage-metrics-dashboard=${{ steps.changes.outputs.usage-metrics-dashboard }}" >> $GITHUB_OUTPUT
+          fi
 
   # Creates and releases the Publisher Command Center extension using a custom
   # workflow

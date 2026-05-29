@@ -1,5 +1,5 @@
 name: 'Run Connect Integration Test'
-description: 'Run integration test for a single extension'
+description: 'Run integration test for a single extension using with-connect'
 
 inputs:
   extension-name:
@@ -25,15 +25,7 @@ runs:
   steps:
     - uses: actions/checkout@v4
 
-    # Setup Docker BuildX which is required for the integration tests
-    - uses: docker/setup-buildx-action@v3
-
-    - name: Write Connect license
-      shell: bash
-      run: echo "${{ inputs.connect-license }}" > ./integration/license.lic
-
-    # Here we download the packaged extension artifact created from the calling workflow
-    - uses: actions/download-artifact@v4 
+    - uses: actions/download-artifact@v4
       with:
         name: ${{ inputs.extension-name }}.tar.gz
         path: integration/bundles
@@ -42,15 +34,54 @@ runs:
       with:
         pyproject-file: "./integration/pyproject.toml"
 
-    - name: Install isolated Python with UV
+    - name: Install Python and test dependencies
       shell: bash
       working-directory: ./integration
-      run: uv python install
-
-    # Run the test and capture the report path and status
-    - shell: bash
       run: |
-        make -C ./integration ${{ inputs.connect-version }} \
-          EXTENSION_NAME=${{ inputs.extension-name }}
-        echo "reports_path=$(pwd)/integration/reports" >> $GITHUB_OUTPUT
-        echo "status=$?" >> $GITHUB_OUTPUT
+        uv python install
+        uv venv
+        uv pip install --upgrade -e .
+
+    - name: Start Connect
+      id: connect
+      uses: posit-dev/with-connect@main
+      with:
+        license: ${{ inputs.connect-license }}
+        version: ${{ inputs.connect-version }}
+        quiet: 'true'
+        env: |
+          CONNECT_SERVER_EMAILPROVIDER=None
+          CONNECT_APPLICATIONS_PACKAGEAUDITINGENABLED=true
+
+    - name: Set bootstrap admin email
+      shell: bash
+      working-directory: ./integration
+      env:
+        CONNECT_API_KEY: ${{ steps.connect.outputs.CONNECT_API_KEY }}
+        CONNECT_SERVER: ${{ steps.connect.outputs.CONNECT_SERVER }}
+      run: uv run tests/posit/connect/set_bootstrap_admin_email.py
+
+    - name: Run tests
+      id: run-test
+      shell: bash
+      working-directory: ./integration
+      env:
+        CONNECT_API_KEY: ${{ steps.connect.outputs.CONNECT_API_KEY }}
+        CONNECT_SERVER: ${{ steps.connect.outputs.CONNECT_SERVER }}
+        EXTENSION_NAME: ${{ inputs.extension-name }}
+        CONNECT_VERSION: ${{ inputs.connect-version }}
+        BUNDLE_BASE_PATH: ${{ github.workspace }}/integration/bundles
+      run: |
+        mkdir -p reports
+        status=0
+        uv run pytest -s --junit-xml=./reports/${{ inputs.connect-version }}.xml || status=$?
+        echo "reports_path=$(pwd)/reports" >> $GITHUB_OUTPUT
+        echo "status=$status" >> $GITHUB_OUTPUT
+        exit $status
+
+    - name: Stop Connect
+      if: always() && steps.connect.outputs.CONTAINER_ID != ''
+      uses: posit-dev/with-connect@main
+      with:
+        license: ${{ inputs.connect-license }}
+        stop: ${{ steps.connect.outputs.CONTAINER_ID }}
