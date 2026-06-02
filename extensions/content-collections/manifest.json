@@ -29,7 +29,7 @@
   },
   "environment": {
     "r": {
-      "requires": "~=4.5.0"
+      "requires": "~=4.4"
     }
   },
   "packages": {

@@ -18,7 +18,7 @@ The Quarto template ships inside the configurator at `dashboard_template/` and i
 ## Requirements
 
 - Posit Connect 2025.04 or later (Visitor API Key OAuth integrations are available; on 2025.05 and later, Connect ships a default integration so the admin step below can be skipped)
-- R 4.5 or later
+- R 4.4 or later
 - Connect features:
   - **API Publishing** — for the configurator to publish collections via `rsconnect::deployApp`
   - **OAuth Integrations** — for visitor-scoped API keys
