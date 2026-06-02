@@ -7,7 +7,7 @@
     "title": "Content Collection Configurator",
     "description": "A Shiny configurator for creating and editing curated content collections on Posit Connect. Publishers select Connect content (or a tag), set a title, description, intro markdown, and theme; the configurator publishes each collection as a Quarto document that resolves and renders the chosen items per viewer.",
     "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/content-collections",
-    "minimumConnectVersion": "2025.01.0",
+    "minimumConnectVersion": "2025.04.0",
     "version": "0.0.0",
     "category": "extension",
     "tags": [

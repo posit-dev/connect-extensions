@@ -17,7 +17,7 @@ The Quarto template ships inside the configurator at `dashboard_template/` and i
 
 ## Requirements
 
-- Posit Connect 2025.01 or later (required for Visitor API Key OAuth integrations)
+- Posit Connect 2025.04 or later (Visitor API Key OAuth integrations are available; on 2025.05 and later, Connect ships a default integration so the admin step below can be skipped)
 - R 4.5 or later
 - Connect features:
   - **API Publishing** — for the configurator to publish collections via `rsconnect::deployApp`
@@ -34,8 +34,8 @@ Deploy this directory to Connect as a Shiny app. The configurator uses the auto-
 
 So that each collection is published as the user clicking **Save & Publish** — rather than as the publisher of the configurator — associate a **Visitor API Key** OAuth integration with the deployed configurator content.
 
-1. As a Connect admin, create an OAuth integration of type **Posit Connect API** (Visitor API Key). Pick the maximum role (Viewer / Publisher / Administrator) you want minted keys to carry.
-2. On the deployed configurator's **Access** sidebar, add the integration.
+1. (Skip on Connect 2025.05+ — a default integration ships with Connect.) As a Connect admin, create an OAuth integration of type **Posit Connect API** (Visitor API Key). Pick the maximum role (Viewer / Publisher / Administrator) you want minted keys to carry.
+2. On the deployed configurator's **Access** sidebar, add the integration. (This step is always required, on every Connect version — Connect does not auto-attach the integration to content.)
 3. (Optional) If more than one integration is attached, set the `CONNECT_VISITOR_INTEGRATION_GUID` environment variable on the configurator content to the GUID of the one to use.
 
 If no integration is attached (e.g. local development), the configurator falls back to the publisher's `CONNECT_API_KEY` — useful for testing but means publishes will be attributed to the publisher.
