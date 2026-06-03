@@ -117,8 +117,32 @@
   )
 }
 
+# Banner shown above the collection list when visitor token exchange
+# failed. Helps a publisher distinguish "I own zero collections" from
+# "the configurator can't authenticate to Connect."
+.auth_failed_banner <- function(detail = NULL) {
+  shiny::tags$div(class = "alert alert-warning mb-4", role = "alert",
+    shiny::tags$div(
+      shiny::tags$strong("Couldn't authenticate to Connect. "),
+      "Your collections aren't appearing because the Configurator can't ",
+      "mint a visitor API key. Confirm the ",
+      shiny::tags$strong("Posit Connect API"),
+      " (Visitor API Key) OAuth integration is attached to this content ",
+      "in its Connect settings."
+    ),
+    if (!is.null(detail) && nzchar(detail)) {
+      shiny::tags$details(class = "mt-2 small text-muted",
+        shiny::tags$summary("Details"),
+        shiny::tags$code(detail)
+      )
+    }
+  )
+}
+
 home_view <- function(collections, connect_server = "",
-                     collection_meta = list()) {
+                     collection_meta = list(),
+                     auth_status = "ok",
+                     auth_message = NULL) {
   shiny::tagList(
     shiny::tags$div(class = "container py-4",
       shiny::tags$div(class = "d-flex align-items-center justify-content-between mb-4",
@@ -128,7 +152,7 @@ home_view <- function(collections, connect_server = "",
             style = paste("background-color: #72994e;",
                           "color: #fff;",
                           "font-weight: normal;",
-                          "font-size: 14px;", 
+                          "font-size: 14px;",
                           "border-radius: 8px;"),
             "beta")
         ),
@@ -136,6 +160,7 @@ home_view <- function(collections, connect_server = "",
                             class = "btn-primary btn-compact")
       ),
       .beta_callout(),
+      if (identical(auth_status, "failed")) .auth_failed_banner(auth_message),
       if (length(collections) == 0) {
         shiny::tags$div(class = "text-center text-muted py-5",
           style = "border:1px dashed #ced4da; border-radius:0.5rem;",

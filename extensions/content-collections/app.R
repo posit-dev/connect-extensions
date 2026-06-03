@@ -233,9 +233,18 @@ server <- function(input, output, session) {
   # so the deploy receives a fresh-as-possible key (Connect-minted keys are
   # ephemeral). When no token header is present, this resolves to the
   # publisher's CONNECT_API_KEY — see visitor_api_key() in connect_api.R.
+  #
+  # auth_status mirrors the visitor_api_key status field so the home view
+  # can distinguish "you own zero collections" from "we couldn't
+  # authenticate" — otherwise both render as an empty list.
   visitor_key <- NULL
+  auth_status <- reactiveVal("unknown")
+  auth_message <- reactiveVal(NULL)
   refresh_key <- function() {
-    visitor_key <<- visitor_api_key(session, connect_server, connect_api_key)
+    result <- visitor_api_key(session, connect_server, connect_api_key)
+    visitor_key <<- result$key
+    auth_status(result$status)
+    auth_message(result$message)
     visitor_key
   }
   key <- function() {
@@ -275,7 +284,9 @@ server <- function(input, output, session) {
     if (view() == "home") {
       home_view(collections(),
                 connect_server = connect_server,
-                collection_meta = collection_meta())
+                collection_meta = collection_meta(),
+                auth_status = auth_status(),
+                auth_message = auth_message())
     } else NULL    # wizard is rendered into a modal via showModal
   })
 

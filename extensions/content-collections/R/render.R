@@ -198,7 +198,11 @@ body { background-color: %s; font-family: -apple-system, BlinkMacSystemFont, "Se
     # Intro panel
     intro <- config$intro_markdown %||% ""
     if (nzchar(intro)) {
-      intro_html <- markdown::markdownToHTML(text = intro, fragment.only = TRUE)
+      # commonmark::markdown_html outputs a bare HTML fragment (no
+      # template). Was markdown::markdownToHTML(fragment.only=TRUE), but
+      # `fragment.only` is deprecated and the deployed dashboard inherits
+      # whatever `markdown` Connect ships, which we don't pin.
+      intro_html <- commonmark::markdown_html(text = intro)
       parts <- c(parts, sprintf(
         '<div class="collection-panel collection-intro">%s</div>', intro_html))
     }

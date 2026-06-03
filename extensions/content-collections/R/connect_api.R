@@ -1,39 +1,48 @@
 # Connect API helpers. All functions take connect_server / connect_api_key as
 # explicit arguments so they're easy to test or stub.
 
-# Returns an API key scoped to the visitor making the current Shiny request,
-# minted via `connectapi::connect()`'s OAuth token exchange. Requires that a
-# "Posit Connect API" (Visitor API Key) OAuth integration is associated with
-# the deployed Configurator content — see README.
+# Mint an API key scoped to the visitor making the current Shiny request,
+# via `connectapi::connect()`'s OAuth token exchange. Requires a "Posit
+# Connect API" (Visitor API Key) OAuth integration attached to the deployed
+# Configurator content — see README.
 #
-# Falls back to `fallback_api_key` (the publisher's CONNECT_API_KEY) only
-# when running outside Connect (local dev with no `CONNECT_CONTENT_GUID`
-# env var injected). When running on deployed Connect:
-#   - If a session token is present but token exchange fails, returns "".
-#   - If no session token is present at all (e.g. anonymous viewer), also
-#     returns "".
-# Returning "" in those cases forces the rendered page into its empty-state
-# path rather than silently using the publisher's view permissions.
+# Returns a list(key, status, message):
+#   - status = "ok"        — `key` is a fresh visitor-scoped key.
+#   - status = "fallback"  — off-Connect; `key` is the publisher fallback.
+#   - status = "anonymous" — on-Connect viewer with no session token, OR
+#                            off-Connect with no fallback. `key` is "".
+#   - status = "failed"    — on-Connect token exchange failed (integration
+#                            not attached / misconfigured). `key` is "";
+#                            `message` carries the underlying error text
+#                            for diagnostics. Callers should surface this.
+#
+# Empty `key` returns force the rendered page into its empty-state path
+# rather than silently using the publisher's view permissions. The status
+# tag lets the caller distinguish "user owns nothing" from "auth broke."
 #
 # Mint per-action rather than once per session: Connect-minted visitor keys
 # are short-lived, so caching at session start would break long-lived
-# Shiny sessions. The caller can layer its own session-scoped cache if the
-# extra HTTP cost matters.
+# Shiny sessions. Layer a session-scoped cache around this if the extra
+# HTTP cost matters.
 visitor_api_key <- function(session, connect_server, fallback_api_key) {
   token <- if (!is.null(session)) {
     session$request$HTTP_POSIT_CONNECT_USER_SESSION_TOKEN
   } else {
     NULL
   }
+  on_connect <- nzchar(Sys.getenv("CONNECT_CONTENT_GUID", ""))
+
   if (is.null(token) || !nzchar(token)) {
-    # Distinguish "no Connect at all" (local-dev, quarto preview) from
-    # "deployed Connect with no session token" (anonymous viewer of a
-    # collection that allows anonymous access). The publisher key is a
-    # reasonable fallback for the former but a silent privilege leak for
-    # the latter, so we return "" on Connect and let the empty-state UX
-    # take over.
-    on_connect <- nzchar(Sys.getenv("CONNECT_CONTENT_GUID", ""))
-    return(if (on_connect) "" else fallback_api_key)
+    # No session token. Either local-dev/Quarto-preview (use the publisher
+    # fallback if we have one) or anonymous on Connect (don't leak
+    # publisher perms — return empty).
+    if (on_connect) {
+      return(list(key = "", status = "anonymous", message = NULL))
+    }
+    if (nzchar(fallback_api_key)) {
+      return(list(key = fallback_api_key, status = "fallback", message = NULL))
+    }
+    return(list(key = "", status = "anonymous", message = NULL))
   }
 
   audience <- Sys.getenv("CONNECT_VISITOR_INTEGRATION_GUID", "")
@@ -47,13 +56,20 @@ visitor_api_key <- function(session, connect_server, fallback_api_key) {
       audience        = audience,
       .check_is_fatal = FALSE
     )
-    client$api_key
+    k <- client$api_key %||% ""
+    if (!nzchar(k)) {
+      list(key = "", status = "failed",
+           message = "connectapi::connect() returned no key. The Visitor API Key integration may not be attached to this content.")
+    } else {
+      list(key = k, status = "ok", message = NULL)
+    }
   }, error = function(e) {
+    msg <- conditionMessage(e)
     warning(sprintf(
       "visitor_api_key: token exchange failed (%s); returning empty key to force the empty-state UX rather than silently using publisher permissions.",
-      conditionMessage(e)
+      msg
     ))
-    ""
+    list(key = "", status = "failed", message = msg)
   })
 }
 

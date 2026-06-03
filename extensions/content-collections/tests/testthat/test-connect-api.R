@@ -27,6 +27,46 @@ test_that("share_url strips a trailing slash from connect_server", {
   expect_equal(url, "https://connect.example.com/content/g1")
 })
 
+test_that("visitor_api_key returns status='anonymous' off-Connect with no fallback", {
+  withr::with_envvar(
+    list(CONNECT_CONTENT_GUID = ""),
+    {
+      out <- visitor_api_key(session = NULL,
+                             connect_server = "https://x",
+                             fallback_api_key = "")
+      expect_equal(out$status, "anonymous")
+      expect_equal(out$key, "")
+    }
+  )
+})
+
+test_that("visitor_api_key returns status='fallback' off-Connect with a publisher key", {
+  withr::with_envvar(
+    list(CONNECT_CONTENT_GUID = ""),
+    {
+      out <- visitor_api_key(session = NULL,
+                             connect_server = "https://x",
+                             fallback_api_key = "pub-key")
+      expect_equal(out$status, "fallback")
+      expect_equal(out$key, "pub-key")
+    }
+  )
+})
+
+test_that("visitor_api_key returns status='anonymous' on-Connect with no session token", {
+  withr::with_envvar(
+    list(CONNECT_CONTENT_GUID = "some-guid"),
+    {
+      out <- visitor_api_key(session = NULL,
+                             connect_server = "https://x",
+                             fallback_api_key = "pub-key")
+      # On Connect, never leak publisher perms to an unauthenticated viewer.
+      expect_equal(out$status, "anonymous")
+      expect_equal(out$key, "")
+    }
+  )
+})
+
 test_that("api_request strips a trailing slash from connect_server", {
   req <- api_request("https://connect.example.com/", "fake-key",
                      "/__api__/v1/foo")

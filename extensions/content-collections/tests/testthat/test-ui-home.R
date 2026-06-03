@@ -5,6 +5,31 @@ test_that("home_view shows the New collection button", {
   expect_match(html, "New collection",      fixed = TRUE)
 })
 
+test_that("home_view shows an auth banner when auth_status is 'failed'", {
+  ui <- home_view(collections = list(), auth_status = "failed")
+  html <- as.character(ui)
+  expect_match(html, "Couldn't authenticate to Connect", fixed = TRUE)
+  expect_match(html, "Visitor API Key",                  fixed = TRUE)
+  expect_match(html, "alert-warning",                    fixed = TRUE)
+})
+
+test_that("home_view omits the auth banner on every non-failed status", {
+  for (s in c("ok", "fallback", "anonymous", "unknown")) {
+    html <- as.character(home_view(collections = list(), auth_status = s))
+    expect_false(grepl("Couldn't authenticate to Connect", html, fixed = TRUE),
+                 info = paste("status =", s))
+  }
+})
+
+test_that("home_view auth banner surfaces the diagnostic message in details", {
+  ui <- home_view(collections = list(),
+                  auth_status = "failed",
+                  auth_message = "boom: integration missing")
+  html <- as.character(ui)
+  expect_match(html, "<details", fixed = TRUE)
+  expect_match(html, "boom: integration missing", fixed = TRUE)
+})
+
 test_that("home_view shows a beta pill next to the title", {
   ui <- home_view(collections = list())
   html <- as.character(ui)

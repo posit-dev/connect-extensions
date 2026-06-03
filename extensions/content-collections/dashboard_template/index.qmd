@@ -80,7 +80,7 @@ config <- tryCatch(
 # Tag-based collections use /v1/search/content, which is already
 # permission-scoped server-side.
 output$collection_grid <- renderUI({
-  key <- visitor_api_key(session, connect_server, publisher_key)
+  key <- visitor_api_key(session, connect_server, publisher_key)$key
 
   source_type <- config$source_type %||% "manual"
   items <- if (identical(source_type, "tag") &&
@@ -175,7 +175,7 @@ if (nzchar(knit_title) || nzchar(knit_description)) {
 }
 
 if (nzchar(knit_intro)) {
-  intro_html <- markdown::markdownToHTML(text = knit_intro, fragment.only = TRUE)
+  intro_html <- commonmark::markdown_html(text = knit_intro)
   cat(sprintf('<div class="collection-intro">%s</div>\n', intro_html))
 }
 ```
