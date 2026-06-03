@@ -92,7 +92,7 @@ DATETIME_LOCALIZER_JS <- '
 }
 
 .content_url <- function(connect_server, guid) {
-  paste0(connect_server %||% "", "/content/", guid, "/")
+  paste0(sub("/$", "", connect_server %||% ""), "/content/", guid, "/")
 }
 
 # Build a data: URI for the content-type icon SVG, so the <img onerror>

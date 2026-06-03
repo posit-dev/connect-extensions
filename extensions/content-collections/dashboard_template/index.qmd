@@ -60,7 +60,7 @@ library(shiny)
 
 `%||%` <- function(a, b) if (is.null(a) || (length(a) == 1 && is.na(a))) b else a
 
-connect_server <- Sys.getenv("CONNECT_SERVER", "")
+connect_server <- sub("/$", "", Sys.getenv("CONNECT_SERVER", ""))
 publisher_key  <- Sys.getenv("CONNECT_API_KEY", "")
 
 config <- tryCatch(

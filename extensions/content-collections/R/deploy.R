@@ -66,7 +66,7 @@ setup_rsconnect <- function(connect_server, connect_api_key,
                             server_name = "connect",
                             account_name = "configurator") {
   rsconnect::addServer(
-    url   = paste0(connect_server, "/__api__/"),
+    url   = paste0(sub("/$", "", connect_server), "/__api__/"),
     name  = server_name,
     quiet = TRUE
   )
@@ -88,7 +88,7 @@ launch_deploy <- function(staged_dir, app_id, app_title,
     func = function(staged_dir, app_id, app_title,
                     connect_server, connect_api_key, marker) {
       rsconnect::addServer(
-        url   = paste0(connect_server, "/__api__/"),
+        url   = paste0(sub("/$", "", connect_server), "/__api__/"),
         name  = "connect",
         quiet = TRUE
       )
@@ -108,7 +108,20 @@ launch_deploy <- function(staged_dir, app_id, app_title,
       # binary often isn't on the Shiny process's PATH. Probe common
       # locations, set both RSCONNECT_QUARTO and prepend to PATH so
       # findQuarto() and any later Sys.which() both see it.
-      versioned <- sort(Sys.glob("/opt/quarto/*/bin/quarto"), decreasing = TRUE)
+      # Version-aware sort. Lexical sort puts "1.5.0" before "1.10.0";
+      # parse the version dir name with numeric_version() so 1.10.x wins
+      # on hosts with multiple Quartos installed. Unparseable dir names
+      # become NA and sort last.
+      quarto_paths <- Sys.glob("/opt/quarto/*/bin/quarto")
+      versioned <- if (length(quarto_paths) > 1L) {
+        parsed <- numeric_version(
+          basename(dirname(dirname(quarto_paths))),
+          strict = FALSE
+        )
+        quarto_paths[order(parsed, decreasing = TRUE, na.last = TRUE)]
+      } else {
+        quarto_paths
+      }
       candidates <- c(
         unname(Sys.which("quarto")),
         Sys.getenv("QUARTO_PATH"),
@@ -155,20 +168,23 @@ launch_deploy <- function(staged_dir, app_id, app_title,
       latest <- records[nrow(records), ]
 
       # Resolve the GUID with explicit NULL/NA-safe fallbacks because the
-      # callr child does not have R/config.R's %||% in scope.
-      guid <- if (!is.null(latest$appGuid) && nchar(latest$appGuid) > 0) {
-        latest$appGuid
-      } else if (!is.null(latest$appId) && nchar(latest$appId) > 0) {
-        latest$appId
+      # callr child does not have R/config.R's %||% in scope. nchar(NA) is
+      # NA, and `if (NA)` crashes — so guard NA before the length check.
+      has_value <- function(v) {
+        length(v) > 0 && !is.na(v) && nzchar(as.character(v))
+      }
+      guid <- if (has_value(latest$appGuid)) {
+        as.character(latest$appGuid)
+      } else if (has_value(latest$appId)) {
+        as.character(latest$appId)
       } else {
         NA_character_
       }
 
       list(
         url  = as.character(latest$url),
-        guid = as.character(guid),
-        name = if (!is.null(latest$name) && nchar(latest$name) > 0)
-          as.character(latest$name) else app_name
+        guid = guid,
+        name = if (has_value(latest$name)) as.character(latest$name) else app_name
       )
     },
     args = list(

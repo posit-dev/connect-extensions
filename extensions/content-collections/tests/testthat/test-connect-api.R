@@ -27,6 +27,30 @@ test_that("share_url strips a trailing slash from connect_server", {
   expect_equal(url, "https://connect.example.com/content/g1")
 })
 
+test_that("api_request strips a trailing slash from connect_server", {
+  req <- api_request("https://connect.example.com/", "fake-key",
+                     "/__api__/v1/foo")
+  expect_equal(req$url, "https://connect.example.com/__api__/v1/foo")
+})
+
+test_that("api_request leaves connect_server alone when there's no trailing slash", {
+  req <- api_request("https://connect.example.com", "fake-key",
+                     "/__api__/v1/foo")
+  expect_equal(req$url, "https://connect.example.com/__api__/v1/foo")
+})
+
+test_that("api_request handles NULL connect_server defensively", {
+  req <- api_request(NULL, "fake-key", "/__api__/v1/foo")
+  expect_equal(req$url, "/__api__/v1/foo")
+})
+
+test_that(".content_url strips a trailing slash from connect_server", {
+  expect_equal(
+    .content_url("https://connect.example.com/", "g1"),
+    "https://connect.example.com/content/g1/"
+  )
+})
+
 test_that("current_user returns NULL on httr2 error and logs a message", {
   # Force the error path by hitting a host that won't resolve.
   out <- suppressMessages(
@@ -49,6 +73,45 @@ test_that("attach_visitor_integration returns FALSE when no integration GUID is 
       expect_false(out)
     }
   )
+})
+
+test_that(".scrub_secrets masks a literal API key", {
+  key <- "AbCdEf0123456789AbCdEf0123456789"
+  out <- .scrub_secrets(
+    sprintf("ran with key=%s and then failed", key),
+    api_keys = key
+  )
+  expect_false(grepl(key, out, fixed = TRUE))
+  expect_match(out, "<redacted>", fixed = TRUE)
+})
+
+test_that(".scrub_secrets masks Authorization headers without a known literal", {
+  out <- .scrub_secrets("Authorization: Key x12345678901234567890abcdef")
+  expect_false(grepl("x12345678901234567890abcdef", out))
+  expect_match(out, "<redacted>", fixed = TRUE)
+})
+
+test_that(".scrub_secrets masks bare Bearer and Key tokens", {
+  out <- .scrub_secrets("got 401 with Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6Ikp.foo.bar")
+  expect_false(grepl("eyJhbGci", out))
+})
+
+test_that(".scrub_secrets masks api_key in URLs", {
+  out <- .scrub_secrets("GET /__api__/v1/foo?api_key=abc12345xyz&include=owner")
+  expect_false(grepl("abc12345xyz", out))
+  expect_match(out, "include=owner", fixed = TRUE)
+})
+
+test_that(".scrub_secrets leaves ordinary errors alone", {
+  out <- .scrub_secrets("ordinary error: file not found")
+  expect_equal(out, "ordinary error: file not found")
+})
+
+test_that(".scrub_secrets tolerates empty api_keys vector and empty entries", {
+  out <- .scrub_secrets("plain text", api_keys = character(0))
+  expect_equal(out, "plain text")
+  out2 <- .scrub_secrets("plain text", api_keys = c("", ""))
+  expect_equal(out2, "plain text")
 })
 
 test_that("attach_visitor_integration uses CONNECT_VISITOR_INTEGRATION_GUID when set", {

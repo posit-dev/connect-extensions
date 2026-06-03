@@ -11,7 +11,8 @@ local({
   for (f in helpers) source(f, local = FALSE)
 })
 
-connect_server  <- Sys.getenv("CONNECT_SERVER", "http://localhost:3939")
+connect_server  <- sub("/$", "",
+                       Sys.getenv("CONNECT_SERVER", "http://localhost:3939"))
 connect_api_key <- Sys.getenv("CONNECT_API_KEY", "")
 
 # Configure rsconnect once at startup if a key is present.
@@ -729,10 +730,16 @@ server <- function(input, output, session) {
         # Shiny session can mint per-viewer API keys. Best-effort — if it
         # fails the publish has still succeeded, and the publisher can
         # attach the integration manually from the Connect UI.
+        #
+        # Uses the publisher's CONNECT_API_KEY (not key()) because
+        # resolve_visitor_integration_guid() reads the Configurator's own
+        # integration associations, which the visitor doesn't own and can't
+        # read; and the PUT itself needs owner/admin scope on the new
+        # content item.
         if (!is.null(guid) && !is.na(guid) && nzchar(guid)) {
           ok <- attach_visitor_integration(
             connect_server  = connect_server,
-            connect_api_key = key(),
+            connect_api_key = connect_api_key,
             content_guid    = guid
           )
           if (!isTRUE(ok)) {
@@ -772,8 +779,19 @@ server <- function(input, output, session) {
       }
     } else {
       err <- tryCatch(handle$read_error_lines(), error = function(e) character(0))
-      msg <- if (length(err) > 0) paste(tail(err, 6), collapse = "\n")
-             else sprintf("Deploy exited with status %s", handle$get_exit_status())
+      # Full unredacted stderr goes to the Configurator's server logs (where
+      # the publisher can inspect it via Connect's log panel); the toast only
+      # gets a scrubbed tail. rsconnect at logLevel="normal" can include
+      # Authorization headers and api_key query params in its trace output.
+      if (length(err) > 0) {
+        message("launch_deploy stderr:\n", paste(err, collapse = "\n"))
+      }
+      msg <- if (length(err) > 0) {
+        .scrub_secrets(paste(tail(err, 6), collapse = "\n"),
+                       api_keys = c(connect_api_key, key()))
+      } else {
+        sprintf("Deploy exited with status %s", handle$get_exit_status())
+      }
       notify(paste("Publish failed:\n", msg), "error")
       is_publishing(FALSE)
       if (view() == "wizard") show_wizard()

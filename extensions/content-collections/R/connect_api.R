@@ -58,7 +58,10 @@ visitor_api_key <- function(session, connect_server, fallback_api_key) {
 }
 
 api_request <- function(connect_server, connect_api_key, path) {
-  req <- httr2::request(paste0(connect_server, path))
+  # Defensive normalization: a trailing slash on connect_server produces
+  # `//__api__/...`, which 404s on some Connect reverse-proxy setups.
+  base <- sub("/$", "", connect_server %||% "")
+  req <- httr2::request(paste0(base, path))
   if (nzchar(connect_api_key)) {
     req <- httr2::req_headers(req, Authorization = paste("Key", connect_api_key))
   }
@@ -79,6 +82,39 @@ search_content <- function(connect_server, connect_api_key, query) {
     message("search_content error: ", e$message)
     list()
   })
+}
+
+# Walk every page of /__api__/v1/search/content for the given query, returning
+# the full concatenated list of result items. Stops when a page returns fewer
+# rows than requested (last page) or after MAX_PAGES as a runaway guard.
+.paginated_search <- function(connect_server, connect_api_key, query,
+                              include = "owner", page_size = 100L,
+                              max_pages = 100L) {
+  items <- list()
+  page <- 1L
+  repeat {
+    resp <- api_request(connect_server, connect_api_key,
+                        "/__api__/v1/search/content") |>
+      httr2::req_url_query(
+        q           = query,
+        include     = include,
+        page_number = page,
+        page_size   = page_size
+      ) |>
+      httr2::req_perform()
+    chunk <- httr2::resp_body_json(resp)$results %||% list()
+    items <- c(items, chunk)
+    if (length(chunk) < page_size) break
+    page <- page + 1L
+    if (page > max_pages) {
+      message(sprintf(
+        ".paginated_search: stopped at %d pages (page_size=%d); query=%s",
+        max_pages, page_size, query
+      ))
+      break
+    }
+  }
+  items
 }
 
 get_tags <- function(connect_server, connect_api_key) {
@@ -121,15 +157,8 @@ get_content_by_name <- function(connect_server, connect_api_key, name) {
 # we only return items where the marker is actually the name prefix.
 fetch_collection_dashboards <- function(connect_server, connect_api_key) {
   tryCatch({
-    resp <- api_request(connect_server, connect_api_key, "/__api__/v1/search/content") |>
-      httr2::req_url_query(
-        q = COLLECTION_NAME_MARKER,
-        include = "owner",
-        page_size = 100
-      ) |>
-      httr2::req_perform()
-    result <- httr2::resp_body_json(resp)
-    items <- result$results %||% list()
+    items <- .paginated_search(connect_server, connect_api_key,
+                               query = COLLECTION_NAME_MARKER)
     matched <- Filter(function(d) {
       n <- d$name %||% ""
       startsWith(n, paste0(COLLECTION_NAME_MARKER, "-"))
@@ -168,14 +197,11 @@ download_active_bundle <- function(connect_server, connect_api_key, guid) {
 # List collections owned by the current user via Connect's `owner:@me` token.
 fetch_my_collections <- function(connect_server, connect_api_key) {
   tryCatch({
-    resp <- api_request(connect_server, connect_api_key, "/__api__/v1/search/content") |>
-      httr2::req_url_query(
-        q = paste("published:true locked:false", "owner:@me", COLLECTION_NAME_MARKER),
-        include = "owner",
-        page_size = 100
-      ) |>
-      httr2::req_perform()
-    items <- httr2::resp_body_json(resp)$results %||% list()
+    items <- .paginated_search(
+      connect_server, connect_api_key,
+      query = paste("published:true locked:false", "owner:@me",
+                    COLLECTION_NAME_MARKER)
+    )
     Filter(function(d) {
       n <- d$name %||% ""
       startsWith(n, paste0(COLLECTION_NAME_MARKER, "-"))
@@ -286,17 +312,31 @@ attach_visitor_integration <- function(connect_server, connect_api_key,
   })
 }
 
+# Scrub strings that commonly carry credentials. `api_keys` masks any known
+# literals (publisher and/or visitor-minted); header/URL-param patterns are
+# masked even when no literal is known. Use this before piping subprocess
+# stderr into a user-visible notification — the full unredacted output should
+# still go to the configurator's own server logs via message().
+.scrub_secrets <- function(text, api_keys = character(0)) {
+  for (k in api_keys) {
+    if (nzchar(k)) text <- gsub(k, "<redacted>", text, fixed = TRUE)
+  }
+  text <- gsub("(?i)(Authorization\\s*:\\s*Key\\s+)\\S+",
+               "\\1<redacted>", text, perl = TRUE)
+  text <- gsub("(?i)\\b(Key|Bearer)\\s+[A-Za-z0-9._-]{20,}\\b",
+               "\\1 <redacted>", text, perl = TRUE)
+  text <- gsub("(?i)([?&](api[_-]?key|token))=[^&\\s\"]*",
+               "\\1=<redacted>", text, perl = TRUE)
+  text
+}
+
 # Search Connect for content matching the given tag.
 fetch_content_by_tag <- function(connect_server, connect_api_key, tag_name) {
   tryCatch({
-    resp <- api_request(connect_server, connect_api_key, "/__api__/v1/search/content") |>
-      httr2::req_url_query(
-        q = paste0("published:true locked:false tag:", tag_name),
-        include = "owner",
-        page_size = 100
-      ) |>
-      httr2::req_perform()
-    httr2::resp_body_json(resp)$results %||% list()
+    .paginated_search(
+      connect_server, connect_api_key,
+      query = paste0("published:true locked:false tag:", tag_name)
+    )
   }, error = function(e) {
     message("fetch_content_by_tag error: ", e$message)
     list()
