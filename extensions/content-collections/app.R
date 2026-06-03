@@ -15,6 +15,11 @@ connect_server  <- sub("/$", "",
                        Sys.getenv("CONNECT_SERVER", "http://localhost:3939"))
 connect_api_key <- Sys.getenv("CONNECT_API_KEY", "")
 
+# Capture the configurator's installed root at startup. stage_bundle()
+# references R/ and www/icons/ relative to this path, so we don't depend
+# on the Shiny session's cwd remaining the app root for the whole session.
+app_root <- normalizePath(".", winslash = "/", mustWork = FALSE)
+
 # Configure rsconnect once at startup if a key is present.
 if (nzchar(connect_api_key)) {
   tryCatch(
@@ -662,7 +667,11 @@ server <- function(input, output, session) {
       owner_email    = publisher_email
     )
     staged <- tryCatch(
-      stage_bundle("dashboard_template", cfg),
+      stage_bundle(
+        template_dir = file.path(app_root, "dashboard_template"),
+        config       = cfg,
+        source_dir   = app_root
+      ),
       error = function(e) {
         notify(paste("Bundle staging failed:", e$message), "error")
         is_publishing(FALSE); show_wizard()

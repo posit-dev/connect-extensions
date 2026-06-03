@@ -14,7 +14,7 @@ STAGE_BUNDLE_SKIP <- c(
 # These are needed by the deployed dashboard's index.qmd at render time.
 STAGE_BUNDLE_R_FILES <- c("render.R", "icons.R", "connect_api.R")
 
-stage_bundle <- function(template_dir, config) {
+stage_bundle <- function(template_dir, config, source_dir = ".") {
   if (!dir.exists(template_dir)) {
     stop(sprintf("stage_bundle: template directory not found: %s", template_dir))
   }
@@ -36,17 +36,26 @@ stage_bundle <- function(template_dir, config) {
     if (length(drop) > 0) unlink(drop, recursive = TRUE)
   }
 
-  # Copy shared R helpers used by the deployed dashboard's .qmd
+  # Copy shared R helpers used by the deployed dashboard's .qmd. Resolved
+  # against source_dir (the configurator's installed root) rather than the
+  # process's cwd, so the function works no matter where the caller is. A
+  # missing required helper stops the bundle instead of silently producing
+  # a corrupt one that errors only at deploy-time render.
+  r_src_dir <- file.path(source_dir, "R")
   for (f in STAGE_BUNDLE_R_FILES) {
-    src <- file.path("R", f)
-    if (file.exists(src)) {
-      file.copy(src, file.path(staged, f), overwrite = TRUE)
+    src <- file.path(r_src_dir, f)
+    if (!file.exists(src)) {
+      stop(sprintf(
+        "stage_bundle: required helper not found at %s. Pass source_dir = <configurator root>.",
+        src
+      ))
     }
+    file.copy(src, file.path(staged, f), overwrite = TRUE)
   }
 
   # Copy www/icons/ -> icons/ so build_collection_html's <img src="icons/...">
   # resolves at render time. embed-resources: true inlines them as base64.
-  icons_src <- file.path("www", "icons")
+  icons_src <- file.path(source_dir, "www", "icons")
   if (dir.exists(icons_src)) {
     file.copy(icons_src, staged, recursive = TRUE)
   }
