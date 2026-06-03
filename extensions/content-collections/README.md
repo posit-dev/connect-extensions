@@ -28,7 +28,7 @@ The Quarto template ships inside the configurator at `dashboard_template/` and i
 
 ### 1. Deploy the configurator
 
-Deploy this directory to Connect as a Shiny app. The configurator uses the auto-injected `CONNECT_SERVER` and `CONNECT_API_KEY` environment variables.
+Deploy this directory to Connect as a Shiny app. The configurator reads the auto-injected `CONNECT_SERVER` (base URL for every Connect API call) and `CONNECT_API_KEY` (the publisher's key — used as a local-dev fallback and to attach the visitor-key integration to each newly-published collection). Browse, search, and the deploy itself run through a visitor-scoped key minted per session — see below.
 
 ### 2. Attach a Visitor API Key integration
 
@@ -38,7 +38,7 @@ So that each collection is published as the user clicking **Save & Publish** —
 2. On the deployed configurator's **Access** sidebar, add the integration. (This step is always required, on every Connect version — Connect does not auto-attach the integration to content.)
 3. (Optional) If more than one integration is attached, set the `CONNECT_VISITOR_INTEGRATION_GUID` environment variable on the configurator content to the GUID of the one to use.
 
-If no integration is attached (e.g. local development), the configurator falls back to the publisher's `CONNECT_API_KEY` — useful for testing but means publishes will be attributed to the publisher.
+If you're running the configurator locally (outside Connect — no `CONNECT_CONTENT_GUID` env var), it falls back to the publisher's `CONNECT_API_KEY`. Useful for testing, but publishes will be attributed to the publisher. **On Connect**, if the integration is missing or token exchange fails, the home view shows a "Couldn't authenticate to Connect" banner instead of silently using publisher permissions — fix the integration attachment before retrying.
 
 See: <https://docs.posit.co/connect/user/oauth-integrations/>.
 
