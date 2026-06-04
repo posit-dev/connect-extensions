@@ -9,7 +9,7 @@ knitr::opts_chunk$set(echo = FALSE)
 
 Hello Team,
 
-Here are the latest stock prices for **TSLA** as of `r Sys.Date()`:
+Here are the latest stock prices for **GSPC** as of `r Sys.Date()`:
 
 ```{r}
 price_new <- prices[, c(1, 4)]
@@ -19,9 +19,14 @@ price_new$change <- price_new$close - price_new$open
 # include a table with the stock prices
 format_table(
     x = as.data.frame(tail(price_new)),
+    table.attr = 'cellpadding="8" style="border-collapse: collapse;"',
     list(
-      change = formatter("span", style = x ~ ifelse(x > 0, formattable::style(color = "green"), formattable::style(color = "red"))),
-      area(col = c(open, close)) ~ normalize_bar("lightgrey")
+      change = formatter(
+        "span",
+        style = x ~ ifelse(
+          x > 0,
+          formattable::style(color = "green"),
+          formattable::style(color = "red")))
     )
   )
 ```
@@ -35,7 +40,7 @@ recent[, 6] %>%
   geom_smooth() +
   theme_fivethirtyeight() +
   labs(
-    title = sprintf("%s Price Adjusted", "TSLA")
+    title = sprintf("%s Price Adjusted", "GSPC")
   )
 ```
 

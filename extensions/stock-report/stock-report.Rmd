@@ -5,7 +5,7 @@ output:
     code_folding: hide
 ---
   
-# Report for TSLA on `r Sys.Date()`
+# Report for GSPC on `r Sys.Date()`
 
 ## Summary{.tabset}
 
@@ -17,20 +17,35 @@ library(ggthemes)
 library(quantmod)
 library(dplyr)
 library(plotly)
+```
 
-prices <- round(getSymbols("TSLA", auto.assign = FALSE, src = "yahoo"), 2)
+```{r refresh_data, eval=FALSE, echo=FALSE}
+# Cached data is used by default. To refresh gspc.csv, set eval=TRUE to pull
+# fresh data from Yahoo Finance, render once, then set eval=FALSE again.
+prices <- round(getSymbols("^GSPC", auto.assign = FALSE, src = "yahoo"), 2)
+
+prices %>%
+  as_tibble() %>%
+  mutate(
+    Date = index(prices),
+    Direction = ifelse(GSPC.Close >= GSPC.Open, 'Increasing', 'Decreasing')
+  ) %>%
+  write.csv("gspc.csv", row.names = FALSE)
+```
+
+```{r load_data, echo=TRUE, message=FALSE}
+prices_df <- read.csv("gspc.csv")
+prices_df$Date <- as.Date(prices_df$Date)
+
+prices <- xts::xts(
+  as.matrix(prices_df[, c("GSPC.Open", "GSPC.High", "GSPC.Low", "GSPC.Close", "GSPC.Volume", "GSPC.Adjusted")]),
+  order.by = prices_df$Date
+)
+
 close <- Cl(xts::last(prices))
 open <- Op(xts::last(prices))
 
 recent <- xts::last(prices, n = 90)
-recent_nv <- recent[, -5]
-
-prices_df <- prices %>%
-  as_tibble() %>%
-  mutate(
-    Date = index(prices), 
-    Direction = ifelse(TSLA.Close >= TSLA.Open, 'Increasing', 'Decreasing')
-  )
 ```
 
 The stock closed `r ifelse(close>open,'up','down')` at `r close` dollars per share yesterday.
@@ -38,15 +53,15 @@ The stock closed `r ifelse(close>open,'up','down')` at `r close` dollars per sha
 
 ### Price History
 
-The chart below is made with the `quantmod` and `plotly` R packages. An API returns all of the price history based on the stock tick symbol "TSLA.".
+The chart below is made with the `quantmod` and `plotly` R packages. An API returns all of the price history based on the stock tick symbol "GSPC.".
 
 
 ```{r build_plot, echo=TRUE, warning=FALSE, message=FALSE}
 fig1 <- plot_ly(prices_df) %>%
   add_trace(
-    type = "candlestick", x = ~Date, name = "TSLA",
-    open = ~TSLA.Open, close = ~TSLA.Close,
-    high = ~TSLA.High, low = ~TSLA.Low,
+    type = "candlestick", x = ~Date, name = "GSPC",
+    open = ~GSPC.Open, close = ~GSPC.Close,
+    high = ~GSPC.High, low = ~GSPC.Low,
     increasing = list(line = list(color = '#17BECF')),
     decreasing = list(line = list(color = '#7F7F7F'))
   ) %>% 
@@ -54,7 +69,7 @@ fig1 <- plot_ly(prices_df) %>%
 
 fig2 <- plot_ly(prices_df) %>%
   add_bars(
-    x = ~Date, y = ~TSLA.Volume, name = "TSLA Volume",
+    x = ~Date, y = ~GSPC.Volume, name = "GSPC Volume",
     color = ~Direction, colors = c('#17BECF', '#7F7F7F')
   ) %>%
   layout(yaxis = list(title = "Volume"), xaxis = list(title = ""))
@@ -65,7 +80,7 @@ subplot(
 ) %>%
   layout(
     hovermode = "x", margin = list(t = 80),
-    title = paste("Tesla from", min(prices_df$Date), "to", max(prices_df$Date)),
+    title = paste("GSPC from", min(prices_df$Date), "to", max(prices_df$Date)),
     xaxis = list(
       rangeselector = list(
         x = 0, y = 1, xanchor = 'left', yanchor = "top",
@@ -93,10 +108,10 @@ The table below displays the daily price data for the stock. A concise, interact
 ```{r show_data, echo=TRUE}
 recent %>%
   as_tibble() %>%
-  mutate(TSLA.Volume = TSLA.Volume / 1000000) %>%
+  mutate(GSPC.Volume = GSPC.Volume / 1000000) %>%
   datatable() %>%
-  formatCurrency(c("TSLA.Open", "TSLA.High", "TSLA.Low", "TSLA.Close"), digits = 2) %>%
-  formatRound("TSLA.Volume", digits = 0)
+  formatCurrency(c("GSPC.Open", "GSPC.High", "GSPC.Low", "GSPC.Close"), digits = 2) %>%
+  formatRound("GSPC.Volume", digits = 0)
 ```
 
 ## Legacy Information
@@ -120,7 +135,7 @@ information if the price change is above 50 cents.
 # Calculate the total change
 close <- Cl(xts::last(prices, n = 2))
 diff <- round(as.numeric(close[2]) - as.numeric(close[1]), 2)
-subject <- sprintf("TSLA is %s today by $%g!", 
+subject <- sprintf("GSPC is %s today by $%g!",
         ifelse(diff > 0,"up", "down"), 
         abs(diff))
 
