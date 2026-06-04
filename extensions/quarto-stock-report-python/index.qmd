@@ -105,7 +105,7 @@ information.
 #| output: asis
 
 closes = prices_90d['Close']
-change = closes[-2] - closes[-1]
+change = closes.iloc[-1] - closes.iloc[-2]
 abschange = abs(change)
 updown = "up"
 if change < 0:
@@ -126,7 +126,7 @@ print(f"Here are the latest stock prices for **GSPC** as of {datetime.date.today
 ```{python}
 #| echo: false
 
-prices_90d.head(5)[['Open', 'Close', 'Change', 'Volume']]
+prices_90d.tail(5)[['Open', 'Close', 'Change', 'Volume']]
 ```
 
 The historical trend is shown below:

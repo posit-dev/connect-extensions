@@ -82,7 +82,7 @@ subplot(
 ) %>%
   layout(
     hovermode = "x", margin = list(t = 80),
-    title = paste("Tesla from", min(prices_df$Date), "to", max(prices_df$Date)),
+    title = paste("GSPC from", min(prices_df$Date), "to", max(prices_df$Date)),
     xaxis = list(
       rangeselector = list(
         x = 0, y = 1, xanchor = 'left', yanchor = "top",
@@ -149,7 +149,7 @@ subject <- sprintf("GSPC is %s today by $%g!",
 ```
 
 ::: {.subject}
-`r#subject`
+`r subject`
 :::
 
 # Stock Update
