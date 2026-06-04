@@ -2,7 +2,7 @@
 
 ## About this example
 
-This stock report is generated using Python and Jupyter Notebook. Stock prices are populated from Quandl to generate a stock performance summary intended to run daily after market close.
+This stock report is generated using Python and Jupyter Notebook. It uses cached price data to generate a stock performance summary intended to run daily after market close.
 
 
 ## Learn more
