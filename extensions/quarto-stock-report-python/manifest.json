@@ -11,7 +11,7 @@
     "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/quarto-stock-report-python",
     "minimumConnectVersion": "2025.04.0",
     "category": "example",
-    "version": "1.0.1"
+    "version": "1.0.2"
   },
   "environment": {
     "python": {
@@ -40,7 +40,7 @@
       "checksum": "35b4c4c58cce875b126683c525ad40f4"
     },
     "index.qmd": {
-      "checksum": "6fb0db80d26eab1544afdcbc91df228b"
+      "checksum": "bed5d3e06485c3a6d395bda9a2697441"
     },
     "gspc.csv": {
       "checksum": "f74c93cd12f334a4923d6fa4d81cdd1e"
