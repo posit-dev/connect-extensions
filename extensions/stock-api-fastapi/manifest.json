@@ -16,7 +16,7 @@
     "requiredFeatures": [
       "API Publishing"
     ],
-    "version": "1.0.0"
+    "version": "1.0.1"
   },
   "environment": {
     "python": {
@@ -39,7 +39,7 @@
       "checksum": "a33766bf7a7ff5fe0b4c9fc5fe583468"
     },
     "main.py": {
-      "checksum": "7618d24f4c382163cdd224930e9b24c1"
+      "checksum": "9c49839708ae119cb566dd28c54d210f"
     },
     "prices.csv": {
       "checksum": "e0bc27e3dd358c360863807e09079985"
