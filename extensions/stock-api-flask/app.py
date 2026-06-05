@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-import os
+from pathlib import Path
 import numpy as np
 import pandas as pd
 from flask import Flask
@@ -7,7 +7,7 @@ from flask_restx import Api, Resource, fields
 
 # Fetch prices from local CSV using pandas
 prices = pd.read_csv(
-    os.path.join(os.path.dirname(__file__), "prices.csv"),
+    Path(__file__).parent / "prices.csv",
     index_col=0,
     parse_dates=True,
 )
@@ -65,10 +65,10 @@ price_model = ns.model(
 class TickerNotFound(Exception):
     def __init__(self, ticker):
         self.ticker = ticker
-        self.message = "Ticker `{}` not found".format(self.ticker)
+        self.message = f"Ticker `{self.ticker}` not found"
 
     def __str__(self):
-        return "TickerNotFound('{}')".format(self.ticker)
+        return f"TickerNotFound('{self.ticker}')"
 
 
 # Our simple API only has a few GET endpoints
