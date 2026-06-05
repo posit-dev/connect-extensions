@@ -25,8 +25,8 @@ open <- Op(xts::last(prices))
 recent <- xts::last(prices, n = 90)
 recent_nv <- recent[, -5]
 
-prices_df <- prices %>%
-  as_tibble() %>%
+prices_df <- prices |>
+  as_tibble() |>
   mutate(
     Date = index(prices), 
     Direction = ifelse(TSLA.Close >= TSLA.Open, 'Increasing', 'Decreasing')
@@ -42,27 +42,27 @@ The chart below is made with the `quantmod` and `plotly` R packages. An API retu
 
 
 ```{r build_plot, echo=TRUE, warning=FALSE, message=FALSE}
-fig1 <- plot_ly(prices_df) %>%
+fig1 <- plot_ly(prices_df) |>
   add_trace(
     type = "candlestick", x = ~Date, name = "TSLA",
     open = ~TSLA.Open, close = ~TSLA.Close,
     high = ~TSLA.High, low = ~TSLA.Low,
     increasing = list(line = list(color = '#17BECF')),
     decreasing = list(line = list(color = '#7F7F7F'))
-  ) %>% 
+  ) |>
   layout(yaxis = list(title = "Price"))
 
-fig2 <- plot_ly(prices_df) %>%
+fig2 <- plot_ly(prices_df) |>
   add_bars(
     x = ~Date, y = ~TSLA.Volume, name = "TSLA Volume",
     color = ~Direction, colors = c('#17BECF', '#7F7F7F')
-  ) %>%
+  ) |>
   layout(yaxis = list(title = "Volume"), xaxis = list(title = ""))
 
 subplot(
   fig1, fig2, heights = c(0.7, 0.2), nrows = 2,
   shareX = TRUE, titleY = TRUE
-) %>%
+) |>
   layout(
     hovermode = "x", margin = list(t = 80),
     title = paste("Tesla from", min(prices_df$Date), "to", max(prices_df$Date)),
@@ -91,11 +91,11 @@ The table below displays the daily price data for the stock. A concise, interact
 
   
 ```{r show_data, echo=TRUE}
-recent %>%
-  as_tibble() %>%
-  mutate(TSLA.Volume = TSLA.Volume / 1000000) %>%
-  datatable() %>%
-  formatCurrency(c("TSLA.Open", "TSLA.High", "TSLA.Low", "TSLA.Close"), digits = 2) %>%
+recent |>
+  as_tibble() |>
+  mutate(TSLA.Volume = TSLA.Volume / 1000000) |>
+  datatable() |>
+  formatCurrency(c("TSLA.Open", "TSLA.High", "TSLA.Low", "TSLA.Close"), digits = 2) |>
   formatRound("TSLA.Volume", digits = 0)
 ```
 
@@ -127,7 +127,7 @@ subject <- sprintf("TSLA is %s today by $%g!",
 # If the change is above a certain threshold, send an email to stake holders
 # with key results embedded directly in the email
 if (abs(diff) > 0.5) {
-  render_connect_email(input = "stock-report-email.Rmd") %>%
+  render_connect_email(input = "stock-report-email.Rmd") |>
   attach_connect_email(
     subject = subject,
     attach_output = TRUE,

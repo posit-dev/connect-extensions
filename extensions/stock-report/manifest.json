@@ -16,7 +16,7 @@
     "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/stock-report",
     "category": "example",
     "minimumConnectVersion": "2025.04.0",
-    "version": "1.0.0"
+    "version": "1.0.1"
   },
   "environment": {
     "r": {
@@ -2447,10 +2447,10 @@
       "checksum": "9d1931681b382f8d13ca15dd662d9a85"
     },
     "stock-report-email.Rmd": {
-      "checksum": "787863007ff7980185da3ab02d63998e"
+      "checksum": "3f5ff9dd5cb1fd2c68d3ffaaf0facadc"
     },
     "stock-report.Rmd": {
-      "checksum": "3ff744bbff6ab01ff9f74a3eff0fed9e"
+      "checksum": "8f2038e631c76f5b46e884e76ad1a6f1"
     }
   },
   "users": null

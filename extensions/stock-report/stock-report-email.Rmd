@@ -30,7 +30,7 @@ The historical trend is shown below:
 
 ```{r}
 # include a plot with the price data
-recent[, 6] %>%
+recent[, 6] |>
   autoplot() +
   geom_smooth() +
   theme_fivethirtyeight() +

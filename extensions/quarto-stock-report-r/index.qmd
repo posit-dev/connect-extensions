@@ -33,8 +33,8 @@ prices <- round(getSymbols("^GSPC", auto.assign = FALSE, src = "yahoo"), 2)
 close <- Cl(xts::last(prices))
 open <- Op(xts::last(prices))
 
-prices_df <- prices %>%
-  as_tibble() %>%
+prices_df <- prices |>
+  as_tibble() |>
   mutate(
     Date = index(prices),
     Direction = ifelse(GSPC.Close >= GSPC.Open, 'Increasing', 'Decreasing')
@@ -59,27 +59,27 @@ The chart below is made with the `quantmod` and `plotly` R packages. An API retu
 
 
 ```{r build_plot, echo=TRUE, warning=FALSE, message=FALSE}
-fig1 <- plot_ly(prices_df) %>%
+fig1 <- plot_ly(prices_df) |>
   add_trace(
     type = "candlestick", x = ~Date, name = "GSPC",
     open = ~GSPC.Open, close = ~GSPC.Close,
     high = ~GSPC.High, low = ~GSPC.Low,
     increasing = list(line = list(color = '#17BECF')),
     decreasing = list(line = list(color = '#7F7F7F'))
-  ) %>%
+  ) |>
   layout(yaxis = list(title = "Price"))
 
-fig2 <- plot_ly(prices_df) %>%
+fig2 <- plot_ly(prices_df) |>
   add_bars(
     x = ~Date, y = ~GSPC.Volume, name = "GSPC Volume",
     color = ~Direction, colors = c('#17BECF', '#7F7F7F')
-  ) %>%
+  ) |>
   layout(yaxis = list(title = "Volume"), xaxis = list(title = ""))
 
 subplot(
   fig1, fig2, heights = c(0.7, 0.2), nrows = 2,
   shareX = TRUE, titleY = TRUE
-) %>%
+) |>
   layout(
     hovermode = "x", margin = list(t = 80),
     title = paste("GSPC from", min(prices_df$Date), "to", max(prices_df$Date)),
@@ -108,10 +108,10 @@ The table below displays the daily price data for the stock. A concise, interact
 
 
 ```{r show_data, echo=TRUE}
-recent %>%
-  mutate(GSPC.Volume = GSPC.Volume / 1000000) %>%
-  datatable() %>%
-  formatCurrency(c("GSPC.Open", "GSPC.High", "GSPC.Low", "GSPC.Close"), digits = 2) %>%
+recent |>
+  mutate(GSPC.Volume = GSPC.Volume / 1000000) |>
+  datatable() |>
+  formatCurrency(c("GSPC.Open", "GSPC.High", "GSPC.Low", "GSPC.Close"), digits = 2) |>
   formatRound("GSPC.Volume", digits = 0)
 ```
 
