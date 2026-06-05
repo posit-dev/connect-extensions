@@ -9,4 +9,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ### Changed
 
-- Modernized Python code to use `pathlib` instead of `os.path` and the built-in `list[...]` generic instead of `typing.List`.
+- Modernized Python code to use `pathlib` instead of `os.path` and the built-in `list[...]` generic instead of `typing.List`, and removed the obsolete `# -*- coding: utf-8 -*-` declaration.

@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 from pathlib import Path
 
 import dash
@@ -21,7 +20,6 @@ app = dash.Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP])
 # Fetch prices from local CSV using pandas
 prices = pd.read_csv(
     Path(__file__).parent / "prices.csv",
-    # index_col=0,
     parse_dates=True,
     date_format="%Y-%m-%d",
 )
