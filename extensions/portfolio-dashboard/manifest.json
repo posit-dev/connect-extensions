@@ -8,7 +8,7 @@
     "description": "A shiny application makes it easy to transform your analysis into an interactive dashboard using R so users can ask and answer questions in real-time, without having to touch any code.",
     "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/portfolio-dashboard",
     "minimumConnectVersion": "2025.04.0",
-    "version": "0.0.2",
+    "version": "0.0.3",
     "category": "example"
   },
   "environment": {
@@ -2342,7 +2342,7 @@
   },
   "files": {
     "app.R": {
-      "checksum": "05055d71f494d9f2841b5df51f0a45e5"
+      "checksum": "96e59dadf06f0a69df067d4b243e4274"
     },
     "README.md": {
       "checksum": "a47e43771285f9e08c7bbcb7116555ae"
