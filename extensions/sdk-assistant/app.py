@@ -78,7 +78,7 @@ def server(input: Inputs):  # noqa: A002
                 if token is not None
             ]
         )
-        ans = "$%s" % float("%.3g" % cost)
+        ans = f"${float(format(cost, '.3g'))}"
         while len(ans) < 5:
             ans = ans + "0"
         return ans
