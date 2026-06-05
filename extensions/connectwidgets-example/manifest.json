@@ -14,7 +14,7 @@
     "title": "Connect Widgets Example",
     "description": "connectwidgets is an R package that can be used to query for a subset of your existing content items, then organize them within htmlwidget components in an R Markdown document or Shiny application.",
     "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/connectwidgets-example",
-    "version": "0.0.1",
+    "version": "0.0.2",
     "minimumConnectVersion": "2025.04.0",
     "category": "example"
   },
@@ -1432,7 +1432,7 @@
   },
   "files": {
     "connectwidgets-example.Rmd": {
-      "checksum": "4213486fc433240973e85f06cb810a79"
+      "checksum": "1a8513f4b502229ae790af98b6ae4678"
     },
     "README.md": {
       "checksum": "8f3a5120df21848b424b2bbd11a7f5a6"

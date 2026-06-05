@@ -2829,7 +2829,7 @@
   },
   "files": {
     "app.R": {
-      "checksum": "c69da40955d7851685de3635c8b17051"
+      "checksum": "3707d1c7e7b38be5682996aea1a16b61"
     },
     "R/integrations.R": {
       "checksum": "2b495c74b5987a2c318bcd80a0c2be8f"
@@ -2861,6 +2861,6 @@
     "requiredFeatures": [
       "OAuth Integrations"
     ],
-    "version": "1.0.14"
+    "version": "1.0.15"
   }
 }

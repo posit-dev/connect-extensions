@@ -21,8 +21,8 @@ connectVisitorClient <- function(
       },
       error = function(e) {
         eligible_integrations <- get_eligible_integrations(publisher_client)
-        selected_integration <- eligible_integrations %>%
-          arrange(config) %>%
+        selected_integration <- eligible_integrations |>
+          arrange(config) |>
           slice_head(n = 1)
         selected_integration_guid(selected_integration$guid)
 
@@ -114,7 +114,7 @@ get_eligible_integrations <- function(client) {
           collapse = ", "
         )
         c(main_fields, config = config)
-      }) %>%
+      }) |>
         filter(
           template == "connect",
           config %in% c("max_role: Admin", "max_role: Publisher")

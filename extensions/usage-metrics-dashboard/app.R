@@ -21,7 +21,7 @@ options(
 )
 
 files.sources = list.files("R", full.names = TRUE)
-sapply(files.sources, source)
+invisible(lapply(files.sources, source))
 
 app_mode_groups <- list(
   "API" = c("api", "python-fastapi", "python-api", "tensorflow-saved-model"),

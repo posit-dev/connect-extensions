@@ -193,7 +193,7 @@ write_yaml("all.yaml", listing)
 # Otherwise, show the 20 most recent items.
 featured = []
 if featuredTags:
-    print("Featuring items having tags: %s" % ", ".join(featuredTags))
+    print(f"Featuring items having tags: {', '.join(featuredTags)}")
     featured = filter_listing(listing, featuredTags)
     print(f"Filtering by tags selected {len(featured)} items.")
 if not featured:

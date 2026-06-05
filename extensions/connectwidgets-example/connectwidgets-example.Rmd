@@ -14,11 +14,11 @@ client <- connect(
   # api_key = Sys.getenv("CONNECT_API_KEY")
   )
 
-all_content <- client %>%
+all_content <- client |>
   content()
 
-sample_content <- all_content %>%
-  arrange(desc(updated_time)) %>%
+sample_content <- all_content |>
+  arrange(desc(updated_time)) |>
   slice_head(n = 50)
 ```
 
@@ -29,22 +29,22 @@ sample_content <- all_content %>%
 ### card
 
 ```{r card}
-sample_content %>%
-  slice(1) %>%
+sample_content |>
+  slice(1) |>
   rsc_card()
 ```
 
 ### grid
 
 ```{r grid}
-sample_content %>%
+sample_content |>
   rsc_grid()
 ```
 
 ### table
 
 ```{r table}
-sample_content %>%
+sample_content |>
   rsc_table()
 ```
 
