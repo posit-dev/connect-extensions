@@ -12,7 +12,7 @@
     "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/stock-dashboard-python",
     "category": "example",
     "minimumConnectVersion": "2025.04.0",
-    "version": "1.0.0"
+    "version": "1.0.1"
   },
   "environment": {
     "python": {
@@ -35,7 +35,7 @@
       "checksum": "04838bc8a8810526a01a2a13877e04fb"
     },
     "app.py": {
-      "checksum": "04ca7a6cf33e3100e09abbc389552cd8"
+      "checksum": "8be381ce9c6b9535aefbd2e5b4b0ea37"
     },
     "prices.csv": {
       "checksum": "e0bc27e3dd358c360863807e09079985"
