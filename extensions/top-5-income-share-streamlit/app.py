@@ -1,19 +1,19 @@
-import os.path
+from pathlib import Path
 
 import altair as alt
 import pandas as pd
 import streamlit as st
 
-HERE = os.path.dirname(os.path.abspath(__file__))
+HERE = Path(__file__).resolve().parent
 
-st.title("Top 5%" " income share")
-st.markdown("Share of income received by the richest 5%" " of the population.")
-DATA = os.path.join(HERE, "data.csv")
+st.title("Top 5% income share")
+st.markdown("Share of income received by the richest 5% of the population.")
+DATA = HERE / "data.csv"
 
 
 @st.cache_data
 def load_data(nrows):
-    return pd.read_csv("./data.csv", nrows=nrows)
+    return pd.read_csv(DATA, nrows=nrows)
 
 
 data_load_state = st.text("Loading data...")
