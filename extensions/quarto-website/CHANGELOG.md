@@ -9,4 +9,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- Modernized Python code to use an f-string instead of `%` formatting.
+- Modernized Python code to use an f-string instead of `%` formatting, and removed a dead commented-out debug line.

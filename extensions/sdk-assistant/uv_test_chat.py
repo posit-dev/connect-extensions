@@ -72,7 +72,7 @@ async def main() -> None:
     # cost = 0.003 * (35 - 30) + 0.015 * 500/1000 + 0.0003 * 30
     # cost = 0.0315
     print("Token count: ", chat.tokens("cumulative"))
-    print("Cost: ", "$%s" % float("%.3g" % cost))
+    print("Cost: ", f"${float(format(cost, '.3g'))}")
 
     # Save to ./chatlas folder
     pathlib.Path("chatlas").mkdir(exist_ok=True)
