@@ -9,14 +9,14 @@ knitr::opts_chunk$set(echo = FALSE)
 
 Hello Team,
 
-Here are the latest stock prices for **GSPC** as of `r Sys.Date()`:
+Here are the latest **GSPC** index levels as of `r format(latest_date, "%B %d, %Y")`:
 
 ```{r}
-price_new <- prices[, c(1, 4)]
+price_new <- prices[, c("GSPC.Open", "GSPC.Close")]
 colnames(price_new) <- c("open", "close")
-price_new$change <- price_new$close - price_new$open
+price_new$change <- price_new$close - stats::lag(price_new$close, 1)
 
-# include a table with the stock prices
+# include a table with the index levels
 format_table(
     x = as.data.frame(tail(price_new)),
     table.attr = 'cellpadding="8" style="border-collapse: collapse;"',
@@ -35,12 +35,12 @@ The historical trend is shown below:
 
 ```{r}
 # include a plot with the price data
-recent[, 6] %>%
+recent[, "GSPC.Adjusted"] %>%
   autoplot() +
   geom_smooth() +
   theme_fivethirtyeight() +
   labs(
-    title = sprintf("%s Price Adjusted", "GSPC")
+    title = sprintf("%s Adjusted Close", "GSPC")
   )
 ```
 

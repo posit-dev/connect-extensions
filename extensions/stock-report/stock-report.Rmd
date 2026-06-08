@@ -1,15 +1,11 @@
 ---
-title: Stock Email Report
-output: 
+title: GSPC Report
+output:
   html_document:
     code_folding: hide
 ---
   
-# Report for GSPC on `r Sys.Date()`
-
-## Summary{.tabset}
-
-```{r, echo=TRUE, message=FALSE}
+```{r setup, include=FALSE}
 library(blastula)
 library(DT)
 library(formattable)
@@ -33,7 +29,7 @@ prices %>%
   write.csv("gspc.csv", row.names = FALSE)
 ```
 
-```{r load_data, echo=TRUE, message=FALSE}
+```{r load_data, include=FALSE}
 prices_df <- read.csv("gspc.csv")
 prices_df$Date <- as.Date(prices_df$Date)
 
@@ -42,18 +38,25 @@ prices <- xts::xts(
   order.by = prices_df$Date
 )
 
-close <- Cl(xts::last(prices))
-open <- Op(xts::last(prices))
-
 recent <- xts::last(prices, n = 90)
+latest_date <- max(prices_df$Date)
+
+last_two_closes <- as.numeric(Cl(xts::last(prices, n = 2)))
+close <- last_two_closes[2]
+change <- round(close - last_two_closes[1], 2)
+pct_change <- abs(change) / last_two_closes[1] * 100
 ```
 
-The stock closed `r ifelse(close>open,'up','down')` at `r close` dollars per share yesterday.
+# GSPC Report as of `r format(latest_date, "%B %d, %Y")`
+
+## Summary{.tabset}
+
+The index closed `r ifelse(change > 0, "up", "down")` at `r close` points.
 
 
 ### Price History
 
-The chart below is made with the `quantmod` and `plotly` R packages. An API returns all of the price history based on the stock tick symbol "GSPC.".
+The chart below is made with the `quantmod` and `plotly` R packages. The price history is read from a cached `gspc.csv` file, which can be refreshed from Yahoo Finance.
 
 
 ```{r build_plot, echo=TRUE, warning=FALSE, message=FALSE}
@@ -102,7 +105,7 @@ subplot(
 
 ### Raw Data
 
-The table below displays the daily price data for the stock. A concise, interactive table is created with the `DT` package. 
+The table below displays the daily price data for the index, with volume shown in millions. A concise, interactive table is created with the `DT` package.
 
   
 ```{r show_data, echo=TRUE}
@@ -110,13 +113,13 @@ recent %>%
   as_tibble() %>%
   mutate(GSPC.Volume = GSPC.Volume / 1000000) %>%
   datatable() %>%
-  formatCurrency(c("GSPC.Open", "GSPC.High", "GSPC.Low", "GSPC.Close"), digits = 2) %>%
+  formatRound(c("GSPC.Open", "GSPC.High", "GSPC.Low", "GSPC.Close"), digits = 2) %>%
   formatRound("GSPC.Volume", digits = 0)
 ```
 
-## Legacy Information
+## Downloadable Data
 
-This report also creates a CSV file with the relevant information updated by R. The file feeds a legacy report that will slowly be replaced.
+This report also writes the recent data to a CSV file and registers it as a downloadable output, so stakeholders can grab the underlying numbers.
 
 ```{r write_csv, echo=TRUE}
 fname <- sprintf("%s.csv", Sys.Date())
@@ -129,19 +132,18 @@ rmarkdown::output_metadata$set(rsc_output_files = list(fname))
 ## Email
 
 This report also produces an email that is sent to key stakeholders with summary
-information if the price change is above 50 cents. 
+information if the daily change exceeds 1%.
 
 ```{r send_email, warning = FALSE, message = FALSE, echo = TRUE}
-# Calculate the total change
-close <- Cl(xts::last(prices, n = 2))
-diff <- round(as.numeric(close[2]) - as.numeric(close[1]), 2)
-subject <- sprintf("GSPC is %s today by $%g!",
-        ifelse(diff > 0,"up", "down"), 
-        abs(diff))
+subject <- sprintf("GSPC is %s by %g points (%s)",
+        ifelse(change > 0, "up", "down"),
+        abs(change),
+        format(latest_date, "%B %d, %Y"))
 
-# If the change is above a certain threshold, send an email to stake holders
-# with key results embedded directly in the email
-if (abs(diff) > 0.5) {
+# If the change exceeds the threshold (1% by default), send an email to
+# stakeholders with key results embedded directly in the email. Adjust the
+# threshold below to control how large a move triggers a notification.
+if (pct_change > 1) {
   render_connect_email(input = "stock-report-email.Rmd") %>%
   attach_connect_email(
     subject = subject,

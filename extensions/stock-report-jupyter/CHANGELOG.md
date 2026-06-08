@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Suppressed the stray Axes object text displayed above the price history chart. (#357)
+- Renamed the summary table's "Avg Volume" column to "Volume" so the most recent day's volume is no longer mislabeled as an average. (#357)
 
 ## [1.0.0] - 2025-05-27
 
