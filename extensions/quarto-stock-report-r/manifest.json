@@ -12,11 +12,12 @@
   "extension": {
     "name": "quarto-stock-report-r",
     "title": "Quarto Stock Report using R",
-    "description": "This stock report is generated using Quarto and R. It is an example of how you might automate regular updates using a data source. The report also generates a custom email, sharing the results directly to stakeholders.",
+    "description": "This stock report is generated using Quarto and R. It is an example of how you might automate regular updates using a data source. It reads cached data by default, which can be refreshed from a live source. The report also generates a custom email, sharing the results directly to stakeholders.",
     "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/quarto-stock-report-r",
     "category": "example",
     "minimumConnectVersion": "2025.04.0",
-    "version": "1.0.1"
+    "tags": ["quarto", "r"],
+    "version": "1.0.2"
   },
   "environment": {
     "quarto": {
@@ -2820,10 +2821,10 @@
       "checksum": "c924c5aa9469cc2a4bcf26cd7f0b2a2e"
     },
     "index.qmd": {
-      "checksum": "e8005d283fb5c674a4268fcb8f233806"
+      "checksum": "08453b92ddeed8746fb787f776af55ef"
     },
     "README.md": {
-      "checksum": "5f3ead5d4e8d9802e28ae65dc0ba9cee"
+      "checksum": "efd3d1462609ec79abf79f2f4eaac7c7"
     }
   },
   "users": null
