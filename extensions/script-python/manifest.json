@@ -15,7 +15,7 @@
   },
   "environment": {
     "python": {
-      "requires": "~=3.8"
+      "requires": "~=3.9"
     },
     "quarto": {
       "requires": "~=1.4"
@@ -37,7 +37,7 @@
   },
   "files": {
     "requirements.txt": {
-      "checksum": "5a2845f6ec11bcefce420b49ef94c152"
+      "checksum": "c67ead42a8939d4072ecd719350bbeba"
     },
     ".gitignore": {
       "checksum": "42b3cf8550e12acf456cef1254151634"

@@ -15,7 +15,7 @@
   },
   "environment": {
     "python": {
-      "requires": ">=3.10"
+      "requires": ">=3.11"
     }
   },
   "extension": {
@@ -31,13 +31,13 @@
   },
   "files": {
     "requirements.txt": {
-      "checksum": "3f6b39234649b12256ccab08952dc062"
+      "checksum": "7e117f484a0b0fd00417ca30caadeb4e"
     },
     "main.py": {
-      "checksum": "d41d8cd98f00b204e9800998ecf8427e"
+      "checksum": "6738758e6a5f24590dd31388ba21d9d0"
     },
     "index.html.jinja": {
-      "checksum": "eb078517ea04264c8578e0e55afb7685"
+      "checksum": "d17f4d06a32358f80a0f53672c529fe5"
     }
   }
 }
