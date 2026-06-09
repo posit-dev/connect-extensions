@@ -16,7 +16,7 @@
   },
   "environment": {
     "python": {
-      "requires": "~=3.9"
+      "requires": ">=3.11"
     }
   },
   "python": {
@@ -32,7 +32,7 @@
       "checksum": "9f26b6fcc64283c7253edd2d37ad417c"
     },
     "requirements.txt": {
-      "checksum": "a21501182f426dfe1dc08a839ad47144"
+      "checksum": "0038cfc52820e45a6ba486dec0bbffa9"
     },
     "quandl-wiki-tsla.json.gz": {
       "checksum": "3950ee9583143349c74e6caabcf4d47e"

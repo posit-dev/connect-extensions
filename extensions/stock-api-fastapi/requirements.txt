@@ -1,4 +1,4 @@
 fastapi==0.115.3
-numpy==1.26.4
-pandas==2.2.1
-pydantic==2.10.4
+numpy==2.4.6
+pandas==3.0.3
+pydantic==2.13.4

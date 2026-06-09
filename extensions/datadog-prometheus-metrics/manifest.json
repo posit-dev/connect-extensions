@@ -15,7 +15,7 @@
   },
   "files": {
     "requirements.txt": {
-      "checksum": "9855f69d0437096286851bae43b2eceb"
+      "checksum": "c03a5b4119f466b96e2ca4f0b920aaa4"
     },
     "app.py": {
       "checksum": "96b60bc4e32f2b4d809207ec6d2a880d"
@@ -37,7 +37,7 @@
   },
   "environment": {
     "python": {
-      "requires": "~=3.9"
+      "requires": ">=3.11"
     }
   }
 }

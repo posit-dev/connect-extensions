@@ -15,7 +15,7 @@
   },
   "environment": {
     "python": {
-      "requires": "~=3.9"
+      "requires": ">=3.11"
     },
     "quarto": {
       "requires": "~=1.4"
@@ -46,7 +46,7 @@
       "checksum": "f74c93cd12f334a4923d6fa4d81cdd1e"
     },
     "requirements.txt": {
-      "checksum": "1b9e705f62a822cffaa4dc0e988101b4"
+      "checksum": "0038cfc52820e45a6ba486dec0bbffa9"
     }
   }
 }
