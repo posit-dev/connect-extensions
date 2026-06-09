@@ -84,7 +84,7 @@ def update():
         list(df["Percent"]) for name, df in grouped if name in selected_countries
     ]
     span = [
-        "%s - %s" % (df["Year"].min(), df["Year"].max())
+        f"{df['Year'].min()} - {df['Year'].max()}"
         for name, df in grouped
         if name in selected_countries
     ]

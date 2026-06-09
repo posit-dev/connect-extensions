@@ -31,7 +31,7 @@ def server(input: Inputs, output: Outputs, session: Session):
         try:
             credentials = client.oauth.get_credentials(session_token)
         except Exception as e:
-            print(f"Unable to fetch credentials: %s" % e, file=sys.stderr)
+            print(f"Unable to fetch credentials: {e}", file=sys.stderr)
             credentials = dict()
 
     @render.text

@@ -256,7 +256,7 @@ def volume_figure_layout(selected_tickers, xaxis_range=None):
         a layout dict
     """
     layout = dict(xaxis={}, yaxis={})
-    layout["title"] = "Trading Volume (%s)" % (" & ").join(selected_tickers)
+    layout["title"] = f"Trading Volume ({' & '.join(selected_tickers)})"
     layout["yaxis"] = {"autorange": True}
     layout["yaxis"]["title"] = "Volume"
     layout["xaxis"]["title"] = "Trading Volume by Date"
@@ -298,7 +298,7 @@ def update_price_figure(tickers, price):
             for stock in tickers
         ],
         "layout": {
-            "title": "Stock Price - (%s)" % " & ".join(tickers),
+            "title": f"Stock Price - ({' & '.join(tickers)})",
             "xaxis": {"title": "Date"},
             "yaxis": {"title": "Price"},
         },

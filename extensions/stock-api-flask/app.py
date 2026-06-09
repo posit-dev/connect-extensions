@@ -65,10 +65,10 @@ price_model = ns.model(
 class TickerNotFound(Exception):
     def __init__(self, ticker):
         self.ticker = ticker
-        self.message = "Ticker `{}` not found".format(self.ticker)
+        self.message = f"Ticker `{self.ticker}` not found"
 
     def __str__(self):
-        return "TickerNotFound('{}')".format(self.ticker)
+        return f"TickerNotFound('{self.ticker}')"
 
 
 # Our simple API only has a few GET endpoints
