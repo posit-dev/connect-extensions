@@ -30,11 +30,11 @@ hist.to_csv("gspc.csv")
 ```
 
 ```{python}
-hist = pd.read_csv("gspc.csv", parse_dates=[0], index_col=0)
+hist = pd.read_csv("gspc.csv", parse_dates=True, index_col=0)
 hist['Change'] = hist['Close'] - hist['Open']
 
-latest = hist.last_valid_index()
-days_90 = latest - pd.to_timedelta("90d")
+latest = hist.index[-1]
+days_90 = latest - pd.to_timedelta("90D")
 
 prices_1d  = hist[latest:]
 prices_90d = hist[days_90:]
