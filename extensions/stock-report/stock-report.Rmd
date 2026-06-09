@@ -20,12 +20,12 @@ library(plotly)
 # fresh data from Yahoo Finance, render once, then set eval=FALSE again.
 prices <- round(getSymbols("^GSPC", auto.assign = FALSE, src = "yahoo"), 2)
 
-prices %>%
-  as_tibble() %>%
+prices |>
+  as_tibble() |>
   mutate(
     Date = index(prices),
     Direction = ifelse(GSPC.Close >= GSPC.Open, 'Increasing', 'Decreasing')
-  ) %>%
+  ) |>
   write.csv("gspc.csv", row.names = FALSE)
 ```
 
@@ -60,27 +60,27 @@ The chart below is made with the `quantmod` and `plotly` R packages. The price h
 
 
 ```{r build_plot, echo=TRUE, warning=FALSE, message=FALSE}
-fig1 <- plot_ly(prices_df) %>%
+fig1 <- plot_ly(prices_df) |>
   add_trace(
     type = "candlestick", x = ~Date, name = "GSPC",
     open = ~GSPC.Open, close = ~GSPC.Close,
     high = ~GSPC.High, low = ~GSPC.Low,
     increasing = list(line = list(color = '#17BECF')),
     decreasing = list(line = list(color = '#7F7F7F'))
-  ) %>% 
+  ) |> 
   layout(yaxis = list(title = "Price"))
 
-fig2 <- plot_ly(prices_df) %>%
+fig2 <- plot_ly(prices_df) |>
   add_bars(
     x = ~Date, y = ~GSPC.Volume, name = "GSPC Volume",
     color = ~Direction, colors = c('#17BECF', '#7F7F7F')
-  ) %>%
+  ) |>
   layout(yaxis = list(title = "Volume"), xaxis = list(title = ""))
 
 subplot(
   fig1, fig2, heights = c(0.7, 0.2), nrows = 2,
   shareX = TRUE, titleY = TRUE
-) %>%
+) |>
   layout(
     hovermode = "x", margin = list(t = 80),
     title = paste("GSPC from", min(prices_df$Date), "to", max(prices_df$Date)),
@@ -109,11 +109,11 @@ The table below displays the daily price data for the index, with volume shown i
 
   
 ```{r show_data, echo=TRUE}
-recent %>%
-  as_tibble() %>%
-  mutate(GSPC.Volume = GSPC.Volume / 1000000) %>%
-  datatable() %>%
-  formatRound(c("GSPC.Open", "GSPC.High", "GSPC.Low", "GSPC.Close"), digits = 2) %>%
+recent |>
+  as_tibble() |>
+  mutate(GSPC.Volume = GSPC.Volume / 1000000) |>
+  datatable() |>
+  formatRound(c("GSPC.Open", "GSPC.High", "GSPC.Low", "GSPC.Close"), digits = 2) |>
   formatRound("GSPC.Volume", digits = 0)
 ```
 
@@ -144,7 +144,7 @@ subject <- sprintf("GSPC is %s by %g points (%s)",
 # stakeholders with key results embedded directly in the email. Adjust the
 # threshold below to control how large a move triggers a notification.
 if (pct_change > 1) {
-  render_connect_email(input = "stock-report-email.Rmd") %>%
+  render_connect_email(input = "stock-report-email.Rmd") |>
   attach_connect_email(
     subject = subject,
     attach_output = TRUE,

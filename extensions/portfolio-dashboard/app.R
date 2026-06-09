@@ -123,7 +123,7 @@ server <- function(input, output) {
     p <- ggplot(sortino_byhand(), aes(x = returns)) +
       geom_histogram(alpha = 0.25, binwidth = .01, fill = "cornflowerblue") +
       geom_vline(xintercept = input$mar, color = "green")
-    ggplotly(p) %>%
+    ggplotly(p) |>
       add_annotations(text = "MAR", x = input$mar, y = 10, xshift = 10, showarrow = FALSE, textangle = -90)
   })
   
@@ -131,7 +131,7 @@ server <- function(input, output) {
     sortino_density_plot <- ggplot(sortino_byhand(), aes(x = returns)) +
       stat_density(geom = "line", size = 1, color = "cornflowerblue")
     
-    shaded_area_data <- ggplot_build(sortino_density_plot)$data[[1]] %>%
+    shaded_area_data <- ggplot_build(sortino_density_plot)$data[[1]] |>
       filter(x < input$mar)
     
     sortino_density_plot <-
@@ -142,10 +142,10 @@ server <- function(input, output) {
         color = "red", linetype = "dotted"
       )
     
-    ggplotly(sortino_density_plot) %>%
+    ggplotly(sortino_density_plot) |>
       add_annotations(
         x = input$mar, y = 5, text = paste("MAR =", input$mar, sep = ""), textangle = -90
-      ) %>%
+      ) |>
       add_annotations(
         x = (input$mar - .02), y = .1, text = "Downside", 
         xshift = -20, yshift = 10, showarrow = FALSE

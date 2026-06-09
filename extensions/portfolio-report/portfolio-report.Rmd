@@ -89,11 +89,11 @@ Row
 ### Rolling Sortino
 
 ```{r}
-plot_ly() %>%
+plot_ly() |>
   add_lines(
     x = index(rolling_sortino), y = as.numeric(rolling_sortino),
     hovertemplate = "Sortino: %{y:.2r}", name = ""
-  ) %>%
+  ) |>
   layout(
     hovermode = "x",
     xaxis = list(
@@ -141,7 +141,7 @@ ggplotly(portfolio_scatter) %>%
 p <- ggplot(sortino_byhand, aes(x = returns)) +
   geom_histogram(alpha = 0.25, binwidth = .01, fill = "cornflowerblue") +
   geom_vline(xintercept = MAR, color = "green")
-ggplotly(p) %>%
+ggplotly(p) |>
   add_annotations(text = "MAR", x = MAR, y = 10, xshift = 10, showarrow = FALSE, textangle = -90)
 ```
 
@@ -151,7 +151,7 @@ ggplotly(p) %>%
 sortino_density_plot <- ggplot(sortino_byhand, aes(x = returns)) +
   stat_density(geom = "line", size = 1, color = "cornflowerblue")
 
-shaded_area_data <- ggplot_build(sortino_density_plot)$data[[1]] %>%
+shaded_area_data <- ggplot_build(sortino_density_plot)$data[[1]] |>
   filter(x < MAR)
 
 sortino_density_plot <-
@@ -162,10 +162,10 @@ sortino_density_plot <-
     color = "red", linetype = "dotted"
   )
 
-ggplotly(sortino_density_plot) %>%
+ggplotly(sortino_density_plot) |>
   add_annotations(
     x = MAR, y = 5, text = paste("MAR =", MAR, sep = ""), textangle = -90
-  ) %>%
+  ) |>
   add_annotations(
     x = (MAR - .02), y = .1, text = "Downside", 
     xshift = -20, yshift = 10, showarrow = FALSE
@@ -180,7 +180,7 @@ write.xlsx(portfolio_selected, file = portfolio_file)
 ```{r, echo = FALSE}
 # have the report send out an email with 
 # important results included in-line
-render_connect_email(input = "portfolio-report-email.Rmd") %>%
+render_connect_email(input = "portfolio-report-email.Rmd") |>
   attach_connect_email(
     subject = sprintf("%s portfolio Sortino report",params$portfolioName),
     attach_output = TRUE,
