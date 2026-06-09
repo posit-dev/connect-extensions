@@ -6,8 +6,8 @@ import streamlit as st
 
 HERE = Path(__file__).resolve().parent
 
-st.title("Top 5%" " income share")
-st.markdown("Share of income received by the richest 5%" " of the population.")
+st.title("Top 5% income share")
+st.markdown("Share of income received by the richest 5% of the population.")
 DATA = HERE / "data.csv"
 
 

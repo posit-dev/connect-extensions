@@ -184,7 +184,6 @@ r = requests.get(
 r.raise_for_status()
 payload = r.json()
 
-# payload = payload[:100]
 listing = listing_items_from_content(payload)
 print(f"Fetched {len(listing)} items.")
 write_yaml("all.yaml", listing)

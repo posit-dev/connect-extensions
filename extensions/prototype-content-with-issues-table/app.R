@@ -23,7 +23,7 @@ shinyOptions(
 # for each item. These objects differ from the ones created by `content_item()`
 # because they also include the full owner info as returned by `get_content()`.
 as_content_list <- function(content_df, client) {
-  cdf_split <- split(content_df, 1:nrow(content_df))
+  cdf_split <- split(content_df, seq_len(nrow(content_df)))
   map(cdf_split, function(x) {
     x <- x[, !(names(x) %in% c("tags"))]
     x <- as.list(x)
