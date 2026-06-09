@@ -18,7 +18,7 @@ ANY_VERSION <- "999.99.99"
 plan(mirai_multisession)
 
 files.sources = list.files("R", full.names = TRUE)
-sapply(files.sources, source)
+invisible(lapply(files.sources, source))
 
 options(
   spinner.type = 1,
@@ -343,9 +343,9 @@ server <- function(input, output, session) {
       }
 
       # Create names for all choices with formatted labels
-      names(r_choices) <- sapply(r_choices, format_version_label)
-      names(py_choices) <- sapply(py_choices, format_version_label)
-      names(quarto_choices) <- sapply(quarto_choices, format_version_label)
+      names(r_choices) <- vapply(r_choices, format_version_label, character(1))
+      names(py_choices) <- vapply(py_choices, format_version_label, character(1))
+      names(quarto_choices) <- vapply(quarto_choices, format_version_label, character(1))
 
       # Find the EOL versions and add special labels
       r_eol_index <- which(r_choices == oldest_supported_r)
