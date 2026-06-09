@@ -1,6 +1,5 @@
 from datetime import date
 from pathlib import Path
-from typing import List
 
 import numpy as np
 import pandas as pd
@@ -69,7 +68,7 @@ async def ticker(ticker: str):
     }
 
 
-@app.get("/stocks/{ticker}/history", response_model=List[Price])
+@app.get("/stocks/{ticker}/history", response_model=list[Price])
 async def history(ticker: str):
     validate_ticker(ticker)
 
