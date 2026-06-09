@@ -11,7 +11,7 @@
     "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/script-python",
     "category": "example",
     "minimumConnectVersion": "2025.04.0",
-    "version": "1.0.0"
+    "version": "1.0.1"
   },
   "environment": {
     "python": {
