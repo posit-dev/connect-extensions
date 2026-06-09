@@ -1,6 +1,5 @@
-# -*- coding: utf-8 -*-
-import os
 from datetime import date
+from pathlib import Path
 from typing import List
 
 import numpy as np
@@ -9,7 +8,7 @@ from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel, Field
 
 prices = pd.read_csv(
-    os.path.join(os.path.dirname(__file__), "prices.csv"),
+    Path(__file__).parent / "prices.csv",
     index_col=0,
     parse_dates=True,
 )
