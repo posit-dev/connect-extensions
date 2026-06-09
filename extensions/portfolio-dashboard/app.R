@@ -59,10 +59,9 @@ server <- function(input, output) {
   portfolio_selected <- throttle(reactive({
     req(input$portfolio, input$date)
     
-    returns[[input$portfolio]] %>%
-      as_tibble() %>%
-      #collect() %>%
-      mutate(date = as.Date(date)) %>%
+    returns[[input$portfolio]] |>
+      as_tibble() |>
+      mutate(date = as.Date(date)) |>
       filter(date >= input$date)
     
   }), rate_limit_sec * 1000)
@@ -71,22 +70,24 @@ server <- function(input, output) {
     req(input$mar)
     req(input$window)
     
-    portfolio_selected()$returns %>%
-      xts::xts(order.by = portfolio_selected()$date) %>%
-      rollapply(input$window, function(x) SortinoRatio(x, MAR = input$mar)) %>%
+    portfolio_selected()$returns |>
+      xts::xts(order.by = portfolio_selected()$date) |>
+      rollapply(input$window, function(x) SortinoRatio(x, MAR = input$mar)) |>
       `colnames<-`("24-rolling")
   })
   
   sortino_byhand <- reactive({
-    portfolio_selected() %>%
-      mutate(ratio = mean(returns - input$mar) / sqrt(sum(pmin(returns - input$mar, 0)^2) / nrow(.))) %>%
+    portfolio_selected() |>
       # Add two new columns to help with ggplot.
-      mutate(status = ifelse(returns < input$mar, "down", "up"))
+      mutate(
+        ratio = mean(returns - input$mar) / sqrt(sum(pmin(returns - input$mar, 0)^2) / n()),
+        status = ifelse(returns < input$mar, "down", "up")
+      )
   })
   
   output$time_series <- renderPlotly({
-    plot_ly() %>%
-      add_lines(x = index(rolling_sortino()), y = as.numeric(rolling_sortino())) %>%
+    plot_ly() |>
+      add_lines(x = index(rolling_sortino()), y = as.numeric(rolling_sortino())) |>
       layout(
         hovermode = "x",
         xaxis = list(
@@ -112,7 +113,7 @@ server <- function(input, output) {
       scale_color_manual(values = c("tomato", "chartreuse3")) +
       theme(legend.position = "none") + ylab("percent monthly returns")
     
-    ggplotly(portfolio_scatter) %>% 
+    ggplotly(portfolio_scatter) |>
       add_annotations(
         text = "Trump", x = as.numeric(as.Date("2016-11-30")), 
         y = -.05, xshift = -10, textangle = -90, showarrow = FALSE
