@@ -42,6 +42,28 @@ runs:
         uv venv
         uv pip install --upgrade -e .
 
+    - name: Patch Connect config to use manylinux_2_28 R packages
+      shell: bash
+      run: |
+        VERSION="${{ inputs.connect-version }}"
+        if [ "$VERSION" = "preview" ]; then
+          IMAGE="ghcr.io/posit-dev/connect-preview:daily"
+        elif [ "$VERSION" = "release" ] || [ "$VERSION" = "latest" ]; then
+          IMAGE="ghcr.io/posit-dev/connect:latest"
+        else
+          YEAR="${VERSION%%.*}"
+          MINOR="${VERSION#*.}"; MINOR="${MINOR%%.*}"
+          if [ "$YEAR" -gt 2026 ] || { [ "$YEAR" -eq 2026 ] && [ "$MINOR" -ge 4 ]; }; then
+            IMAGE="ghcr.io/posit-dev/connect:$VERSION"
+          else
+            IMAGE="rstudio/rstudio-connect:jammy-$VERSION"
+          fi
+        fi
+        docker pull --quiet "$IMAGE"
+        docker run --rm "$IMAGE" cat /etc/rstudio-connect/rstudio-connect.gcfg \
+          | sed 's|URL = https://[^ ]*/cran/__linux__/[^/]*/latest|URL = https://packagemanager.posit.co/cran/__linux__/manylinux_2_28/latest|g' \
+          > ${{ github.workspace }}/.github/connect-runtime.gcfg
+
     - name: Start Connect
       id: connect
       uses: posit-dev/with-connect@main
@@ -49,6 +71,7 @@ runs:
         license: ${{ inputs.connect-license }}
         version: ${{ inputs.connect-version }}
         quiet: 'true'
+        config-file: ${{ github.workspace }}/.github/connect-runtime.gcfg
         env: |
           CONNECT_SERVER_EMAILPROVIDER=None
           CONNECT_APPLICATIONS_PACKAGEAUDITINGENABLED=true
