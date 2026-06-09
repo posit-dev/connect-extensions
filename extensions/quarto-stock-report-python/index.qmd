@@ -30,7 +30,8 @@ hist.to_csv("gspc.csv")
 ```
 
 ```{python}
-hist = pd.read_csv("gspc.csv", parse_dates=True, index_col=0)
+hist = pd.read_csv("gspc.csv", index_col=0)
+hist.index = pd.to_datetime(hist.index, utc=True)
 hist['Change'] = hist['Close'] - hist['Open']
 
 latest = hist.index[-1]
