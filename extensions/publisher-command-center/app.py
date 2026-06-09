@@ -1,5 +1,6 @@
 from http import client
 import asyncio
+from typing import Optional
 from fastapi import FastAPI, Header, Body
 from fastapi.staticfiles import StaticFiles
 from posit import connect
@@ -69,7 +70,7 @@ async def get_integrations():
 
 
 @cached(client_cache)
-def get_visitor_client(token: str | None) -> connect.Client:
+def get_visitor_client(token: Optional[str]) -> connect.Client:
     """Create and cache API client per token with 1 hour TTL"""
     if token:
         return client.with_user_session_token(token)
