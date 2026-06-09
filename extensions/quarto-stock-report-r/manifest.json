@@ -17,7 +17,7 @@
     "category": "example",
     "minimumConnectVersion": "2025.04.0",
     "tags": ["quarto", "r"],
-    "version": "1.0.2"
+    "version": "1.0.3"
   },
   "environment": {
     "quarto": {
@@ -2821,7 +2821,7 @@
       "checksum": "c924c5aa9469cc2a4bcf26cd7f0b2a2e"
     },
     "index.qmd": {
-      "checksum": "08453b92ddeed8746fb787f776af55ef"
+      "checksum": "23c946d002d1bb5ff00bde4ac50543da"
     },
     "README.md": {
       "checksum": "efd3d1462609ec79abf79f2f4eaac7c7"

@@ -14,7 +14,7 @@
     "title": "Portfolio Report",
     "description": "This R Markdown document includes parameters, making it easier for stakeholders to customize the report's assumptions and create their own version. The main document serves as a standard base template, containing your core code and analysis, so you don't have to copy, paste, and republish.",
     "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/portfolio-report",
-    "version": "0.0.1",
+    "version": "0.0.2",
     "minimumConnectVersion": "2025.04.0",
     "category": "example"
   },
@@ -2586,10 +2586,10 @@
   },
   "files": {
     "portfolio-report-email.Rmd": {
-      "checksum": "df1d9fa73b17d0f608a5a5e76fdf8c11"
+      "checksum": "80457b015a91fe0477db3858a396f055"
     },
     "portfolio-report.Rmd": {
-      "checksum": "c53d40b7cb86f46547627c11d28ac5f0"
+      "checksum": "b44cb01ae03c545463eda12590b78a37"
     },
     "README.md": {
       "checksum": "ce131ca6dbaa2670e6e166bbe4903a90"

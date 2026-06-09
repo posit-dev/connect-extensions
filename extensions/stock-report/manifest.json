@@ -17,7 +17,7 @@
     "category": "example",
     "tags": ["r"],
     "minimumConnectVersion": "2025.04.0",
-    "version": "1.0.1"
+    "version": "1.0.2"
   },
   "environment": {
     "r": {
@@ -2451,10 +2451,10 @@
       "checksum": "c924c5aa9469cc2a4bcf26cd7f0b2a2e"
     },
     "stock-report-email.Rmd": {
-      "checksum": "3c832e55064016219eaf53f48e9bc75d"
+      "checksum": "cc917ad4d9e3c03a2a43103b4368e2ef"
     },
     "stock-report.Rmd": {
-      "checksum": "e84462b1203bb912ace063602af2ea04"
+      "checksum": "17d2bb4a7d0b1fd0eaff3107da2414b7"
     }
   },
   "users": null

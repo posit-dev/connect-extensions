@@ -12,7 +12,7 @@
     "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/top-5-income-share-bokeh",
     "category": "example",
     "minimumConnectVersion": "2025.04.0",
-    "version": "1.0.0"
+    "version": "1.0.1"
   },
   "environment": {
     "python": {
@@ -35,7 +35,7 @@
       "checksum": "5007a3c8a406354fc4ce88f46a22c5c0"
     },
     "app.py": {
-      "checksum": "b965e780a74b524f0ab5263a214614d7"
+      "checksum": "75635089f91e934b1ceabd4163a40d4b"
     },
     "data.csv": {
       "checksum": "8da5e3f4e5d46c024310cd04354f81bd"
