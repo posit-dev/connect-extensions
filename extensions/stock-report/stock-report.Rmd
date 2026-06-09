@@ -1,15 +1,11 @@
 ---
-title: Stock Email Report
-output: 
+title: GSPC Report
+output:
   html_document:
     code_folding: hide
 ---
   
-# Report for TSLA on `r Sys.Date()`
-
-## Summary{.tabset}
-
-```{r, echo=TRUE, message=FALSE}
+```{r setup, include=FALSE}
 library(blastula)
 library(DT)
 library(formattable)
@@ -17,36 +13,58 @@ library(ggthemes)
 library(quantmod)
 library(dplyr)
 library(plotly)
-
-prices <- round(getSymbols("TSLA", auto.assign = FALSE, src = "yahoo"), 2)
-close <- Cl(xts::last(prices))
-open <- Op(xts::last(prices))
-
-recent <- xts::last(prices, n = 90)
-recent_nv <- recent[, -5]
-
-prices_df <- prices %>%
-  as_tibble() %>%
-  mutate(
-    Date = index(prices), 
-    Direction = ifelse(TSLA.Close >= TSLA.Open, 'Increasing', 'Decreasing')
-  )
 ```
 
-The stock closed `r ifelse(close>open,'up','down')` at `r close` dollars per share yesterday.
+```{r refresh_data, eval=FALSE, echo=FALSE}
+# Cached data is used by default. To refresh gspc.csv, set eval=TRUE to pull
+# fresh data from Yahoo Finance, render once, then set eval=FALSE again.
+prices <- round(getSymbols("^GSPC", auto.assign = FALSE, src = "yahoo"), 2)
+
+prices %>%
+  as_tibble() %>%
+  mutate(
+    Date = index(prices),
+    Direction = ifelse(GSPC.Close >= GSPC.Open, 'Increasing', 'Decreasing')
+  ) %>%
+  write.csv("gspc.csv", row.names = FALSE)
+```
+
+```{r load_data, include=FALSE}
+prices_df <- read.csv("gspc.csv")
+prices_df$Date <- as.Date(prices_df$Date)
+
+prices <- xts::xts(
+  as.matrix(prices_df[, c("GSPC.Open", "GSPC.High", "GSPC.Low", "GSPC.Close", "GSPC.Volume", "GSPC.Adjusted")]),
+  order.by = prices_df$Date
+)
+
+recent <- xts::last(prices, n = 90)
+latest_date <- max(prices_df$Date)
+
+last_two_closes <- as.numeric(Cl(xts::last(prices, n = 2)))
+close <- last_two_closes[2]
+change <- round(close - last_two_closes[1], 2)
+pct_change <- abs(change) / last_two_closes[1] * 100
+```
+
+# GSPC Report as of `r format(latest_date, "%B %d, %Y")`
+
+## Summary{.tabset}
+
+The index closed `r ifelse(change > 0, "up", "down")` at `r close` points.
 
 
 ### Price History
 
-The chart below is made with the `quantmod` and `plotly` R packages. An API returns all of the price history based on the stock tick symbol "TSLA.".
+The chart below is made with the `quantmod` and `plotly` R packages. The price history is read from a cached `gspc.csv` file, which can be refreshed from Yahoo Finance.
 
 
 ```{r build_plot, echo=TRUE, warning=FALSE, message=FALSE}
 fig1 <- plot_ly(prices_df) %>%
   add_trace(
-    type = "candlestick", x = ~Date, name = "TSLA",
-    open = ~TSLA.Open, close = ~TSLA.Close,
-    high = ~TSLA.High, low = ~TSLA.Low,
+    type = "candlestick", x = ~Date, name = "GSPC",
+    open = ~GSPC.Open, close = ~GSPC.Close,
+    high = ~GSPC.High, low = ~GSPC.Low,
     increasing = list(line = list(color = '#17BECF')),
     decreasing = list(line = list(color = '#7F7F7F'))
   ) %>% 
@@ -54,7 +72,7 @@ fig1 <- plot_ly(prices_df) %>%
 
 fig2 <- plot_ly(prices_df) %>%
   add_bars(
-    x = ~Date, y = ~TSLA.Volume, name = "TSLA Volume",
+    x = ~Date, y = ~GSPC.Volume, name = "GSPC Volume",
     color = ~Direction, colors = c('#17BECF', '#7F7F7F')
   ) %>%
   layout(yaxis = list(title = "Volume"), xaxis = list(title = ""))
@@ -65,7 +83,7 @@ subplot(
 ) %>%
   layout(
     hovermode = "x", margin = list(t = 80),
-    title = paste("Tesla from", min(prices_df$Date), "to", max(prices_df$Date)),
+    title = paste("GSPC from", min(prices_df$Date), "to", max(prices_df$Date)),
     xaxis = list(
       rangeselector = list(
         x = 0, y = 1, xanchor = 'left', yanchor = "top",
@@ -87,21 +105,21 @@ subplot(
 
 ### Raw Data
 
-The table below displays the daily price data for the stock. A concise, interactive table is created with the `DT` package. 
+The table below displays the daily price data for the index, with volume shown in millions. A concise, interactive table is created with the `DT` package.
 
   
 ```{r show_data, echo=TRUE}
 recent %>%
   as_tibble() %>%
-  mutate(TSLA.Volume = TSLA.Volume / 1000000) %>%
+  mutate(GSPC.Volume = GSPC.Volume / 1000000) %>%
   datatable() %>%
-  formatCurrency(c("TSLA.Open", "TSLA.High", "TSLA.Low", "TSLA.Close"), digits = 2) %>%
-  formatRound("TSLA.Volume", digits = 0)
+  formatRound(c("GSPC.Open", "GSPC.High", "GSPC.Low", "GSPC.Close"), digits = 2) %>%
+  formatRound("GSPC.Volume", digits = 0)
 ```
 
-## Legacy Information
+## Downloadable Data
 
-This report also creates a CSV file with the relevant information updated by R. The file feeds a legacy report that will slowly be replaced.
+This report also writes the recent data to a CSV file and registers it as a downloadable output, so stakeholders can grab the underlying numbers.
 
 ```{r write_csv, echo=TRUE}
 fname <- sprintf("%s.csv", Sys.Date())
@@ -114,19 +132,18 @@ rmarkdown::output_metadata$set(rsc_output_files = list(fname))
 ## Email
 
 This report also produces an email that is sent to key stakeholders with summary
-information if the price change is above 50 cents. 
+information if the daily change exceeds 1%.
 
 ```{r send_email, warning = FALSE, message = FALSE, echo = TRUE}
-# Calculate the total change
-close <- Cl(xts::last(prices, n = 2))
-diff <- round(as.numeric(close[2]) - as.numeric(close[1]), 2)
-subject <- sprintf("TSLA is %s today by $%g!", 
-        ifelse(diff > 0,"up", "down"), 
-        abs(diff))
+subject <- sprintf("GSPC is %s by %g points (%s)",
+        ifelse(change > 0, "up", "down"),
+        abs(change),
+        format(latest_date, "%B %d, %Y"))
 
-# If the change is above a certain threshold, send an email to stake holders
-# with key results embedded directly in the email
-if (abs(diff) > 0.5) {
+# If the change exceeds the threshold (1% by default), send an email to
+# stakeholders with key results embedded directly in the email. Adjust the
+# threshold below to control how large a move triggers a notification.
+if (pct_change > 1) {
   render_connect_email(input = "stock-report-email.Rmd") %>%
   attach_connect_email(
     subject = subject,

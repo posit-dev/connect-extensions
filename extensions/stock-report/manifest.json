@@ -12,11 +12,12 @@
   "extension": {
     "name": "stock-report",
     "title": "Automated Stock Report",
-    "description": "This R Markdown document shows how to automate regular updates to a PDF. The report code also generates a custom email, re-using the plots and putting the results where stakeholders live - their inbox.",
+    "description": "This R Markdown document shows how to automate a stock market report. It reads cached data by default, with an optional step to refresh from a live source. The report code also generates a custom email when the index moves significantly, summarizing the latest results and putting them where stakeholders live - their inbox.",
     "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/stock-report",
     "category": "example",
+    "tags": ["r"],
     "minimumConnectVersion": "2025.04.0",
-    "version": "1.0.0"
+    "version": "1.0.1"
   },
   "environment": {
     "r": {
@@ -2444,13 +2445,16 @@
   },
   "files": {
     "README.md": {
-      "checksum": "9d1931681b382f8d13ca15dd662d9a85"
+      "checksum": "04d93562d9607baac265d53f8af3641b"
+    },
+    "gspc.csv": {
+      "checksum": "c924c5aa9469cc2a4bcf26cd7f0b2a2e"
     },
     "stock-report-email.Rmd": {
-      "checksum": "787863007ff7980185da3ab02d63998e"
+      "checksum": "3c832e55064016219eaf53f48e9bc75d"
     },
     "stock-report.Rmd": {
-      "checksum": "3ff744bbff6ab01ff9f74a3eff0fed9e"
+      "checksum": "e84462b1203bb912ace063602af2ea04"
     }
   },
   "users": null
