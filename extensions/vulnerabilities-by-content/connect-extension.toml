@@ -1,0 +1,4 @@
+name = "connect-extension-vulnerabilities-by-content"
+title = "Find Content Vulnerabilities by Content"
+description = "Connect Extension: Find Content Vulnerabilities by Content"
+access_type = "logged_in"
