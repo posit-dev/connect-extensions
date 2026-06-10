@@ -715,13 +715,13 @@
     {
       "name": "quarto-stock-report-python",
       "title": "Quarto Stock Report using Python",
-      "description": "An example of how you might automate regular updates using a data source",
+      "description": "This stock report is generated using Quarto and Python. It is an example of how you might automate regular updates using a data source. It reads cached data by default, which can be refreshed from a live source. The report also generates a custom email, sharing the results directly to stakeholders.",
       "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/quarto-stock-report-python",
       "category": "example",
       "latestVersion": {
-        "version": "1.0.2",
-        "released": "2026-06-05T14:41:11Z",
-        "url": "https://github.com/posit-dev/connect-extensions/releases/download/quarto-stock-report-python%40v1.0.2/quarto-stock-report-python.tar.gz",
+        "version": "1.0.3",
+        "released": "2026-06-09T18:02:14Z",
+        "url": "https://github.com/posit-dev/connect-extensions/releases/download/quarto-stock-report-python%40v1.0.3/quarto-stock-report-python.tar.gz",
         "minimumConnectVersion": "2025.04.0",
         "requiredEnvironment": {
           "python": {
@@ -733,6 +733,20 @@
         }
       },
       "versions": [
+        {
+          "version": "1.0.3",
+          "released": "2026-06-09T18:02:14Z",
+          "url": "https://github.com/posit-dev/connect-extensions/releases/download/quarto-stock-report-python%40v1.0.3/quarto-stock-report-python.tar.gz",
+          "minimumConnectVersion": "2025.04.0",
+          "requiredEnvironment": {
+            "python": {
+              "requires": "~=3.9"
+            },
+            "quarto": {
+              "requires": "~=1.4"
+            }
+          }
+        },
         {
           "version": "1.0.2",
           "released": "2026-06-05T14:41:11Z",
@@ -776,17 +790,20 @@
           }
         }
       ],
-      "tags": []
+      "tags": [
+        "quarto",
+        "python"
+      ]
     },
     {
       "name": "quarto-stock-report-r",
       "title": "Quarto Stock Report using R",
-      "description": "This stock report is generated using Quarto and R. It is an example of how you might automate regular updates using a data source. The report also generates a custom email, sharing the results directly to stakeholders.",
+      "description": "This stock report is generated using Quarto and R. It is an example of how you might automate regular updates using a data source. It reads cached data by default, which can be refreshed from a live source. The report also generates a custom email, sharing the results directly to stakeholders.",
       "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/quarto-stock-report-r",
       "latestVersion": {
-        "version": "1.0.1",
-        "released": "2026-06-05T14:41:13Z",
-        "url": "https://github.com/posit-dev/connect-extensions/releases/download/quarto-stock-report-r%40v1.0.1/quarto-stock-report-r.tar.gz",
+        "version": "1.0.2",
+        "released": "2026-06-09T18:02:07Z",
+        "url": "https://github.com/posit-dev/connect-extensions/releases/download/quarto-stock-report-r%40v1.0.2/quarto-stock-report-r.tar.gz",
         "minimumConnectVersion": "2025.04.0",
         "requiredEnvironment": {
           "quarto": {
@@ -798,6 +815,20 @@
         }
       },
       "versions": [
+        {
+          "version": "1.0.2",
+          "released": "2026-06-09T18:02:07Z",
+          "url": "https://github.com/posit-dev/connect-extensions/releases/download/quarto-stock-report-r%40v1.0.2/quarto-stock-report-r.tar.gz",
+          "minimumConnectVersion": "2025.04.0",
+          "requiredEnvironment": {
+            "quarto": {
+              "requires": "~=1.4"
+            },
+            "r": {
+              "requires": "~=4.4"
+            }
+          }
+        },
         {
           "version": "1.0.1",
           "released": "2026-06-05T14:41:13Z",
@@ -827,7 +858,10 @@
           }
         }
       ],
-      "tags": [],
+      "tags": [
+        "quarto",
+        "r"
+      ],
       "category": "example"
     },
     {

@@ -2,7 +2,7 @@
 
 ## About this example
 
-This R Markdown document shows how to automate regular updates to a PDF. The report code also generates a custom email, re-using the plots and putting the results where stakeholders live - their inbox.
+This R Markdown document shows how to automate a stock market report. It reads cached data by default, with an optional step to refresh from a live source. The report code also generates a custom email when the index moves significantly, summarizing the latest results and putting them where stakeholders live - their inbox.
 
 
 ## Learn more

@@ -16,13 +16,14 @@ email-preview: true
 #| echo: true
 
 import pandas as pd
-import datetime
 ```
 
 ```{python}
 #| eval: false
 #| echo: false
-# set eval: true to fetch updated data
+# Cached data (gspc.csv) is used by default. To refresh it, set the `eval`
+# option above to true to pull fresh data from Yahoo Finance, render once,
+# then set it back to false.
 import yfinance as yf
 spx = yf.Ticker("^GSPC")
 hist = spx.history("5y")
@@ -32,7 +33,7 @@ hist.to_csv("gspc.csv")
 ```{python}
 hist = pd.read_csv("gspc.csv", index_col=0)
 hist.index = pd.to_datetime(hist.index, utc=True)
-hist['Change'] = hist['Close'] - hist['Open']
+hist['Change'] = hist['Close'].diff()
 
 latest = hist.index[-1]
 days_90 = latest - pd.to_timedelta("90D")
@@ -56,12 +57,14 @@ data=[
 
 df = pd.DataFrame(
     data,
-    columns=['High', 'Low', 'Avg Volume'],
+    columns=['High', 'Low', 'Volume'],
     index=['Most Recent Trading Day', '52-Week'])
 df
 ```
 
 ### Price History
+
+The price history is read from a cached `gspc.csv` file, which can be refreshed from Yahoo Finance.
 
 ```{python}
 #| echo: false
@@ -79,10 +82,9 @@ _ = hist['Close'].plot(grid=True)
 hist
 ```
 
-## Legacy Information
+## Downloadable Data
 
-This report also produces a CSV file containing recent price data, which may
-be used in other analysis.
+This report also writes the recent data to a CSV file and includes it as a downloadable attachment, so stakeholders can grab the underlying numbers.
 
 ```{python}
 #| echo: false
@@ -111,7 +113,7 @@ abschange = abs(change)
 updown = "up"
 if change < 0:
     updown = "down"
-print(f"GSPC is {updown} today by ${abschange:.2f}")
+print(f"GSPC is {updown} by {abschange:.2f} points ({latest:%B %d, %Y})")
 ```
 :::
 
@@ -121,7 +123,7 @@ Hello Team,
 #| echo: false
 #| output: asis
 
-print(f"Here are the latest stock prices for **GSPC** as of {datetime.date.today()}:")
+print(f"Here are the latest **GSPC** index levels as of {latest:%B %d, %Y}:")
 ```
 
 ```{python}

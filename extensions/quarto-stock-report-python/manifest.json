@@ -7,11 +7,12 @@
   "extension": {
     "name": "quarto-stock-report-python",
     "title": "Quarto Stock Report using Python",
-    "description": "An example of how you might automate regular updates using a data source",
+    "description": "This stock report is generated using Quarto and Python. It is an example of how you might automate regular updates using a data source. It reads cached data by default, which can be refreshed from a live source. The report also generates a custom email, sharing the results directly to stakeholders.",
     "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/quarto-stock-report-python",
     "minimumConnectVersion": "2025.04.0",
     "category": "example",
-    "version": "1.0.2"
+    "tags": ["quarto", "python"],
+    "version": "1.0.4"
   },
   "environment": {
     "python": {
@@ -40,7 +41,7 @@
       "checksum": "35b4c4c58cce875b126683c525ad40f4"
     },
     "index.qmd": {
-      "checksum": "95442fe187e1119bae665846af98897a"
+      "checksum": "7eeaeddb32075ffea02ef77ada5b719b"
     },
     "gspc.csv": {
       "checksum": "f74c93cd12f334a4923d6fa4d81cdd1e"

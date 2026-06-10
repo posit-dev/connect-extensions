@@ -3,8 +3,9 @@
 ## About this example
 
 This stock report is generated using Quarto and Python. It is an example
-of how you might automate regular updates using a data source. The report
-also generates a custom email, sharing the results directly to
+of how you might automate regular updates using a data source. It reads
+cached data by default, which can be refreshed from a live source. The
+report also generates a custom email, sharing the results directly to
 stakeholders.
 
 

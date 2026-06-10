@@ -9,7 +9,7 @@ attachments:
 email-preview: true
 ---
 
-## Report for `^GSPC`
+## Report for GSPC
 
 ```{r, echo=TRUE, message=FALSE}
 library(DT)
@@ -19,7 +19,6 @@ library(quantmod)
 library(dplyr)
 library(plotly)
 library(xts)
-library(dotty)
 ```
 
 
@@ -27,7 +26,9 @@ library(dotty)
 #| eval: false
 #| echo: false
 
-# set eval: TRUE  fetch updated data
+# Cached data (gspc.csv) is used by default. To refresh it, set the `eval`
+# option above to true to pull fresh data from Yahoo Finance, render once,
+# then set it back to false.
 
 prices <- round(getSymbols("^GSPC", auto.assign = FALSE, src = "yahoo"), 2)
 close <- Cl(xts::last(prices))
@@ -47,15 +48,18 @@ readr::write_csv(prices_df, "gspc.csv")
 ```{r}
 prices_df <- readr::read_csv("gspc.csv")
 recent <- slice_max(prices_df, order_by = Date, n = 90)
-yest <- prices_df |> slice_max(order_by = Date, n = 1) |> select(close = GSPC.Close, open = GSPC.Open)
-.[close, open] <- yest
+latest_date <- max(prices_df$Date)
+
+last_two <- prices_df |> slice_max(order_by = Date, n = 2) |> arrange(Date)
+close <- last_two$GSPC.Close[2]
+change <- round(close - last_two$GSPC.Close[1], 2)
 ```
 
-The stock closed `r ifelse(close>open,'up','down')` at `r close` dollars per share yesterday.
+The index closed `r ifelse(change > 0, "up", "down")` at `r close` points.
 
 ### Price History
 
-The chart below is made with the `quantmod` and `plotly` R packages. An API returns all of the price history based on the stock tick symbol "GSPC.".
+The chart below is made with the `quantmod` and `plotly` R packages. The price history is read from a cached `gspc.csv` file, which can be refreshed from Yahoo Finance.
 
 
 ```{r build_plot, echo=TRUE, warning=FALSE, message=FALSE}
@@ -104,21 +108,20 @@ subplot(
 
 ### Raw Data
 
-The table below displays the daily price data for the stock. A concise, interactive table is created with the `DT` package.
+The table below displays the daily price data for the index, with volume shown in millions. A concise, interactive table is created with the `DT` package.
 
 
 ```{r show_data, echo=TRUE}
 recent %>%
   mutate(GSPC.Volume = GSPC.Volume / 1000000) %>%
   datatable() %>%
-  formatCurrency(c("GSPC.Open", "GSPC.High", "GSPC.Low", "GSPC.Close"), digits = 2) %>%
+  formatRound(c("GSPC.Open", "GSPC.High", "GSPC.Low", "GSPC.Close"), digits = 2) %>%
   formatRound("GSPC.Volume", digits = 0)
 ```
 
-## Legacy Information
+## Downloadable Data
 
-This report also produces a CSV file containing recent price data, which may
-be used in other analysis.
+This report also writes the recent data to a CSV file and includes it as a downloadable attachment, so stakeholders can grab the underlying numbers.
 
 ```{r write_csv, echo = FALSE, include = FALSE}
 write.csv(recent, file = "data.csv")
@@ -134,18 +137,10 @@ information.
 ::: {.email}
 
 ```{r compute_subject, warning = FALSE, message = FALSE, echo = FALSE}
-# Calculate the total change
-
-diff <- prices_df |>
-  slice_max(order_by = Date, n = 2) |>
-  mutate(chg = GSPC.Close - lag(GSPC.Close, order_by = Date)) |>
-  pull(chg)
-subject <- sprintf("GSPC is %s today by $%g!",
-        ifelse(diff[1] > 0,"up", "down"),
-        abs(diff[1]))
-
-# ideally, we would always compute the email content but
-# suppress its scheduled sending only when (abs(diff) > 0.5)
+subject <- sprintf("GSPC is %s by %g points (%s)",
+        ifelse(change > 0, "up", "down"),
+        abs(change),
+        format(latest_date, "%B %d, %Y"))
 ```
 
 ::: {.subject}
@@ -156,15 +151,16 @@ subject <- sprintf("GSPC is %s today by $%g!",
 
 Hello Team,
 
-Here are the latest stock prices for **GSPC** as of `r Sys.Date()`:
+Here are the latest **GSPC** index levels as of `r format(latest_date, "%B %d, %Y")`:
 
 ```{r, echo = FALSE}
 price_new <- prices_df |>
+  arrange(Date) |>
+  mutate(change = GSPC.Close - lag(GSPC.Close)) |>
   slice_tail(n = 10) |>
-  select(Date, open = GSPC.Open, close = GSPC.Close) |>
-  mutate(change = close - open)
+  select(Date, open = GSPC.Open, close = GSPC.Close, change)
 
-# include a table with the stock prices
+# include a table with the index levels
 format_table(
     x = as.data.frame(tail(price_new)),
     list(
@@ -187,7 +183,7 @@ ggplot(recent) +
   geom_smooth() +
   theme_fivethirtyeight() +
   labs(
-    title = sprintf("%s Price Adjusted", "GSPC")
+    title = sprintf("%s Adjusted Close", "GSPC")
   )
 ```
 
