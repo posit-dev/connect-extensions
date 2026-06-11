@@ -87,7 +87,7 @@ jobs:
   # Run Connect integration tests for all packaged extensions
   integration-tests:
     needs: [collect-packaged]
-    if: fromJSON(needs.collect-packaged.outputs.extensions) != '[]'
+    if: needs.collect-packaged.outputs.extensions != '[]'
     uses: ./.github/workflows/connect-integration-tests.yml
     with:
       extensions: ${{ needs.collect-packaged.outputs.extensions }}
