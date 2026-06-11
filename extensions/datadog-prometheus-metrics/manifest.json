@@ -15,7 +15,7 @@
   },
   "files": {
     "requirements.txt": {
-      "checksum": "9855f69d0437096286851bae43b2eceb"
+      "checksum": "0a1dd4e0e8f73b6abdfb9a54e7bb69bf"
     },
     "app.py": {
       "checksum": "96b60bc4e32f2b4d809207ec6d2a880d"
@@ -34,5 +34,10 @@
     "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/datadog-prometheus-metrics",
     "minimumConnectVersion": "2025.04.0",
     "version": "0.0.0"
+  },
+  "environment": {
+    "python": {
+      "requires": ">=3.11"
+    }
   }
 }

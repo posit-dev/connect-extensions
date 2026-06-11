@@ -15,12 +15,12 @@
   },
   "environment": {
     "python": {
-      "requires": ">=3.8, <4"
+      "requires": ">=3.11"
     }
   },
   "files": {
     "requirements.txt": {
-      "checksum": "ad96c76e9e6206cb681729471b4498cd"
+      "checksum": "7575c50b6cd345ccdc7b378a758ff80e"
     },
     ".env": {
       "checksum": "75cd03c78f5f75e94c02d7ecb82a157a"

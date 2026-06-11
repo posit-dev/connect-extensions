@@ -1,0 +1,116 @@
+name: Weekly Integration Tests
+
+# Runs integration tests for ALL extensions against all compatible Connect
+# versions. Catches regressions from upcoming Connect releases even when
+# extension code hasn't changed.
+
+on:
+  schedule:
+    - cron: '0 6 * * 1' # Monday at 6am UTC
+  workflow_dispatch:
+
+jobs:
+  # Discover all extensions that have a manifest.json
+  discover-extensions:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      extensions: ${{ steps.list.outputs.extensions }}
+    steps:
+      - uses: actions/checkout@v6
+
+      - id: list
+        run: |
+          extensions=$(find extensions -maxdepth 1 -mindepth 1 -type d -printf '%f\n' \
+            | while read -r ext; do
+                if jq -e '.extension.minimumConnectVersion' "extensions/$ext/manifest.json" > /dev/null 2>&1; then
+                  echo "$ext"
+                fi
+              done \
+            | jq -R -s -c 'split("\n") | map(select(length > 0))')
+          echo "Found $(echo "$extensions" | jq length) extensions"
+          echo "extensions=$extensions" >> $GITHUB_OUTPUT
+
+  # Lint and package all extensions
+  package-extensions:
+    needs: [discover-extensions]
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        extension: ${{ fromJSON(needs.discover-extensions.outputs.extensions) }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: ./.github/actions/lint-extension
+        with:
+          extension-name: ${{ matrix.extension }}
+
+      - uses: ./.github/actions/package-extension
+        with:
+          extension-name: ${{ matrix.extension }}
+
+      - name: Mark successful package
+        run: echo "${{ matrix.extension }}" >> ${{ matrix.extension }}.packaged.successfully
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.extension }}.packaged.successfully
+          path: ${{ matrix.extension }}.packaged.successfully
+          retention-days: 1
+
+  # Collect successfully packaged extensions
+  collect-packaged:
+    needs: package-extensions
+    if: always()
+    runs-on: ubuntu-latest
+    outputs:
+      extensions: ${{ steps.collect.outputs.extensions }}
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: "*.packaged.successfully"
+          path: packages
+          merge-multiple: true
+
+      - id: collect
+        run: |
+          extensions="[]"
+          if [ -d "packages" ]; then
+            extensions=$(ls packages/*.packaged.successfully 2>/dev/null \
+              | xargs -I {} basename {} .packaged.successfully \
+              | jq -R -s -c 'split("\n") | map(select(length > 0))')
+          fi
+          echo "Successfully packaged: $extensions"
+          echo "extensions=$extensions" >> $GITHUB_OUTPUT
+
+  # Run Connect integration tests for all packaged extensions
+  integration-tests:
+    needs: [collect-packaged]
+    if: needs.collect-packaged.outputs.extensions != '[]'
+    uses: ./.github/workflows/connect-integration-tests.yml
+    with:
+      extensions: ${{ needs.collect-packaged.outputs.extensions }}
+    secrets: inherit
+
+  # Notify Slack on failure (scheduled runs only)
+  slack-notification:
+    needs: [collect-packaged, integration-tests]
+    if: >-
+      always() &&
+      github.event_name == 'schedule' &&
+      (failure() || needs.integration-tests.result == 'skipped')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Notify Slack of CI failure
+        uses: slackapi/slack-github-action@v2.1.1
+        with:
+          webhook: ${{ secrets.SLACK_WEBHOOK }}
+          webhook-type: incoming-webhook
+          payload: |
+            text: ":x: connect-extensions weekly integration tests failed"
+            blocks:
+              - type: section
+                text:
+                  type: mrkdwn
+                  text: ":x: *connect-extensions weekly integration tests failed*\n\nView run: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"

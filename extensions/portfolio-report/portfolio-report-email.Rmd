@@ -9,7 +9,7 @@ Here is information on the **`r params$portfolio`** as of `r Sys.Date()`:
 
 ```{r}
 # embed a table with some of the numeric data in the email 
-sign_formatter <- formatter("span",
+sign_formatter <- formattable::formatter("span",
   style = x ~ formattable::style(color = ifelse(x > 0, "green",
     ifelse(x < 0, "red", "black")
   ))

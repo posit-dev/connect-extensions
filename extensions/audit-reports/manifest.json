@@ -47,5 +47,10 @@
     "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/audit-reports",
     "minimumConnectVersion": "2025.04.0",
     "version": "0.0.0"
+  },
+  "environment": {
+    "python": {
+      "requires": "~=3.9"
+    }
   }
 }

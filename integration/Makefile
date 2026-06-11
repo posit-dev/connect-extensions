@@ -1,35 +1,20 @@
 # Shell settings
 SHELL := /bin/bash
 
-# Environment settings
-ENV ?= dev
-
-# Project settings
-PROJECT_NAME := connect-extensions
-
 # Python settings
-PYTHON ?= $(shell command -v python || command -v python3)
 UV ?= uv
 # Read UV version from pyproject.toml with more portable command
-UV_VERSION ?= $(shell grep 'required-version' pyproject.toml 2>/dev/null | sed -E 's/.*required-version = "([^"]+)".*/\1/' || echo "0.6.14")
+UV_VERSION ?= $(shell grep 'required-version' pyproject.toml 2>/dev/null | sed -E 's/.*required-version = "([^"]+)".*/\1/' || echo ">=0.6.14")
 # uv defaults virtual environment to `$VIRTUAL_ENV` if set; otherwise .venv
 VIRTUAL_ENV ?= .venv
 UV_LOCK := uv.lock
 
-# Docker settings
-DOCKER_COMPOSE ?= docker compose
-DOCKER_CONNECT_IMAGE ?= rstudio/rstudio-connect
-DOCKER_PROJECT_IMAGE_TAG ?= $(PROJECT_NAME):latest
+# with-connect settings
+WITH_CONNECT ?= with-connect
+LICENSE_FILE ?= ./license.lic
+
+# Extension settings
 EXTENSION_NAME ?=
-
-# Docker image settings specifically for the preview version
-preview_DOCKER_CONNECT_IMAGE := rstudio/rstudio-connect-preview
-preview_DOCKER_CONNECT_IMAGE_TAG := dev-jammy-daily
-
-CONNECT_SERVER ?= http://connect:3939
-
-# Connect bootstrap secret key
-CONNECT_BOOTSTRAP_SECRETKEY ?= $(shell head -c 32 /dev/random | base64)
 
 # pytest settings
 PYTEST_ARGS ?= "-s"
@@ -41,49 +26,38 @@ PYTEST_ARGS ?= "-s"
 .PHONY: \
 	$(CONNECT_VERSIONS) \
 	all \
-	build \
 	clean \
-	debug-env \
 	dev \
-	docker-deps \
-	down \
-	down-% \
-	down-connect-only \
 	ensure-lockfile \
 	ensure-uv \
 	help \
 	latest \
 	package-extension \
-	preview \
-	print-versions \
-	set-bootstrap-admin-email \
-	test \
-	up \
-	up-% \
-	up-connect-only
+	print-versions
 
 
-# All versions starting with the first Connect version that fully supports extensions and version matching
-# Note connect-preview is the same version in the `preview` target. It is included here as part of the full list of all 
-# possible versions to test against in CI or when using the `all` target.
+# All versions starting with the first Connect version that fully supports extensions and version matching.
+# The `preview` entry maps to the with-connect preview image.
+# Note: every extension's minimumConnectVersion must appear in this list (CI validates this).
 CONNECT_VERSIONS := \
-	connect-preview \
-	2025.07.0 \
-	2025.06.0 \
-	2025.05.0 \
+	preview \
+	release \
+	2026.04.1 \
+	2026.03.1 \
+	2026.02.0 \
 	2025.04.0
 
 
-# Compute the latest official release version (excludes connect-preview)
-LATEST_VERSION := $(firstword $(filter-out connect-preview,$(CONNECT_VERSIONS)))
+# Compute the latest pinned version (excludes preview and release)
+LATEST_VERSION := $(firstword $(filter-out preview release,$(CONNECT_VERSIONS)))
 
 
-# Ensure uv.lock file exists and dev dependencies are installed, beware circular references since it calls `dev`
+# Ensure uv.lock file exists and dev dependencies are installed
 $(UV_LOCK): dev
 	$(UV) lock
 
 
-# Install dependencies for Connect integration tests
+# Install dependencies for integration tests
 dev: ensure-uv
 	$(UV) pip install --upgrade -e .
 
@@ -96,57 +70,18 @@ ensure-lockfile:
 	fi
 
 
-# Create virtualenv for Connect integration tests
+# Create virtualenv
 $(VIRTUAL_ENV):
 	@echo "Creating virtualenv at $(VIRTUAL_ENV)"
 	$(UV) venv $(VIRTUAL_ENV)
 
 
-# Output environment debug information
-debug-env:
-	@echo "=== ENVIRONMENT DEBUG INFO ==="; \
-	echo "Current directory: $$(pwd)"; \
-	echo "Python executable: $$(which python)"; \
-	echo "Python version: $$(python --version)"; \
-	echo "UV executable: $$(which uv)"; \
-	echo "UV version: $$(uv --version 2>&1)"; \
-	echo "VIRTUAL_ENV: $(VIRTUAL_ENV)"; \
-	echo "Does .venv exist? $$(test -d $(VIRTUAL_ENV) && echo 'YES' || echo 'NO')"; \
-	echo "UV_LOCK: $(UV_LOCK)"; \
-	echo "Does uv.lock exist? $$(test -f $(UV_LOCK) && echo 'YES' || echo 'NO')"; \
-	echo "================================"
-
-
-# Ensure UV and virtualenv are available for Connect integration tests
+# Ensure UV and virtualenv are available
 ensure-uv:
 	@if ! command -v $(UV) >/dev/null; then \
-		$(PYTHON) -m ensurepip && $(PYTHON) -m pip install "uv == $(UV_VERSION)"; \
+		python -m ensurepip && python -m pip install "uv$(UV_VERSION)"; \
 	fi
-		
-	@echo "Creating virtual environment without redirection..."
 	@$(MAKE) $(VIRTUAL_ENV)
-	
-	@echo "=== Checking venv Python interpreter ==="
-	@if [ -f "$(VIRTUAL_ENV)/bin/python3" ]; then \
-		echo "Python3 interpreter exists at $(VIRTUAL_ENV)/bin/python3"; \
-		ls -la $(VIRTUAL_ENV)/bin/python3; \
-	else \
-		echo "ERROR: Python3 interpreter NOT found at $(VIRTUAL_ENV)/bin/python3"; \
-		echo "Creating it manually"; \
-		mkdir -p $(VIRTUAL_ENV)/bin; \
-		ln -sf $$(which python) $(VIRTUAL_ENV)/bin/python3; \
-		chmod +x $(VIRTUAL_ENV)/bin/*; \
-		ls -la $(VIRTUAL_ENV)/bin/python3; \
-	fi
-		
-	echo "Installing UV in virtualenv"; \
-	$(UV) pip install "uv == $(UV_VERSION)" --quiet; \
-
-
-# Install dependencies in Docker for Connect integration tests
-docker-deps: ensure-uv ensure-lockfile
-	# Sync given the `uv.lock` file
-	$(UV) sync --frozen --no-install-project
 
 
 clean:
@@ -154,21 +89,25 @@ clean:
 	find . -type d -empty -delete
 
 
-# Run test suite for a specific Connect version.
+# Run test suite for a specific Connect version using with-connect.
 $(CONNECT_VERSIONS): %:
 	@if [ -z "$(EXTENSION_NAME)" ]; then \
 		echo "Error: EXTENSION_NAME is required. Usage: make <version> EXTENSION_NAME=<name>"; \
 		exit 1; \
 	fi
-	# Check if this is the preview version and use special settings
-	@if [ "$*" = "connect-preview" ]; then \
-		$(MAKE) EXTENSION_NAME=$(EXTENSION_NAME) \
-		DOCKER_CONNECT_IMAGE=$(preview_DOCKER_CONNECT_IMAGE) \
-		DOCKER_CONNECT_IMAGE_TAG=$(preview_DOCKER_CONNECT_IMAGE_TAG) \
-		down-$* up-$*; \
-	else \
-		$(MAKE) EXTENSION_NAME=$(EXTENSION_NAME) down-$* up-$*; \
-	fi
+	mkdir -p reports logs
+	$(WITH_CONNECT) --version $* --license $(LICENSE_FILE) \
+		-e CONNECT_SERVER_EMAILPROVIDER=None \
+		-e CONNECT_APPLICATIONS_PACKAGEAUDITINGENABLED=true \
+		-- bash -c '\
+			set -o pipefail; \
+			cd $(CURDIR) && \
+			$(UV) run tests/posit/connect/set_bootstrap_admin_email.py && \
+			EXTENSION_NAME=$(EXTENSION_NAME) \
+			BUNDLE_BASE_PATH=$(CURDIR)/bundles \
+			$(UV) run pytest $$(echo $(PYTEST_ARGS)) \
+				--junit-xml=./reports/$*.xml \
+			2>&1 | tee ./logs/$*.log'
 
 
 # Run test suite against all Connect versions.
@@ -192,126 +131,12 @@ latest:
 	$(MAKE) $(LATEST_VERSION) EXTENSION_NAME=$(EXTENSION_NAME)
 
 
-# Run test suite against preview Connect version.
-preview:
-	@if [ -z "$(EXTENSION_NAME)" ]; then \
-		echo "Error: EXTENSION_NAME is required."; \
-		echo "Usage: make preview EXTENSION_NAME=<name>"; \
-		exit 1; \
-	fi
-	@echo "Running tests with preview version"
-	$(MAKE) \
-	EXTENSION_NAME=$(EXTENSION_NAME) \
-	DOCKER_CONNECT_IMAGE=$(preview_DOCKER_CONNECT_IMAGE) \
-	DOCKER_CONNECT_IMAGE_TAG=$(preview_DOCKER_CONNECT_IMAGE_TAG) \
-	down-preview up-preview
-
-
-# Build Dockerfile
-build: dev
-	BUILDKIT_PROGRESS=plain docker build -t $(DOCKER_PROJECT_IMAGE_TAG) .
-
-
-# Tear down resources.
-down: $(CONNECT_VERSIONS:%=down-%)
-down-%: DOCKER_CONNECT_IMAGE_TAG=jammy-$*
-down-%: CONNECT_VERSION=$*
-down-%:
-	# Capture Connect logs before shutdown
-	mkdir -p logs
-	$(DOCKER_COMPOSE) -p $(PROJECT_NAME)-$(subst .,-,$(CONNECT_VERSION)) logs connect > logs/connect-$(CONNECT_VERSION).log || true
-
-	CONNECT_BOOTSTRAP_SECRETKEY=$(CONNECT_BOOTSTRAP_SECRETKEY) \
-	CONNECT_VERSION=$* \
-	DOCKER_CONNECT_IMAGE_TAG=$(DOCKER_CONNECT_IMAGE_TAG) \
-	DOCKER_CONNECT_IMAGE=$(DOCKER_CONNECT_IMAGE) \
-	DOCKER_PROJECT_IMAGE_TAG=$(DOCKER_PROJECT_IMAGE_TAG) \
-	PYTEST_ARGS="$(PYTEST_ARGS)" \
-	$(DOCKER_COMPOSE) -p $(PROJECT_NAME)-$(subst .,-,$(CONNECT_VERSION)) down -v
-
-
-# Create, start, and run Docker Compose.
-up: $(CONNECT_VERSIONS:%=up-%)
-up-%: CONNECT_VERSION=$*
-up-%: DOCKER_CONNECT_IMAGE_TAG=jammy-$*
-up-%: build
-	CONNECT_BOOTSTRAP_SECRETKEY=$(CONNECT_BOOTSTRAP_SECRETKEY) \
-	CONNECT_VERSION=$* \
-	EXTENSION_NAME=$(EXTENSION_NAME) \
-	DOCKER_CONNECT_IMAGE_TAG=$(DOCKER_CONNECT_IMAGE_TAG) \
-	DOCKER_CONNECT_IMAGE=$(DOCKER_CONNECT_IMAGE) \
-	DOCKER_PROJECT_IMAGE_TAG=$(DOCKER_PROJECT_IMAGE_TAG) \
-	PYTEST_ARGS="$(PYTEST_ARGS)" \
-	$(DOCKER_COMPOSE) -p $(PROJECT_NAME)-$(subst .,-,$(CONNECT_VERSION)) up -V --abort-on-container-exit --no-build
-
-
-# Start just the Connect service without tests, useful for testing the infrastructure and containers.
-# Usage: make up-connect-only CONNECT_VERSION=2025.04.0
-up-connect-only:
-	@if [ -z "$(CONNECT_VERSION)" ]; then \
-		echo "Error: CONNECT_VERSION is required."; \
-		echo "Usage: make up-connect-only CONNECT_VERSION=<version>"; \
-		exit 1; \
-	fi
-	@echo "Starting only Connect $(CONNECT_VERSION) in detached mode..."
-	@# Set appropriate image tag based on version
-	@if [ "$(CONNECT_VERSION)" = "preview" ] || [ "$(CONNECT_VERSION)" = "connect-preview" ]; then \
-		DOCKER_CONNECT_IMAGE_TO_USE="$(preview_DOCKER_CONNECT_IMAGE)"; \
-		DOCKER_CONNECT_IMAGE_TAG_TO_USE="$(preview_DOCKER_CONNECT_IMAGE_TAG)"; \
-	else \
-		DOCKER_CONNECT_IMAGE_TO_USE="$(DOCKER_CONNECT_IMAGE)"; \
-		DOCKER_CONNECT_IMAGE_TAG_TO_USE="jammy-$(CONNECT_VERSION)"; \
-	fi; \
-	\
-	EXTENSION_NAME=dummy \
-	PYTEST_ARGS="$(PYTEST_ARGS)" \
-	DOCKER_PROJECT_IMAGE_TAG="$(DOCKER_PROJECT_IMAGE_TAG)" \
-	CONNECT_BOOTSTRAP_SECRETKEY="$(CONNECT_BOOTSTRAP_SECRETKEY)" \
-	DOCKER_CONNECT_IMAGE=$$DOCKER_CONNECT_IMAGE_TO_USE \
-	DOCKER_CONNECT_IMAGE_TAG=$$DOCKER_CONNECT_IMAGE_TAG_TO_USE \
-	$(DOCKER_COMPOSE) -f compose.yaml -p $(PROJECT_NAME)-$(subst .,-,$(CONNECT_VERSION)) \
-		up -d connect mailhog
-	
-	@echo "Connect is now running!"
-	@echo "- Web UI: http://localhost:3939"
-	@echo "- Admin: http://localhost:3939/__admin__"
-	@echo "- Mail UI: http://localhost:8025"
-	@echo ""
-	@echo "To stop it: make down-connect-only VERSION=$(CONNECT_VERSION)"
-
-
-# Stop just the Connect service
-# Usage: make down-connect-only CONNECT_VERSION=2025.04.0
-down-connect-only:
-	@if [ -z "$(CONNECT_VERSION)" ]; then \
-			echo "Error: CONNECT_VERSION is required."; \
-			echo "Usage: make down-connect-only CONNECT_VERSION=<version>"; \
-			exit 1; \
-	fi
-	@echo "Stopping Connect $(CONNECT_VERSION)..."
-	@# Set appropriate image tag based on version
-	@if [ "$(CONNECT_VERSION)" = "preview" ] || [ "$(CONNECT_VERSION)" = "connect-preview" ]; then \
-			DOCKER_CONNECT_IMAGE_TO_USE="$(preview_DOCKER_CONNECT_IMAGE)"; \
-			DOCKER_CONNECT_IMAGE_TAG_TO_USE="$(preview_DOCKER_CONNECT_IMAGE_TAG)"; \
-	else \
-			DOCKER_CONNECT_IMAGE_TO_USE="$(DOCKER_CONNECT_IMAGE)"; \
-			DOCKER_CONNECT_IMAGE_TAG_TO_USE="jammy-$(CONNECT_VERSION)"; \
-	fi; \
-	\
-	CONNECT_BOOTSTRAP_SECRETKEY="$(CONNECT_BOOTSTRAP_SECRETKEY)" \
-	DOCKER_CONNECT_IMAGE=$$DOCKER_CONNECT_IMAGE_TO_USE \
-	DOCKER_CONNECT_IMAGE_TAG=$$DOCKER_CONNECT_IMAGE_TAG_TO_USE \
-	$(DOCKER_COMPOSE) -p $(PROJECT_NAME)-$(subst .,-,$(CONNECT_VERSION)) down -v connect mailhog
-	
-	@echo "Connect $(CONNECT_VERSION) stopped."
-
-
 # Show available versions
 print-versions:
 	@printf "%s\n" $(strip $(CONNECT_VERSIONS))
 
 
-# Package an extension into a tar.gz file and save it to the integrations bundles folder. This only works for simple extensions.
+# Package an extension into a tar.gz file and save it to the integrations bundles folder.
 # Usage: make package-extension EXTENSION_NAME=<extension-name>
 package-extension:
 	@if [ -z "$(EXTENSION_NAME)" ]; then \
@@ -327,15 +152,8 @@ package-extension:
 	fi
 	@mkdir -p ./bundles
 	@echo "Packaging extension: $(EXTENSION_NAME)"
-	@# Change directory to the parent and create tarball with relative paths
 	@pushd .. > /dev/null && tar -czf ./integration/bundles/$(EXTENSION_NAME).tar.gz -C ./extensions $(EXTENSION_NAME) && popd > /dev/null
-	@echo "✅ Package created: ./bundles/$(EXTENSION_NAME).tar.gz"
-
-
-# Set admin email using API. This target is used to setup the bootstrap admin user properly.
-set-bootstrap-admin-email:
-	@echo "Setting admin email in Connect..."
-	@$(UV) run tests/posit/connect/set_bootstrap_admin_email.py
+	@echo "Package created: ./bundles/$(EXTENSION_NAME).tar.gz"
 
 
 # Show help message.
@@ -345,16 +163,10 @@ help:
 	@echo "  latest           Run test suite for latest Connect version (requires EXTENSION_NAME)."
 	@echo "  preview          Run test suite for preview Connect version (requires EXTENSION_NAME)."
 	@echo "  <version>        Run test suite for specific Connect version (requires EXTENSION_NAME)."
-	@echo "  build            Build the Docker image without running tests."
-	@echo "  up               Start Docker Compose for all Connect versions."
-	@echo "  down             Tear down Docker resources for all Connect versions."
 	@echo "  clean            Clean up the project directory."
 	@echo "  print-versions   Show the available Connect versions."
 	@echo "  package-extension Package an extension into a tar.gz file."
-	@echo "  up-connect-only  Start only the Connect service (detached mode)."
-	@echo "  down-connect-only Stop only the Connect service."
 	@echo "  dev              Install dependencies for development"
-	@echo "  debug-env        Output environment debug information"
 	@echo "  help             Show this help message."
 	@echo
 	@echo "Required Parameters:"
@@ -363,34 +175,21 @@ help:
 	@echo "Common Usage:"
 	@echo "  make <target> EXTENSION_NAME=<name>"
 	@echo
+	@echo "Prerequisites:"
+	@echo "  - with-connect: uv tool install git+https://github.com/posit-dev/with-connect.git"
+	@echo "  - A valid Connect license file at ./license.lic"
+	@echo
 	@echo "Examples:"
 	@echo "  # Run tests for specific version:"
-	@echo "  make -C ./integration 2025.03.0 \\"
+	@echo "  make -C ./integration 2026.04.1 \\"
 	@echo "    EXTENSION_NAME=publisher-command-center"
 	@echo
 	@echo "  # Run tests for latest version:"
 	@echo "  make -C ./integration latest \\"
 	@echo "    EXTENSION_NAME=publisher-command-center"
 	@echo
-	@echo "  # Start only Connect service in detached mode:"
-	@echo "  make -C ./integration up-connect-only CONNECT_VERSION=2025.04.0"
-	@echo
 	@echo "Environment Variables:"
-	@echo "  DOCKER_COMPOSE           Command to invoke Docker Compose. Default: docker compose"
-	@echo "  DOCKER_CONNECT_IMAGE     Docker image name for Connect. Default: rstudio/rstudio-connect"
-	@echo "  DOCKER_PROJECT_IMAGE_TAG Docker image name and tag for the project image. Default: $(PROJECT_NAME):latest"
-	@echo "  EXTENSION_NAME           Name of the extension to test. Required."
-	@echo "  PYTEST_ARGS              Arguments to pass to pytest. Default: \"-s\""
-
-
-# Run tests. This target is invoked by the Docker compose file and run inside the tests container.
-test:
-	mkdir -p logs reports
-	$(SHELL) -c "set -o pipefail; \
-	CONNECT_VERSION=$(CONNECT_VERSION) \
-	EXTENSION_NAME=$(EXTENSION_NAME) \
-	export CONNECT_API_KEY=\$$($(UV) run rsconnect bootstrap -i -s $(CONNECT_SERVER) --raw); \
-	$(MAKE) set-bootstrap-admin-email && \
-	$(UV) run pytest \$$(echo $(PYTEST_ARGS)) --junit-xml=./reports/$(CONNECT_VERSION).xml | \
-	tee ./logs/$(CONNECT_VERSION).log; \
-	exit \$${PIPESTATUS[0]}"
+	@echo "  WITH_CONNECT  Command to invoke with-connect. Default: with-connect"
+	@echo "  LICENSE_FILE  Path to Connect license file. Default: ./license.lic"
+	@echo "  EXTENSION_NAME Name of the extension to test. Required."
+	@echo "  PYTEST_ARGS   Arguments to pass to pytest. Default: \"-s\""
