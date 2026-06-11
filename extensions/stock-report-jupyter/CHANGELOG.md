@@ -11,6 +11,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Updated Python package dependencies, including pandas 3.0 and matplotlib 3.10.
 
+### Fixed
+
+- Updated date parsing in the notebook for compatibility with pandas 3.0.
+
 ## [1.0.1] - 2026-06-04
 
 ### Changed
