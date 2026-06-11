@@ -36,3 +36,8 @@ uv.lock
 # Package info
 *.egg-info/
 .installed.cfg
+
+# Deployment files
+.posit/
+rsconnect/
+rsconnect-python/
