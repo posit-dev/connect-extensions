@@ -35,7 +35,7 @@ The historical trend is shown below:
 
 ```{r}
 # include a plot with the price data
-recent[, "GSPC.Adjusted"] %>%
+recent[, "GSPC.Adjusted"] |>
   autoplot() +
   geom_smooth() +
   theme_fivethirtyeight() +

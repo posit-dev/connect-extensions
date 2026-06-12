@@ -31,7 +31,6 @@ source = ColumnDataSource(dict(countries=[], years=[], percents=[]))
 
 
 # Markup header
-#
 header = Div(
     text="""
     <h1>Top 5% Income Share</h1>
@@ -43,12 +42,10 @@ header = Div(
 
 
 # Country multi-select input
-#
 countries_selector = MultiChoice(value=DEFAULT_COUNTRIES, options=countries)
 
 
 # Line plot of selected countries
-#
 plot = figure(title="Top 5% income share", x_axis_label="Year", y_axis_label="Percent")
 
 plot.multi_line(
@@ -61,7 +58,6 @@ plot.multi_line(
 
 
 # Data table of selected countries
-#
 table = DataTable(
     source=source,
     columns=[
@@ -84,7 +80,7 @@ def update():
         list(df["Percent"]) for name, df in grouped if name in selected_countries
     ]
     span = [
-        "%s - %s" % (df["Year"].min(), df["Year"].max())
+        f"{df['Year'].min()} - {df['Year'].max()}"
         for name, df in grouped
         if name in selected_countries
     ]

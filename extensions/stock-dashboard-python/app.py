@@ -1,5 +1,4 @@
-# -*- coding: utf-8 -*-
-import os
+from pathlib import Path
 
 import dash
 import dash_bootstrap_components as dbc
@@ -20,8 +19,7 @@ app = dash.Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP])
 
 # Fetch prices from local CSV using pandas
 prices = pd.read_csv(
-    os.path.join(os.path.dirname(__file__), "prices.csv"),
-    # index_col=0,
+    Path(__file__).parent / "prices.csv",
     parse_dates=True,
     date_format="%Y-%m-%d",
 )
@@ -256,7 +254,7 @@ def volume_figure_layout(selected_tickers, xaxis_range=None):
         a layout dict
     """
     layout = dict(xaxis={}, yaxis={})
-    layout["title"] = "Trading Volume (%s)" % (" & ").join(selected_tickers)
+    layout["title"] = f"Trading Volume ({' & '.join(selected_tickers)})"
     layout["yaxis"] = {"autorange": True}
     layout["yaxis"]["title"] = "Volume"
     layout["xaxis"]["title"] = "Trading Volume by Date"
@@ -298,7 +296,7 @@ def update_price_figure(tickers, price):
             for stock in tickers
         ],
         "layout": {
-            "title": "Stock Price - (%s)" % " & ".join(tickers),
+            "title": f"Stock Price - ({' & '.join(tickers)})",
             "xaxis": {"title": "Date"},
             "yaxis": {"title": "Price"},
         },

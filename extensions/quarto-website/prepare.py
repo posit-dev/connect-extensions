@@ -184,7 +184,6 @@ r = requests.get(
 r.raise_for_status()
 payload = r.json()
 
-# payload = payload[:100]
 listing = listing_items_from_content(payload)
 print(f"Fetched {len(listing)} items.")
 write_yaml("all.yaml", listing)
@@ -193,7 +192,7 @@ write_yaml("all.yaml", listing)
 # Otherwise, show the 20 most recent items.
 featured = []
 if featuredTags:
-    print("Featuring items having tags: %s" % ", ".join(featuredTags))
+    print(f"Featuring items having tags: {', '.join(featuredTags)}")
     featured = filter_listing(listing, featuredTags)
     print(f"Filtering by tags selected {len(featured)} items.")
 if not featured:

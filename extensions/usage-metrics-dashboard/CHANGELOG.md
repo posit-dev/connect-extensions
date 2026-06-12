@@ -5,6 +5,12 @@ All notable changes to the Usage Metrics Dashboard extension will be documented 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.15] - 2026-06-09
+
+### Changed
+
+- Replaced `sapply()` with `lapply()`. (#365)
+
 ## [1.0.10]
 
 - Added an asterisk to Unique Visitors to indicate if anonymous visits were present in the data, anonymous users are also counted as a single unique visitor for consistency. (#300)

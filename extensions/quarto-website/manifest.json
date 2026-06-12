@@ -12,7 +12,7 @@
     "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/quarto-website",
     "category": "example",
     "minimumConnectVersion": "2025.04.0",
-    "version": "1.0.0"
+    "version": "1.0.1"
   },
   "environment": {
     "python": {
@@ -45,7 +45,7 @@
       "checksum": "fdeb4cdd38c50ce72b8324025f918035"
     },
     "README.md": {
-      "checksum": "78cd66b73bab84b0eb5268a9589621c7"
+      "checksum": "76519f81e5eaeced29610a2bec37c8e5"
     },
     "_quarto.yml": {
       "checksum": "22223f7002cc62b09e3bf6965638fa60"
@@ -78,7 +78,7 @@
       "checksum": "29aa9ac0a2ce64b81b603fa7068ceea3"
     },
     "prepare.py": {
-      "checksum": "ee59f528bb01877c68c50e6fcc9dcba7"
+      "checksum": "74e470bba0a3634a9b7ae106afdd4c3f"
     }
   }
 }

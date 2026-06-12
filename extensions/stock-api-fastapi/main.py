@@ -1,7 +1,5 @@
-# -*- coding: utf-8 -*-
-import os
 from datetime import date
-from typing import List
+from pathlib import Path
 
 import numpy as np
 import pandas as pd
@@ -9,7 +7,7 @@ from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel, Field
 
 prices = pd.read_csv(
-    os.path.join(os.path.dirname(__file__), "prices.csv"),
+    Path(__file__).parent / "prices.csv",
     index_col=0,
     parse_dates=True,
 )
@@ -70,7 +68,7 @@ async def ticker(ticker: str):
     }
 
 
-@app.get("/stocks/{ticker}/history", response_model=List[Price])
+@app.get("/stocks/{ticker}/history", response_model=list[Price])
 async def history(ticker: str):
     validate_ticker(ticker)
 

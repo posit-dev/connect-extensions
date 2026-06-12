@@ -2616,10 +2616,10 @@
   },
   "files": {
     "app.R": {
-      "checksum": "43fd537653865993ff2fb5a3f963cdf1"
+      "checksum": "69ec0029acb50cb4bc05041bb35b88b8"
     },
     "R/connect_module.R": {
-      "checksum": "469dbae2ebdf431cad52f0ed98793366"
+      "checksum": "06b96d31139208ae8e231a4b9991e800"
     },
     "R/fetch_content.R": {
       "checksum": "1563f56cdbf699953ee2750fac9b560f"
@@ -2649,6 +2649,6 @@
     "requiredFeatures": [
       "OAuth Integrations"
     ],
-    "version": "1.0.3"
+    "version": "1.0.4"
   }
 }

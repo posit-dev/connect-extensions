@@ -13,15 +13,15 @@ valid_tickers <- c(
   Microsoft = "MSFT"
 )
 
-all_data <- readRDS("stock_data.rds") %>%
+all_data <- readRDS("stock_data.rds") |>
   as_tibble()
 
 get_price_data <- function(data, ticker = "AMZN", from = "2010-01-01") {
-  data %>%
+  data |>
     filter(
       ticker == {{ ticker }},
       date >= as.Date(from, format="%Y-%m-%d")
-    ) %>%
+    ) |>
     collect()
 }
 
@@ -63,10 +63,10 @@ price <- function(ticker = "AMZN") {
 #* @response 500 Bad ticker
 #* @response default Returns volatility for ticker
 volatility <- function(ticker = "AMZN") {
-  price <- get_price_data(all_data, ticker, "2010-01-01") %>%
-    select(date, adjusted) %>%
-    mutate(returns = (log(adjusted) - log(lag(adjusted)))) %>%
-    na.omit() %>%
+  price <- get_price_data(all_data, ticker, "2010-01-01") |>
+    select(date, adjusted) |>
+    mutate(returns = (log(adjusted) - log(lag(adjusted)))) |>
+    na.omit() |>
     summarize(volatility = var(returns))
 
   list(ticker = ticker, volatility = price$volatility)

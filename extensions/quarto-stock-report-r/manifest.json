@@ -32,7 +32,7 @@
     "category": "example",
     "minimumConnectVersion": "2025.04.0",
     "tags": ["quarto", "r"],
-    "version": "1.0.3"
+    "version": "1.0.4"
   },
   "packages": {
     "DT": {
@@ -2425,7 +2425,7 @@
       "checksum": "a335b9151c7b39bed18fd0f56928ce68"
     },
     "CHANGELOG.md": {
-      "checksum": "192ae6305174a5c867d045c7100aa38e"
+      "checksum": "6adb848a545277816a79a36437af87db"
     },
     "data.csv": {
       "checksum": "d64607673ef065841a9d355317ec8d7b"
@@ -2542,7 +2542,7 @@
       "checksum": "9841537ada57502f93950055a6ba4d2c"
     },
     "index.qmd": {
-      "checksum": "08453b92ddeed8746fb787f776af55ef"
+      "checksum": "23c946d002d1bb5ff00bde4ac50543da"
     },
     "README.md": {
       "checksum": "efd3d1462609ec79abf79f2f4eaac7c7"
