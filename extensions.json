@@ -402,9 +402,9 @@
       "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/portfolio-dashboard",
       "category": "example",
       "latestVersion": {
-        "version": "0.0.3",
-        "released": "2026-06-11T16:31:18Z",
-        "url": "https://github.com/posit-dev/connect-extensions/releases/download/portfolio-dashboard%40v0.0.3/portfolio-dashboard.tar.gz",
+        "version": "0.0.4",
+        "released": "2026-06-12T00:14:56Z",
+        "url": "https://github.com/posit-dev/connect-extensions/releases/download/portfolio-dashboard%40v0.0.4/portfolio-dashboard.tar.gz",
         "minimumConnectVersion": "2025.04.0",
         "requiredEnvironment": {
           "r": {
@@ -413,6 +413,17 @@
         }
       },
       "versions": [
+        {
+          "version": "0.0.4",
+          "released": "2026-06-12T00:14:56Z",
+          "url": "https://github.com/posit-dev/connect-extensions/releases/download/portfolio-dashboard%40v0.0.4/portfolio-dashboard.tar.gz",
+          "minimumConnectVersion": "2025.04.0",
+          "requiredEnvironment": {
+            "r": {
+              "requires": "~=4.4"
+            }
+          }
+        },
         {
           "version": "0.0.3",
           "released": "2026-06-11T16:31:18Z",
@@ -456,9 +467,9 @@
       "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/portfolio-report",
       "category": "example",
       "latestVersion": {
-        "version": "0.0.2",
-        "released": "2026-06-11T16:31:16Z",
-        "url": "https://github.com/posit-dev/connect-extensions/releases/download/portfolio-report%40v0.0.2/portfolio-report.tar.gz",
+        "version": "0.0.3",
+        "released": "2026-06-12T00:14:58Z",
+        "url": "https://github.com/posit-dev/connect-extensions/releases/download/portfolio-report%40v0.0.3/portfolio-report.tar.gz",
         "minimumConnectVersion": "2025.04.0",
         "requiredEnvironment": {
           "r": {
@@ -467,6 +478,17 @@
         }
       },
       "versions": [
+        {
+          "version": "0.0.3",
+          "released": "2026-06-12T00:14:58Z",
+          "url": "https://github.com/posit-dev/connect-extensions/releases/download/portfolio-report%40v0.0.3/portfolio-report.tar.gz",
+          "minimumConnectVersion": "2025.04.0",
+          "requiredEnvironment": {
+            "r": {
+              "requires": "~=4.4"
+            }
+          }
+        },
         {
           "version": "0.0.2",
           "released": "2026-06-11T16:31:16Z",
@@ -880,9 +902,9 @@
       "description": "This stock report is generated using Quarto and R. It is an example of how you might automate regular updates using a data source. It reads cached data by default, which can be refreshed from a live source. The report also generates a custom email, sharing the results directly to stakeholders.",
       "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/quarto-stock-report-r",
       "latestVersion": {
-        "version": "1.0.3",
-        "released": "2026-06-11T16:31:22Z",
-        "url": "https://github.com/posit-dev/connect-extensions/releases/download/quarto-stock-report-r%40v1.0.3/quarto-stock-report-r.tar.gz",
+        "version": "1.0.4",
+        "released": "2026-06-12T00:14:58Z",
+        "url": "https://github.com/posit-dev/connect-extensions/releases/download/quarto-stock-report-r%40v1.0.4/quarto-stock-report-r.tar.gz",
         "minimumConnectVersion": "2025.04.0",
         "requiredEnvironment": {
           "quarto": {
@@ -894,6 +916,20 @@
         }
       },
       "versions": [
+        {
+          "version": "1.0.4",
+          "released": "2026-06-12T00:14:58Z",
+          "url": "https://github.com/posit-dev/connect-extensions/releases/download/quarto-stock-report-r%40v1.0.4/quarto-stock-report-r.tar.gz",
+          "minimumConnectVersion": "2025.04.0",
+          "requiredEnvironment": {
+            "quarto": {
+              "requires": "~=1.4"
+            },
+            "r": {
+              "requires": "~=4.4"
+            }
+          }
+        },
         {
           "version": "1.0.3",
           "released": "2026-06-11T16:31:22Z",
@@ -960,13 +996,13 @@
     {
       "name": "quarto-website",
       "title": "Quarto Website",
-      "description": "A Quarto website that uses the Posit Connect Server API with Python to construct a dashboard presenting published content. Includes views showing featured and all content. Set the FEATURED_TAGS environment variable to feature content with a particular tag.",
+      "description": "This Quarto website uses the Posit Connect Server API together with Python to construct a dashboard that presents published content. Views showing featured and all content are included. Set the `FEATURED_TAGS` environment variable and feature content having a particular tag name.",
       "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/quarto-website",
       "category": "example",
       "latestVersion": {
-        "version": "1.0.0",
-        "released": "2025-05-14T12:56:14Z",
-        "url": "https://github.com/posit-dev/connect-extensions/releases/download/quarto-website%40v1.0.0/quarto-website.tar.gz",
+        "version": "1.0.1",
+        "released": "2026-06-12T00:15:02Z",
+        "url": "https://github.com/posit-dev/connect-extensions/releases/download/quarto-website%40v1.0.1/quarto-website.tar.gz",
         "minimumConnectVersion": "2025.04.0",
         "requiredEnvironment": {
           "python": {
@@ -978,6 +1014,20 @@
         }
       },
       "versions": [
+        {
+          "version": "1.0.1",
+          "released": "2026-06-12T00:15:02Z",
+          "url": "https://github.com/posit-dev/connect-extensions/releases/download/quarto-website%40v1.0.1/quarto-website.tar.gz",
+          "minimumConnectVersion": "2025.04.0",
+          "requiredEnvironment": {
+            "python": {
+              "requires": "~=3.8"
+            },
+            "quarto": {
+              "requires": "~=1.4"
+            }
+          }
+        },
         {
           "version": "1.0.0",
           "released": "2025-05-14T12:56:14Z",
@@ -1001,9 +1051,9 @@
       "description": "See the Python, R, and Quarto versions used by your content. Filter by version, content type, and usage to identify items that need updating. Quickly find content that uses end-of-life language versions.",
       "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/runtime-version-scanner",
       "latestVersion": {
-        "version": "1.0.3",
-        "released": "2026-06-11T16:28:41Z",
-        "url": "https://github.com/posit-dev/connect-extensions/releases/download/runtime-version-scanner%40v1.0.3/runtime-version-scanner.tar.gz",
+        "version": "1.0.4",
+        "released": "2026-06-12T00:10:44Z",
+        "url": "https://github.com/posit-dev/connect-extensions/releases/download/runtime-version-scanner%40v1.0.4/runtime-version-scanner.tar.gz",
         "minimumConnectVersion": "2025.04.0",
         "requiredFeatures": [
           "OAuth Integrations"
@@ -1015,6 +1065,20 @@
         }
       },
       "versions": [
+        {
+          "version": "1.0.4",
+          "released": "2026-06-12T00:10:44Z",
+          "url": "https://github.com/posit-dev/connect-extensions/releases/download/runtime-version-scanner%40v1.0.4/runtime-version-scanner.tar.gz",
+          "minimumConnectVersion": "2025.04.0",
+          "requiredFeatures": [
+            "OAuth Integrations"
+          ],
+          "requiredEnvironment": {
+            "r": {
+              "requires": "~=4.3"
+            }
+          }
+        },
         {
           "version": "1.0.3",
           "released": "2026-06-11T16:28:41Z",
@@ -1387,9 +1451,9 @@
       "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/stock-api-fastapi",
       "category": "example",
       "latestVersion": {
-        "version": "1.0.1",
-        "released": "2026-06-11T16:31:17Z",
-        "url": "https://github.com/posit-dev/connect-extensions/releases/download/stock-api-fastapi%40v1.0.1/stock-api-fastapi.tar.gz",
+        "version": "1.0.2",
+        "released": "2026-06-12T00:14:57Z",
+        "url": "https://github.com/posit-dev/connect-extensions/releases/download/stock-api-fastapi%40v1.0.2/stock-api-fastapi.tar.gz",
         "minimumConnectVersion": "2025.04.0",
         "requiredFeatures": [
           "API Publishing"
@@ -1401,6 +1465,20 @@
         }
       },
       "versions": [
+        {
+          "version": "1.0.2",
+          "released": "2026-06-12T00:14:57Z",
+          "url": "https://github.com/posit-dev/connect-extensions/releases/download/stock-api-fastapi%40v1.0.2/stock-api-fastapi.tar.gz",
+          "minimumConnectVersion": "2025.04.0",
+          "requiredFeatures": [
+            "API Publishing"
+          ],
+          "requiredEnvironment": {
+            "python": {
+              "requires": "~=3.11"
+            }
+          }
+        },
         {
           "version": "1.0.1",
           "released": "2026-06-11T16:31:17Z",
@@ -1439,9 +1517,9 @@
       "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/stock-api-flask",
       "category": "example",
       "latestVersion": {
-        "version": "1.0.1",
-        "released": "2026-06-11T16:31:17Z",
-        "url": "https://github.com/posit-dev/connect-extensions/releases/download/stock-api-flask%40v1.0.1/stock-api-flask.tar.gz",
+        "version": "1.0.2",
+        "released": "2026-06-12T00:15:01Z",
+        "url": "https://github.com/posit-dev/connect-extensions/releases/download/stock-api-flask%40v1.0.2/stock-api-flask.tar.gz",
         "minimumConnectVersion": "2025.04.0",
         "requiredFeatures": [
           "API Publishing"
@@ -1453,6 +1531,20 @@
         }
       },
       "versions": [
+        {
+          "version": "1.0.2",
+          "released": "2026-06-12T00:15:01Z",
+          "url": "https://github.com/posit-dev/connect-extensions/releases/download/stock-api-flask%40v1.0.2/stock-api-flask.tar.gz",
+          "minimumConnectVersion": "2025.04.0",
+          "requiredFeatures": [
+            "API Publishing"
+          ],
+          "requiredEnvironment": {
+            "python": {
+              "requires": "~=3.10"
+            }
+          }
+        },
         {
           "version": "1.0.1",
           "released": "2026-06-11T16:31:17Z",
@@ -1491,9 +1583,9 @@
       "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/stock-api-plumber",
       "category": "example",
       "latestVersion": {
-        "version": "1.0.1",
-        "released": "2026-06-11T16:31:19Z",
-        "url": "https://github.com/posit-dev/connect-extensions/releases/download/stock-api-plumber%40v1.0.1/stock-api-plumber.tar.gz",
+        "version": "1.0.2",
+        "released": "2026-06-12T00:15:01Z",
+        "url": "https://github.com/posit-dev/connect-extensions/releases/download/stock-api-plumber%40v1.0.2/stock-api-plumber.tar.gz",
         "minimumConnectVersion": "2025.04.0",
         "requiredFeatures": [
           "API Publishing"
@@ -1505,6 +1597,20 @@
         }
       },
       "versions": [
+        {
+          "version": "1.0.2",
+          "released": "2026-06-12T00:15:01Z",
+          "url": "https://github.com/posit-dev/connect-extensions/releases/download/stock-api-plumber%40v1.0.2/stock-api-plumber.tar.gz",
+          "minimumConnectVersion": "2025.04.0",
+          "requiredFeatures": [
+            "API Publishing"
+          ],
+          "requiredEnvironment": {
+            "r": {
+              "requires": "~=4.4"
+            }
+          }
+        },
         {
           "version": "1.0.1",
           "released": "2026-06-11T16:31:19Z",
@@ -1543,9 +1649,9 @@
       "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/stock-dashboard-python",
       "category": "example",
       "latestVersion": {
-        "version": "1.0.1",
-        "released": "2026-06-11T16:31:18Z",
-        "url": "https://github.com/posit-dev/connect-extensions/releases/download/stock-dashboard-python%40v1.0.1/stock-dashboard-python.tar.gz",
+        "version": "1.0.2",
+        "released": "2026-06-12T00:15:00Z",
+        "url": "https://github.com/posit-dev/connect-extensions/releases/download/stock-dashboard-python%40v1.0.2/stock-dashboard-python.tar.gz",
         "minimumConnectVersion": "2025.04.0",
         "requiredEnvironment": {
           "python": {
@@ -1554,6 +1660,17 @@
         }
       },
       "versions": [
+        {
+          "version": "1.0.2",
+          "released": "2026-06-12T00:15:00Z",
+          "url": "https://github.com/posit-dev/connect-extensions/releases/download/stock-dashboard-python%40v1.0.2/stock-dashboard-python.tar.gz",
+          "minimumConnectVersion": "2025.04.0",
+          "requiredEnvironment": {
+            "python": {
+              "requires": "~=3.9"
+            }
+          }
+        },
         {
           "version": "1.0.1",
           "released": "2026-06-11T16:31:18Z",
@@ -1585,9 +1702,9 @@
       "description": "This R Markdown document shows how to automate a stock market report. It reads cached data by default, with an optional step to refresh from a live source. The report code also generates a custom email when the index moves significantly, summarizing the latest results and putting them where stakeholders live - their inbox.",
       "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/stock-report",
       "latestVersion": {
-        "version": "1.0.2",
-        "released": "2026-06-11T16:31:25Z",
-        "url": "https://github.com/posit-dev/connect-extensions/releases/download/stock-report%40v1.0.2/stock-report.tar.gz",
+        "version": "1.0.3",
+        "released": "2026-06-12T00:14:55Z",
+        "url": "https://github.com/posit-dev/connect-extensions/releases/download/stock-report%40v1.0.3/stock-report.tar.gz",
         "minimumConnectVersion": "2025.04.0",
         "requiredEnvironment": {
           "r": {
@@ -1596,6 +1713,17 @@
         }
       },
       "versions": [
+        {
+          "version": "1.0.3",
+          "released": "2026-06-12T00:14:55Z",
+          "url": "https://github.com/posit-dev/connect-extensions/releases/download/stock-report%40v1.0.3/stock-report.tar.gz",
+          "minimumConnectVersion": "2025.04.0",
+          "requiredEnvironment": {
+            "r": {
+              "requires": "~=4.4"
+            }
+          }
+        },
         {
           "version": "1.0.2",
           "released": "2026-06-11T16:31:25Z",
@@ -1675,9 +1803,9 @@
       "description": "A Bokeh application makes it easy to transform your analysis into an interactive dashboard using Python so users can ask and answer questions in real-time, without having to touch any code.",
       "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/top-5-income-share-bokeh",
       "latestVersion": {
-        "version": "1.0.1",
-        "released": "2026-06-11T16:31:24Z",
-        "url": "https://github.com/posit-dev/connect-extensions/releases/download/top-5-income-share-bokeh%40v1.0.1/top-5-income-share-bokeh.tar.gz",
+        "version": "1.0.2",
+        "released": "2026-06-12T00:14:55Z",
+        "url": "https://github.com/posit-dev/connect-extensions/releases/download/top-5-income-share-bokeh%40v1.0.2/top-5-income-share-bokeh.tar.gz",
         "minimumConnectVersion": "2025.04.0",
         "requiredEnvironment": {
           "python": {
@@ -1686,6 +1814,17 @@
         }
       },
       "versions": [
+        {
+          "version": "1.0.2",
+          "released": "2026-06-12T00:14:55Z",
+          "url": "https://github.com/posit-dev/connect-extensions/releases/download/top-5-income-share-bokeh%40v1.0.2/top-5-income-share-bokeh.tar.gz",
+          "minimumConnectVersion": "2025.04.0",
+          "requiredEnvironment": {
+            "python": {
+              "requires": "~=3.9"
+            }
+          }
+        },
         {
           "version": "1.0.1",
           "released": "2026-06-11T16:31:24Z",
@@ -1761,9 +1900,9 @@
       "description": "A Streamlit application makes it easy to transform your analysis into an interactive dashboard using Python so users can ask and answer questions in real-time, without having to touch any code.",
       "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/top-5-income-share-streamlit",
       "latestVersion": {
-        "version": "1.0.1",
-        "released": "2026-06-11T16:31:22Z",
-        "url": "https://github.com/posit-dev/connect-extensions/releases/download/top-5-income-share-streamlit%40v1.0.1/top-5-income-share-streamlit.tar.gz",
+        "version": "1.0.2",
+        "released": "2026-06-12T00:14:55Z",
+        "url": "https://github.com/posit-dev/connect-extensions/releases/download/top-5-income-share-streamlit%40v1.0.2/top-5-income-share-streamlit.tar.gz",
         "minimumConnectVersion": "2025.04.0",
         "requiredEnvironment": {
           "python": {
@@ -1772,6 +1911,17 @@
         }
       },
       "versions": [
+        {
+          "version": "1.0.2",
+          "released": "2026-06-12T00:14:55Z",
+          "url": "https://github.com/posit-dev/connect-extensions/releases/download/top-5-income-share-streamlit%40v1.0.2/top-5-income-share-streamlit.tar.gz",
+          "minimumConnectVersion": "2025.04.0",
+          "requiredEnvironment": {
+            "python": {
+              "requires": "~=3.9"
+            }
+          }
+        },
         {
           "version": "1.0.1",
           "released": "2026-06-11T16:31:22Z",
@@ -1801,13 +1951,13 @@
     {
       "name": "usage-metrics-dashboard",
       "title": "Usage Metrics Dashboard",
-      "description": "Understand usage patterns across your work on Connect. Browse an overview of usage across everything you've published, and dive into detailed breakdowns for an individual deployment down to the level of individual visits.",
+      "description": "Understand usage patterns across your work on Connect. Browse an overview of usage across everything you've published, and dive into detailed breakdowns of data for an individual deployment, down to the level of individual visits.",
       "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/usage-metrics-dashboard",
       "category": "extension",
       "latestVersion": {
-        "version": "1.0.14",
-        "released": "2026-05-06T22:07:05Z",
-        "url": "https://github.com/posit-dev/connect-extensions/releases/download/usage-metrics-dashboard%40v1.0.14/usage-metrics-dashboard.tar.gz",
+        "version": "1.0.15",
+        "released": "2026-06-12T00:10:57Z",
+        "url": "https://github.com/posit-dev/connect-extensions/releases/download/usage-metrics-dashboard%40v1.0.15/usage-metrics-dashboard.tar.gz",
         "minimumConnectVersion": "2025.04.0",
         "requiredFeatures": [
           "OAuth Integrations"
@@ -1819,6 +1969,20 @@
         }
       },
       "versions": [
+        {
+          "version": "1.0.15",
+          "released": "2026-06-12T00:10:57Z",
+          "url": "https://github.com/posit-dev/connect-extensions/releases/download/usage-metrics-dashboard%40v1.0.15/usage-metrics-dashboard.tar.gz",
+          "minimumConnectVersion": "2025.04.0",
+          "requiredFeatures": [
+            "OAuth Integrations"
+          ],
+          "requiredEnvironment": {
+            "r": {
+              "requires": "~=4.3"
+            }
+          }
+        },
         {
           "version": "1.0.14",
           "released": "2026-05-06T22:07:05Z",
