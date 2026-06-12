@@ -24,14 +24,14 @@
     "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/publisher-command-center",
     "minimumConnectVersion": "2025.04.0",
     "requiredFeatures": ["API Publishing", "OAuth Integrations"],
-    "version": "0.0.7"
+    "version": "0.0.8"
   },
   "files": {
     "requirements.txt": {
       "checksum": "a162a98758867a701ce693948ffdfa67"
     },
     "app.py": {
-      "checksum": "47ca827cedf404595e9fe4c9a80424e7"
+      "checksum": "a12d8bd22d7aa7141ddbe57725bf4c74"
     },
     "dist/assets/fa-brands-400.808443ae.ttf": {
       "checksum": "15d54d142da2f2d6f2e90ed1d55121af"

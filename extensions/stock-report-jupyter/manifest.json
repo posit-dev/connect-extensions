@@ -13,11 +13,11 @@
     "category": "example",
     "tags": ["python"],
     "minimumConnectVersion": "2025.04.0",
-    "version": "1.0.1"
+    "version": "1.0.2"
   },
   "environment": {
     "python": {
-      "requires": "~=3.9"
+      "requires": ">=3.11"
     }
   },
   "python": {
@@ -30,10 +30,10 @@
   },
   "files": {
     "stock-report-jupyter.ipynb": {
-      "checksum": "b76cff3fbaf99ff18a27c0833156e03f"
+      "checksum": "e39564faa4967b4064adcda484ab271a"
     },
     "requirements.txt": {
-      "checksum": "a21501182f426dfe1dc08a839ad47144"
+      "checksum": "0038cfc52820e45a6ba486dec0bbffa9"
     },
     "gspc.csv": {
       "checksum": "f74c93cd12f334a4923d6fa4d81cdd1e"

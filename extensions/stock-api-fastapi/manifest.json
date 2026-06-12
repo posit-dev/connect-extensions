@@ -16,7 +16,7 @@
     "requiredFeatures": [
       "API Publishing"
     ],
-    "version": "1.0.1"
+    "version": "1.0.2"
   },
   "environment": {
     "python": {
@@ -33,7 +33,7 @@
   },
   "files": {
     "requirements.txt": {
-      "checksum": "9b9389b1c871e9fe179877c446861cd9"
+      "checksum": "4500c7a941d074c88204fd333166e842"
     },
     "README.md": {
       "checksum": "583ab7bd8506f2534485ba19ab93449a"

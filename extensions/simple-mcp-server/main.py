@@ -1,6 +1,6 @@
 import contextlib
 import json
-import urllib
+import urllib.parse
 
 import pandas as pd
 from cachetools import TTLCache, cached
@@ -105,8 +105,8 @@ def get_tools_info():
         parameters = {}
         for prop_name, prop in tool_def.parameters["properties"].items():
             parameters[prop_name] = {
-                "name": prop["title"],
-                "type": prop["type"],
+                "name": prop.get("title", prop_name),
+                "type": prop.get("type", ""),
                 "required": False,
             }
 

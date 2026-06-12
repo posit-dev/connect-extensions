@@ -143,13 +143,13 @@
     {
       "name": "connectwidgets-example",
       "title": "Connect Widgets Example",
-      "description": "Demonstrates the connectwidgets R package, which queries for a subset of your existing content items and organizes them within htmlwidget components in an R Markdown document or Shiny application.",
+      "description": "connectwidgets is an R package that can be used to query for a subset of your existing content items, then organize them within htmlwidget components in an R Markdown document or Shiny application.",
       "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/connectwidgets-example",
       "category": "example",
       "latestVersion": {
-        "version": "0.0.1",
-        "released": "2025-04-24T19:17:16Z",
-        "url": "https://github.com/posit-dev/connect-extensions/releases/download/connectwidgets-example%40v0.0.1/connectwidgets-example.tar.gz",
+        "version": "0.0.2",
+        "released": "2026-06-11T16:31:19Z",
+        "url": "https://github.com/posit-dev/connect-extensions/releases/download/connectwidgets-example%40v0.0.2/connectwidgets-example.tar.gz",
         "minimumConnectVersion": "2025.04.0",
         "requiredEnvironment": {
           "r": {
@@ -158,6 +158,17 @@
         }
       },
       "versions": [
+        {
+          "version": "0.0.2",
+          "released": "2026-06-11T16:31:19Z",
+          "url": "https://github.com/posit-dev/connect-extensions/releases/download/connectwidgets-example%40v0.0.2/connectwidgets-example.tar.gz",
+          "minimumConnectVersion": "2025.04.0",
+          "requiredEnvironment": {
+            "r": {
+              "requires": "~=4.0"
+            }
+          }
+        },
         {
           "version": "0.0.1",
           "released": "2025-04-24T19:17:16Z",
@@ -387,13 +398,13 @@
     {
       "name": "portfolio-dashboard",
       "title": "Portfolio Dashboard",
-      "description": "A Shiny for R application that transforms your analysis into an interactive dashboard, allowing users to ask and answer questions in real time without touching any code.",
+      "description": "A shiny application makes it easy to transform your analysis into an interactive dashboard using R so users can ask and answer questions in real-time, without having to touch any code.",
       "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/portfolio-dashboard",
       "category": "example",
       "latestVersion": {
-        "version": "0.0.2",
-        "released": "2026-02-05T22:30:55Z",
-        "url": "https://github.com/posit-dev/connect-extensions/releases/download/portfolio-dashboard%40v0.0.2/portfolio-dashboard.tar.gz",
+        "version": "0.0.3",
+        "released": "2026-06-11T16:31:18Z",
+        "url": "https://github.com/posit-dev/connect-extensions/releases/download/portfolio-dashboard%40v0.0.3/portfolio-dashboard.tar.gz",
         "minimumConnectVersion": "2025.04.0",
         "requiredEnvironment": {
           "r": {
@@ -402,6 +413,17 @@
         }
       },
       "versions": [
+        {
+          "version": "0.0.3",
+          "released": "2026-06-11T16:31:18Z",
+          "url": "https://github.com/posit-dev/connect-extensions/releases/download/portfolio-dashboard%40v0.0.3/portfolio-dashboard.tar.gz",
+          "minimumConnectVersion": "2025.04.0",
+          "requiredEnvironment": {
+            "r": {
+              "requires": "~=4.4"
+            }
+          }
+        },
         {
           "version": "0.0.2",
           "released": "2026-02-05T22:30:55Z",
@@ -430,13 +452,13 @@
     {
       "name": "portfolio-report",
       "title": "Portfolio Report",
-      "description": "An R Markdown document with parameters that allow stakeholders to customize the report's assumptions and create their own version. The main document serves as a standard base template containing your core code and analysis.",
+      "description": "This R Markdown document includes parameters, making it easier for stakeholders to customize the report's assumptions and create their own version. The main document serves as a standard base template, containing your core code and analysis, so you don't have to copy, paste, and republish.",
       "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/portfolio-report",
       "category": "example",
       "latestVersion": {
-        "version": "0.0.1",
-        "released": "2025-05-01T18:23:36Z",
-        "url": "https://github.com/posit-dev/connect-extensions/releases/download/portfolio-report%40v0.0.1/portfolio-report.tar.gz",
+        "version": "0.0.2",
+        "released": "2026-06-11T16:31:16Z",
+        "url": "https://github.com/posit-dev/connect-extensions/releases/download/portfolio-report%40v0.0.2/portfolio-report.tar.gz",
         "minimumConnectVersion": "2025.04.0",
         "requiredEnvironment": {
           "r": {
@@ -445,6 +467,17 @@
         }
       },
       "versions": [
+        {
+          "version": "0.0.2",
+          "released": "2026-06-11T16:31:16Z",
+          "url": "https://github.com/posit-dev/connect-extensions/releases/download/portfolio-report%40v0.0.2/portfolio-report.tar.gz",
+          "minimumConnectVersion": "2025.04.0",
+          "requiredEnvironment": {
+            "r": {
+              "requires": "~=4.4"
+            }
+          }
+        },
         {
           "version": "0.0.1",
           "released": "2025-05-01T18:23:36Z",
@@ -462,12 +495,12 @@
     {
       "name": "pqr",
       "title": "Quarto Document with Python and R",
-      "description": "A Quarto document that demonstrates executing both Python and R code.",
+      "description": "A Quarto document that executes Python and R code.",
       "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/pqr",
       "latestVersion": {
-        "version": "0.1.0",
-        "released": "2025-09-12T19:27:07Z",
-        "url": "https://github.com/posit-dev/connect-extensions/releases/download/pqr%40v0.1.0/pqr.tar.gz",
+        "version": "0.1.1",
+        "released": "2026-06-11T16:31:20Z",
+        "url": "https://github.com/posit-dev/connect-extensions/releases/download/pqr%40v0.1.1/pqr.tar.gz",
         "minimumConnectVersion": "2025.04.0",
         "requiredEnvironment": {
           "python": {
@@ -482,6 +515,23 @@
         }
       },
       "versions": [
+        {
+          "version": "0.1.1",
+          "released": "2026-06-11T16:31:20Z",
+          "url": "https://github.com/posit-dev/connect-extensions/releases/download/pqr%40v0.1.1/pqr.tar.gz",
+          "minimumConnectVersion": "2025.04.0",
+          "requiredEnvironment": {
+            "python": {
+              "requires": ">=3.11"
+            },
+            "quarto": {
+              "requires": ">=1.4"
+            },
+            "r": {
+              "requires": ">=4.3"
+            }
+          }
+        },
         {
           "version": "0.1.0",
           "released": "2025-09-12T19:27:07Z",
@@ -514,9 +564,9 @@
       "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/publisher-command-center",
       "category": "extension",
       "latestVersion": {
-        "version": "0.0.7",
-        "released": "2026-05-08T13:56:49Z",
-        "url": "https://github.com/posit-dev/connect-extensions/releases/download/publisher-command-center%40v0.0.7/publisher-command-center.tar.gz",
+        "version": "0.0.8",
+        "released": "2026-06-11T17:13:12Z",
+        "url": "https://github.com/posit-dev/connect-extensions/releases/download/publisher-command-center%40v0.0.8/publisher-command-center.tar.gz",
         "minimumConnectVersion": "2025.04.0",
         "requiredFeatures": [
           "API Publishing",
@@ -529,6 +579,21 @@
         }
       },
       "versions": [
+        {
+          "version": "0.0.8",
+          "released": "2026-06-11T17:13:12Z",
+          "url": "https://github.com/posit-dev/connect-extensions/releases/download/publisher-command-center%40v0.0.8/publisher-command-center.tar.gz",
+          "minimumConnectVersion": "2025.04.0",
+          "requiredFeatures": [
+            "API Publishing",
+            "OAuth Integrations"
+          ],
+          "requiredEnvironment": {
+            "python": {
+              "requires": "~=3.8"
+            }
+          }
+        },
         {
           "version": "0.0.7",
           "released": "2026-05-08T13:56:49Z",
@@ -719,13 +784,13 @@
       "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/quarto-stock-report-python",
       "category": "example",
       "latestVersion": {
-        "version": "1.0.3",
-        "released": "2026-06-09T18:02:14Z",
-        "url": "https://github.com/posit-dev/connect-extensions/releases/download/quarto-stock-report-python%40v1.0.3/quarto-stock-report-python.tar.gz",
+        "version": "1.0.4",
+        "released": "2026-06-11T16:31:16Z",
+        "url": "https://github.com/posit-dev/connect-extensions/releases/download/quarto-stock-report-python%40v1.0.4/quarto-stock-report-python.tar.gz",
         "minimumConnectVersion": "2025.04.0",
         "requiredEnvironment": {
           "python": {
-            "requires": "~=3.9"
+            "requires": ">=3.11"
           },
           "quarto": {
             "requires": "~=1.4"
@@ -733,6 +798,20 @@
         }
       },
       "versions": [
+        {
+          "version": "1.0.4",
+          "released": "2026-06-11T16:31:16Z",
+          "url": "https://github.com/posit-dev/connect-extensions/releases/download/quarto-stock-report-python%40v1.0.4/quarto-stock-report-python.tar.gz",
+          "minimumConnectVersion": "2025.04.0",
+          "requiredEnvironment": {
+            "python": {
+              "requires": ">=3.11"
+            },
+            "quarto": {
+              "requires": "~=1.4"
+            }
+          }
+        },
         {
           "version": "1.0.3",
           "released": "2026-06-09T18:02:14Z",
@@ -801,9 +880,9 @@
       "description": "This stock report is generated using Quarto and R. It is an example of how you might automate regular updates using a data source. It reads cached data by default, which can be refreshed from a live source. The report also generates a custom email, sharing the results directly to stakeholders.",
       "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/quarto-stock-report-r",
       "latestVersion": {
-        "version": "1.0.2",
-        "released": "2026-06-09T18:02:07Z",
-        "url": "https://github.com/posit-dev/connect-extensions/releases/download/quarto-stock-report-r%40v1.0.2/quarto-stock-report-r.tar.gz",
+        "version": "1.0.3",
+        "released": "2026-06-11T16:31:22Z",
+        "url": "https://github.com/posit-dev/connect-extensions/releases/download/quarto-stock-report-r%40v1.0.3/quarto-stock-report-r.tar.gz",
         "minimumConnectVersion": "2025.04.0",
         "requiredEnvironment": {
           "quarto": {
@@ -815,6 +894,20 @@
         }
       },
       "versions": [
+        {
+          "version": "1.0.3",
+          "released": "2026-06-11T16:31:22Z",
+          "url": "https://github.com/posit-dev/connect-extensions/releases/download/quarto-stock-report-r%40v1.0.3/quarto-stock-report-r.tar.gz",
+          "minimumConnectVersion": "2025.04.0",
+          "requiredEnvironment": {
+            "quarto": {
+              "requires": "~=1.4"
+            },
+            "r": {
+              "requires": "~=4.4"
+            }
+          }
+        },
         {
           "version": "1.0.2",
           "released": "2026-06-09T18:02:07Z",
@@ -905,12 +998,12 @@
     {
       "name": "runtime-version-scanner",
       "title": "Runtime Version Scanner",
-      "description": "Shows the Python, R, and Quarto versions used by your content. Filter by version, content type, and usage to identify items that need updating or that use end-of-life language versions.",
+      "description": "See the Python, R, and Quarto versions used by your content. Filter by version, content type, and usage to identify items that need updating. Quickly find content that uses end-of-life language versions.",
       "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/runtime-version-scanner",
       "latestVersion": {
-        "version": "1.0.2",
-        "released": "2026-01-28T23:27:52Z",
-        "url": "https://github.com/posit-dev/connect-extensions/releases/download/runtime-version-scanner%40v1.0.2/runtime-version-scanner.tar.gz",
+        "version": "1.0.3",
+        "released": "2026-06-11T16:28:41Z",
+        "url": "https://github.com/posit-dev/connect-extensions/releases/download/runtime-version-scanner%40v1.0.3/runtime-version-scanner.tar.gz",
         "minimumConnectVersion": "2025.04.0",
         "requiredFeatures": [
           "OAuth Integrations"
@@ -922,6 +1015,20 @@
         }
       },
       "versions": [
+        {
+          "version": "1.0.3",
+          "released": "2026-06-11T16:28:41Z",
+          "url": "https://github.com/posit-dev/connect-extensions/releases/download/runtime-version-scanner%40v1.0.3/runtime-version-scanner.tar.gz",
+          "minimumConnectVersion": "2025.04.0",
+          "requiredFeatures": [
+            "OAuth Integrations"
+          ],
+          "requiredEnvironment": {
+            "r": {
+              "requires": "~=4.3"
+            }
+          }
+        },
         {
           "version": "1.0.2",
           "released": "2026-01-28T23:27:52Z",
@@ -971,16 +1078,16 @@
     {
       "name": "script-python",
       "title": "Run a Python Script",
-      "description": "A data transformation Python script that demonstrates how you might automate regular imports and transformations from a data source. JSON and CSV files are exported and made available for download. Quarto is used to render the script.",
+      "description": "This data transformation Python script is an example of how you might automate regular imports and transformations from a data source. JSON and CSV files are exported and made available for download. Quarto is used to render the script.",
       "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/script-python",
       "latestVersion": {
-        "version": "1.0.0",
-        "released": "2025-05-30T18:32:01Z",
-        "url": "https://github.com/posit-dev/connect-extensions/releases/download/script-python%40v1.0.0/script-python.tar.gz",
+        "version": "1.0.1",
+        "released": "2026-06-11T16:31:17Z",
+        "url": "https://github.com/posit-dev/connect-extensions/releases/download/script-python%40v1.0.1/script-python.tar.gz",
         "minimumConnectVersion": "2025.04.0",
         "requiredEnvironment": {
           "python": {
-            "requires": "~=3.8"
+            "requires": "~=3.9"
           },
           "quarto": {
             "requires": "~=1.4"
@@ -988,6 +1095,20 @@
         }
       },
       "versions": [
+        {
+          "version": "1.0.1",
+          "released": "2026-06-11T16:31:17Z",
+          "url": "https://github.com/posit-dev/connect-extensions/releases/download/script-python%40v1.0.1/script-python.tar.gz",
+          "minimumConnectVersion": "2025.04.0",
+          "requiredEnvironment": {
+            "python": {
+              "requires": "~=3.9"
+            },
+            "quarto": {
+              "requires": "~=1.4"
+            }
+          }
+        },
         {
           "version": "1.0.0",
           "released": "2025-05-30T18:32:01Z",
@@ -1009,12 +1130,12 @@
     {
       "name": "script-r",
       "title": "Run an R Script",
-      "description": "A data transformation R script that demonstrates how you might automate regular imports and transformations from a data source. JSON and CSV files are exported and made available for download. Quarto is used to render the script. The script also generates a custom email with the generated CSV files as attachments.",
+      "description": "This data transformation R script is an example of how you might automate regular imports and transformations from a data source. JSON and CSV files are exported and made available for download. Quarto is used to render the script. The script also generates a custom email, with the generated CSV files as attachments.",
       "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/script-r",
       "latestVersion": {
-        "version": "1.0.0",
-        "released": "2025-06-02T13:47:10Z",
-        "url": "https://github.com/posit-dev/connect-extensions/releases/download/script-r%40v1.0.0/script-r.tar.gz",
+        "version": "1.0.1",
+        "released": "2026-06-11T16:31:18Z",
+        "url": "https://github.com/posit-dev/connect-extensions/releases/download/script-r%40v1.0.1/script-r.tar.gz",
         "minimumConnectVersion": "2025.04.0",
         "requiredEnvironment": {
           "quarto": {
@@ -1026,6 +1147,20 @@
         }
       },
       "versions": [
+        {
+          "version": "1.0.1",
+          "released": "2026-06-11T16:31:18Z",
+          "url": "https://github.com/posit-dev/connect-extensions/releases/download/script-r%40v1.0.1/script-r.tar.gz",
+          "minimumConnectVersion": "2025.04.0",
+          "requiredEnvironment": {
+            "quarto": {
+              "requires": "~=1.4"
+            },
+            "r": {
+              "requires": "~=4.4"
+            }
+          }
+        },
         {
           "version": "1.0.0",
           "released": "2025-06-02T13:47:10Z",
@@ -1047,12 +1182,12 @@
     {
       "name": "simple-mcp-server",
       "title": "Simple MCP Server",
-      "description": "A simple Connect extension that serves tools via the MCP protocol. Meant to be used with the Simple Shiny Chat with MCP Support extension.",
+      "description": "A simple example of a Connect extension that serves tools via the MCP protocol. This is meant to be used with the Simple Shiny Chat with MCP Support extension.",
       "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/simple-mcp-server",
       "latestVersion": {
-        "version": "0.0.4",
-        "released": "2026-05-04T18:21:58Z",
-        "url": "https://github.com/posit-dev/connect-extensions/releases/download/simple-mcp-server%40v0.0.4/simple-mcp-server.tar.gz",
+        "version": "0.0.5",
+        "released": "2026-06-11T16:31:14Z",
+        "url": "https://github.com/posit-dev/connect-extensions/releases/download/simple-mcp-server%40v0.0.5/simple-mcp-server.tar.gz",
         "minimumConnectVersion": "2025.04.0",
         "requiredFeatures": [
           "API Publishing",
@@ -1060,11 +1195,26 @@
         ],
         "requiredEnvironment": {
           "python": {
-            "requires": ">=3.10"
+            "requires": ">=3.11"
           }
         }
       },
       "versions": [
+        {
+          "version": "0.0.5",
+          "released": "2026-06-11T16:31:14Z",
+          "url": "https://github.com/posit-dev/connect-extensions/releases/download/simple-mcp-server%40v0.0.5/simple-mcp-server.tar.gz",
+          "minimumConnectVersion": "2025.04.0",
+          "requiredFeatures": [
+            "API Publishing",
+            "OAuth Integrations"
+          ],
+          "requiredEnvironment": {
+            "python": {
+              "requires": ">=3.11"
+            }
+          }
+        },
         {
           "version": "0.0.4",
           "released": "2026-05-04T18:21:58Z",
@@ -1233,13 +1383,13 @@
     {
       "name": "stock-api-fastapi",
       "title": "FastAPI Stock Pricing Service",
-      "description": "An example API built with FastAPI that turns your models into services other tools and teams can use.",
+      "description": "APIs are a great way for software engineering teams to use your models without translating them into different languages",
       "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/stock-api-fastapi",
       "category": "example",
       "latestVersion": {
-        "version": "1.0.0",
-        "released": "2025-04-24T18:56:34Z",
-        "url": "https://github.com/posit-dev/connect-extensions/releases/download/stock-api-fastapi%40v1.0.0/stock-api-fastapi.tar.gz",
+        "version": "1.0.1",
+        "released": "2026-06-11T16:31:17Z",
+        "url": "https://github.com/posit-dev/connect-extensions/releases/download/stock-api-fastapi%40v1.0.1/stock-api-fastapi.tar.gz",
         "minimumConnectVersion": "2025.04.0",
         "requiredFeatures": [
           "API Publishing"
@@ -1251,6 +1401,20 @@
         }
       },
       "versions": [
+        {
+          "version": "1.0.1",
+          "released": "2026-06-11T16:31:17Z",
+          "url": "https://github.com/posit-dev/connect-extensions/releases/download/stock-api-fastapi%40v1.0.1/stock-api-fastapi.tar.gz",
+          "minimumConnectVersion": "2025.04.0",
+          "requiredFeatures": [
+            "API Publishing"
+          ],
+          "requiredEnvironment": {
+            "python": {
+              "requires": "~=3.11"
+            }
+          }
+        },
         {
           "version": "1.0.0",
           "released": "2025-04-24T18:56:34Z",
@@ -1271,13 +1435,13 @@
     {
       "name": "stock-api-flask",
       "title": "Flask Stock Pricing Service",
-      "description": "An example API built with Flask that turns your models into services other tools and teams can use.",
+      "description": "APIs are a great way for software engineering teams to use your models without translating them into different languages",
       "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/stock-api-flask",
       "category": "example",
       "latestVersion": {
-        "version": "1.0.0",
-        "released": "2025-04-24T19:12:11Z",
-        "url": "https://github.com/posit-dev/connect-extensions/releases/download/stock-api-flask%40v1.0.0/stock-api-flask.tar.gz",
+        "version": "1.0.1",
+        "released": "2026-06-11T16:31:17Z",
+        "url": "https://github.com/posit-dev/connect-extensions/releases/download/stock-api-flask%40v1.0.1/stock-api-flask.tar.gz",
         "minimumConnectVersion": "2025.04.0",
         "requiredFeatures": [
           "API Publishing"
@@ -1289,6 +1453,20 @@
         }
       },
       "versions": [
+        {
+          "version": "1.0.1",
+          "released": "2026-06-11T16:31:17Z",
+          "url": "https://github.com/posit-dev/connect-extensions/releases/download/stock-api-flask%40v1.0.1/stock-api-flask.tar.gz",
+          "minimumConnectVersion": "2025.04.0",
+          "requiredFeatures": [
+            "API Publishing"
+          ],
+          "requiredEnvironment": {
+            "python": {
+              "requires": "~=3.10"
+            }
+          }
+        },
         {
           "version": "1.0.0",
           "released": "2025-04-24T19:12:11Z",
@@ -1309,13 +1487,13 @@
     {
       "name": "stock-api-plumber",
       "title": "Stock Pricing Service with Plumber API",
-      "description": "An example API built with Plumber that turns your models into services other tools and teams can use.",
+      "description": "An API allows you to turn your models into production services that other tools and teams can use. APIs are a great way for software engineering teams to use your models without translating them into different languages.",
       "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/stock-api-plumber",
       "category": "example",
       "latestVersion": {
-        "version": "1.0.0",
-        "released": "2025-04-25T18:11:56Z",
-        "url": "https://github.com/posit-dev/connect-extensions/releases/download/stock-api-plumber%40v1.0.0/stock-api-plumber.tar.gz",
+        "version": "1.0.1",
+        "released": "2026-06-11T16:31:19Z",
+        "url": "https://github.com/posit-dev/connect-extensions/releases/download/stock-api-plumber%40v1.0.1/stock-api-plumber.tar.gz",
         "minimumConnectVersion": "2025.04.0",
         "requiredFeatures": [
           "API Publishing"
@@ -1327,6 +1505,20 @@
         }
       },
       "versions": [
+        {
+          "version": "1.0.1",
+          "released": "2026-06-11T16:31:19Z",
+          "url": "https://github.com/posit-dev/connect-extensions/releases/download/stock-api-plumber%40v1.0.1/stock-api-plumber.tar.gz",
+          "minimumConnectVersion": "2025.04.0",
+          "requiredFeatures": [
+            "API Publishing"
+          ],
+          "requiredEnvironment": {
+            "r": {
+              "requires": "~=4.4"
+            }
+          }
+        },
         {
           "version": "1.0.0",
           "released": "2025-04-25T18:11:56Z",
@@ -1347,13 +1539,13 @@
     {
       "name": "stock-dashboard-python",
       "title": "Stock Pricing Dashboard using Python Dash",
-      "description": "A Dash application that transforms your analysis into an interactive dashboard using Python, allowing users to ask and answer questions in real time without touching any code.",
+      "description": "A Dash application makes it easy to transform your analysis into an interactive dashboard using Python so users can ask and answer questions in real-time, without having to touch any code.",
       "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/stock-dashboard-python",
       "category": "example",
       "latestVersion": {
-        "version": "1.0.0",
-        "released": "2025-05-14T12:53:16Z",
-        "url": "https://github.com/posit-dev/connect-extensions/releases/download/stock-dashboard-python%40v1.0.0/stock-dashboard-python.tar.gz",
+        "version": "1.0.1",
+        "released": "2026-06-11T16:31:18Z",
+        "url": "https://github.com/posit-dev/connect-extensions/releases/download/stock-dashboard-python%40v1.0.1/stock-dashboard-python.tar.gz",
         "minimumConnectVersion": "2025.04.0",
         "requiredEnvironment": {
           "python": {
@@ -1362,6 +1554,17 @@
         }
       },
       "versions": [
+        {
+          "version": "1.0.1",
+          "released": "2026-06-11T16:31:18Z",
+          "url": "https://github.com/posit-dev/connect-extensions/releases/download/stock-dashboard-python%40v1.0.1/stock-dashboard-python.tar.gz",
+          "minimumConnectVersion": "2025.04.0",
+          "requiredEnvironment": {
+            "python": {
+              "requires": "~=3.9"
+            }
+          }
+        },
         {
           "version": "1.0.0",
           "released": "2025-05-14T12:53:16Z",
@@ -1379,12 +1582,12 @@
     {
       "name": "stock-report",
       "title": "Automated Stock Report",
-      "description": "An R Markdown document that demonstrates how to automate regular updates to a PDF. The report code also generates a custom email, re-using the plots and putting the results where stakeholders live - their inbox.",
+      "description": "This R Markdown document shows how to automate a stock market report. It reads cached data by default, with an optional step to refresh from a live source. The report code also generates a custom email when the index moves significantly, summarizing the latest results and putting them where stakeholders live - their inbox.",
       "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/stock-report",
       "latestVersion": {
-        "version": "1.0.0",
-        "released": "2025-06-04T18:06:12Z",
-        "url": "https://github.com/posit-dev/connect-extensions/releases/download/stock-report%40v1.0.0/stock-report.tar.gz",
+        "version": "1.0.2",
+        "released": "2026-06-11T16:31:25Z",
+        "url": "https://github.com/posit-dev/connect-extensions/releases/download/stock-report%40v1.0.2/stock-report.tar.gz",
         "minimumConnectVersion": "2025.04.0",
         "requiredEnvironment": {
           "r": {
@@ -1393,6 +1596,17 @@
         }
       },
       "versions": [
+        {
+          "version": "1.0.2",
+          "released": "2026-06-11T16:31:25Z",
+          "url": "https://github.com/posit-dev/connect-extensions/releases/download/stock-report%40v1.0.2/stock-report.tar.gz",
+          "minimumConnectVersion": "2025.04.0",
+          "requiredEnvironment": {
+            "r": {
+              "requires": "~=4.4"
+            }
+          }
+        },
         {
           "version": "1.0.0",
           "released": "2025-06-04T18:06:12Z",
@@ -1405,26 +1619,39 @@
           }
         }
       ],
-      "tags": [],
+      "tags": [
+        "r"
+      ],
       "category": "example"
     },
     {
       "name": "stock-report-jupyter",
       "title": "Stock Report using Jupyter",
-      "description": "A stock report generated using Python and Jupyter Notebook. Stock prices are populated from Quandl to generate a stock performance summary intended to run daily after market close.",
+      "description": "This stock report is generated using Python and Jupyter Notebook. It uses cached price data to generate a market performance summary intended to run daily after market close.",
       "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/stock-report-jupyter",
       "latestVersion": {
-        "version": "1.0.0",
-        "released": "2025-05-27T21:38:44Z",
-        "url": "https://github.com/posit-dev/connect-extensions/releases/download/stock-report-jupyter%40v1.0.0/stock-report-jupyter.tar.gz",
+        "version": "1.0.2",
+        "released": "2026-06-11T16:31:17Z",
+        "url": "https://github.com/posit-dev/connect-extensions/releases/download/stock-report-jupyter%40v1.0.2/stock-report-jupyter.tar.gz",
         "minimumConnectVersion": "2025.04.0",
         "requiredEnvironment": {
           "python": {
-            "requires": "~=3.9"
+            "requires": ">=3.11"
           }
         }
       },
       "versions": [
+        {
+          "version": "1.0.2",
+          "released": "2026-06-11T16:31:17Z",
+          "url": "https://github.com/posit-dev/connect-extensions/releases/download/stock-report-jupyter%40v1.0.2/stock-report-jupyter.tar.gz",
+          "minimumConnectVersion": "2025.04.0",
+          "requiredEnvironment": {
+            "python": {
+              "requires": ">=3.11"
+            }
+          }
+        },
         {
           "version": "1.0.0",
           "released": "2025-05-27T21:38:44Z",
@@ -1437,18 +1664,20 @@
           }
         }
       ],
-      "tags": [],
+      "tags": [
+        "python"
+      ],
       "category": "example"
     },
     {
       "name": "top-5-income-share-bokeh",
       "title": "Top 5% income share using Bokeh",
-      "description": "A Bokeh application that transforms your analysis into an interactive dashboard using Python, allowing users to ask and answer questions in real time without touching any code.",
+      "description": "A Bokeh application makes it easy to transform your analysis into an interactive dashboard using Python so users can ask and answer questions in real-time, without having to touch any code.",
       "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/top-5-income-share-bokeh",
       "latestVersion": {
-        "version": "1.0.0",
-        "released": "2025-05-23T20:03:09Z",
-        "url": "https://github.com/posit-dev/connect-extensions/releases/download/top-5-income-share-bokeh%40v1.0.0/top-5-income-share-bokeh.tar.gz",
+        "version": "1.0.1",
+        "released": "2026-06-11T16:31:24Z",
+        "url": "https://github.com/posit-dev/connect-extensions/releases/download/top-5-income-share-bokeh%40v1.0.1/top-5-income-share-bokeh.tar.gz",
         "minimumConnectVersion": "2025.04.0",
         "requiredEnvironment": {
           "python": {
@@ -1457,6 +1686,17 @@
         }
       },
       "versions": [
+        {
+          "version": "1.0.1",
+          "released": "2026-06-11T16:31:24Z",
+          "url": "https://github.com/posit-dev/connect-extensions/releases/download/top-5-income-share-bokeh%40v1.0.1/top-5-income-share-bokeh.tar.gz",
+          "minimumConnectVersion": "2025.04.0",
+          "requiredEnvironment": {
+            "python": {
+              "requires": "~=3.9"
+            }
+          }
+        },
         {
           "version": "1.0.0",
           "released": "2025-05-23T20:03:09Z",
@@ -1475,12 +1715,12 @@
     {
       "name": "top-5-income-share-shiny",
       "title": "Top 5% income share using Shiny",
-      "description": "A Shiny for Python application that transforms your analysis into an interactive application, allowing users to ask and answer their own questions in real time.",
+      "description": "A Shiny application makes it easy to transform your analysis into an interactive application using Python so users can ask and answer their own questions in real-time.",
       "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/top-5-income-share-shiny",
       "latestVersion": {
-        "version": "1.0.0",
-        "released": "2025-05-23T22:35:47Z",
-        "url": "https://github.com/posit-dev/connect-extensions/releases/download/top-5-income-share-shiny%40v1.0.0/top-5-income-share-shiny.tar.gz",
+        "version": "1.0.1",
+        "released": "2026-06-11T16:31:19Z",
+        "url": "https://github.com/posit-dev/connect-extensions/releases/download/top-5-income-share-shiny%40v1.0.1/top-5-income-share-shiny.tar.gz",
         "minimumConnectVersion": "2025.04.0",
         "requiredEnvironment": {
           "python": {
@@ -1489,6 +1729,17 @@
         }
       },
       "versions": [
+        {
+          "version": "1.0.1",
+          "released": "2026-06-11T16:31:19Z",
+          "url": "https://github.com/posit-dev/connect-extensions/releases/download/top-5-income-share-shiny%40v1.0.1/top-5-income-share-shiny.tar.gz",
+          "minimumConnectVersion": "2025.04.0",
+          "requiredEnvironment": {
+            "python": {
+              "requires": "~=3.9"
+            }
+          }
+        },
         {
           "version": "1.0.0",
           "released": "2025-05-23T22:35:47Z",
@@ -1507,12 +1758,12 @@
     {
       "name": "top-5-income-share-streamlit",
       "title": "Top 5% income share using Streamlit",
-      "description": "A Streamlit application that transforms your analysis into an interactive dashboard using Python, allowing users to ask and answer questions in real time without touching any code.",
+      "description": "A Streamlit application makes it easy to transform your analysis into an interactive dashboard using Python so users can ask and answer questions in real-time, without having to touch any code.",
       "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/top-5-income-share-streamlit",
       "latestVersion": {
-        "version": "1.0.0",
-        "released": "2025-05-23T19:46:22Z",
-        "url": "https://github.com/posit-dev/connect-extensions/releases/download/top-5-income-share-streamlit%40v1.0.0/top-5-income-share-streamlit.tar.gz",
+        "version": "1.0.1",
+        "released": "2026-06-11T16:31:22Z",
+        "url": "https://github.com/posit-dev/connect-extensions/releases/download/top-5-income-share-streamlit%40v1.0.1/top-5-income-share-streamlit.tar.gz",
         "minimumConnectVersion": "2025.04.0",
         "requiredEnvironment": {
           "python": {
@@ -1521,6 +1772,17 @@
         }
       },
       "versions": [
+        {
+          "version": "1.0.1",
+          "released": "2026-06-11T16:31:22Z",
+          "url": "https://github.com/posit-dev/connect-extensions/releases/download/top-5-income-share-streamlit%40v1.0.1/top-5-income-share-streamlit.tar.gz",
+          "minimumConnectVersion": "2025.04.0",
+          "requiredEnvironment": {
+            "python": {
+              "requires": "~=3.9"
+            }
+          }
+        },
         {
           "version": "1.0.0",
           "released": "2025-05-23T19:46:22Z",
@@ -1776,17 +2038,28 @@
       "description": "Voilà allows you to convert a Jupyter Notebook into an interactive dashboard that allows you to share your work with others.",
       "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/voila-example",
       "latestVersion": {
-        "version": "1.0.0",
-        "released": "2025-05-27T15:10:17Z",
-        "url": "https://github.com/posit-dev/connect-extensions/releases/download/voila-example%40v1.0.0/voila-example.tar.gz",
+        "version": "1.0.1",
+        "released": "2026-06-11T16:31:17Z",
+        "url": "https://github.com/posit-dev/connect-extensions/releases/download/voila-example%40v1.0.1/voila-example.tar.gz",
         "minimumConnectVersion": "2025.04.0",
         "requiredEnvironment": {
           "python": {
-            "requires": "~=3.11.3"
+            "requires": "~=3.11"
           }
         }
       },
       "versions": [
+        {
+          "version": "1.0.1",
+          "released": "2026-06-11T16:31:17Z",
+          "url": "https://github.com/posit-dev/connect-extensions/releases/download/voila-example%40v1.0.1/voila-example.tar.gz",
+          "minimumConnectVersion": "2025.04.0",
+          "requiredEnvironment": {
+            "python": {
+              "requires": "~=3.11"
+            }
+          }
+        },
         {
           "version": "1.0.0",
           "released": "2025-05-27T15:10:17Z",

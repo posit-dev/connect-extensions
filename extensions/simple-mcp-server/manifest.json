@@ -15,7 +15,7 @@
   },
   "environment": {
     "python": {
-      "requires": ">=3.10"
+      "requires": ">=3.11"
     }
   },
   "extension": {
@@ -27,17 +27,17 @@
     "tags": ["python", "fastapi", "mcp"],
     "requiredFeatures": ["API Publishing", "OAuth Integrations"],
     "minimumConnectVersion": "2025.04.0",
-    "version": "0.0.4"
+    "version": "0.0.5"
   },
   "files": {
     "requirements.txt": {
-      "checksum": "3f6b39234649b12256ccab08952dc062"
+      "checksum": "7e117f484a0b0fd00417ca30caadeb4e"
     },
     "main.py": {
-      "checksum": "d41d8cd98f00b204e9800998ecf8427e"
+      "checksum": "3ade377979f07f22a836784f81412927"
     },
     "index.html.jinja": {
-      "checksum": "eb078517ea04264c8578e0e55afb7685"
+      "checksum": "d17f4d06a32358f80a0f53672c529fe5"
     }
   }
 }

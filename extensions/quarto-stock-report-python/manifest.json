@@ -12,11 +12,11 @@
     "minimumConnectVersion": "2025.04.0",
     "category": "example",
     "tags": ["quarto", "python"],
-    "version": "1.0.3"
+    "version": "1.0.4"
   },
   "environment": {
     "python": {
-      "requires": "~=3.9"
+      "requires": ">=3.11"
     },
     "quarto": {
       "requires": "~=1.4"
@@ -41,13 +41,13 @@
       "checksum": "35b4c4c58cce875b126683c525ad40f4"
     },
     "index.qmd": {
-      "checksum": "6380d64184dcf8446da3d1b94f01e999"
+      "checksum": "7eeaeddb32075ffea02ef77ada5b719b"
     },
     "gspc.csv": {
       "checksum": "f74c93cd12f334a4923d6fa4d81cdd1e"
     },
     "requirements.txt": {
-      "checksum": "96da5a6249931f87334fbc303f3a9678"
+      "checksum": "0038cfc52820e45a6ba486dec0bbffa9"
     }
   }
 }

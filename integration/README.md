@@ -6,8 +6,10 @@ It is primarily designed to be run in CI, but can also be run locally.
 
 ## Prerequisites
 
-- [UV package manager](https://docs.astral.sh/uv/getting-started/installation/) with the same version from `[tool.uv]` in `integrations/pyproject.toml`
-- Python with the same version in `integrations/pyproject.toml`
+- [UV package manager](https://docs.astral.sh/uv/getting-started/installation/) with the same version from `[tool.uv]` in `integration/pyproject.toml`
+- Python with the same version in `integration/pyproject.toml`
+- [with-connect](https://github.com/posit-dev/with-connect): `uv tool install git+https://github.com/posit-dev/with-connect.git`
+- Docker
 
 ## Quick Start
 
@@ -21,6 +23,6 @@ For local testing:
 
 Example:
 
-- `make -C ./integration 2025.04.0 EXTENSION_NAME=my-extension`
+- `make -C ./integration 2026.04.1 EXTENSION_NAME=my-extension`
 
 For detailed commands and examples, run: `make -C ./integration help`

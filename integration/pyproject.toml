@@ -9,7 +9,6 @@ dependencies = [
     "requests>=2.31.0,<3",
     "pytest",
     "posit-sdk",
-    "rsconnect-python"
 ]
 
 [tool.setuptools]
@@ -19,4 +18,4 @@ packages = ["tests"]
 testpaths = ["tests"]
 
 [tool.uv]
-required-version = "0.6.14"
+required-version = ">=0.6.14"
