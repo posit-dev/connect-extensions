@@ -18,7 +18,7 @@
       "checksum": "0a1dd4e0e8f73b6abdfb9a54e7bb69bf"
     },
     "app.py": {
-      "checksum": "96b60bc4e32f2b4d809207ec6d2a880d"
+      "checksum": "7b88fe85e558d6a668df690bf3878f2b"
     },
     "connect-extension.qmd": {
       "checksum": "168f0a708df0811fa9225bda634a7cb3"
@@ -37,7 +37,7 @@
   },
   "environment": {
     "python": {
-      "requires": ">=3.11"
+      "requires": "~=3.11"
     }
   }
 }
