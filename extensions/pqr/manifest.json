@@ -1289,6 +1289,6 @@
     "category": "example",
     "tags": ["python", "quarto", "r"],
     "minimumConnectVersion": "2025.04.0",
-    "version": "0.1.1"
+    "version": "0.1.2"
   }
 }
