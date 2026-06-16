@@ -33,20 +33,34 @@
       "description": "Provides a way to interact with and query content using an LLM chat interface.",
       "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/chat-with-content",
       "latestVersion": {
-        "version": "0.0.6",
-        "released": "2026-05-08T13:58:14Z",
-        "url": "https://github.com/posit-dev/connect-extensions/releases/download/chat-with-content%40v0.0.6/chat-with-content.tar.gz",
+        "version": "0.0.7",
+        "released": "2026-06-16T16:17:32Z",
+        "url": "https://github.com/posit-dev/connect-extensions/releases/download/chat-with-content%40v0.0.7/chat-with-content.tar.gz",
         "minimumConnectVersion": "2025.04.0",
         "requiredFeatures": [
           "OAuth Integrations"
         ],
         "requiredEnvironment": {
           "python": {
-            "requires": ">=3.10.0"
+            "requires": "~=3.10"
           }
         }
       },
       "versions": [
+        {
+          "version": "0.0.7",
+          "released": "2026-06-16T16:17:32Z",
+          "url": "https://github.com/posit-dev/connect-extensions/releases/download/chat-with-content%40v0.0.7/chat-with-content.tar.gz",
+          "minimumConnectVersion": "2025.04.0",
+          "requiredFeatures": [
+            "OAuth Integrations"
+          ],
+          "requiredEnvironment": {
+            "python": {
+              "requires": "~=3.10"
+            }
+          }
+        },
         {
           "version": "0.0.6",
           "released": "2026-05-08T13:58:14Z",
@@ -260,12 +274,12 @@
     {
       "name": "package-vulnerability-scanner",
       "title": "Package Vulnerability Scanner",
-      "description": "Scans for security vulnerabilities in your published content on Connect using Posit Package Manager. View an overview of CVEs across all your apps and get guidance on upgrading affected packages.",
+      "description": "Scan for security vulnerabilities in your published content on Connect using Posit Package Manager. View an overview of CVEs (Common Vulnerabilities and Exposures) across all your apps, and get guidance on upgrading affected packages.",
       "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/package-vulnerability-scanner",
       "latestVersion": {
-        "version": "3.0.4",
-        "released": "2026-04-15T19:32:12Z",
-        "url": "https://github.com/posit-dev/connect-extensions/releases/download/package-vulnerability-scanner%40v3.0.4/package-vulnerability-scanner.tar.gz",
+        "version": "3.0.5",
+        "released": "2026-06-16T16:09:49Z",
+        "url": "https://github.com/posit-dev/connect-extensions/releases/download/package-vulnerability-scanner%40v3.0.5/package-vulnerability-scanner.tar.gz",
         "minimumConnectVersion": "2025.04.0",
         "requiredFeatures": [
           "API Publishing"
@@ -279,6 +293,22 @@
         }
       },
       "versions": [
+        {
+          "version": "3.0.5",
+          "released": "2026-06-16T16:09:49Z",
+          "url": "https://github.com/posit-dev/connect-extensions/releases/download/package-vulnerability-scanner%40v3.0.5/package-vulnerability-scanner.tar.gz",
+          "minimumConnectVersion": "2025.04.0",
+          "requiredFeatures": [
+            "API Publishing"
+          ],
+          "requiredEnvironment": {
+            "image": "",
+            "prebuilt": false,
+            "python": {
+              "requires": "~=3.9"
+            }
+          }
+        },
         {
           "version": "3.0.4",
           "released": "2026-04-15T19:32:12Z",
@@ -520,23 +550,40 @@
       "description": "A Quarto document that executes Python and R code.",
       "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/pqr",
       "latestVersion": {
-        "version": "0.1.1",
-        "released": "2026-06-11T16:31:20Z",
-        "url": "https://github.com/posit-dev/connect-extensions/releases/download/pqr%40v0.1.1/pqr.tar.gz",
+        "version": "0.1.2",
+        "released": "2026-06-16T16:17:14Z",
+        "url": "https://github.com/posit-dev/connect-extensions/releases/download/pqr%40v0.1.2/pqr.tar.gz",
         "minimumConnectVersion": "2025.04.0",
         "requiredEnvironment": {
           "python": {
-            "requires": ">=3.11"
+            "requires": "~=3.11"
           },
           "quarto": {
-            "requires": ">=1.4"
+            "requires": "~=1.4"
           },
           "r": {
-            "requires": ">=4.3"
+            "requires": "~=4.3"
           }
         }
       },
       "versions": [
+        {
+          "version": "0.1.2",
+          "released": "2026-06-16T16:17:14Z",
+          "url": "https://github.com/posit-dev/connect-extensions/releases/download/pqr%40v0.1.2/pqr.tar.gz",
+          "minimumConnectVersion": "2025.04.0",
+          "requiredEnvironment": {
+            "python": {
+              "requires": "~=3.11"
+            },
+            "quarto": {
+              "requires": "~=1.4"
+            },
+            "r": {
+              "requires": "~=4.3"
+            }
+          }
+        },
         {
           "version": "0.1.1",
           "released": "2026-06-11T16:31:20Z",
@@ -806,13 +853,13 @@
       "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/quarto-stock-report-python",
       "category": "example",
       "latestVersion": {
-        "version": "1.0.4",
-        "released": "2026-06-11T16:31:16Z",
-        "url": "https://github.com/posit-dev/connect-extensions/releases/download/quarto-stock-report-python%40v1.0.4/quarto-stock-report-python.tar.gz",
+        "version": "1.0.5",
+        "released": "2026-06-16T16:17:20Z",
+        "url": "https://github.com/posit-dev/connect-extensions/releases/download/quarto-stock-report-python%40v1.0.5/quarto-stock-report-python.tar.gz",
         "minimumConnectVersion": "2025.04.0",
         "requiredEnvironment": {
           "python": {
-            "requires": ">=3.11"
+            "requires": "~=3.11"
           },
           "quarto": {
             "requires": "~=1.4"
@@ -820,6 +867,20 @@
         }
       },
       "versions": [
+        {
+          "version": "1.0.5",
+          "released": "2026-06-16T16:17:20Z",
+          "url": "https://github.com/posit-dev/connect-extensions/releases/download/quarto-stock-report-python%40v1.0.5/quarto-stock-report-python.tar.gz",
+          "minimumConnectVersion": "2025.04.0",
+          "requiredEnvironment": {
+            "python": {
+              "requires": "~=3.11"
+            },
+            "quarto": {
+              "requires": "~=1.4"
+            }
+          }
+        },
         {
           "version": "1.0.4",
           "released": "2026-06-11T16:31:16Z",
@@ -1249,9 +1310,9 @@
       "description": "A simple example of a Connect extension that serves tools via the MCP protocol. This is meant to be used with the Simple Shiny Chat with MCP Support extension.",
       "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/simple-mcp-server",
       "latestVersion": {
-        "version": "0.0.5",
-        "released": "2026-06-11T16:31:14Z",
-        "url": "https://github.com/posit-dev/connect-extensions/releases/download/simple-mcp-server%40v0.0.5/simple-mcp-server.tar.gz",
+        "version": "0.0.6",
+        "released": "2026-06-16T16:17:11Z",
+        "url": "https://github.com/posit-dev/connect-extensions/releases/download/simple-mcp-server%40v0.0.6/simple-mcp-server.tar.gz",
         "minimumConnectVersion": "2025.04.0",
         "requiredFeatures": [
           "API Publishing",
@@ -1259,11 +1320,26 @@
         ],
         "requiredEnvironment": {
           "python": {
-            "requires": ">=3.11"
+            "requires": "~=3.11"
           }
         }
       },
       "versions": [
+        {
+          "version": "0.0.6",
+          "released": "2026-06-16T16:17:11Z",
+          "url": "https://github.com/posit-dev/connect-extensions/releases/download/simple-mcp-server%40v0.0.6/simple-mcp-server.tar.gz",
+          "minimumConnectVersion": "2025.04.0",
+          "requiredFeatures": [
+            "API Publishing",
+            "OAuth Integrations"
+          ],
+          "requiredEnvironment": {
+            "python": {
+              "requires": "~=3.11"
+            }
+          }
+        },
         {
           "version": "0.0.5",
           "released": "2026-06-11T16:31:14Z",
@@ -1351,20 +1427,34 @@
       "description": "A simple Shiny chat application that demonstrates how to use the MCP client to facilitate remote tool calls. This is meant to be used with the Simple MCP Server extension.",
       "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/simple-shiny-chat-with-mcp",
       "latestVersion": {
-        "version": "0.0.5",
-        "released": "2026-05-08T13:58:12Z",
-        "url": "https://github.com/posit-dev/connect-extensions/releases/download/simple-shiny-chat-with-mcp%40v0.0.5/simple-shiny-chat-with-mcp.tar.gz",
+        "version": "0.0.6",
+        "released": "2026-06-16T16:17:10Z",
+        "url": "https://github.com/posit-dev/connect-extensions/releases/download/simple-shiny-chat-with-mcp%40v0.0.6/simple-shiny-chat-with-mcp.tar.gz",
         "minimumConnectVersion": "2025.04.0",
         "requiredFeatures": [
           "OAuth Integrations"
         ],
         "requiredEnvironment": {
           "python": {
-            "requires": ">=3.10"
+            "requires": "~=3.10"
           }
         }
       },
       "versions": [
+        {
+          "version": "0.0.6",
+          "released": "2026-06-16T16:17:10Z",
+          "url": "https://github.com/posit-dev/connect-extensions/releases/download/simple-shiny-chat-with-mcp%40v0.0.6/simple-shiny-chat-with-mcp.tar.gz",
+          "minimumConnectVersion": "2025.04.0",
+          "requiredFeatures": [
+            "OAuth Integrations"
+          ],
+          "requiredEnvironment": {
+            "python": {
+              "requires": "~=3.10"
+            }
+          }
+        },
         {
           "version": "0.0.5",
           "released": "2026-05-08T13:58:12Z",
@@ -1758,17 +1848,28 @@
       "description": "This stock report is generated using Python and Jupyter Notebook. It uses cached price data to generate a market performance summary intended to run daily after market close.",
       "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/stock-report-jupyter",
       "latestVersion": {
-        "version": "1.0.2",
-        "released": "2026-06-11T16:31:17Z",
-        "url": "https://github.com/posit-dev/connect-extensions/releases/download/stock-report-jupyter%40v1.0.2/stock-report-jupyter.tar.gz",
+        "version": "1.0.3",
+        "released": "2026-06-16T16:17:13Z",
+        "url": "https://github.com/posit-dev/connect-extensions/releases/download/stock-report-jupyter%40v1.0.3/stock-report-jupyter.tar.gz",
         "minimumConnectVersion": "2025.04.0",
         "requiredEnvironment": {
           "python": {
-            "requires": ">=3.11"
+            "requires": "~=3.11"
           }
         }
       },
       "versions": [
+        {
+          "version": "1.0.3",
+          "released": "2026-06-16T16:17:13Z",
+          "url": "https://github.com/posit-dev/connect-extensions/releases/download/stock-report-jupyter%40v1.0.3/stock-report-jupyter.tar.gz",
+          "minimumConnectVersion": "2025.04.0",
+          "requiredEnvironment": {
+            "python": {
+              "requires": "~=3.11"
+            }
+          }
+        },
         {
           "version": "1.0.2",
           "released": "2026-06-11T16:31:17Z",
