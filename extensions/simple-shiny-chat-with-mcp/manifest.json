@@ -15,7 +15,7 @@
   },
   "environment": {
       "python": {
-        "requires": ">=3.10"
+        "requires": "~=3.10"
       }
     },
   "extension": {
@@ -29,11 +29,11 @@
       "OAuth Integrations"
     ],
     "minimumConnectVersion": "2025.04.0",
-    "version": "0.0.5"
+    "version": "0.0.6"
   },
   "files": {
     "requirements.txt": {
-      "checksum": "29cc272aac150ac0aee03574874b78cf"
+      "checksum": "04704e5cc2a144ccfdd9c6bb990db570"
     },
     "README.md": {
       "checksum": "123a88ebb3df0e35fc1f45e0194504ce"

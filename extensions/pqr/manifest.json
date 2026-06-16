@@ -11,13 +11,13 @@
   },
   "environment": {
     "python": {
-      "requires": ">=3.11"
+      "requires": "~=3.11"
     },
     "quarto": {
-      "requires": ">=1.4"
+      "requires": "~=1.4"
     },
     "r": {
-      "requires": ">=4.3"
+      "requires": "~=4.3"
     }
   },
   "quarto": {
@@ -1262,7 +1262,7 @@
   },
   "files": {
     ".Rprofile": {
-      "checksum": "e4a8469aa2429ff6deb5fe48247af0a1"
+      "checksum": "57f9047cb06fdbef821b61f49e21406e"
     },
     "index.qmd": {
       "checksum": "e3c9e1907f7e77e8d7da0492e92d9def"
@@ -1289,6 +1289,6 @@
     "category": "example",
     "tags": ["python", "quarto", "r"],
     "minimumConnectVersion": "2025.04.0",
-    "version": "0.1.1"
+    "version": "0.1.2"
   }
 }

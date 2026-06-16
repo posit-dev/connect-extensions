@@ -5,6 +5,12 @@ All notable changes to the Stock Report using Jupyter extension will be document
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.3] - 2026-06-15
+
+### Changed
+
+- Constrained the Python runtime requirement to the current major version (`>=3.11` → `~=3.11`). (#376)
+
 ## [1.0.2] - 2026-06-10
 
 ### Changed

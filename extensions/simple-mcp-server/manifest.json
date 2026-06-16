@@ -15,7 +15,7 @@
   },
   "environment": {
     "python": {
-      "requires": ">=3.11"
+      "requires": "~=3.11"
     }
   },
   "extension": {
@@ -27,7 +27,7 @@
     "tags": ["python", "fastapi", "mcp"],
     "requiredFeatures": ["API Publishing", "OAuth Integrations"],
     "minimumConnectVersion": "2025.04.0",
-    "version": "0.0.5"
+    "version": "0.0.6"
   },
   "files": {
     "requirements.txt": {
