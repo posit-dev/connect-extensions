@@ -46,6 +46,26 @@ jobs:
         with:
           extension-name: ${{ matrix.extension }}
 
+      # Frontend extensions (those with a package.json) ship a built `dist/`
+      # directory that is gitignored, so it must be built before packaging.
+      # Without this the deployed app fails at startup mounting `dist/`.
+      - name: Set up Node
+        if: ${{ hashFiles(format('extensions/{0}/package.json', matrix.extension)) != '' }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: "lts/*"
+          cache: "npm"
+          cache-dependency-path: extensions/${{ matrix.extension }}/package-lock.json
+
+      - name: Build frontend
+        if: ${{ hashFiles(format('extensions/{0}/package.json', matrix.extension)) != '' }}
+        working-directory: extensions/${{ matrix.extension }}
+        run: |
+          npm ci
+          npm run build
+          # Drop build-only files so they aren't packaged into the bundle
+          rm -rf node_modules
+
       - uses: ./.github/actions/package-extension
         with:
           extension-name: ${{ matrix.extension }}
