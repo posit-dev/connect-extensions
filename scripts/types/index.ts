@@ -25,6 +25,7 @@ export interface ExtensionManifest {
     requiredFeatures?: RequiredFeature[];
     category?: Category['id'];
     tags?: string[];
+    imgUrl?: string;
   };
   environment?: ExtensionEnvironment;
 }
@@ -53,4 +54,5 @@ export interface Extension {
   versions: ExtensionVersion[];
   tags: string[];
   category?: Category['id'];
+  imgUrl?: string;
 }
