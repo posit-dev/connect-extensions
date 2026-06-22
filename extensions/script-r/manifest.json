@@ -31,7 +31,7 @@
     "category": "example",
     "tags": ["r", "quarto"],
     "minimumConnectVersion": "2025.04.0",
-    "version": "1.0.1"
+    "version": "1.0.2"
   },
   "packages": {
     "R6": {
@@ -770,7 +770,7 @@
       "checksum": "e5bfdf389c2ae3bc115d8f4add41fc2f"
     },
     "script.R": {
-      "checksum": "81838e2d6f3e0b6880c6e0c7ce6d7a62"
+      "checksum": "bc99a676344f7d4556bd39cece482555"
     }
   },
   "users": null

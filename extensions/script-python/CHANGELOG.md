@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Exported the CSV files without the leading row-index column. (#392)
+- Re-pinned `requirements.txt` to a minimal, Python 3.9-compatible set so the example installs on 3.9 servers; the previous `ipykernel` pin required Python 3.10, contradicting the declared `~=3.9` floor. (#392)
 
 ### Removed
 

@@ -12,7 +12,7 @@
     "category": "example",
     "tags": ["python", "quarto"],
     "minimumConnectVersion": "2025.04.0",
-    "version": "1.0.1"
+    "version": "1.0.2"
   },
   "environment": {
     "python": {
@@ -29,7 +29,7 @@
     ]
   },
   "python": {
-    "version": "3.8.20",
+    "version": "3.9.6",
     "package_manager": {
       "name": "pip",
       "version": "23.0.1",
@@ -38,19 +38,19 @@
   },
   "files": {
     "requirements.txt": {
-      "checksum": "c67ead42a8939d4072ecd719350bbeba"
+      "checksum": "cd1137905ca978d5ca8048a3a7f0d544"
     },
     ".gitignore": {
-      "checksum": "42b3cf8550e12acf456cef1254151634"
+      "checksum": "6c0b6e73b9af0d9639c2e47761106848"
     },
     "README.md": {
-      "checksum": "87c06eb724cdf54ed602741c3a82cc71"
+      "checksum": "95deb7521ff8998bee968374533e61e5"
     },
     "_quarto.yml": {
       "checksum": "e5bfdf389c2ae3bc115d8f4add41fc2f"
     },
     "script.py": {
-      "checksum": "46d490184f5d440c884c6fd28460b54f"
+      "checksum": "94e1a7707bef08a4812428cdd9b0f953"
     }
   }
 }
