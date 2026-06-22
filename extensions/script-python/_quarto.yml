@@ -1,2 +1,7 @@
 project:
   title: "Penguin data transformations"
+  # Render only the script so it is the unambiguous primary document.
+  # Without this, Quarto also renders sibling Markdown (e.g. CHANGELOG.md)
+  # and the default served document can become that file instead.
+  render:
+    - script.py
