@@ -3,6 +3,7 @@
 *.csv
 *.json
 script.html
+script.quarto_ipynb
 script_files
 /email-preview/
 .output_metadata.json
