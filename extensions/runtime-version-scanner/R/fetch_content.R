@@ -41,8 +41,11 @@ type_query <- function(content_types) {
 }
 
 content_list_to_data_frame <- function(content_list) {
-  connectapi:::parse_connectapi_typed(
-    content_list,
-    connectapi:::connectapi_ptypes$content
-  )
+  # `search_content()` returns a `connect_content_list` of `Content` R6
+  # objects whose fields live in `$content`. Use connectapi's exported
+  # `as_tibble()` method, which extracts `$content` from each object before
+  # parsing. Passing the R6 objects straight to the internal parser yields a
+  # table of all-empty rows (guid = NA, owner = list()), which crashes the
+  # downstream `map_chr(owner, "first_name")`. See issue #379.
+  tibble::as_tibble(content_list)
 }
