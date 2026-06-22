@@ -1,1 +1,2 @@
 plotnine
+pandas>=2.3.3,<3

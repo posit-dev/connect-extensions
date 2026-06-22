@@ -15,11 +15,11 @@
     "requiredFeatures": [
       "API Publishing"
     ],
-    "version": "1.0.2"
+    "version": "1.0.3"
   },
   "environment": {
     "python": {
-      "requires": "~=3.10"
+      "requires": "~=3.11"
     }
   },
   "python": {
@@ -32,7 +32,7 @@
   },
   "files": {
     "requirements.txt": {
-      "checksum": "1176e07be1c7afaac370e4b0b5e67823"
+      "checksum": "1c3853a90c062f67462d9d50c6cdb479"
     },
     "README.md": {
       "checksum": "aa9afd650003a1220c22340a26206ea5"

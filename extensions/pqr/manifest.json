@@ -1274,10 +1274,10 @@
       "checksum": "962cd79e2270a9092eacb5ee04223b4b"
     },
     "requirements.in": {
-      "checksum": "a8339a5379053005e03306a5b9792ffb"
+      "checksum": "e5a63f0306f1a3d8fa54585125bab71e"
     },
     "requirements.txt": {
-      "checksum": "49b0abd857312b4b47825c38d89b5e9a"
+      "checksum": "5763a001a468a85d0608baff9ed55fb0"
     }
   },
   "users": null,
@@ -1289,6 +1289,6 @@
     "category": "example",
     "tags": ["python", "quarto", "r"],
     "minimumConnectVersion": "2025.04.0",
-    "version": "0.1.2"
+    "version": "0.1.3"
   }
 }
