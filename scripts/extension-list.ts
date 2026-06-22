@@ -68,6 +68,7 @@ class ExtensionList {
       version,
       category,
       tags,
+      imgUrl,
       minimumConnectVersion,
       requiredFeatures,
     } = manifest.extension;
@@ -87,10 +88,10 @@ class ExtensionList {
     };
 
     if (this.getExtension(name)) {
-      this.updateExtensionDetails(name, title, description, homepage, tags, category);
+      this.updateExtensionDetails(name, title, description, homepage, tags, category, imgUrl);
       this.addExtensionVersion(name, newVersion);
     } else {
-      this.addNewExtension(name, title, description, homepage, newVersion, tags, category);
+      this.addNewExtension(name, title, description, homepage, newVersion, tags, category, imgUrl);
     }
   }
 
@@ -104,7 +105,8 @@ class ExtensionList {
     description: string,
     homepage: string,
     tags: string[] = [],
-    category?: string
+    category?: string,
+    imgUrl?: string
   ) {
     this.updateExtension(name, {
       ...this.getExtension(name),
@@ -113,6 +115,7 @@ class ExtensionList {
       homepage,
       tags,
       ...(category ? { category } : {}),
+      ...(imgUrl ? { imgUrl } : {}),
     });
   }
 
@@ -147,7 +150,8 @@ class ExtensionList {
     homepage: string,
     initialVersion: ExtensionVersion,
     tags: string[] = [],
-    category?: string
+    category?: string,
+    imgUrl?: string
   ) {
     if (this.getExtension(name) !== undefined) {
       throw new Error(`Extension ${name} already exists in the list`);
@@ -161,6 +165,7 @@ class ExtensionList {
       versions: [initialVersion],
       tags,
       ...(category ? { category } : {}),
+      ...(imgUrl ? { imgUrl } : {}),
     });
     this.sortExtensions();
   }
