@@ -41,6 +41,7 @@ write.csv(adelie_m, "adelie-m.csv", row.names = FALSE)
 
 #| echo: false
 #| output: asis
+# Each printed line becomes part of the email body.
 cat("Identified", nrow(gentoo_f), "female Gentoo penguins.\n")
 cat("Identified", nrow(adelie_m), "male Adelie penguins.\n")
 cat("\n")

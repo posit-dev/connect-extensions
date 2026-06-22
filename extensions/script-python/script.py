@@ -64,6 +64,7 @@ adelie_m.to_json("adelie-m.json", orient="records")
 # %%
 #| echo: false
 #| output: asis
+# Each printed line becomes part of the email body.
 print("Identified", len(gentoo_f), "female Gentoo penguins.")
 print("Identified", len(adelie_m), "male Adelie penguins.")
 print("")
