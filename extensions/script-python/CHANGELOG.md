@@ -10,7 +10,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Rewrote the title, description, and README to explain running on a schedule and the email setup, and to show how to adapt the script to your own data. (#392)
-- Added `python` and `quarto` tags. (#392)
 
 ### Fixed
 
