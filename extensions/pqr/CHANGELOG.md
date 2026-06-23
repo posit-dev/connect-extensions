@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- Pinned `pandas>=2.3.3` so the bundled datasets load without crashing on Connect releases that ship Python 3.14. The previous `pandas==2.3.2` had no Python 3.14 wheel and built from source, producing a broken extension that segfaulted when loading data.
+- Pinned `pandas>=2.3.3` so the bundled datasets load without crashing on Connect releases that ship Python 3.14. The previous `pandas==2.3.2` had no Python 3.14 wheel and built from source, producing a broken extension that segfaulted when loading data. (#398)
 
 ## [0.1.2] - 2026-06-15
 

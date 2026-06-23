@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- Updated `pandas` to a version with Python 3.14 wheels so the content runs on Connect releases that ship Python 3.14.
+- Updated `pandas` to a version with Python 3.14 wheels so the content runs on Connect releases that ship Python 3.14. (#398)
 
 ## [1.0.2] - 2026-06-11
 
