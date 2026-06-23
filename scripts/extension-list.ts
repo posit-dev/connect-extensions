@@ -167,7 +167,6 @@ class ExtensionList {
       ...(category ? { category } : {}),
       ...(imgUrl ? { imgUrl } : {}),
     });
-    this.sortExtensions();
   }
 
   private updateExtension(name: string, data: Extension) {
@@ -179,6 +178,8 @@ class ExtensionList {
   }
 
   public stringify() {
+    // Always emit a title-sorted feed so any release (new or updated) reorders.
+    this.sortExtensions();
     const output = {
       categories: this.categories,
       tags: this.tags,
@@ -189,7 +190,7 @@ class ExtensionList {
   }
 
   private sortExtensions() {
-    this.extensions.sort((a, b) => a.name.localeCompare(b.name));
+    this.extensions.sort((a, b) => a.title.localeCompare(b.title));
   }
 }
 
