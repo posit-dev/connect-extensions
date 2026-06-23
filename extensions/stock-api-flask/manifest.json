@@ -19,7 +19,7 @@
   },
   "environment": {
     "python": {
-      "requires": "~=3.11"
+      "requires": "~=3.10"
     }
   },
   "python": {
@@ -32,7 +32,7 @@
   },
   "files": {
     "requirements.txt": {
-      "checksum": "1c3853a90c062f67462d9d50c6cdb479"
+      "checksum": "548484c00d47f3a7599c888fe49936d5"
     },
     "README.md": {
       "checksum": "aa9afd650003a1220c22340a26206ea5"
