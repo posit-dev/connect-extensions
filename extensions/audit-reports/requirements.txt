@@ -1,6 +1,0 @@
-jupyter
-python-dotenv
-posit-sdk
-polars
-reactable
-great_tables

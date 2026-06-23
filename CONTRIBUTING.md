@@ -257,7 +257,7 @@ filters: |
   my-content-name: extensions/my-content-name/**
 ```
 
-A good example is how `reaper` is setup.
+A good example is how `script-python` is setup.
 
 This will make any code changes to your content trigger a few things:
 
