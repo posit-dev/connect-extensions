@@ -42,12 +42,7 @@ class ExtensionList {
     public tags: string[],
     public requiredFeatures: RequiredFeature[],
     public extensions: Extension[]
-  ) {
-    this.categories = categories;
-    this.tags = tags;
-    this.requiredFeatures = requiredFeatures;
-    this.extensions = extensions;
-  }
+  ) {}
 
   static fromFile(path: string) {
     const file = JSON.parse(fs.readFileSync(path, "utf8"));
