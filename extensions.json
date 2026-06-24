@@ -550,9 +550,9 @@
       "description": "A Quarto document that executes Python and R code.",
       "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/pqr",
       "latestVersion": {
-        "version": "0.1.2",
-        "released": "2026-06-16T16:17:14Z",
-        "url": "https://github.com/posit-dev/connect-extensions/releases/download/pqr%40v0.1.2/pqr.tar.gz",
+        "version": "0.1.3",
+        "released": "2026-06-24T15:23:30Z",
+        "url": "https://github.com/posit-dev/connect-extensions/releases/download/pqr%40v0.1.3/pqr.tar.gz",
         "minimumConnectVersion": "2025.04.0",
         "requiredEnvironment": {
           "python": {
@@ -567,6 +567,23 @@
         }
       },
       "versions": [
+        {
+          "version": "0.1.3",
+          "released": "2026-06-24T15:23:30Z",
+          "url": "https://github.com/posit-dev/connect-extensions/releases/download/pqr%40v0.1.3/pqr.tar.gz",
+          "minimumConnectVersion": "2025.04.0",
+          "requiredEnvironment": {
+            "python": {
+              "requires": "~=3.11"
+            },
+            "quarto": {
+              "requires": "~=1.4"
+            },
+            "r": {
+              "requires": "~=4.3"
+            }
+          }
+        },
         {
           "version": "0.1.2",
           "released": "2026-06-16T16:17:14Z",
@@ -1607,9 +1624,9 @@
       "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/stock-api-flask",
       "category": "example",
       "latestVersion": {
-        "version": "1.0.2",
-        "released": "2026-06-12T00:15:01Z",
-        "url": "https://github.com/posit-dev/connect-extensions/releases/download/stock-api-flask%40v1.0.2/stock-api-flask.tar.gz",
+        "version": "1.0.3",
+        "released": "2026-06-24T15:23:31Z",
+        "url": "https://github.com/posit-dev/connect-extensions/releases/download/stock-api-flask%40v1.0.3/stock-api-flask.tar.gz",
         "minimumConnectVersion": "2025.04.0",
         "requiredFeatures": [
           "API Publishing"
@@ -1621,6 +1638,20 @@
         }
       },
       "versions": [
+        {
+          "version": "1.0.3",
+          "released": "2026-06-24T15:23:31Z",
+          "url": "https://github.com/posit-dev/connect-extensions/releases/download/stock-api-flask%40v1.0.3/stock-api-flask.tar.gz",
+          "minimumConnectVersion": "2025.04.0",
+          "requiredFeatures": [
+            "API Publishing"
+          ],
+          "requiredEnvironment": {
+            "python": {
+              "requires": "~=3.10"
+            }
+          }
+        },
         {
           "version": "1.0.2",
           "released": "2026-06-12T00:15:01Z",
@@ -1739,9 +1770,9 @@
       "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/stock-dashboard-python",
       "category": "example",
       "latestVersion": {
-        "version": "1.0.2",
-        "released": "2026-06-12T00:15:00Z",
-        "url": "https://github.com/posit-dev/connect-extensions/releases/download/stock-dashboard-python%40v1.0.2/stock-dashboard-python.tar.gz",
+        "version": "1.0.3",
+        "released": "2026-06-24T15:23:32Z",
+        "url": "https://github.com/posit-dev/connect-extensions/releases/download/stock-dashboard-python%40v1.0.3/stock-dashboard-python.tar.gz",
         "minimumConnectVersion": "2025.04.0",
         "requiredEnvironment": {
           "python": {
@@ -1750,6 +1781,17 @@
         }
       },
       "versions": [
+        {
+          "version": "1.0.3",
+          "released": "2026-06-24T15:23:32Z",
+          "url": "https://github.com/posit-dev/connect-extensions/releases/download/stock-dashboard-python%40v1.0.3/stock-dashboard-python.tar.gz",
+          "minimumConnectVersion": "2025.04.0",
+          "requiredEnvironment": {
+            "python": {
+              "requires": "~=3.9"
+            }
+          }
+        },
         {
           "version": "1.0.2",
           "released": "2026-06-12T00:15:00Z",
