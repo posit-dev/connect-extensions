@@ -39,14 +39,8 @@
     "requirements.txt": {
       "checksum": "cd1137905ca978d5ca8048a3a7f0d544"
     },
-    ".gitignore": {
-      "checksum": "6c0b6e73b9af0d9639c2e47761106848"
-    },
-    "README.md": {
-      "checksum": "95deb7521ff8998bee968374533e61e5"
-    },
     "_quarto.yml": {
-      "checksum": "4d974e712cab1ec376519adb218e3d12"
+      "checksum": "ee755b61514f9f472fa592db57605a81"
     },
     "script.py": {
       "checksum": "94e1a7707bef08a4812428cdd9b0f953"

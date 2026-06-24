@@ -8,5 +8,5 @@ script_files
 /email-preview/
 .output_metadata.json
 
-# But do not ignore manifest.json
+# Always include manifest.json
 !manifest.json
