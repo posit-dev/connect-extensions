@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Exported the CSV files without the leading row-index column. (#392)
+- Pinned the Quarto project to render only the script, so the gallery serves the script rather than a sibling Markdown file (e.g. the changelog). (#392)
 
 ## [1.0.1] - 2026-06-11
 
