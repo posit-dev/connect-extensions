@@ -263,8 +263,8 @@ server <- function(input, output, session) {
       content_df <- content_list_to_data_frame(content_list)|>
         mutate(
           owner_name = paste(
-            map_chr(owner, "first_name"),
-            map_chr(owner, "last_name")
+            map_chr(owner, "first_name", .default = ""),
+            map_chr(owner, "last_name", .default = "")
           ),
           title = coalesce(title, ifelse(name != "", name, NA))
         )

@@ -41,8 +41,8 @@ type_query <- function(content_types) {
 }
 
 content_list_to_data_frame <- function(content_list) {
-  connectapi:::parse_connectapi_typed(
-    content_list,
-    connectapi:::connectapi_ptypes$content
-  )
+  # `search_content()` returns R6 `Content` objects whose fields live in
+  # `$content`; `as_tibble()` extracts those before parsing. Parsing the
+  # objects directly yields a table of all-empty rows.
+  tibble::as_tibble(content_list)
 }

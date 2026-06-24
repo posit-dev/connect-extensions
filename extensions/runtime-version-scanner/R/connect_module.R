@@ -38,12 +38,10 @@ connectVisitorClient <- function(
           )
         } else if (nrow(selected_integration) == 0) {
           integration_settings_url <- publisher_client$server_url(
-            connectapi:::unversioned_url(
-              "connect",
-              "#",
-              "system",
-              "integrations"
-            )
+            "connect",
+            "#",
+            "system",
+            "integrations"
           )
           message <- paste0(
             "This content needs permission to ",
@@ -128,12 +126,14 @@ get_eligible_integrations <- function(client) {
 
 auto_add_integration <- function(client, integration_guid) {
   client$PUT(
-    connectapi:::v1_url(
+    paste(
+      "v1",
       "content",
       Sys.getenv("CONNECT_CONTENT_GUID"),
       "oauth",
       "integrations",
-      "associations"
+      "associations",
+      sep = "/"
     ),
     body = list(list(oauth_integration_guid = integration_guid))
   )
