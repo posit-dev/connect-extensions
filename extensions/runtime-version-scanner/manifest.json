@@ -2616,13 +2616,13 @@
   },
   "files": {
     "app.R": {
-      "checksum": "69ec0029acb50cb4bc05041bb35b88b8"
+      "checksum": "1f458d627fc174c123e24baa3a3934cf"
     },
     "R/connect_module.R": {
-      "checksum": "06b96d31139208ae8e231a4b9991e800"
+      "checksum": "b06c872e41c16ee85834394daccfc19d"
     },
     "R/fetch_content.R": {
-      "checksum": "1563f56cdbf699953ee2750fac9b560f"
+      "checksum": "a99f3e21b2612e9d889b14b8a6201d83"
     },
     "R/supported_versions.R": {
       "checksum": "ca8c4181bddf00f8e7e0797671ae01c6"
