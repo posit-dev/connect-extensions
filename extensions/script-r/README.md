@@ -1,4 +1,4 @@
-# Run an R Script using Quarto
+# R: Scheduled Data Transformation
 
 ## About this example
 
