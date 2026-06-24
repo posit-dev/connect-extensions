@@ -42,12 +42,7 @@ class ExtensionList {
     public tags: string[],
     public requiredFeatures: RequiredFeature[],
     public extensions: Extension[]
-  ) {
-    this.categories = categories;
-    this.tags = tags;
-    this.requiredFeatures = requiredFeatures;
-    this.extensions = extensions;
-  }
+  ) {}
 
   static fromFile(path: string) {
     const file = JSON.parse(fs.readFileSync(path, "utf8"));
@@ -167,7 +162,6 @@ class ExtensionList {
       ...(category ? { category } : {}),
       ...(imgUrl ? { imgUrl } : {}),
     });
-    this.sortExtensions();
   }
 
   private updateExtension(name: string, data: Extension) {
@@ -188,8 +182,8 @@ class ExtensionList {
     return JSON.stringify(output, null, 2);
   }
 
-  private sortExtensions() {
-    this.extensions.sort((a, b) => a.name.localeCompare(b.name));
+  public sortExtensionsByTitle() {
+    this.extensions.sort((a, b) => a.title.localeCompare(b.title));
   }
 }
 
@@ -210,4 +204,6 @@ releases.forEach((release) => {
   list.addRelease(manifest, release);
 });
 
+// Always re-sort so any release (new or updated) reorders the whole feed.
+list.sortExtensionsByTitle();
 fs.writeFileSync(extensionListFilePath, list.stringify());
