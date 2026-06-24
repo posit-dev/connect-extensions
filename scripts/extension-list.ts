@@ -178,8 +178,6 @@ class ExtensionList {
   }
 
   public stringify() {
-    // Always emit a title-sorted feed so any release (new or updated) reorders.
-    this.sortExtensions();
     const output = {
       categories: this.categories,
       tags: this.tags,
@@ -189,7 +187,7 @@ class ExtensionList {
     return JSON.stringify(output, null, 2);
   }
 
-  private sortExtensions() {
+  public sortExtensionsByTitle() {
     this.extensions.sort((a, b) => a.title.localeCompare(b.title));
   }
 }
@@ -211,4 +209,6 @@ releases.forEach((release) => {
   list.addRelease(manifest, release);
 });
 
+// Always re-sort so any release (new or updated) reorders the whole feed.
+list.sortExtensionsByTitle();
 fs.writeFileSync(extensionListFilePath, list.stringify());
