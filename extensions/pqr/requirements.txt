@@ -26,8 +26,9 @@ packaging==25.0
     # via
     #   matplotlib
     #   statsmodels
-pandas==2.3.2
+pandas==2.3.3
     # via
+    #   -r requirements.in
     #   mizani
     #   plotnine
     #   statsmodels
