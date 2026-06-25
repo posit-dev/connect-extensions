@@ -177,8 +177,9 @@ and reference its raw GitHub URL:
 }
 ```
 
-Use a landscape image (roughly 16:9) so it displays consistently alongside other
-cards.
+The gallery displays the image in a small square (50x50 pixels), so a simple
+logo or icon works best. A detailed image or screenshot may not be legible at
+that size.
 
 ### README.md
 
