@@ -12,6 +12,7 @@ body {
   .band.hero {
     height: 200px;
     background-color: #aaa;
+    /* Replace images/logo.png with your organization's logo. */
     background-image: url(../images/logo.png);
     background-size: 400px 200px;
     background-repeat: no-repeat;
@@ -41,5 +42,3 @@ body {
       background-position: left center; }
   .bandContent ul p {
     line-height: 20px; }
-
-/*# sourceMappingURL=example-landing.css.map */
