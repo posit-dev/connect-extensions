@@ -11,17 +11,17 @@
   },
   "extension": {
     "name": "landing-page",
-    "title": "Static HTML landing page",
-    "description": "A simple static HTML web page that can be served from Connect",
+    "title": "HTML: Landing Page",
+    "description": "A static HTML landing page for Connect. It gives your team a branded front door that links to the content you publish, with no app or API to build. Customize the copy, logo, and links for any organization.",
     "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/landing-page",
     "category": "example",
     "minimumConnectVersion": "2025.04.0",
-    "version": "1.0.0"
+    "version": "1.0.1"
   },
   "packages": null,
   "files": {
     "css/example-landing.css": {
-      "checksum": "d5ab84ce8482341785ad7798f272fcc5"
+      "checksum": "63a878ef3a179295711414cca26976da"
     },
     "images/info.png": {
       "checksum": "184edb1e9b490e26bf93081274d45928"
@@ -30,10 +30,10 @@
       "checksum": "38472dc2c802db2abbc2ee5c7204632d"
     },
     "index.html": {
-      "checksum": "5a39c2d4fea53f9e4d8870b6370facc4"
+      "checksum": "b8faba62044b1a42b2d3922c434b21ad"
     },
     "README.md": {
-      "checksum": "31098f057b98fd974710bfc93d8eeee2"
+      "checksum": "bbff6d8bf9e2c5a2e59626fbd43b3924"
     }
   },
   "users": null
