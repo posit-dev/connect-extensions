@@ -1,4 +1,4 @@
-# Python: Scheduled Data Transformation
+# Python: Scheduled Script
 
 ## About this example
 

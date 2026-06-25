@@ -25,7 +25,7 @@
   },
   "extension": {
     "name": "script-r",
-    "title": "R: Scheduled Data Transformation",
+    "title": "R: Scheduled Script",
     "description": "This R script is an example of how you might run a scheduled job on Connect to automate regular imports and transformations from a data source. JSON and CSV files are exported and made available for download. Quarto is used to render the script. The script also generates a custom email, with the generated CSV files as attachments. Swap in your own data source to adapt it to any recurring data job.",
     "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/script-r",
     "category": "example",

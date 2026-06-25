@@ -1,4 +1,4 @@
-# R: Scheduled Data Transformation
+# R: Scheduled Script
 
 ## About this example
 
