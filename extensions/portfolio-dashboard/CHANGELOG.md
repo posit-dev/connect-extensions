@@ -10,7 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Retitled to `R Shiny: Portfolio Dashboard`, rewrote the description and README, and added explanatory comments to `app.R` (the Sortino ratio, the MAR, and the input throttle). (#406)
-- Switched the sample data from `returns.rds` to `returns.csv` (columns: date, portfolio, returns), refreshed it through 2025, and made the portfolio selector read its options from the file so you can swap in your own data. (#406)
+- Switched the sample data from `returns.rds` to `returns.csv` (columns: date, portfolio, returns), refreshed it through 2025 with both average return and volatility rising across the conservative, balanced, and aggressive tiers and a shared 2022 downturn, and made the portfolio selector read its options from the file so you can swap in your own data. (#406)
 
 ### Fixed
 
