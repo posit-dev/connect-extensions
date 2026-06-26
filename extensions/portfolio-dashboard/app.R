@@ -94,14 +94,11 @@ server <- function(input, output, session) {
       `colnames<-`(paste0(input$window, "-month rolling"))
   })
 
-  sortino_byhand <- reactive({
+  returns_flagged <- reactive({
     portfolio_selected() |>
-      # Compute the Sortino ratio by hand and flag each month as up/down vs the
-      # MAR, so the plots below can color and shade the downside months.
-      mutate(
-        ratio = mean(returns - input$mar) / sqrt(sum(pmin(returns - input$mar, 0)^2) / n()),
-        status = ifelse(returns < input$mar, "down", "up")
-      )
+      # Flag each month as up/down vs the MAR, so the plots below can color and
+      # shade the downside months.
+      mutate(status = ifelse(returns < input$mar, "down", "up"))
   })
 
   output$time_series <- renderPlotly({
@@ -125,17 +122,17 @@ server <- function(input, output, session) {
   })
 
   output$scatterplot <- renderPlotly({
-    portfolio_scatter <- ggplot(sortino_byhand(), aes(x = date, y = returns, color = status)) +
+    portfolio_scatter <- ggplot(returns_flagged(), aes(x = date, y = returns, color = status)) +
       geom_point() +
       geom_hline(yintercept = input$mar, color = "purple", linetype = "dotted") +
-      scale_color_manual(values = c("tomato", "chartreuse3")) +
+      scale_color_manual(values = c(down = "tomato", up = "chartreuse3")) +
       theme(legend.position = "none") + ylab("monthly returns")
 
     ggplotly(portfolio_scatter)
   })
 
   output$histogram <- renderPlotly({
-    p <- ggplot(sortino_byhand(), aes(x = returns)) +
+    p <- ggplot(returns_flagged(), aes(x = returns)) +
       geom_histogram(alpha = 0.25, binwidth = .01, fill = "cornflowerblue") +
       geom_vline(xintercept = input$mar, color = "green")
     ggplotly(p) |>
@@ -143,7 +140,7 @@ server <- function(input, output, session) {
   })
 
   output$density <- renderPlotly({
-    sortino_density_plot <- ggplot(sortino_byhand(), aes(x = returns)) +
+    sortino_density_plot <- ggplot(returns_flagged(), aes(x = returns)) +
       stat_density(geom = "line", linewidth = 1, color = "cornflowerblue")
 
     shaded_area_data <- ggplot_build(sortino_density_plot)$data[[1]] |>

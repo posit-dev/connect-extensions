@@ -16,6 +16,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Removed the dated 2016 election marker and annotation, the unused `dygraphs` import, and the dead daily-returns series; added the explicit `ggplot2` import; fixed the hardcoded rolling-window label to follow the window input; and replaced the deprecated `size` aesthetic with `linewidth`. (#406)
 - Showed a message instead of a blank Rolling Sortino plot when the start date leaves fewer months than the rolling window. (#406)
+- Removed an unused by-hand Sortino calculation, and named the scatterplot colors so up and down months stay correctly colored even when a selection contains only one. (#406)
 
 ## [0.0.4] - 2026-06-11
 
