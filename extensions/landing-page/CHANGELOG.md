@@ -16,3 +16,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Fixed the broken "contact us" link (`href="#"`). (#404)
 - Fixed invalid FAQ markup (answer paragraphs were direct children of `<ul>`). (#404)
+- Removed `maximum-scale=1.0` from the viewport meta so the page allows pinch-zoom (accessibility). (#404)
