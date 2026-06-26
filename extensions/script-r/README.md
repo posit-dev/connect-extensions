@@ -33,8 +33,8 @@ names, and the attachment list in the email block.
 ## Deploy
 
 Deploy it straight from the Connect Gallery to get a copy running, then customize
-it. To publish your customized version, deploy the directory with `rsconnect
-deploy quarto` or a git-backed deployment. Rendering requires Quarto 1.4 or newer
+it. To publish your customized version, deploy the directory with `quarto publish
+connect` or a git-backed deployment. Rendering requires Quarto 1.4 or newer
 and R 4.4 or newer.
 
 ## Learn more
