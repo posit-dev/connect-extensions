@@ -81,6 +81,13 @@ server <- function(input, output, session) {
     req(input$mar)
     req(input$window)
 
+    # Need at least `window` months of data to compute a rolling value; show a
+    # message instead of a blank plot when the start date leaves too few.
+    validate(need(
+      nrow(portfolio_selected()) >= input$window,
+      "Not enough data for this rolling window. Choose an earlier start date or a smaller window."
+    ))
+
     portfolio_selected()$returns |>
       xts::xts(order.by = portfolio_selected()$date) |>
       rollapply(input$window, function(x) SortinoRatio(x, MAR = input$mar)) |>
