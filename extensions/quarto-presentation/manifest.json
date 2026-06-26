@@ -11,12 +11,12 @@
   },
   "extension": {
     "name": "quarto-presentation",
-    "title": "Quarto Presentation",
-    "description": "This presentation is generated using Quarto and reveal.js. It demonstrates how you might use code to highlight your work.",
+    "title": "Quarto: Presentation",
+    "description": "A reveal.js slide deck built with Quarto that showcases what you can put on a slide and publish to Connect: prose, syntax-highlighted code, diagrams, interactive charts, and multi-column or incremental layouts. A starting point for any presentation.",
     "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/quarto-presentation",
     "category": "example",
     "minimumConnectVersion": "2025.04.0",
-    "version": "1.0.0"
+    "version": "1.0.1"
   },
   "environment": {
     "quarto": {
@@ -32,13 +32,16 @@
   "packages": null,
   "files": {
     "_quarto.yml": {
-      "checksum": "80f9dca03266ef4fbfef85e1f8be2699"
+      "checksum": "c750d2a852965b82c4e9c03ee5789d2f"
+    },
+    "data.csv": {
+      "checksum": "712bd86d94db9fd94d99b59670d02db5"
     },
     "index.qmd": {
-      "checksum": "fb7df1cb7f52c2d0502281e9bc0e31ee"
+      "checksum": "64c6b5834c85d1f4c696320dc74c63f5"
     },
     "README.md": {
-      "checksum": "725f7b7c6d298b276d7e9261d0ec8a61"
+      "checksum": "f0561db3eb74967e769b7bcf3152346a"
     }
   },
   "users": null
