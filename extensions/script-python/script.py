@@ -41,9 +41,9 @@ adelie_m.describe()
 # %% [markdown]
 # ## Export
 # %%
-gentoo_f.to_csv("gentoo-f.csv")
+gentoo_f.to_csv("gentoo-f.csv", index=False)
 gentoo_f.to_json("gentoo-f.json", orient="records")
-adelie_m.to_csv("adelie-m.csv")
+adelie_m.to_csv("adelie-m.csv", index=False)
 adelie_m.to_json("adelie-m.json", orient="records")
 
 # %% [markdown]
@@ -64,6 +64,7 @@ adelie_m.to_json("adelie-m.json", orient="records")
 # %%
 #| echo: false
 #| output: asis
+# Each printed line becomes part of the email body.
 print("Identified", len(gentoo_f), "female Gentoo penguins.")
 print("Identified", len(adelie_m), "male Adelie penguins.")
 print("")

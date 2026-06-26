@@ -23,9 +23,9 @@ summary(adelie_m)
 
 #' ## Export
 write(jsonlite::toJSON(gentoo_f), "gentoo-f.json")
-write.csv(gentoo_f, "gentoo-f.csv")
+write.csv(gentoo_f, "gentoo-f.csv", row.names = FALSE)
 write(jsonlite::toJSON(adelie_m), "adelie-m.json")
-write.csv(adelie_m, "adelie-m.csv")
+write.csv(adelie_m, "adelie-m.csv", row.names = FALSE)
 
 #' # Exported data
 #'
@@ -41,6 +41,7 @@ write.csv(adelie_m, "adelie-m.csv")
 
 #| echo: false
 #| output: asis
+# Each printed line becomes part of the email body.
 cat("Identified", nrow(gentoo_f), "female Gentoo penguins.\n")
 cat("Identified", nrow(adelie_m), "male Adelie penguins.\n")
 cat("\n")

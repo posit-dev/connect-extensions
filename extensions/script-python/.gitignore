@@ -3,9 +3,10 @@
 *.csv
 *.json
 script.html
+script.quarto_ipynb
 script_files
 /email-preview/
 .output_metadata.json
 
-# But do not ignore manifest.json
+# Always include manifest.json
 !manifest.json

@@ -25,12 +25,12 @@
   },
   "extension": {
     "name": "script-r",
-    "title": "Run an R Script",
-    "description": "This data transformation R script is an example of how you might automate regular imports and transformations from a data source. JSON and CSV files are exported and made available for download. Quarto is used to render the script. The script also generates a custom email, with the generated CSV files as attachments.",
+    "title": "R: Scheduled Script",
+    "description": "This R script is an example of how you might run a scheduled job on Connect to automate regular imports and transformations from a data source. JSON and CSV files are exported and made available for download. Quarto is used to render the script. The script also generates a custom email, with the generated CSV files as attachments. Swap in your own data source to adapt it to any recurring data job.",
     "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/script-r",
     "category": "example",
     "minimumConnectVersion": "2025.04.0",
-    "version": "1.0.1"
+    "version": "1.0.2"
   },
   "packages": {
     "R6": {
@@ -766,10 +766,10 @@
   },
   "files": {
     "_quarto.yml": {
-      "checksum": "e5bfdf389c2ae3bc115d8f4add41fc2f"
+      "checksum": "ee9dfe88a76a3d16e7d9b78c626380ba"
     },
     "script.R": {
-      "checksum": "81838e2d6f3e0b6880c6e0c7ce6d7a62"
+      "checksum": "bc99a676344f7d4556bd39cece482555"
     }
   },
   "users": null
