@@ -13,7 +13,7 @@ format:
 
 ## What goes on a slide
 
-Quarto turns plain text into [reveal.js](https://quarto.org/docs/presentations/revealjs/) slides. A single deck can combine:
+Quarto turns plain text into [reveal.js](https://quarto.org/docs/presentations/revealjs/) slides. A deck can combine:
 
 *   Formatted prose, lists, and math
 *   [Highlighted code blocks](https://quarto.org/docs/presentations/revealjs/#code-blocks) in any language, executable in R, Python, or Julia
