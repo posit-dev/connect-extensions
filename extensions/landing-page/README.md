@@ -1,4 +1,4 @@
-# HTML: Landing Page
+# Static HTML: Landing Page
 
 ## About this example
 
@@ -8,10 +8,9 @@ links out to the content you publish. It uses no Connect API and has no
 server-side code; it's just static files, which makes it the simplest way to put
 a custom page in front of your Connect deployment.
 
-## Who it's for
-
-Teams who want a friendly, branded entry point to their published reports, apps,
-and datasets, rather than sending people straight to a raw content listing.
+It's for teams who want a friendly, branded entry point to their published
+reports, apps, and datasets, rather than sending people straight to a raw content
+listing.
 
 ## Customize it
 
@@ -28,9 +27,10 @@ comment):
 
 ## Deploy
 
-Publish the directory as static content with `rsconnect deploy html`, or push it
-through a git-backed deployment. There's nothing to build.
+Deploy it straight from the Connect Gallery to get a copy running, then customize
+it. To publish your customized version, use `rsconnect deploy html` or a
+git-backed deployment; there's nothing to build.
 
-## Requirements
+## Learn more
 
-* None
+* [Publish static content to Posit Connect](https://docs.posit.co/connect/user/publishing-cli-html/index.html)

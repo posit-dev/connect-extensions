@@ -11,7 +11,7 @@
   },
   "extension": {
     "name": "landing-page",
-    "title": "HTML: Landing Page",
+    "title": "Static HTML: Landing Page",
     "description": "A static HTML landing page for Connect. It gives your team a branded front door that links to the content you publish, with no app or API to build. Customize the copy, logo, and links for any organization.",
     "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/landing-page",
     "category": "example",
@@ -30,10 +30,10 @@
       "checksum": "38472dc2c802db2abbc2ee5c7204632d"
     },
     "index.html": {
-      "checksum": "babbed6a80953c0677452108e5cce015"
+      "checksum": "5809ce9d6bf7d8126dd145322cea8ce6"
     },
     "README.md": {
-      "checksum": "bbff6d8bf9e2c5a2e59626fbd43b3924"
+      "checksum": "b790eaf4af774d4322c0983069d3871d"
     }
   },
   "users": null

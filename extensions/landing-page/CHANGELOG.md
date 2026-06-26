@@ -9,10 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- Rewrote the title (`HTML: Landing Page`), description, and README so the example clearly explains the static organization-landing-page pattern and how to customize it. (#404)
+- Rewrote the title (`Static HTML: Landing Page`), description, and README so the example clearly explains the static organization-landing-page pattern and how to customize it. (#404)
 - Replaced the placeholder FAQ (off-topic grant-policy boilerplate) with on-topic questions about finding, accessing, and publishing content on Connect, and added "replace this" comments at each customizable spot in `index.html`. (#404)
 
 ### Fixed
 
-- Fixed the broken "contact us" link (`href="#"`) and re-pointed the onboarding link from Wikipedia to a customizable placeholder. (#404)
+- Fixed the broken "contact us" link (`href="#"`). (#404)
 - Fixed invalid FAQ markup (answer paragraphs were direct children of `<ul>`). (#404)
