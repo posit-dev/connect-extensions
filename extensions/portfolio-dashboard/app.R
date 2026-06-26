@@ -34,8 +34,8 @@ ui <- dashboardPage(
       max = max(returns_data$date),
       format = "yyyy-mm-dd"
     ),
-    sliderInput("mar", "Min Acceptable Rate", min = 0, max = 0.1, value = 0.008, step = 0.001),
-    numericInput("window", "Rolling Window", min = 6, max = 36, value = 12)
+    sliderInput("mar", "Minimum Acceptable Rate (MAR)", min = 0, max = 0.02, value = 0.008, step = 0.001),
+    numericInput("window", "Rolling Window (months)", min = 6, max = 36, value = 12)
   ),
   dashboardBody(
     fluidRow(
@@ -90,7 +90,7 @@ server <- function(input, output, session) {
 
     portfolio_selected()$returns |>
       xts::xts(order.by = portfolio_selected()$date) |>
-      rollapply(input$window, function(x) SortinoRatio(x, MAR = input$mar)) |>
+      rollapply(input$window, function(x) SortinoRatio(x, MAR = input$mar), align = "right") |>
       `colnames<-`(paste0(input$window, "-month rolling"))
   })
 
@@ -112,9 +112,9 @@ server <- function(input, output, session) {
             x = 0, y = 1, xanchor = 'left', yanchor = "top", font = list(size = 9),
             buttons = list(
               list(count = 1, label = 'RESET', step = 'all'),
-              list(count = 1, label = '1 YR', step = 'year', stepmode = 'backward'),
-              list(count = 3, label = '3 MO', step = 'month', stepmode = 'backward'),
-              list(count = 1, label = '1 MO', step = 'month', stepmode = 'backward')
+              list(count = 5, label = '5 YR', step = 'year', stepmode = 'backward'),
+              list(count = 3, label = '3 YR', step = 'year', stepmode = 'backward'),
+              list(count = 1, label = '1 YR', step = 'year', stepmode = 'backward')
             )
           )
         )
