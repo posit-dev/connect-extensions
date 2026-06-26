@@ -3,17 +3,13 @@
 ## About this example
 
 A reveal.js slide deck built with Quarto that showcases what you can put on a
-slide and publish to Connect: formatted prose, syntax-highlighted code,
-diagrams, interactive charts, and multi-column or incremental layouts. Use it as
-a starting point for any presentation. The sample content carries a light
+slide and publish to Connect: formatted prose, syntax-highlighted code, diagrams,
+interactive charts, and multi-column or incremental layouts. It's for anyone who
+wants presentation slides that are version-controlled and reproducible, served
+from Connect alongside their other content. The sample content carries a light
 business flavor (a quarterly revenue readout) that you can swap for your own.
 
-## Who it's for
-
-Anyone who wants presentation slides that are version-controlled and
-reproducible, and served from Connect alongside their other content.
-
-## What's inside
+## How it works
 
 The deck (`index.qmd`) is roughly one slide per capability, each linking to its
 Quarto docs:
@@ -27,10 +23,18 @@ Quarto docs:
 - **Layout and reveals**: a multi-column slide with an incremental list.
 - **Publish to Connect**: how to render and publish.
 
-## Render and publish
+## Customize it
 
-Preview locally with `quarto preview`, render with `quarto render`, then publish
-the directory to Connect, where it deploys as static content.
+Edit `index.qmd` to change the slides, swap the chart's `data.csv` for your own
+figures, and replace the placeholder title, author, and footer. Preview your
+changes with `quarto preview`.
+
+## Deploy
+
+Deploy it straight from the Connect Gallery to get a copy running. To publish
+your customized version, deploy the directory with `rsconnect deploy quarto` or a
+git-backed deployment; Connect serves it as static content. Rendering requires
+Quarto 1.6 or newer.
 
 ## Learn more
 
