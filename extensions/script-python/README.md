@@ -3,7 +3,7 @@
 ## About this example
 
 This example is a short Python script that Quarto runs as a report. It reads the
-`palmerpenguins` dataset, filters out two groups (female Gentoo and male Adelie
+`palmerpenguins` dataset, filters the data down to two groups (female Gentoo and male Adelie
 penguins), and writes each group to a JSON file and a CSV file that viewers can
 download. It also sends an email with the two CSV files attached.
 
