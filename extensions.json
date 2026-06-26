@@ -870,6 +870,72 @@
       "tags": []
     },
     {
+      "name": "script-python",
+      "title": "Python: Scheduled Script",
+      "description": "This Python script is an example of how you might run a scheduled job on Connect to automate regular imports and transformations from a data source. JSON and CSV files are exported and made available for download. Quarto is used to render the script. The script also generates a custom email, with the generated CSV files as attachments. Swap in your own data source to adapt it to any recurring data job.",
+      "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/script-python",
+      "latestVersion": {
+        "version": "1.0.2",
+        "released": "2026-06-26T03:06:26Z",
+        "url": "https://github.com/posit-dev/connect-extensions/releases/download/script-python%40v1.0.2/script-python.tar.gz",
+        "minimumConnectVersion": "2025.04.0",
+        "requiredEnvironment": {
+          "python": {
+            "requires": "~=3.9"
+          },
+          "quarto": {
+            "requires": "~=1.4"
+          }
+        }
+      },
+      "versions": [
+        {
+          "version": "1.0.2",
+          "released": "2026-06-26T03:06:26Z",
+          "url": "https://github.com/posit-dev/connect-extensions/releases/download/script-python%40v1.0.2/script-python.tar.gz",
+          "minimumConnectVersion": "2025.04.0",
+          "requiredEnvironment": {
+            "python": {
+              "requires": "~=3.9"
+            },
+            "quarto": {
+              "requires": "~=1.4"
+            }
+          }
+        },
+        {
+          "version": "1.0.1",
+          "released": "2026-06-11T16:31:17Z",
+          "url": "https://github.com/posit-dev/connect-extensions/releases/download/script-python%40v1.0.1/script-python.tar.gz",
+          "minimumConnectVersion": "2025.04.0",
+          "requiredEnvironment": {
+            "python": {
+              "requires": "~=3.9"
+            },
+            "quarto": {
+              "requires": "~=1.4"
+            }
+          }
+        },
+        {
+          "version": "1.0.0",
+          "released": "2025-05-30T18:32:01Z",
+          "url": "https://github.com/posit-dev/connect-extensions/releases/download/script-python%40v1.0.0/script-python.tar.gz",
+          "minimumConnectVersion": "2025.04.0",
+          "requiredEnvironment": {
+            "python": {
+              "requires": "~=3.8"
+            },
+            "quarto": {
+              "requires": "~=1.4"
+            }
+          }
+        }
+      ],
+      "tags": [],
+      "category": "example"
+    },
+    {
       "name": "quarto-document",
       "title": "Quarto Document",
       "description": "A Quarto example showing how a basic document can present diagrams and interactivity.",
@@ -1304,66 +1370,14 @@
       "tags": []
     },
     {
-      "name": "script-python",
-      "title": "Run a Python Script",
-      "description": "This data transformation Python script is an example of how you might automate regular imports and transformations from a data source. JSON and CSV files are exported and made available for download. Quarto is used to render the script.",
-      "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/script-python",
-      "latestVersion": {
-        "version": "1.0.1",
-        "released": "2026-06-11T16:31:17Z",
-        "url": "https://github.com/posit-dev/connect-extensions/releases/download/script-python%40v1.0.1/script-python.tar.gz",
-        "minimumConnectVersion": "2025.04.0",
-        "requiredEnvironment": {
-          "python": {
-            "requires": "~=3.9"
-          },
-          "quarto": {
-            "requires": "~=1.4"
-          }
-        }
-      },
-      "versions": [
-        {
-          "version": "1.0.1",
-          "released": "2026-06-11T16:31:17Z",
-          "url": "https://github.com/posit-dev/connect-extensions/releases/download/script-python%40v1.0.1/script-python.tar.gz",
-          "minimumConnectVersion": "2025.04.0",
-          "requiredEnvironment": {
-            "python": {
-              "requires": "~=3.9"
-            },
-            "quarto": {
-              "requires": "~=1.4"
-            }
-          }
-        },
-        {
-          "version": "1.0.0",
-          "released": "2025-05-30T18:32:01Z",
-          "url": "https://github.com/posit-dev/connect-extensions/releases/download/script-python%40v1.0.0/script-python.tar.gz",
-          "minimumConnectVersion": "2025.04.0",
-          "requiredEnvironment": {
-            "python": {
-              "requires": "~=3.8"
-            },
-            "quarto": {
-              "requires": "~=1.4"
-            }
-          }
-        }
-      ],
-      "tags": [],
-      "category": "example"
-    },
-    {
       "name": "script-r",
-      "title": "Run an R Script",
-      "description": "This data transformation R script is an example of how you might automate regular imports and transformations from a data source. JSON and CSV files are exported and made available for download. Quarto is used to render the script. The script also generates a custom email, with the generated CSV files as attachments.",
+      "title": "R: Scheduled Script",
+      "description": "This R script is an example of how you might run a scheduled job on Connect to automate regular imports and transformations from a data source. JSON and CSV files are exported and made available for download. Quarto is used to render the script. The script also generates a custom email, with the generated CSV files as attachments. Swap in your own data source to adapt it to any recurring data job.",
       "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/script-r",
       "latestVersion": {
-        "version": "1.0.1",
-        "released": "2026-06-11T16:31:18Z",
-        "url": "https://github.com/posit-dev/connect-extensions/releases/download/script-r%40v1.0.1/script-r.tar.gz",
+        "version": "1.0.2",
+        "released": "2026-06-26T03:06:27Z",
+        "url": "https://github.com/posit-dev/connect-extensions/releases/download/script-r%40v1.0.2/script-r.tar.gz",
         "minimumConnectVersion": "2025.04.0",
         "requiredEnvironment": {
           "quarto": {
@@ -1375,6 +1389,20 @@
         }
       },
       "versions": [
+        {
+          "version": "1.0.2",
+          "released": "2026-06-26T03:06:27Z",
+          "url": "https://github.com/posit-dev/connect-extensions/releases/download/script-r%40v1.0.2/script-r.tar.gz",
+          "minimumConnectVersion": "2025.04.0",
+          "requiredEnvironment": {
+            "quarto": {
+              "requires": "~=1.4"
+            },
+            "r": {
+              "requires": "~=4.4"
+            }
+          }
+        },
         {
           "version": "1.0.1",
           "released": "2026-06-11T16:31:18Z",
