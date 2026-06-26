@@ -24,18 +24,20 @@ The email and its attachments are set in the `format: email` block at the top of
 server. If none is configured, the script still runs and produces the files, but
 no email is sent.
 
-## Adapt this example
+## Customize it
 
 To use your own data, replace the `palmerpenguins` data with your own source (a
 database query, an API call, or a file), then adjust the filters, the output file
 names, and the attachment list in the email block.
 
+## Deploy
+
+Deploy it straight from the Connect Gallery to get a copy running, then customize
+it. To publish your customized version, deploy the directory with `rsconnect
+deploy quarto` or a git-backed deployment. Rendering requires Quarto 1.4 or newer
+and R 4.4 or newer.
+
 ## Learn more
 
 * [Quarto](https://quarto.org)
 * [Quarto: Rendering Script Files](https://quarto.org/docs/computations/render-scripts.html)
-
-## Requirements
-
-* Quarto version 1.4 or higher
-* R version 4.4 or higher
