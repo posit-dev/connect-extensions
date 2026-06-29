@@ -12,7 +12,7 @@
   "extension": {
     "name": "landing-page",
     "title": "Static HTML: Landing Page",
-    "description": "A static HTML landing page for Connect. It gives your team a branded front door that links to the content you publish, with no app or API to build. Customize the copy, logo, and links for any organization.",
+    "description": "A static HTML landing page for your Connect server: a simple, branded front door that welcomes your team and links out to the reports, apps, and datasets you publish, instead of dropping people on a plain content list. Customize it with your own name, logo, links, and FAQs.",
     "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/landing-page",
     "category": "example",
     "minimumConnectVersion": "2025.04.0",
