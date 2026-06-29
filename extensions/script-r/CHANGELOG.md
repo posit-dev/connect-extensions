@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- Rewrote the gallery description to lead with what the script does, for readers who haven't opened the example, and standardized the README headings with a Deploy section. (#412)
+- Rewrote the gallery description to lead with what the script does, and standardized the README headings with a Deploy section. (#412)
 
 ## [1.0.2] - 2026-06-22
 
