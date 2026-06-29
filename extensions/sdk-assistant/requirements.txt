@@ -1,4 +1,0 @@
-anthropic[bedrock]
-chatlas @ git+https://github.com/posit-dev/chatlas@main
-faicons
-shiny>=1.4.0

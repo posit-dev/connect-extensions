@@ -37,8 +37,6 @@ jobs:
               - .github/actions/connect-integration-test/**
               - .github/workflows/connect-integration-tests.yml
               - .github/workflows/extensions.yml
-            reaper: extensions/reaper/**
-            integration-session-manager: extensions/integration-session-manager/**
             quarto-stock-report-python: extensions/quarto-stock-report-python/**
             quarto-website: extensions/quarto-website/**
             portfolio-dashboard: extensions/portfolio-dashboard/**
@@ -97,7 +95,7 @@ jobs:
       fail-fast: false
       matrix:
         # Parse JSON containing names of all filters matching any of changed extensions
-        # e.g. ['reaper'] if the reaper extension dir changed
+        # e.g. ['script-python'] if the script-python extension dir changed
         extension: ${{ fromJSON(needs.simple-extension-changes.outputs.changes) }}
     runs-on: ubuntu-latest
     env:
