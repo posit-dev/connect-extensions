@@ -153,6 +153,7 @@ app_ui = ui.page_fillable(
     ui.layout_sidebar(
         ui.sidebar(
             ui.h3("MCP Registry"),
+            ui.output_ui("identity_note"),
             ui.p("Add the address of the MCP servers you wish to use below."),
             ui.input_text("mcp_address", None, placeholder="Enter MCP server address"),
             ui.input_action_button(
@@ -220,11 +221,17 @@ def server(input: Inputs, output: Outputs, app_session: AppSession):
     # as the viewer and never with this app's API key. No token or no Visitor API Key
     # integration means no viewer key, so registering a server is blocked below.
     visitor_api_key = None
+    viewer_name = None
     VISITOR_API_INTEGRATION_ENABLED = True
     if user_session_token:
         try:
             visitor_client = Client().with_user_session_token(user_session_token)
             visitor_api_key = visitor_client.cfg.api_key
+            me = visitor_client.me
+            viewer_name = (
+                f"{me.get('first_name', '')} {me.get('last_name', '')}".strip()
+                or me.get("username")
+            )
         except ClientError as err:
             if err.error_code == 212:
                 VISITOR_API_INTEGRATION_ENABLED = False
@@ -257,6 +264,18 @@ def server(input: Inputs, output: Outputs, app_session: AppSession):
             return setup_ui
         else:
             return app_ui
+
+    @render.ui
+    def identity_note():
+        # Surface the viewer's identity where MCP servers are added, so it's clear the
+        # tools run with their Connect permissions. Only shows once the viewer resolves.
+        if not viewer_name:
+            return None
+        return ui.p(
+            f"Signed in as {viewer_name}. Tools you add run as you, with your Connect permissions.",
+            class_="small",
+            style="opacity: 0.85;",
+        )
 
     @chat_ui.on_user_submit
     async def _(user_input: str):
