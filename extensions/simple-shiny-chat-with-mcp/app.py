@@ -133,8 +133,11 @@ setup_ui = ui.page_fillable(
             ),
             ui.h3("Example for OpenAI API", class_="setup-section-title"),
             ui.pre(
-                """CHATLAS_CHAT_PROVIDER_MODEL = "openai/gpt-4o"
-OPENAI_API_KEY = "<key>" """,
+                """Name:   CHATLAS_CHAT_PROVIDER_MODEL
+Value:  openai/gpt-4o
+
+Name:   OPENAI_API_KEY
+Value:  <your OpenAI API key>""",
                 class_="setup-code-block",
             ),
             ui.h2("Connect Visitor API Key", class_="setup-section-title"),
