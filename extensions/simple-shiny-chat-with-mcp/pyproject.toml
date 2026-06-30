@@ -1,14 +1,14 @@
 [project]
 name = "simple-shiny-chat-with-mcp"
-version = "0.1.0"
-description = "Add your description here"
+version = "0.0.7"
+description = "A Shiny chat app that calls MCP tools as the signed-in viewer, on Posit Connect."
 readme = "README.md"
-requires-python = ">=3.10"
+requires-python = ">=3.11"
 dependencies = [
     "anthropic[bedrock]>=0.54.0",
     "boto3>=1.38.34",
-    "chatlas",
-    "dotenv>=0.9.9",
+    "chatlas>=0.19.0",
+    "python-dotenv>=1.0.0",
     "faicons>=0.2.2",
     "google-genai>=1.21.1",
     "mcp>=1.9.3",
@@ -16,8 +16,4 @@ dependencies = [
     "openai>=1.86.0",
     "posit-sdk>=0.10.0",
     "shiny>=1.4.0",
-    "chatlas>=0.10.0"
 ]
-
-[tool.uv.sources]
-chatlas = { git = "https://github.com/posit-dev/chatlas", rev = "main" }
