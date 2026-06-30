@@ -13,6 +13,8 @@ it**, using their Connect identity instead of a shared API key. It pairs with th
 [Shiny: AI Chat with MCP Tools](../simple-shiny-chat-with-mcp/README.md) example,
 a chat client that calls these tools, but any MCP client works too.
 
+![Demo Screenshot](./images/demo.png)
+
 ## How it works
 
 - FastAPI and [FastMCP](https://github.com/jlowin/fastmcp) host the MCP endpoint at
