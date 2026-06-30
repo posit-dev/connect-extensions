@@ -165,7 +165,7 @@ app_ui = ui.page_fillable(
         ),
         ui.div(
             ui.h1(
-                "Simple Shiny Chat",
+                "AI Chat with MCP Tools",
                 ui.input_action_link(
                     "info_link", label=None, icon=faicons.icon_svg("circle-info")
                 ),
