@@ -16,8 +16,9 @@ load_dotenv()
 
 
 def check_aws_bedrock_credentials():
-    # Check if AWS credentials are available in the environment
-    # that can be used to access Bedrock
+    # Probe for usable Bedrock credentials by making a real (throwaway) Bedrock call.
+    # Runs once at startup to decide whether to default to Bedrock or fall back to the
+    # provider the user configured via CHATLAS_CHAT_PROVIDER_MODEL.
     try:
         chat = chatlas.ChatBedrockAnthropic(
             model="us.anthropic.claude-sonnet-4-20250514-v1:0",
@@ -31,8 +32,8 @@ def check_aws_bedrock_credentials():
         return False
 
 
-# CHATLAS_CHAT_PROVIDER and CHATLAS_CHAT_ARGS are deprecated
-# we still account the prescence of these for backwards compatibility.
+# CHATLAS_CHAT_PROVIDER and CHATLAS_CHAT_ARGS are deprecated; still read for
+# backwards compatibility. New setups should set CHATLAS_CHAT_PROVIDER_MODEL.
 CHATLAS_CHAT_PROVIDER = os.getenv("CHATLAS_CHAT_PROVIDER")
 CHATLAS_CHAT_ARGS = os.getenv("CHATLAS_CHAT_ARGS")
 CHATLAS_CHAT_PROVIDER_MODEL = os.getenv("CHATLAS_CHAT_PROVIDER_MODEL")
@@ -327,6 +328,8 @@ def server(input: Inputs, output: Outputs, app_session: AppSession):
                 },
             )
 
+            # Read chatlas's private session registry; it has no public accessor for
+            # the registered MCP servers and their tools, which we need for the cards.
             sessions = chat._mcp_manager._mcp_sessions
             current_servers = registered_servers()
             existing_session_names = {server["name"] for server in current_servers}
