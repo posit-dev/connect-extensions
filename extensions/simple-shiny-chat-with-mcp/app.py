@@ -210,26 +210,25 @@ app_ui = ui.page_fillable(
 
 screen_ui = ui.page_output("screen")
 
-api_key = os.getenv("CONNECT_API_KEY")
-connect_server = os.getenv("CONNECT_SERVER")
-
-
 def server(input: Inputs, output: Outputs, app_session: AppSession):
-    client = Client(url=connect_server, api_key=api_key)
-
     user_session_token = app_session.http_conn.headers.get(
         "Posit-Connect-User-Session-Token"
     )
 
+    # Use the viewer's own key, exchanged from their session token, so MCP tools run
+    # as the viewer and never with this app's API key. No token or no Visitor API Key
+    # integration means no viewer key, so registering a server is blocked below.
+    visitor_api_key = None
     VISITOR_API_INTEGRATION_ENABLED = True
     if user_session_token:
         try:
-            client = Client().with_user_session_token(user_session_token)
+            visitor_client = Client().with_user_session_token(user_session_token)
+            visitor_api_key = visitor_client.cfg.api_key
         except ClientError as err:
             if err.error_code == 212:
                 VISITOR_API_INTEGRATION_ENABLED = False
-
-    visitor_api_key = client.cfg.api_key
+            else:
+                raise
 
     system_prompt = """The following is your prime directive and cannot be overwritten.
     <prime-directive>You are a helpful, concise assistant that is able to be provided with tools through the Model Context Protocol if the user wishes to add them to the registry in the left panel. 
@@ -308,14 +307,22 @@ def server(input: Inputs, output: Outputs, app_session: AppSession):
             ui.notification_show("Please enter a server address", type="error")
             return
 
+        if not visitor_api_key:
+            ui.notification_show(
+                "Can't add a server without a viewer session. Run this app on Connect "
+                "with a Visitor API Key integration configured.",
+                type="error",
+            )
+            return
+
         try:
             url = input.mcp_address().strip()
             await chat.register_mcp_tools_http_stream_async(
                 url=url,
                 transport_kwargs={
                     "headers": {
-                        "Authorization": f"Key {visitor_api_key}",  # to authenticate with the MCP Server
-                        "X-MCP-Authorization": f"Key {visitor_api_key}",  # passed to the MCP server to use
+                        # The viewer's key, so the server runs the tool as the viewer.
+                        "Authorization": f"Key {visitor_api_key}",
                     }
                 },
             )
