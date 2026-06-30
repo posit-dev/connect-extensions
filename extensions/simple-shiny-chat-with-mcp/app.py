@@ -422,11 +422,8 @@ def server(input: Inputs, output: Outputs, app_session: AppSession):
         modal = ui.modal(
             ui.h1("Information"),
             ui.h3("Model"),
-            ui.pre(
-                str(chat.provider.__dict__),
-            ),
+            ui.p(f"{chat.provider.name} / {chat.provider.model}"),
             easy_close=True,
-            size="xl",
         )
         ui.modal_show(modal)
 

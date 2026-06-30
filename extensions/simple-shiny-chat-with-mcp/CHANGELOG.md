@@ -17,6 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - The MCP sidebar now shows the signed-in viewer, so it's clear that tools run with their Connect permissions. (#418)
 - Pinned dependencies: `chatlas` to a release (was git `main`), corrected `python-dotenv` (was `dotenv`), and reconciled the runtime to Python 3.11. (#418)
 - Aligned the setup screen and README settings language with the FastAPI: MCP Server example, naming the Access, Integrations, and Environment Variables locations. (#418)
+- The info modal now shows the provider and model cleanly, instead of dumping the provider's internal object state. (#418)
 
 ## [0.0.6] - 2026-06-15
 
