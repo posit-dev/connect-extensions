@@ -10,7 +10,7 @@ call that server's tools during the conversation.
 The point it teaches: the tools run **as the signed-in viewer**, using their Connect
 identity rather than a shared API key. It pairs with the
 [FastAPI: MCP Server](../simple-mcp-server/README.md) example, which serves the
-tools, but it works with any Streamable HTTP MCP server.
+tools, but it works with any streamable HTTP MCP server.
 
 ## How it works
 
@@ -40,13 +40,13 @@ After deploying, in the content's settings:
 
 - **Choose an LLM** by setting `CHATLAS_CHAT_PROVIDER_MODEL` (for example
   `openai/gpt-4o`) plus the matching API key (`OPENAI_API_KEY`, `ANTHROPIC_API_KEY`,
-  `GOOGLE_API_KEY`, ...) under Vars. See the
+  `GOOGLE_API_KEY`, ...) on the **Advanced** tab, under **Environment Variables**. See the
   [chatlas `ChatAuto` docs](https://posit-dev.github.io/chatlas/reference/ChatAuto.html)
   for provider/model strings. On AWS Bedrock with an instance role, credentials are
   detected automatically and no vars are needed. (The older `CHATLAS_CHAT_PROVIDER`
   and `CHATLAS_CHAT_ARGS` still work but are deprecated.)
-- **Add a Visitor API Key integration** so tools run as the viewer: add a "Connect
-  Visitor API Key" integration under Integrations. See the
+- **Add a Visitor API Key integration** so tools run as the viewer: on the **Access**
+  tab, add a "Connect Visitor API Key" integration under **Integrations**. See the
   [OAuth Integrations documentation](https://docs.posit.co/connect/user/oauth-integrations/).
 
 ## Customize it

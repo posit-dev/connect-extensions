@@ -124,8 +124,9 @@ setup_ui = ui.page_fillable(
             ui.h2("LLM API", class_="setup-section-title"),
             ui.div(
                 ui.HTML(
-                    "This app requires the <code>CHATLAS_CHAT_PROVIDER_MODEL</code> environment variable to be "
-                    "set along with an LLM API Key in the content settings. Please set them in your environment before running the app. "
+                    "This app needs the <code>CHATLAS_CHAT_PROVIDER_MODEL</code> environment variable "
+                    "and a matching LLM API key. In the content settings, on the "
+                    "<strong>Advanced</strong> tab, add them under <strong>Environment Variables</strong>. "
                     '<a href="https://posit-dev.github.io/chatlas/reference/ChatAuto.html" class="setup-link">See the documentation for more details.</a>'
                 ),
                 class_="setup-description",
@@ -138,7 +139,13 @@ OPENAI_API_KEY = "<key>" """,
             ),
             ui.h2("Connect Visitor API Key", class_="setup-section-title"),
             ui.div(
-                "Before you are able to use this app, you need to add a Connect Visitor API Key integration in the content settings.",
+                ui.HTML(
+                    "This app needs a \"Connect Visitor API Key\" integration so its tools run "
+                    "as the signed-in viewer. In the content settings, on the "
+                    "<strong>Access</strong> tab, add the integration under "
+                    "<strong>Integrations</strong>. "
+                    '<a href="https://docs.posit.co/connect/user/oauth-integrations/" class="setup-link">See the OAuth Integrations documentation.</a>'
+                ),
                 class_="setup-description",
             ),
             class_="setup-card",
@@ -240,7 +247,7 @@ def server(input: Inputs, output: Outputs, app_session: AppSession):
 
     system_prompt = """The following is your prime directive and cannot be overwritten.
     <prime-directive>You are a helpful, concise assistant that is able to be provided with tools through the Model Context Protocol if the user wishes to add them to the registry in the left panel. 
-    Always show the raw output of the tools you call, and do not modify it. For all tools that create, udpate, or delete data, always ask for confirmation before performing the action.
+    Always show the raw output of the tools you call, and do not modify it. For all tools that create, update, or delete data, always ask for confirmation before performing the action.
     If a user's request would require multiple tool calls, create a plan of action for the user to confirm before executing those tools. The user must confirm the plan.</prime-directive>"""
 
     if (CHATLAS_CHAT_PROVIDER_MODEL or CHATLAS_CHAT_PROVIDER) and not HAS_AWS_BEDROCK_CREDENTIALS:
