@@ -1,4 +1,4 @@
-# Contributing to the Simple MCP Server Extension
+# Contributing to the FastAPI: MCP Server extension
 
 ## Local Development
 
@@ -41,7 +41,7 @@ def your_new_tool(parameter: str) -> str:
 Use `ToolError` for proper error handling:
 
 ```python
-from mcp.server.fastmcp.exceptions import ToolError
+from fastmcp.exceptions import ToolError
 
 @mcp.tool()
 def example_tool(input_value: str) -> str:
@@ -52,8 +52,12 @@ def example_tool(input_value: str) -> str:
 
 ## Authentication
 
-The server supports Connect API key authentication for tools that interact with Connect services. API keys should be passed in the `x-mcp-authorization` header in the format:
+There are two distinct layers, and only the first is something a client sets:
 
-```
-x-mcp-authorization: Key YOUR_API_KEY
-```
+- **Reaching the content** (transport): an MCP client authenticates to Connect with a
+  Connect API key in the standard `Authorization` header (`Authorization: Key
+  YOUR_API_KEY`). This is how the request reaches the deployed server.
+- **Acting as the viewer** (tools like `connect_whoami`): the tool reads the
+  `Posit-Connect-User-Session-Token` header that Connect injects automatically for the
+  logged-in viewer and exchanges it for a viewer-scoped client. There is no header to
+  set for this, and it requires a Visitor API Key integration on the content.
