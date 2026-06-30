@@ -183,13 +183,13 @@
         </div>
 
         <p><strong>Whichever way you use it, keep the server warm:</strong> in the content's settings, on
-        the "Advanced" tab, set "Min processes" to 1 or more under "Process Settings", so it responds
+        the "Advanced" tab, set "Min Processes" to 1 or more under "Process Settings", so it responds
         without a cold-start delay. For more information, see the
         <a href="https://docs.posit.co/connect/user/content-settings/index.html#process-configurations" target="_blank">content process configuration documentation</a>.</p>
 
         <h2>1. Use it from the companion chat</h2>
 
-        <p>Deploy <strong>"Shiny: AI Chat with MCP Tools"</strong> from the Connect Gallery and add the
+        <p>Deploy <strong>"Shiny: AI Chat with MCP Tools"</strong> from the Connect Gallery, and add the
         endpoint above to its MCP registry. The chat then calls these tools as the signed-in viewer.</p>
 
         {% if viewer_name %}
@@ -212,7 +212,7 @@
 
         <h2>2. Connect your own MCP client</h2>
 
-        <p>Point your client at the endpoint above and authenticate with a Connect API key to use the
+        <p>Point your client at the endpoint above, and authenticate with a Connect API key to use the
         data tools, <code>list_known_datasets</code> and <code>calculate_summary_statistics</code>.</p>
 
         <details>
