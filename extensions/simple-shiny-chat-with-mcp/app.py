@@ -46,6 +46,7 @@ setup_ui = ui.page_fillable(
             padding: 0;
             margin: 0;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background-attachment: fixed;
         }
 
         .setup-container {
@@ -191,6 +192,7 @@ app_ui = ui.page_fillable(
         """
         body {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background-attachment: fixed;
         }
 
         aside {
