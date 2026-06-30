@@ -1,9 +1,21 @@
 # Changelog
 
-All notable changes to the Simple MCP Server extension will be documented in this file.
+All notable changes to the FastAPI: MCP Server extension will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+## [0.0.7] - 2026-06-29
+
+### Changed
+
+- Retitled to "FastAPI: MCP Server", rewrote the README and description, and reframed the example so its three tools read as starting points you swap for your own. (#417)
+- The landing page now greets the signed-in viewer by name, resolved from their Connect session token (the same identity the `connect_whoami` tool returns). (#417)
+- Regenerated `requirements.txt` to resolve from the minimum supported Python (3.11) rather than a single 3.14 lock, for broader install compatibility. (#417)
+
+### Fixed
+
+- Corrected the documented auth model: `connect_whoami` resolves the viewer from the injected session token rather than API-key authentication, and dropped the unused `x-mcp-authorization` header from the docs. (#417)
 
 ## [0.0.6] - 2026-06-15
 
