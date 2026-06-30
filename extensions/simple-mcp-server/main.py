@@ -71,7 +71,7 @@ def calculate_summary_statistics(dataset_name: str) -> str:
 async def connect_whoami(context: Context) -> str:
     """
     Calls the Posit Connect /me endpoint using the visitor's session token.
-    This tool requires a Visitor API Key integration to be configured.
+    This tool requires a "Connect Visitor API Key" integration to be configured.
     """
     # The underlying Starlette request, where Connect's injected headers live.
     http_request = context.request_context.request
