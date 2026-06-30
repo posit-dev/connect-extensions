@@ -126,12 +126,13 @@ setup_ui = ui.page_fillable(
                 ui.HTML(
                     "This app needs the <code>CHATLAS_CHAT_PROVIDER_MODEL</code> environment variable "
                     "and a matching LLM API key. In the content settings, on the "
-                    "<strong>Advanced</strong> tab, add them under <strong>Environment Variables</strong>. "
-                    '<a href="https://posit-dev.github.io/chatlas/reference/ChatAuto.html" class="setup-link">See the documentation for more details.</a>'
+                    "<strong>Advanced</strong> tab, add both of them under <strong>Environment Variables</strong>. "
+                    "For more information, "
+                    '<a href="https://posit-dev.github.io/chatlas/reference/ChatAuto.html" class="setup-link">see the chatlas documentation</a>.'
                 ),
                 class_="setup-description",
             ),
-            ui.h3("Example for OpenAI API", class_="setup-section-title"),
+            ui.h3("Example Environment Variables for OpenAI API", class_="setup-section-title"),
             ui.pre(
                 """Name:   CHATLAS_CHAT_PROVIDER_MODEL
 Value:  openai/gpt-4o
@@ -145,9 +146,10 @@ Value:  <your OpenAI API key>""",
                 ui.HTML(
                     "This app needs a \"Connect Visitor API Key\" integration so its tools run "
                     "as the signed-in viewer. In the content settings, on the "
-                    "<strong>Access</strong> tab, add the integration under "
+                    "<strong>Access</strong> tab, add the \"Connect Visitor API Key\" integration under "
                     "<strong>Integrations</strong>. "
-                    '<a href="https://docs.posit.co/connect/user/oauth-integrations/" class="setup-link">See the OAuth Integrations documentation.</a>'
+                    "For more information, "
+                    '<a href="https://docs.posit.co/connect/user/oauth-integrations/" class="setup-link">see the OAuth Integrations documentation</a>.'
                 ),
                 class_="setup-description",
             ),
