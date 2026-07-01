@@ -6,7 +6,7 @@ An interactive R Shiny dashboard that computes the rolling Sortino ratio (a
 downside-risk-adjusted measure of return) across conservative, balanced, and
 aggressive portfolios. It's a Finance example, but the underlying pattern, an
 app that lets people ask and answer questions in real time without touching
-code, applies to any domain. It ships with sample monthly returns you can swap
+code, applies to any domain. It ships with synthetic sample monthly returns you can swap
 for your own.
 
 ## How it works
@@ -30,13 +30,16 @@ Replace `returns.csv` (columns: `date`, `portfolio`, `returns`) with your own
 monthly returns. The portfolio names in the file populate the selector, so you
 can use any set of portfolios or strategies.
 
-## Deploy
+## Deploy it
 
 Deploy it straight from the Connect Gallery to get a copy running. To publish
-your own version, deploy with `rsconnect deploy shiny` or a git-backed
-deployment. Requires R 4.4 or newer.
+your own version, deploy the directory with the
+[rsconnect R package](https://rstudio.github.io/rsconnect/reference/deployApp.html)
+(`rsconnect::deployApp()`) or a
+[git-backed deployment](https://docs.posit.co/connect/user/git-backed/). Requires
+R 4.4 or newer.
 
 ## Learn more
 
-* [Shiny](https://shiny.posit.co/)
-* [Gallery of example Shiny apps](https://shiny.posit.co/r/gallery/)
+- [Shiny](https://shiny.posit.co/)
+- [Gallery of example Shiny apps](https://shiny.posit.co/r/gallery/)
