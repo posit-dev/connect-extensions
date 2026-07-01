@@ -8,9 +8,9 @@ links out to the content you publish. It uses no Connect API and has no
 server-side code; it's just static files, which makes it the simplest way to put
 a custom page in front of your Connect deployment.
 
-It's for teams who want a friendly, branded entry point to their published
-reports, apps, and datasets, rather than sending people straight to a raw content
-listing.
+A custom landing page like this is for teams who want a friendly, branded entry
+point to their published reports, apps, and datasets, rather than sending people
+straight to a raw content listing.
 
 ## Customize it
 
@@ -25,12 +25,14 @@ comment):
   own onboarding doc and team email.
 - Swap the sample FAQs for the questions your users actually ask.
 
-## Deploy
+## Deploy it
 
 Deploy it straight from the Connect Gallery to get a copy running, then customize
-it. To publish your customized version, use `rsconnect deploy html` or a
-git-backed deployment; there's nothing to build.
+it. To publish your own version, deploy the directory with
+[`rsconnect deploy html`](https://docs.posit.co/rsconnect-python/) or a
+[git-backed deployment](https://docs.posit.co/connect/user/git-backed/); there's
+nothing to build.
 
 ## Learn more
 
-* [Publish static content to Posit Connect](https://docs.posit.co/connect/user/publishing-cli-html/index.html)
+- [Publish static content to Posit Connect](https://docs.posit.co/connect/user/publishing-cli-html/index.html)
