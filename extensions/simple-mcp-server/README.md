@@ -31,13 +31,13 @@ a chat client that calls these tools, but any MCP client works too.
   paired chat, for example, you might ask "What datasets are available?", "Summarize
   the iris dataset", or "Who am I signed in as?".
 
-## Deploy
+## Deploy it
 
 Deploy it straight from the Connect Gallery to get a copy running, then configure
-and customize it. To publish your own changes, deploy the directory with
-[rsconnect-python](https://docs.posit.co/rsconnect-python/) (`rsconnect deploy
-fastapi`) or a git-backed deployment. Requires Connect 2025.04.0 or later with API
-Publishing enabled.
+and customize it. To publish your own version, deploy the directory with
+[`rsconnect deploy fastapi`](https://docs.posit.co/rsconnect-python/) or a
+[git-backed deployment](https://docs.posit.co/connect/user/git-backed/). Requires
+Connect 2025.04.0 or newer with API Publishing enabled.
 
 ## Setup
 
