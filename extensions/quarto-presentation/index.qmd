@@ -41,7 +41,7 @@ Beyond highlighted code blocks, Quarto can also run R, Python, and Julia directl
 ## Diagrams
 
 ::: aside
-This is drawn from text with a [Mermaid diagram](https://quarto.org/docs/authoring/diagrams.html).
+[Mermaid](https://quarto.org/docs/authoring/diagrams.html) turns a plain-text description into this diagram.
 :::
 
 ```{mermaid}
@@ -107,7 +107,7 @@ Next steps:
 ## Publish to Connect
 
 *   Preview your deck locally with `quarto preview`, then render it with `quarto render`.
-*   Publish the directory to Connect, where it serves as static content.
+*   Publish the directory to Connect with [`quarto publish connect`](https://quarto.org/docs/publishing/rstudio-connect.html), where it serves as static content.
 *   Control who can view it and share a link, all from Connect.
 
 Learn more: [Quarto presentations](https://quarto.org/docs/presentations/) and [reveal.js](https://quarto.org/docs/presentations/revealjs/).
