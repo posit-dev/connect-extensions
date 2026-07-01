@@ -2,7 +2,7 @@
 
 ## About this example
 
-This example is a short Python script that Quarto runs as a report. It reads the
+A short Python script that Quarto runs as a report. It reads the
 `palmerpenguins` dataset, filters the data down to two groups (female Gentoo and male Adelie
 penguins), and writes each group to a JSON file and a CSV file that viewers can
 download. It also sends an email with the two CSV files attached.
@@ -30,14 +30,15 @@ To use your own data, replace the `palmerpenguins` data with your own source (a
 database query, an API call, or a file), then adjust the filters, the output file
 names, and the attachment list in the email block.
 
-## Deploy
+## Deploy it
 
 Deploy it straight from the Connect Gallery to get a copy running, then customize
-it. To publish your customized version, deploy the directory with `rsconnect
-deploy quarto` or a git-backed deployment. Rendering requires Quarto 1.4 or newer
-and Python 3.9 or newer.
+it. To publish your own version, deploy the directory with
+[`quarto publish connect`](https://quarto.org/docs/publishing/rstudio-connect.html)
+or a [git-backed deployment](https://docs.posit.co/connect/user/git-backed/).
+Rendering requires Quarto 1.4 or newer and Python 3.9 or newer.
 
 ## Learn more
 
-* [Quarto](https://quarto.org)
-* [Quarto: Rendering Script Files](https://quarto.org/docs/computations/render-scripts.html)
+- [Quarto](https://quarto.org)
+- [Quarto: Rendering Script Files](https://quarto.org/docs/computations/render-scripts.html)
