@@ -10,7 +10,7 @@ datasets), and `connect_whoami`, which returns the signed-in viewer.
 
 The point it teaches: an MCP tool on Connect can run **as the viewer who calls
 it**, using their Connect identity instead of a shared API key. It pairs with the
-[Shiny: AI Chat with MCP Tools](../simple-shiny-chat-with-mcp/README.md) example,
+[Python Shiny: AI Chat with MCP Tools](../simple-shiny-chat-with-mcp/README.md) example,
 a chat client that calls these tools, but any MCP client works too.
 
 ![Demo Screenshot](./images/demo.png)
@@ -68,4 +68,4 @@ tool to act with the caller's Connect identity rather than a shared key.
 - [FastMCP](https://github.com/jlowin/fastmcp)
 - [FastAPI](https://fastapi.tiangolo.com/)
 - [Posit Connect OAuth integrations](https://docs.posit.co/connect/user/oauth-integrations/)
-- [Shiny: AI Chat with MCP Tools](../simple-shiny-chat-with-mcp/README.md), the paired chat client
+- [Python Shiny: AI Chat with MCP Tools](../simple-shiny-chat-with-mcp/README.md), the paired chat client

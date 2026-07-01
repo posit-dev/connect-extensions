@@ -21,7 +21,7 @@
   "extension": {
     "name": "simple-mcp-server",
     "title": "FastAPI: MCP Server",
-    "description": "A FastAPI server that exposes tools to AI assistants over the Model Context Protocol (MCP), running on Connect. Its tools run as the signed-in viewer, using their Connect identity instead of an API key. Meant to be used with the Shiny: AI Chat with MCP Tools extension, but works with any MCP client.",
+    "description": "A FastAPI server that exposes tools to AI assistants over the Model Context Protocol (MCP), running on Connect. Its tools run as the signed-in viewer, using their Connect identity instead of an API key. Meant to be used with the Python Shiny: AI Chat with MCP Tools extension, but works with any MCP client.",
     "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/simple-mcp-server",
     "category": "example",
     "tags": ["python", "fastapi", "mcp"],
@@ -37,7 +37,7 @@
       "checksum": "adc532c63fceb7d3aa408c702b25f758"
     },
     "index.html.jinja": {
-      "checksum": "e510c18f4ba3fe29421c03aa3421e9a0"
+      "checksum": "b383f719df8b8d746f8e60415e812238"
     }
   }
 }
