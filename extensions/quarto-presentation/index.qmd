@@ -1,60 +1,113 @@
 ---
-title: Quarto Presentation
-author: Tidy Writer
+# A reveal.js slide deck. `format: revealjs` is what makes this Quarto
+# document render as slides instead of a page. Replace the title, author,
+# and footer below with your own.
+title: "Presentations with Quarto"
+subtitle: "Mix prose, code, diagrams, and interactivity in one deck, then publish it to Connect."
+author: "Example Organization"
 date: today
 format:
   revealjs:
-    footer: "Example Footer"
+    footer: "Example Organization"
 ---
 
-## Overview
+## What goes on a slide
 
-*   Quarto supports a number of [presentation
-    formats](https://quarto.org/docs/presentations/).
+Quarto turns plain text into [reveal.js](https://quarto.org/docs/presentations/revealjs/) slides. A deck can have:
 
-     *   This presentation uses
-         [reveal.js](https://quarto.org/docs/presentations/revealjs/).
+*   Formatted prose, lists, and math
+*   [Highlighted code blocks](https://quarto.org/docs/presentations/revealjs/#code-blocks) in any language, executable in R, Python, or Julia
+*   [Diagrams](https://quarto.org/docs/authoring/diagrams.html)
+*   [Interactive widgets](https://quarto.org/docs/interactive/ojs/)
+*   [Multi-column layouts](https://quarto.org/docs/presentations/revealjs/#multiple-columns) and [incremental reveals](https://quarto.org/docs/presentations/revealjs/#incremental-lists)
 
-*   Quarto presentations can include
-    [diagrams](https://quarto.org/docs/authoring/diagrams.html).
+You can then publish the whole deck to Connect as a single piece of content.
 
-*   Quarto presentations can include [interactive
-    elements](https://quarto.org/docs/interactive/).
+## Show your work with code
 
-## Workflow
+Show the code behind your analysis right on the slide, with syntax highlighting:
+
+```python
+import pandas as pd
+
+revenue = pd.read_csv("data.csv")
+by_segment = revenue.groupby("segment")["revenue"].sum()
+```
 
 ::: aside
-A diagram created using
-[Mermaid](https://quarto.org/docs/authoring/diagrams.html).
+Beyond highlighted code blocks, Quarto can also run R, Python, and Julia directly and embed the output.
+:::
+
+## Diagrams
+
+::: aside
+[Mermaid](https://quarto.org/docs/authoring/diagrams.html) turns a plain-text description into this diagram.
 :::
 
 ```{mermaid}
-stateDiagram-v2
-  [*] --> tidy
-  tidy --> analyze
-  analyze --> tidy
-  analyze --> write
-  write --> review
-  review --> write: feedback
-  review --> accepted
-  accepted --> [*]
+flowchart LR
+  A[Collect quarterly data] --> B[Analyze by segment]
+  B --> C{On track to target?}
+  C -->|Yes| D[Reinvest in what works]
+  C -->|No| E[Adjust the plan]
+  D --> F[Report to stakeholders]
+  E --> F
 ```
 
-## Height of Olympians
+## Interactive charts
 
 ::: aside
-An interactive element created with [Observable
-JS](https://quarto.org/docs/interactive/ojs/).
+This is built with [Observable JS](https://quarto.org/docs/interactive/ojs/). Select a segment to filter the chart.
 :::
 
 ```{ojs}
-// https://observablehq.com/@observablehq/sample-datasets
+// Plot is Observable Plot, bundled by Quarto for ojs cells.
+// Loads the bundled data.csv; replace it with your own figures.
+data = FileAttachment("data.csv").csv({typed: true})
+
+// The input makes the chart interactive: choosing a segment updates the bars.
+viewof segment = Inputs.select(["All segments", "Enterprise", "SMB"])
+
+shown = segment === "All segments" ? data : data.filter(d => d.segment === segment)
+
 Plot.plot({
+  marginLeft: 60,
+  x: {label: "Quarter"},
+  y: {label: "Revenue ($K)", grid: true},
+  color: {legend: true},
   marks: [
-    Plot.rectY(olympians, Plot.binX({y: "count"}, {x: "height"})),
+    Plot.barY(shown, {x: "quarter", y: "revenue", fill: "segment"}),
     Plot.ruleY([0])
-  ],
-  x: { label: "Height (m)" },
+  ]
 })
 ```
 
+## Layout and reveals
+
+::: aside
+This is a [two-column layout](https://quarto.org/docs/presentations/revealjs/#multiple-columns) with an [incremental list](https://quarto.org/docs/presentations/revealjs/#incremental-lists).
+:::
+
+:::: columns
+::: {.column width="55%"}
+Both segments grew every quarter, with Enterprise leading on revenue and SMB climbing steadily behind it.
+:::
+
+::: {.column width="45%"}
+Next steps:
+
+::: incremental
+*   Keep investing in Enterprise
+*   Sustain SMB's steady growth
+*   Set Q1 targets from the trend
+:::
+:::
+::::
+
+## Publish to Connect
+
+*   Preview your deck locally with `quarto preview`, then render it with `quarto render`.
+*   Publish the directory to Connect with [`quarto publish connect`](https://quarto.org/docs/publishing/rstudio-connect.html), where it serves as static content.
+*   Control who can view it and share a link, all from Connect.
+
+Learn more: [Quarto presentations](https://quarto.org/docs/presentations/) and [reveal.js](https://quarto.org/docs/presentations/revealjs/).

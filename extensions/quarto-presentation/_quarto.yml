@@ -1,2 +1,5 @@
 project:
-  title: Quarto Presentation
+  # Render only the deck so sibling Markdown (e.g. CHANGELOG.md) is not
+  # rendered into the output as a stray page.
+  render:
+    - index.qmd
