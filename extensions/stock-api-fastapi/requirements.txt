@@ -1,4 +1,0 @@
-fastapi==0.115.3
-numpy==2.4.6
-pandas==3.0.3
-pydantic==2.13.4
