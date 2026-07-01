@@ -1,4 +1,4 @@
-# Shiny: AI Chat with MCP Tools
+# Python Shiny: AI Chat with MCP Tools
 
 ## About this example
 

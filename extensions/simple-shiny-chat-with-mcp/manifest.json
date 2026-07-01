@@ -20,8 +20,8 @@
     },
   "extension": {
     "name": "simple-shiny-chat-with-mcp",
-    "title": "Shiny: AI Chat with MCP Tools",
-    "description": "A Shiny chat app that connects an LLM to tools over the Model Context Protocol (MCP), running on Connect. The tools run as the signed-in viewer, with their Connect permissions, not a shared key. Meant to be used with the FastAPI: MCP Server extension, but works with any MCP server.",
+    "title": "Python Shiny: AI Chat with MCP Tools",
+    "description": "A Python Shiny chat app that connects an LLM to tools over the Model Context Protocol (MCP), running on Connect. The tools run as the signed-in viewer, with their Connect permissions, not a shared key. Meant to be used with the FastAPI: MCP Server extension, but works with any MCP server.",
     "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/simple-shiny-chat-with-mcp",
     "category": "example",
     "tags": ["python", "shiny", "mcp", "llm"],
