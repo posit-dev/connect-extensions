@@ -29,14 +29,15 @@ Edit `index.qmd` to change the slides, swap the chart's `data.csv` for your own
 figures, and replace the placeholder title, author, and footer. Preview your
 changes with `quarto preview`.
 
-## Deploy
+## Deploy it
 
 Deploy it straight from the Connect Gallery to get a copy running. To publish
-your customized version, deploy the directory with `rsconnect deploy quarto` or a
-git-backed deployment; Connect serves it as static content. Rendering requires
-Quarto 1.6 or newer.
+your own version, deploy the directory with
+[`quarto publish connect`](https://quarto.org/docs/publishing/rstudio-connect.html)
+or a [git-backed deployment](https://docs.posit.co/connect/user/git-backed/);
+Connect serves it as static content. Rendering requires Quarto 1.6 or newer.
 
 ## Learn more
 
-* [Quarto presentations](https://quarto.org/docs/presentations/)
-* [reveal.js presentations](https://quarto.org/docs/presentations/revealjs/)
+- [Quarto presentations](https://quarto.org/docs/presentations/)
+- [reveal.js presentations](https://quarto.org/docs/presentations/revealjs/)
