@@ -932,38 +932,6 @@
       "category": "example"
     },
     {
-      "name": "quarto-presentation",
-      "title": "Quarto Presentation",
-      "description": "A presentation generated using Quarto and reveal.js that demonstrates how you might use code to highlight your work.",
-      "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/quarto-presentation",
-      "latestVersion": {
-        "version": "1.0.0",
-        "released": "2025-05-23T21:55:03Z",
-        "url": "https://github.com/posit-dev/connect-extensions/releases/download/quarto-presentation%40v1.0.0/quarto-presentation.tar.gz",
-        "minimumConnectVersion": "2025.04.0",
-        "requiredEnvironment": {
-          "quarto": {
-            "requires": "~=1.6"
-          }
-        }
-      },
-      "versions": [
-        {
-          "version": "1.0.0",
-          "released": "2025-05-23T21:55:03Z",
-          "url": "https://github.com/posit-dev/connect-extensions/releases/download/quarto-presentation%40v1.0.0/quarto-presentation.tar.gz",
-          "minimumConnectVersion": "2025.04.0",
-          "requiredEnvironment": {
-            "quarto": {
-              "requires": "~=1.6"
-            }
-          }
-        }
-      ],
-      "tags": [],
-      "category": "example"
-    },
-    {
       "name": "quarto-stock-report-python",
       "title": "Quarto Stock Report using Python",
       "description": "This stock report is generated using Quarto and Python. It is an example of how you might automate regular updates using a data source. It reads cached data by default, which can be refreshed from a live source. The report also generates a custom email, sharing the results directly to stakeholders.",
@@ -1222,6 +1190,49 @@
         }
       ],
       "tags": []
+    },
+    {
+      "name": "quarto-presentation",
+      "title": "Quarto: Presentation",
+      "description": "A slide deck built with Quarto and reveal.js that you publish to Connect, showing how a single document can combine formatted text, syntax-highlighted code, diagrams, interactive charts, and multi-column or step-by-step reveals. A starting point for any presentation.",
+      "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/quarto-presentation",
+      "latestVersion": {
+        "version": "1.0.1",
+        "released": "2026-07-01T20:10:39Z",
+        "url": "https://github.com/posit-dev/connect-extensions/releases/download/quarto-presentation%40v1.0.1/quarto-presentation.tar.gz",
+        "minimumConnectVersion": "2025.04.0",
+        "requiredEnvironment": {
+          "quarto": {
+            "requires": "~=1.6"
+          }
+        }
+      },
+      "versions": [
+        {
+          "version": "1.0.1",
+          "released": "2026-07-01T20:10:39Z",
+          "url": "https://github.com/posit-dev/connect-extensions/releases/download/quarto-presentation%40v1.0.1/quarto-presentation.tar.gz",
+          "minimumConnectVersion": "2025.04.0",
+          "requiredEnvironment": {
+            "quarto": {
+              "requires": "~=1.6"
+            }
+          }
+        },
+        {
+          "version": "1.0.0",
+          "released": "2025-05-23T21:55:03Z",
+          "url": "https://github.com/posit-dev/connect-extensions/releases/download/quarto-presentation%40v1.0.0/quarto-presentation.tar.gz",
+          "minimumConnectVersion": "2025.04.0",
+          "requiredEnvironment": {
+            "quarto": {
+              "requires": "~=1.6"
+            }
+          }
+        }
+      ],
+      "tags": [],
+      "category": "example"
     },
     {
       "name": "script-r",
