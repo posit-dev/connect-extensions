@@ -26,13 +26,13 @@ tools, but it works with any streamable HTTP MCP server.
 - Until an LLM provider and that integration are configured, the app shows a setup
   screen instead of the chat.
 
-## Deploy
+## Deploy it
 
 Deploy it straight from the Connect Gallery to get a copy running, then configure it
-(below). To publish your own changes, deploy the directory with
-[rsconnect-python](https://docs.posit.co/rsconnect-python/) (`rsconnect deploy shiny`)
-or a git-backed deployment. Requires Connect 2025.04.0 or later with OAuth
-Integrations enabled.
+(below). To publish your own version, deploy the directory with
+[`rsconnect deploy shiny`](https://docs.posit.co/rsconnect-python/) or a
+[git-backed deployment](https://docs.posit.co/connect/user/git-backed/). Requires
+Connect 2025.04.0 or newer with OAuth Integrations enabled.
 
 ## Setup
 
