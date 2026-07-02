@@ -32,8 +32,10 @@ names, and the attachment list in the email block.
 
 ## Deploy it
 
-Deploy it straight from the Connect Gallery to get a copy running, then customize
-it. To publish your own version, deploy the directory with
+Deploy it straight from the Connect Gallery to get a copy running and try it
+as-is. To run a customized version, get the
+[example source](https://github.com/posit-dev/connect-extensions/tree/main/extensions/script-r),
+make your changes, and publish with
 [`quarto publish connect`](https://quarto.org/docs/publishing/rstudio-connect.html)
 or a [git-backed deployment](https://docs.posit.co/connect/user/git-backed/).
 Rendering requires Quarto 1.4 or newer and R 4.4 or newer.
