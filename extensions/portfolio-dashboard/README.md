@@ -32,8 +32,10 @@ can use any set of portfolios or strategies.
 
 ## Deploy it
 
-Deploy it straight from the Connect Gallery to get a copy running. To publish
-your own version, deploy the directory with the
+Deploy it straight from the Connect Gallery to get a copy running and try it
+as-is. To run a customized version, get the
+[example source](https://github.com/posit-dev/connect-extensions/tree/main/extensions/portfolio-dashboard),
+make your changes, and publish with the
 [rsconnect R package](https://rstudio.github.io/rsconnect/reference/deployApp.html)
 (`rsconnect::deployApp()`) or a
 [git-backed deployment](https://docs.posit.co/connect/user/git-backed/). Requires
