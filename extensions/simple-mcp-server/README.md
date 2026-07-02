@@ -34,7 +34,9 @@ a chat client that calls these tools, but any MCP client works too.
 ## Deploy it
 
 Deploy it straight from the Connect Gallery to get a copy running, then configure
-and customize it. To publish your own version, deploy the directory with
+it (below). To run a customized version, get the
+[example source](https://github.com/posit-dev/connect-extensions/tree/main/extensions/simple-mcp-server),
+make your changes, and publish with
 [`rsconnect deploy fastapi`](https://docs.posit.co/rsconnect-python/) or a
 [git-backed deployment](https://docs.posit.co/connect/user/git-backed/). Requires
 Connect 2025.04.0 or newer with API Publishing enabled.
