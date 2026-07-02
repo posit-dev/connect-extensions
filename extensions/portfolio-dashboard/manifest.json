@@ -17,7 +17,7 @@
   "extension": {
     "name": "portfolio-dashboard",
     "title": "R Shiny: Portfolio Dashboard",
-    "description": "An interactive R Shiny dashboard that ranks conservative, balanced, and aggressive portfolios by the rolling Sortino ratio, a measure of return adjusted for downside risk. Viewers pick a portfolio, date range, target return, and time window to explore the linked charts without writing code. A finance example you can repoint at your own monthly returns for any domain.",
+    "description": "An interactive R Shiny dashboard that ranks conservative, balanced, and aggressive portfolios by the rolling Sortino ratio, a measure of return adjusted for downside risk. Viewers pick a portfolio, date range, target return, and time window to explore the linked charts without writing code. Repoint it at your own monthly returns to adapt the pattern to any domain.",
     "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/portfolio-dashboard",
     "minimumConnectVersion": "2025.04.0",
     "version": "0.0.5",

@@ -4,7 +4,7 @@
 
 An interactive R Shiny dashboard that computes the rolling Sortino ratio (a
 downside-risk-adjusted measure of return) across conservative, balanced, and
-aggressive portfolios. It's a Finance example, but the underlying pattern, an
+aggressive portfolios. It's a finance example, but the underlying pattern, an
 app that lets people ask and answer questions in real time without touching
 code, applies to any domain. It ships with synthetic sample monthly returns you can swap
 for your own.
