@@ -29,7 +29,9 @@ tools, but it works with any streamable HTTP MCP server.
 ## Deploy it
 
 Deploy it straight from the Connect Gallery to get a copy running, then configure it
-(below). To publish your own version, deploy the directory with
+(below). To run a customized version, get the
+[example source](https://github.com/posit-dev/connect-extensions/tree/main/extensions/simple-shiny-chat-with-mcp),
+make your changes, and publish with
 [`rsconnect deploy shiny`](https://docs.posit.co/rsconnect-python/) or a
 [git-backed deployment](https://docs.posit.co/connect/user/git-backed/). Requires
 Connect 2025.04.0 or newer with OAuth Integrations enabled.
