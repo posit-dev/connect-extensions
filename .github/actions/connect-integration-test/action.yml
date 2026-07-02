@@ -75,6 +75,7 @@ runs:
         env: |
           CONNECT_SERVER_EMAILPROVIDER=None
           CONNECT_APPLICATIONS_PACKAGEAUDITINGENABLED=true
+          CONNECT_NODEJS_ENABLED=true
 
     - name: Set bootstrap admin email
       shell: bash
