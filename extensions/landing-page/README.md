@@ -27,8 +27,10 @@ comment):
 
 ## Deploy it
 
-Deploy it straight from the Connect Gallery to get a copy running, then customize
-it. To publish your own version, deploy the directory with
+Deploy it straight from the Connect Gallery to get a copy running and try it
+as-is. To run a customized version, get the
+[example source](https://github.com/posit-dev/connect-extensions/tree/main/extensions/landing-page),
+make your changes, and publish with
 [`rsconnect deploy html`](https://docs.posit.co/rsconnect-python/) or a
 [git-backed deployment](https://docs.posit.co/connect/user/git-backed/); there's
 nothing to build.
