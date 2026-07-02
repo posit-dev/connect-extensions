@@ -460,71 +460,6 @@
       "category": "extension"
     },
     {
-      "name": "portfolio-dashboard",
-      "title": "Portfolio Dashboard",
-      "description": "A shiny application makes it easy to transform your analysis into an interactive dashboard using R so users can ask and answer questions in real-time, without having to touch any code.",
-      "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/portfolio-dashboard",
-      "category": "example",
-      "latestVersion": {
-        "version": "0.0.4",
-        "released": "2026-06-12T00:14:56Z",
-        "url": "https://github.com/posit-dev/connect-extensions/releases/download/portfolio-dashboard%40v0.0.4/portfolio-dashboard.tar.gz",
-        "minimumConnectVersion": "2025.04.0",
-        "requiredEnvironment": {
-          "r": {
-            "requires": "~=4.4"
-          }
-        }
-      },
-      "versions": [
-        {
-          "version": "0.0.4",
-          "released": "2026-06-12T00:14:56Z",
-          "url": "https://github.com/posit-dev/connect-extensions/releases/download/portfolio-dashboard%40v0.0.4/portfolio-dashboard.tar.gz",
-          "minimumConnectVersion": "2025.04.0",
-          "requiredEnvironment": {
-            "r": {
-              "requires": "~=4.4"
-            }
-          }
-        },
-        {
-          "version": "0.0.3",
-          "released": "2026-06-11T16:31:18Z",
-          "url": "https://github.com/posit-dev/connect-extensions/releases/download/portfolio-dashboard%40v0.0.3/portfolio-dashboard.tar.gz",
-          "minimumConnectVersion": "2025.04.0",
-          "requiredEnvironment": {
-            "r": {
-              "requires": "~=4.4"
-            }
-          }
-        },
-        {
-          "version": "0.0.2",
-          "released": "2026-02-05T22:30:55Z",
-          "url": "https://github.com/posit-dev/connect-extensions/releases/download/portfolio-dashboard%40v0.0.2/portfolio-dashboard.tar.gz",
-          "minimumConnectVersion": "2025.04.0",
-          "requiredEnvironment": {
-            "r": {
-              "requires": "~=4.4"
-            }
-          }
-        },
-        {
-          "version": "0.0.1",
-          "released": "2025-04-11T21:32:23Z",
-          "url": "https://github.com/posit-dev/connect-extensions/releases/download/portfolio-dashboard%40v0.0.1/portfolio-dashboard.tar.gz",
-          "minimumConnectVersion": "2025.04.0",
-          "requiredEnvironment": {
-            "r": {
-              "requires": "~=4.4"
-            }
-          }
-        }
-      ],
-      "tags": []
-    },
-    {
       "name": "portfolio-report",
       "title": "Portfolio Report",
       "description": "This R Markdown document includes parameters, making it easier for stakeholders to customize the report's assumptions and create their own version. The main document serves as a standard base template, containing your core code and analysis, so you don't have to copy, paste, and republish.",
@@ -1233,6 +1168,82 @@
       ],
       "tags": [],
       "category": "example"
+    },
+    {
+      "name": "portfolio-dashboard",
+      "title": "R Shiny: Portfolio Dashboard",
+      "description": "An interactive R Shiny dashboard that ranks conservative, balanced, and aggressive portfolios by the rolling Sortino ratio, a measure of return adjusted for downside risk. Viewers pick a portfolio, date range, target return, and time window to explore the linked charts without writing code. Repoint it at your own monthly returns to adapt the pattern to any domain.",
+      "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/portfolio-dashboard",
+      "category": "example",
+      "latestVersion": {
+        "version": "0.0.5",
+        "released": "2026-07-02T17:44:02Z",
+        "url": "https://github.com/posit-dev/connect-extensions/releases/download/portfolio-dashboard%40v0.0.5/portfolio-dashboard.tar.gz",
+        "minimumConnectVersion": "2025.04.0",
+        "requiredEnvironment": {
+          "r": {
+            "requires": "~=4.4"
+          }
+        }
+      },
+      "versions": [
+        {
+          "version": "0.0.5",
+          "released": "2026-07-02T17:44:02Z",
+          "url": "https://github.com/posit-dev/connect-extensions/releases/download/portfolio-dashboard%40v0.0.5/portfolio-dashboard.tar.gz",
+          "minimumConnectVersion": "2025.04.0",
+          "requiredEnvironment": {
+            "r": {
+              "requires": "~=4.4"
+            }
+          }
+        },
+        {
+          "version": "0.0.4",
+          "released": "2026-06-12T00:14:56Z",
+          "url": "https://github.com/posit-dev/connect-extensions/releases/download/portfolio-dashboard%40v0.0.4/portfolio-dashboard.tar.gz",
+          "minimumConnectVersion": "2025.04.0",
+          "requiredEnvironment": {
+            "r": {
+              "requires": "~=4.4"
+            }
+          }
+        },
+        {
+          "version": "0.0.3",
+          "released": "2026-06-11T16:31:18Z",
+          "url": "https://github.com/posit-dev/connect-extensions/releases/download/portfolio-dashboard%40v0.0.3/portfolio-dashboard.tar.gz",
+          "minimumConnectVersion": "2025.04.0",
+          "requiredEnvironment": {
+            "r": {
+              "requires": "~=4.4"
+            }
+          }
+        },
+        {
+          "version": "0.0.2",
+          "released": "2026-02-05T22:30:55Z",
+          "url": "https://github.com/posit-dev/connect-extensions/releases/download/portfolio-dashboard%40v0.0.2/portfolio-dashboard.tar.gz",
+          "minimumConnectVersion": "2025.04.0",
+          "requiredEnvironment": {
+            "r": {
+              "requires": "~=4.4"
+            }
+          }
+        },
+        {
+          "version": "0.0.1",
+          "released": "2025-04-11T21:32:23Z",
+          "url": "https://github.com/posit-dev/connect-extensions/releases/download/portfolio-dashboard%40v0.0.1/portfolio-dashboard.tar.gz",
+          "minimumConnectVersion": "2025.04.0",
+          "requiredEnvironment": {
+            "r": {
+              "requires": "~=4.4"
+            }
+          }
+        }
+      ],
+      "tags": []
     },
     {
       "name": "script-r",
