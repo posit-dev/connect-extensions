@@ -1,9 +1,23 @@
 # Changelog
 
-All notable changes to the Simple Shiny Chat with MCP Support extension will be documented in this file.
+All notable changes to the Python Shiny: AI Chat with MCP Tools extension will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+## [0.0.7] - 2026-06-29
+
+### Fixed
+
+- Forward only the viewer's own key to MCP servers; the app no longer falls back to forwarding its own Connect API key, and the unused `X-MCP-Authorization` header was dropped. (#418)
+
+### Changed
+
+- Retitled to "Python Shiny: AI Chat with MCP Tools", rewrote the description, and rewrote the README to the standardized template. (#418)
+- The MCP sidebar now shows the signed-in viewer, so it's clear that tools run with their Connect permissions. (#418)
+- Pinned dependencies: `chatlas` to a release (was git `main`), corrected `python-dotenv` (was `dotenv`), and reconciled the runtime to Python 3.11. (#418)
+- Aligned the setup screen and README settings language with the FastAPI: MCP Server example, naming the Access, Integrations, and Environment Variables locations. (#418)
+- The info modal now shows the provider and model cleanly, instead of dumping the provider's internal object state. (#418)
 
 ## [0.0.6] - 2026-06-15
 

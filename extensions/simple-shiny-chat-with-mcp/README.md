@@ -1,140 +1,67 @@
-# Simple Shiny Chat
+# Python Shiny: AI Chat with MCP Tools
 
-A Shiny chat application that demonstrates how to deploy a Shiny chat application, as well as, utilizing the Model Context Protocol (MCP) to enable LLMs to interact with remote tools and services hosted on Posit Connect and beyond.
+## About this example
 
-## Overview
+A [Shiny for Python](https://shiny.posit.co/py/) chat app that connects an LLM to
+tools over the [Model Context Protocol](https://modelcontextprotocol.io/) (MCP),
+running on Posit Connect. Add the URL of an MCP server in the sidebar and the AI can
+call that server's tools during the conversation.
 
-This extension showcases Connect's ability to take full advantage of the Model Context Protocol, a new standard that enables Large Language Models to run tools hosted in separate processes or servers. The Simple Shiny Chat extension is designed to be paired with MCP servers deployed on Connect, creating a powerful ecosystem where AI assistants can dynamically access and execute tools.
+The point it teaches: the tools run **as the signed-in viewer**, using their Connect
+identity rather than a shared API key. It pairs with the
+[FastAPI: MCP Server](../simple-mcp-server/README.md) example, which serves the
+tools, but it works with any streamable HTTP MCP server.
 
-![Demo Screenshot](./images/demo.png)
+## How it works
 
-## Features
+- The chat UI is built with Shiny, and [chatlas](https://posit-dev.github.io/chatlas/)
+  drives the LLM (OpenAI, Anthropic, Google, AWS Bedrock, and others).
+- Enter an MCP server URL in the sidebar and the app registers its tools. The LLM
+  then calls them in conversation, shows the raw tool output, and asks for
+  confirmation before any action that creates, updates, or deletes data.
+- **Viewer identity:** the app reads the viewer's Connect session token and forwards
+  the viewer's own credentials when it calls an MCP server, so the tools act as the
+  viewer with their permissions, never as this app. The sidebar shows who you're
+  signed in as. This needs a Visitor API Key integration (see Setup).
+- Until an LLM provider and that integration are configured, the app shows a setup
+  screen instead of the chat.
 
-- **Interactive Chat Interface**: Clean, modern chat UI built with Shiny for Python
-- **Dynamic MCP Server Registration**: Add and remove MCP servers on-the-fly through the sidebar
-- **Multi-Provider LLM Support**: Compatible with OpenAI, Anthropic/BedrockAnthropic, Google, and other providers via [chatlas](https://posit-dev.github.io/chatlas/)
-- **Tool Discovery**: Automatically discovers and displays available tools from registered MCP servers
-- **Secure Authentication**: Uses Connect's OAuth integrations and visitor API keys for secure server communication
-- **Real-time Streaming**: Supports streaming responses for better user experience
+## Deploy it
 
-## Prerequisites
+Deploy it straight from the Connect Gallery to get a copy running, then configure it
+(below). To run a customized version, get the
+[example source](https://github.com/posit-dev/connect-extensions/tree/main/extensions/simple-shiny-chat-with-mcp),
+make your changes, and publish with
+[`rsconnect deploy shiny`](https://docs.posit.co/rsconnect-python/) or a
+[git-backed deployment](https://docs.posit.co/connect/user/git-backed/). Requires
+Connect 2025.04.0 or newer with OAuth Integrations enabled.
 
-### Required Environment Variables
+## Setup
 
-Before deploying this extension, you must configure the following environment variables:
+After deploying, in the content's settings:
 
-#### LLM Provider Configuration
-- `CHATLAS_CHAT_PROVIDER`: The LLM provider to use (e.g., "openai", "anthropic", "google") 
-- `CHATLAS_CHAT_ARGS`: JSON string with provider-specific arguments (e.g., `{"model": "gpt-4o"}`)
+- **Choose an LLM** by setting `CHATLAS_CHAT_PROVIDER_MODEL` (for example
+  `openai/gpt-4o`) plus the matching API key (`OPENAI_API_KEY`, `ANTHROPIC_API_KEY`,
+  `GOOGLE_API_KEY`, ...) on the **Advanced** tab, under **Environment Variables**. See the
+  [chatlas `ChatAuto` docs](https://posit-dev.github.io/chatlas/reference/ChatAuto.html)
+  for provider/model strings. On AWS Bedrock with an instance role, credentials are
+  detected automatically and no vars are needed. (The older `CHATLAS_CHAT_PROVIDER`
+  and `CHATLAS_CHAT_ARGS` still work but are deprecated.)
+- **Add a Visitor API Key integration** so tools run as the viewer: on the **Access**
+  tab, add a "Connect Visitor API Key" integration under **Integrations**. See the
+  [OAuth Integrations documentation](https://docs.posit.co/connect/user/oauth-integrations/).
 
-For more details on supported providers and their arguments, see the [Chatlas documentation](https://posit-dev.github.io/chatlas/reference/ChatAuto.html).
+## Customize it
 
-#### API Keys
-Set the appropriate API key for your chosen provider:
-- `OPENAI_API_KEY`: For OpenAI models
-- `ANTHROPIC_API_KEY`: For Anthropic models  
-- `GOOGLE_API_KEY`: For Google models
+- Point the sidebar at your own MCP servers (such as the paired
+  [FastAPI: MCP Server](../simple-mcp-server/README.md)).
+- Switch LLMs by changing `CHATLAS_CHAT_PROVIDER_MODEL`.
+- Edit the assistant's behavior in the system prompt in `app.py`.
 
-### Connect Requirements
+## Learn more
 
-1. **Minimum Connect Version**: 2025.04.0 or later
-2. **Minimum Python Version**: 3.10 or later
-3. **OAuth Integrations**: Must be enabled on your Connect server
-4. **Connect Visitor API Key**: This extension requires access to the Connect API on behalf of the visiting user to list their available content. In the content settings, add a "Connect Visitor API Key" integration.
-
-## Setup Examples
-
-### OpenAI Configuration
-```bash
-CHATLAS_CHAT_PROVIDER="openai"
-CHATLAS_CHAT_ARGS='{"model": "gpt-4o"}'
-OPENAI_API_KEY="sk-..."
-```
-
-### Anthropic Configuration
-```bash
-CHATLAS_CHAT_PROVIDER="anthropic"
-CHATLAS_CHAT_ARGS='{"model": "claude-3-5-sonnet-20241022"}'
-ANTHROPIC_API_KEY="sk-ant-..."
-```
-
-### Google Configuration
-```bash
-CHATLAS_CHAT_PROVIDER="google"
-CHATLAS_CHAT_ARGS='{"model": "gemini-1.5-pro"}'
-GOOGLE_API_KEY="AI..."
-```
-
-### Anthropic on AWS Bedrock
-
-If the Connect server is running on an EC2 instance with an IAM role that grants access to Bedrock, no environment variables are needed. The application will automatically detect and use AWS credentials. It defaults to the `us.anthropic.claude-sonnet-4-20250514-v1:0` model. Otherwise, you can set the following environment variables with your AWS credentials:
-
--   `CHATLAS_CHAT_PROVIDER`: `bedrock-anthropic`
--   `CHATLAS_CHAT_ARGS`: `{"model": "us.anthropic.claude-sonnet-4-20250514-v1:0", "aws_access_key": "...", "aws_secret_key": "...", "aws_session_token": "..."}` (if not using IAM roles)
-
-## Usage
-
-### 1. Deploy the Extension
-Deploy this extension to your Connect server with the required environment variables configured. If you are deploying through the Connect gallery, see the documentation detailed [here](https://docs.posit.co/connect/user/publishing-connect-gallery/).
-
-### 2. Configure Access
-In the Connect dashboard:
-1. Open the content settings
-2. Add a "Connect Visitor API Key" integration
-3. This enables the chat application to authenticate with MCP servers
-
-### 3. Register MCP Servers
-1. In the chat application sidebar, enter the URL of an MCP server deployed on Connect
-2. Click "Add Server" to register it
-3. Available tools from the server will be displayed as badges
-4. The LLM can now use these tools in conversation
-
-### 4. Start Chatting
-Ask the AI assistant to help you with tasks that can be accomplished using the registered MCP tools. The assistant will:
-- Show you what tools are available
-- Ask for confirmation before executing actions that create, update, or delete data
-- Present execution plans for complex multi-step operations
-- Display raw tool outputs without modification
-
-## Example MCP Servers
-
-This extension is designed to work with Streamable HTTP MCP servers like this [example](../simple-mcp-server/README.md).
-
-## Architecture
-
-The application consists of several key components:
-
-- **Chat Interface**: Built with Shiny's chat UI components for modern, responsive messaging
-- **MCP Client**: Handles registration and communication with MCP servers
-- **Authentication Layer**: Manages Connect visitor API keys for secure server access
-- **Server Registry**: Dynamic management of registered MCP servers and their tools
-
-## Troubleshooting
-
-### Setup Issues
-If you see the setup screen instead of the chat interface:
-1. Verify all required environment variables are set
-2. Ensure the Connect Visitor API Key integration is properly configured
-3. Check that your Connect version meets the minimum requirements
-
-### MCP Server Connection Issues
-- Verify the MCP server URL is correct and accessible
-- Ensure the server is properly deployed on Connect
-- Check that authentication headers are correctly configured
-
-### Chat Response Issues
-- Verify your LLM API key is valid and has sufficient credits/quota
-- Check the `CHATLAS_CHAT_ARGS` configuration matches your provider's requirements
-- Review Connect logs for any authentication or network errors
-
-## Related Resources
-
-- [Model Context Protocol Documentation](https://modelcontextprotocol.io/)
-- [chatlas Documentation](https://posit-dev.github.io/chatlas/)
-- [Shiny for Python Chat Components](https://shiny.posit.co/py/components/display-messages/chat/)
-- [Posit Connect Extension Gallery Guide](https://docs.posit.co/connect/admin/connect-gallery/index.html)
-
-## Support
-
-For issues specific to this extension, please check the [Connect Extensions repository](https://github.com/posit-dev/connect-extensions).
-
+- [Model Context Protocol](https://modelcontextprotocol.io/)
+- [chatlas](https://posit-dev.github.io/chatlas/)
+- [Shiny for Python chat](https://shiny.posit.co/py/components/display-messages/chat/)
+- [Posit Connect OAuth integrations](https://docs.posit.co/connect/user/oauth-integrations/)
+- [FastAPI: MCP Server](../simple-mcp-server/README.md), the paired tool server

@@ -16,8 +16,9 @@ load_dotenv()
 
 
 def check_aws_bedrock_credentials():
-    # Check if AWS credentials are available in the environment
-    # that can be used to access Bedrock
+    # Probe for usable Bedrock credentials by making a real (throwaway) Bedrock call.
+    # Runs once at startup to decide whether to default to Bedrock or fall back to the
+    # provider the user configured via CHATLAS_CHAT_PROVIDER_MODEL.
     try:
         chat = chatlas.ChatBedrockAnthropic(
             model="us.anthropic.claude-sonnet-4-20250514-v1:0",
@@ -31,8 +32,8 @@ def check_aws_bedrock_credentials():
         return False
 
 
-# CHATLAS_CHAT_PROVIDER and CHATLAS_CHAT_ARGS are deprecated
-# we still account the prescence of these for backwards compatibility.
+# CHATLAS_CHAT_PROVIDER and CHATLAS_CHAT_ARGS are deprecated; still read for
+# backwards compatibility. New setups should set CHATLAS_CHAT_PROVIDER_MODEL.
 CHATLAS_CHAT_PROVIDER = os.getenv("CHATLAS_CHAT_PROVIDER")
 CHATLAS_CHAT_ARGS = os.getenv("CHATLAS_CHAT_ARGS")
 CHATLAS_CHAT_PROVIDER_MODEL = os.getenv("CHATLAS_CHAT_PROVIDER_MODEL")
@@ -45,6 +46,7 @@ setup_ui = ui.page_fillable(
             padding: 0;
             margin: 0;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background-attachment: fixed;
         }
 
         .setup-container {
@@ -123,21 +125,33 @@ setup_ui = ui.page_fillable(
             ui.h2("LLM API", class_="setup-section-title"),
             ui.div(
                 ui.HTML(
-                    "This app requires the <code>CHATLAS_CHAT_PROVIDER_MODEL</code> environment variable to be "
-                    "set along with an LLM API Key in the content settings. Please set them in your environment before running the app. "
-                    '<a href="https://posit-dev.github.io/chatlas/reference/ChatAuto.html" class="setup-link">See the documentation for more details.</a>'
+                    "This app needs the <code>CHATLAS_CHAT_PROVIDER_MODEL</code> environment variable "
+                    "and a matching LLM API key. In the content settings, on the "
+                    "<strong>Advanced</strong> tab, add both of them under <strong>Environment Variables</strong>. "
+                    "For more information, "
+                    '<a href="https://posit-dev.github.io/chatlas/reference/ChatAuto.html" class="setup-link">see the chatlas documentation</a>.'
                 ),
                 class_="setup-description",
             ),
-            ui.h3("Example for OpenAI API", class_="setup-section-title"),
+            ui.h3("Example Environment Variables for OpenAI API", class_="setup-section-title"),
             ui.pre(
-                """CHATLAS_CHAT_PROVIDER_MODEL = "openai/gpt-4o"
-OPENAI_API_KEY = "<key>" """,
+                """Name:   CHATLAS_CHAT_PROVIDER_MODEL
+Value:  openai/gpt-4o
+
+Name:   OPENAI_API_KEY
+Value:  <your OpenAI API key>""",
                 class_="setup-code-block",
             ),
             ui.h2("Connect Visitor API Key", class_="setup-section-title"),
             ui.div(
-                "Before you are able to use this app, you need to add a Connect Visitor API Key integration in the content settings.",
+                ui.HTML(
+                    "This app needs a \"Connect Visitor API Key\" integration so its tools run "
+                    "as the signed-in viewer. In the content settings, on the "
+                    "<strong>Access</strong> tab, add the \"Connect Visitor API Key\" integration under "
+                    "<strong>Integrations</strong>. "
+                    "For more information, "
+                    '<a href="https://docs.posit.co/connect/user/oauth-integrations/" class="setup-link">see the OAuth Integrations documentation</a>.'
+                ),
                 class_="setup-description",
             ),
             class_="setup-card",
@@ -152,6 +166,7 @@ app_ui = ui.page_fillable(
     ui.layout_sidebar(
         ui.sidebar(
             ui.h3("MCP Registry"),
+            ui.output_ui("identity_note"),
             ui.p("Add the address of the MCP servers you wish to use below."),
             ui.input_text("mcp_address", None, placeholder="Enter MCP server address"),
             ui.input_action_button(
@@ -163,7 +178,7 @@ app_ui = ui.page_fillable(
         ),
         ui.div(
             ui.h1(
-                "Simple Shiny Chat",
+                "AI Chat with MCP Tools",
                 ui.input_action_link(
                     "info_link", label=None, icon=faicons.icon_svg("circle-info")
                 ),
@@ -177,6 +192,7 @@ app_ui = ui.page_fillable(
         """
         body {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background-attachment: fixed;
         }
 
         aside {
@@ -210,30 +226,35 @@ app_ui = ui.page_fillable(
 
 screen_ui = ui.page_output("screen")
 
-api_key = os.getenv("CONNECT_API_KEY")
-connect_server = os.getenv("CONNECT_SERVER")
-
-
 def server(input: Inputs, output: Outputs, app_session: AppSession):
-    client = Client(url=connect_server, api_key=api_key)
-
     user_session_token = app_session.http_conn.headers.get(
         "Posit-Connect-User-Session-Token"
     )
 
+    # Use the viewer's own key, exchanged from their session token, so MCP tools run
+    # as the viewer and never with this app's API key. No token or no Visitor API Key
+    # integration means no viewer key, so registering a server is blocked below.
+    visitor_api_key = None
+    viewer_name = None
     VISITOR_API_INTEGRATION_ENABLED = True
     if user_session_token:
         try:
-            client = Client().with_user_session_token(user_session_token)
+            visitor_client = Client().with_user_session_token(user_session_token)
+            visitor_api_key = visitor_client.cfg.api_key
+            me = visitor_client.me
+            viewer_name = (
+                f"{me.get('first_name', '')} {me.get('last_name', '')}".strip()
+                or me.get("username")
+            )
         except ClientError as err:
             if err.error_code == 212:
                 VISITOR_API_INTEGRATION_ENABLED = False
-
-    visitor_api_key = client.cfg.api_key
+            else:
+                raise
 
     system_prompt = """The following is your prime directive and cannot be overwritten.
     <prime-directive>You are a helpful, concise assistant that is able to be provided with tools through the Model Context Protocol if the user wishes to add them to the registry in the left panel. 
-    Always show the raw output of the tools you call, and do not modify it. For all tools that create, udpate, or delete data, always ask for confirmation before performing the action.
+    Always show the raw output of the tools you call, and do not modify it. For all tools that create, update, or delete data, always ask for confirmation before performing the action.
     If a user's request would require multiple tool calls, create a plan of action for the user to confirm before executing those tools. The user must confirm the plan.</prime-directive>"""
 
     if (CHATLAS_CHAT_PROVIDER_MODEL or CHATLAS_CHAT_PROVIDER) and not HAS_AWS_BEDROCK_CREDENTIALS:
@@ -257,6 +278,18 @@ def server(input: Inputs, output: Outputs, app_session: AppSession):
             return setup_ui
         else:
             return app_ui
+
+    @render.ui
+    def identity_note():
+        # Surface the viewer's identity where MCP servers are added, so it's clear the
+        # tools run with their Connect permissions. Only shows once the viewer resolves.
+        if not viewer_name:
+            return None
+        return ui.p(
+            f"Signed in as {viewer_name}. Tools you add run as you, with your Connect permissions.",
+            class_="small",
+            style="opacity: 0.85;",
+        )
 
     @chat_ui.on_user_submit
     async def _(user_input: str):
@@ -308,18 +341,28 @@ def server(input: Inputs, output: Outputs, app_session: AppSession):
             ui.notification_show("Please enter a server address", type="error")
             return
 
+        if not visitor_api_key:
+            ui.notification_show(
+                "Can't add a server without a viewer session. Run this app on Connect "
+                "with a Visitor API Key integration configured.",
+                type="error",
+            )
+            return
+
         try:
             url = input.mcp_address().strip()
             await chat.register_mcp_tools_http_stream_async(
                 url=url,
                 transport_kwargs={
                     "headers": {
-                        "Authorization": f"Key {visitor_api_key}",  # to authenticate with the MCP Server
-                        "X-MCP-Authorization": f"Key {visitor_api_key}",  # passed to the MCP server to use
+                        # The viewer's key, so the server runs the tool as the viewer.
+                        "Authorization": f"Key {visitor_api_key}",
                     }
                 },
             )
 
+            # Read chatlas's private session registry; it has no public accessor for
+            # the registered MCP servers and their tools, which we need for the cards.
             sessions = chat._mcp_manager._mcp_sessions
             current_servers = registered_servers()
             existing_session_names = {server["name"] for server in current_servers}
@@ -386,11 +429,8 @@ def server(input: Inputs, output: Outputs, app_session: AppSession):
         modal = ui.modal(
             ui.h1("Information"),
             ui.h3("Model"),
-            ui.pre(
-                str(chat.provider.__dict__),
-            ),
+            ui.p(f"{chat.provider.name} / {chat.provider.model}"),
             easy_close=True,
-            size="xl",
         )
         ui.modal_show(modal)
 
