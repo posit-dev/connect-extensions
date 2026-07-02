@@ -1,0 +1,24 @@
+{
+    "version": 1,
+    "locale": "en_US.UTF-8",
+    "metadata": {
+      "appmode": "python-shiny",
+      "entrypoint": "shiny.express.app:app_2e_py"
+    },
+    "python": {
+      "version": "3.11.9",
+      "package_manager": {
+        "name": "pip",
+        "version": "24.2",
+        "package_file": "requirements.txt"
+      }
+    },
+    "files": {
+      "requirements.txt": {
+        "checksum": "2ed393d51266e315d6e7b55ac26c1062"
+      },
+      "app.py": {
+        "checksum": "61ddac9f526f0d55ab94e3b02eae4070"
+      }
+    }
+  }
