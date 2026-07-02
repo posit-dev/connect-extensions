@@ -99,6 +99,7 @@ $(CONNECT_VERSIONS): %:
 	$(WITH_CONNECT) --version $* --license $(LICENSE_FILE) \
 		-e CONNECT_SERVER_EMAILPROVIDER=None \
 		-e CONNECT_APPLICATIONS_PACKAGEAUDITINGENABLED=true \
+		-e CONNECT_NODEJS_ENABLED=true \
 		-- bash -c '\
 			set -o pipefail; \
 			cd $(CURDIR) && \
