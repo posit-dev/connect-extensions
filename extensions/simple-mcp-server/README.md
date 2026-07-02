@@ -1,123 +1,73 @@
-# Simple MCP Server
+# FastAPI: MCP Server
 
-A FastAPI-based Model Context Protocol (MCP) server that demonstrates how to deploy MCP tools on Posit Connect. This extension showcases Connect's ability to host MCP servers that can be consumed by AI assistants and other MCP clients.
+## About this example
 
-## Overview
+A FastAPI server that exposes tools to AI assistants over the
+[Model Context Protocol](https://modelcontextprotocol.io/) (MCP), running on Posit
+Connect. It ships three demo tools you can swap for your own: `list_known_datasets`
+and `calculate_summary_statistics` (which work over a couple of small built-in
+datasets), and `connect_whoami`, which returns the signed-in viewer.
 
-This extension demonstrates Connect's capability to host Model Context Protocol servers, enabling LLMs to access and execute tools remotely. The Simple MCP Server provides a collection of data analysis tools and Connect integration capabilities, making it an ideal companion for AI-powered applications like the [Simple Shiny Chat](../simple-shiny-chat-with-mcp/README.md) extension.
+The point it teaches: an MCP tool on Connect can run **as the viewer who calls
+it**, using their Connect identity instead of a shared API key. It pairs with the
+[Python Shiny: AI Chat with MCP Tools](../simple-shiny-chat-with-mcp/README.md) example,
+a chat client that calls these tools, but any MCP client works too.
 
-![MCP Server Landing Page](./images/demo.png)
+![Demo Screenshot](./images/demo.png)
 
-## Features
+## How it works
 
-- **FastAPI-Based MCP Server**: Built on FastAPI with streamable HTTP transport for efficient MCP communication
-- **Data Analysis Tools**: Includes tools for dataset operations and summary statistics
-- **Connect Integration**: Provides tools that interact with Connect's API
-- **Interactive Documentation**: Clean web interface that displays available tools and their parameters
-- **Copy-to-Clipboard Endpoint**: Easy sharing of MCP server URLs
-- **Automatic Tool Discovery**: MCP clients can dynamically discover and use available tools
+- FastAPI and [FastMCP](https://github.com/jlowin/fastmcp) host the MCP endpoint at
+  `/mcp` (streamable HTTP) alongside a landing page at `/`.
+- Tools are plain Python functions decorated with `@mcp.tool()`. Their docstrings
+  are what the AI reads to decide when to call them.
+- `connect_whoami` reads the `Posit-Connect-User-Session-Token` header that Connect
+  injects for the logged-in viewer, exchanges it for a viewer-scoped Connect client,
+  and calls the `/me` endpoint. So the tool acts as the viewer, with their
+  permissions, and no admin API key is involved.
+- The landing page demonstrates the same mechanism: it greets you by name, resolved
+  from your session token.
+- Once a client is connected, the AI calls these tools in conversation. Through the
+  paired chat, for example, you might ask "What datasets are available?", "Summarize
+  the iris dataset", or "Who am I signed in as?".
 
-## Available Tools
+## Deploy it
 
-### Dataset Operations
-- **`list_known_datasets`**: Lists all available datasets in the server
-- **`calculate_summary_statistics`**: Generates comprehensive summary statistics for specified datasets
+Deploy it straight from the Connect Gallery to get a copy running, then configure
+it (below). To run a customized version, get the
+[example source](https://github.com/posit-dev/connect-extensions/tree/main/extensions/simple-mcp-server),
+make your changes, and publish with
+[`rsconnect deploy fastapi`](https://docs.posit.co/rsconnect-python/) or a
+[git-backed deployment](https://docs.posit.co/connect/user/git-backed/). Requires
+Connect 2025.04.0 or newer with API Publishing enabled.
 
-### Connect Integration
-- **`connect_whoami`**: Calls the Connect `/me` endpoint using API key authentication
+## Setup
 
-### Sample Datasets
-- **Iris Dataset**: Classic machine learning dataset from scikit-learn
-- **Sample Data**: Simple demonstration dataset with mixed data types
+After deploying, configure it for how you'll use it:
 
-## Prerequisites
+- **As the signed-in viewer** (the paired chat, or any Connect content): in the content's
+  settings, on the **Access** tab, add a "Connect Visitor API Key" integration under
+  **Integrations**. This lets `connect_whoami` identify who's calling. See the
+  [OAuth Integrations documentation](https://docs.posit.co/connect/user/oauth-integrations/).
+- **From your own MCP client** (Claude Code, Cursor, ...): point it at `{content-url}/mcp`
+  and authenticate with a Connect API key (`Authorization: Key <API_KEY>`); the landing page
+  has copy-paste snippets. This lets you call the data tools (`list_known_datasets` and
+  `calculate_summary_statistics`).
+- **Keep it responsive** (optional): on the **Advanced** tab, set **Min processes** to 1 or
+  more under **Process Settings** so the server doesn't cold-start. See the
+  [process configuration documentation](https://docs.posit.co/connect/user/content-settings/index.html#process-configurations).
 
-### Connect Requirements
+## Customize it
 
-1. **Minimum Connect Version**: 2025.04.0 or later
-2. **API Publishing**: Must be enabled on your Connect server
-3. **Python 3.10+**: Required for the MCP SDK
+The three tools in `main.py` are demos. Replace them with your own: add a function
+decorated with `@mcp.tool()`, give it a clear docstring (the AI uses it to decide when
+to call the tool), and return a string. Keep or adapt `connect_whoami` when you want a
+tool to act with the caller's Connect identity rather than a shared key.
 
-## Deployment
+## Learn more
 
-### 1. Deploy the Extension
-Deploy this extension to your Connect server. If you are deploying through the Connect Gallery, see the [Gallery documentation](https://docs.posit.co/connect/user/publishing-connect-gallery/).
-
-### 2. Access the Server
-Once deployed, the extension provides:
-- **Web Interface**: Visit the content URL to see available tools and copy the MCP endpoint
-- **MCP Endpoint**: Located at `{direct-content-url}/mcp` for MCP client connections
-
-Please note that it is recommended to set the minimum number of instances/processes for this application to >= 1 in the content settings. This will ensure that the MCP server is always available for clients to connect. See the [content process configuration documentation](https://docs.posit.co/connect/user/content-settings/index.html#process-configurations).
-
-### 3. Use with MCP Clients
-The server can be consumed by any MCP-compatible client, including:
-- [Simple Shiny Chat](../simple-shiny-chat-with-mcp/README.md) extension
-- Local MCP clients
-- AI development environments that support MCP
-
-## Usage Examples
-
-### With Simple Shiny Chat Extension
-
-1. Deploy both the Simple MCP Server and Simple Shiny Chat extensions
-2. In the chat application, add the MCP server URL from this extension
-3. Ask the AI assistant to:
-   - "What datasets are available?"
-   - "Calculate summary statistics for the iris dataset"
-   - "Show me information about my Connect user account"
-
-### With Other MCP Clients
-
-Connect to the MCP endpoint at `{your-connect-server}/content/{content-guid}/mcp` and use the available tools programmatically.
-
-If you are not using the Simple Shiny Chat extension to connect to this MCP server, you will need to ensure that you can specify your Connect API key in both the `x-mcp-authorization` header and the `authorization` header for Connect API calls. Some MCP clients may not support that directly today (June 2025).
-
-## Architecture
-
-The application consists of several key components:
-
-- **FastMCP Framework**: Handles MCP protocol implementation and tool registration
-- **FastAPI Application**: Provides HTTP transport and web interface
-- **Tool Implementations**: Individual functions that implement business logic
-- **Template Engine**: Jinja2 templates for the documentation interface
-- **Dataset Storage**: In-memory storage for demonstration datasets
-
-## Troubleshooting
-
-### Deployment Issues
-- Ensure your Connect server supports API publishing
-- Verify Python 3.10+ is available in your Connect environment
-- Check that all dependencies are properly installed
-
-### MCP Client Connection Issues
-- Verify the MCP endpoint URL is correct (`{content-url}/mcp`)
-- Ensure the server is accessible from the client
-- Check Connect content permissions
-
-### Tool Execution Errors
-- Review tool parameter requirements and types
-- Verify API key format for Connect integration tools
-- Check Connect logs for detailed error messages
-
-## Integration with Simple Shiny Chat
-
-This MCP server is designed to work seamlessly with the [Simple Shiny Chat](../simple-shiny-chat-with-mcp/README.md) extension:
-
-1. Deploy both extensions to your Connect server
-2. Configure the chat application with appropriate LLM credentials
-3. Register this MCP server in the chat interface
-4. Start conversing with AI assistants that can use these tools
-
-## Related Resources
-
-- [Model Context Protocol Documentation](https://modelcontextprotocol.io/)
-- [FastMCP Framework](https://github.com/jlowin/fastmcp)
-- [MCP Framework](https://github.com/modelcontextprotocol/python-sdk)
-- [FastAPI Documentation](https://fastapi.tiangolo.com/)
-- [Simple Shiny Chat Extension](../simple-shiny-chat-with-mcp/README.md)
-- [Posit Connect Extension Gallery Guide](https://docs.posit.co/connect/admin/connect-gallery/index.html)
-
-## Support
-
-For issues specific to this extension, please check the [Connect Extensions repository](https://github.com/posit-dev/connect-extensions).
+- [Model Context Protocol](https://modelcontextprotocol.io/)
+- [FastMCP](https://github.com/jlowin/fastmcp)
+- [FastAPI](https://fastapi.tiangolo.com/)
+- [Posit Connect OAuth integrations](https://docs.posit.co/connect/user/oauth-integrations/)
+- [Python Shiny: AI Chat with MCP Tools](../simple-shiny-chat-with-mcp/README.md), the paired chat client
