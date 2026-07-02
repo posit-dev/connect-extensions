@@ -12,11 +12,11 @@
   "extension": {
     "name": "quarto-presentation",
     "title": "Quarto: Presentation",
-    "description": "A slide deck built with Quarto and reveal.js that you publish to Connect, showing how a single document can combine formatted text, syntax-highlighted code, diagrams, interactive charts, and multi-column or step-by-step reveals. A starting point for any presentation.",
+    "description": "A slide deck built with Quarto and reveal.js that you publish to Connect, showing how a single document can combine formatted text, syntax-highlighted code, diagrams, interactive charts, and multi-column or step-by-step reveals. A starting point for any presentation; swap in your own slides and figures.",
     "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/quarto-presentation",
     "category": "example",
     "minimumConnectVersion": "2025.04.0",
-    "version": "1.0.1"
+    "version": "1.0.2"
   },
   "environment": {
     "quarto": {
