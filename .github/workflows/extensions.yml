@@ -58,6 +58,7 @@ jobs:
             simple-shiny-chat-with-mcp: extensions/simple-shiny-chat-with-mcp/**
             chat-with-content: extensions/chat-with-content/**
             pqr: extensions/pqr/**
+            hello-world-nodejs: extensions/hello-world-nodejs/**
 
       # When infra changed, test all simple extensions; otherwise use the filter output
       - id: resolve

@@ -64,6 +64,19 @@ runs:
           | sed 's|URL = https://[^ ]*/cran/__linux__/[^/]*/latest|URL = https://packagemanager.posit.co/cran/__linux__/manylinux_2_28/latest|g' \
           > ${{ github.workspace }}/.github/connect-runtime.gcfg
 
+        # Node.js content: the base Connect image ships no Node runtime, so build a
+        # derived image with Node installed (reusing the same tag so with-connect's
+        # local cache uses it) and enable Node in the runtime config.
+        APPMODE=$(jq -r '.metadata.appmode // ""' extensions/${{ inputs.extension-name }}/manifest.json)
+        if [ "$APPMODE" = "nodejs" ]; then
+          NODE_VERSION=24.14.0
+          printf 'FROM %s\nUSER root\nRUN curl -fsSL "https://nodejs.org/dist/v%s/node-v%s-linux-x64.tar.xz" -o /tmp/node.tar.xz && mkdir -p /opt/node/%s && tar -xJf /tmp/node.tar.xz -C /opt/node/%s --strip-components=1 && rm /tmp/node.tar.xz\n' \
+            "$IMAGE" "$NODE_VERSION" "$NODE_VERSION" "$NODE_VERSION" "$NODE_VERSION" > /tmp/node.Dockerfile
+          docker build -t "$IMAGE" -f /tmp/node.Dockerfile /tmp
+          printf '\n[NodeJs]\nEnabled = true\nExecutable = /opt/node/%s/bin/node\n' "$NODE_VERSION" \
+            >> ${{ github.workspace }}/.github/connect-runtime.gcfg
+        fi
+
     - name: Start Connect
       id: connect
       uses: posit-dev/with-connect@main

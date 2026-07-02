@@ -1,0 +1,36 @@
+{
+  "version": 1,
+  "locale": "en_US",
+  "metadata": {
+    "appmode": "nodejs",
+    "entrypoint": "index.js"
+  },
+  "node": {
+    "version": "24.16.0",
+    "package_manager": {
+      "name": "npm",
+      "version": "11.13.0",
+      "package_file": "package.json"
+    }
+  },
+  "extension": {
+    "name": "hello-world-nodejs",
+    "title": "Node.js: Hello World",
+    "description": "A minimal Node.js HTTP server that returns a JSON greeting — a starting point for any Node.js service on Connect.",
+    "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/hello-world-nodejs",
+    "category": "example",
+    "minimumConnectVersion": "2026.04.1",
+    "version": "0.0.1"
+  },
+  "files": {
+    "index.js": {
+      "checksum": "a86b7b21c9888ad3fd0f73ce264c4a62"
+    },
+    "package-lock.json": {
+      "checksum": "e75f837dc64c1b567e4df007405c2acb"
+    },
+    "package.json": {
+      "checksum": "75b4e369d15365d6e5a096ca2f087036"
+    }
+  }
+}

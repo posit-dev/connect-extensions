@@ -1,0 +1,14 @@
+{
+  "name": "hello-world-nodejs",
+  "version": "0.0.0",
+  "description": "A minimal Node.js HTTP server for the Connect Gallery.",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "author": "Posit Software, PBC",
+  "license": "MIT",
+  "engines": {
+    "node": ">=22.18.0"
+  }
+}
