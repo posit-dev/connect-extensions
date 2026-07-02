@@ -16,11 +16,11 @@
   },
   "extension": {
     "name": "portfolio-dashboard",
-    "title": "Portfolio Dashboard",
-    "description": "A shiny application makes it easy to transform your analysis into an interactive dashboard using R so users can ask and answer questions in real-time, without having to touch any code.",
+    "title": "R Shiny: Portfolio Dashboard",
+    "description": "An interactive R Shiny dashboard that ranks conservative, balanced, and aggressive portfolios by the rolling Sortino ratio, a measure of return adjusted for downside risk. Viewers pick a portfolio, date range, target return, and time window to explore the linked charts without writing code. Repoint it at your own monthly returns to adapt the pattern to any domain.",
     "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/portfolio-dashboard",
     "minimumConnectVersion": "2025.04.0",
-    "version": "0.0.4",
+    "version": "0.0.5",
     "category": "example"
   },
   "packages": {
@@ -527,34 +527,6 @@
         "Repository": "RSPM",
         "Date/Publication": "2026-04-03 07:30:08 UTC",
         "Built": "R 4.4.0; x86_64-pc-linux-gnu; 2026-04-04 05:00:37 UTC; unix"
-      }
-    },
-    "dygraphs": {
-      "Source": "CRAN",
-      "Repository": "https://packagemanager.posit.co/cran/latest",
-      "description": {
-        "Package": "dygraphs",
-        "Type": "Package",
-        "Title": "Interface to 'Dygraphs' Interactive Time Series Charting Library",
-        "Version": "1.1.1.6",
-        "Authors@R": "c(\n    person(\"Dan\", \"Vanderkam\", role = c(\"aut\", \"cph\"),\n       comment = \"dygraphs library in htmlwidgets/lib, http://dygraphs.com/\"),\n    person(\"Petr\", \"Shevtsov\", role = c(\"cre\", \"cph\"),\n       email = \"petr.shevtsov@gmail.com\"),\n    person(\"JJ\", \"Allaire\", role = c(\"aut\")),\n    person(family = \"RStudio\", role = \"cph\"),\n    person(\"Jonathan\", \"Owen\", role = c(\"aut\", \"cph\")),\n    person(\"Daniel\", \"Gromer\", role = c(\"aut\", \"cph\")),\n    person(\"Benoit\", \"Thieurmel\", role = c(\"aut\", \"cph\")),\n    person(\"Kent\", \"Laukhuf\", role = \"ctb\"),\n    person(family = \"jQuery Foundation\", role = \"cph\",\n           comment = \"jQuery library\"),\n    person(family = \"jQuery contributors\", role = c(\"ctb\", \"cph\"),\n           comment = \"jQuery library; authors listed in inst/htmlwidgets/lib/jquery/AUTHORS.txt\")\n    )",
-        "URL": "https://github.com/rstudio/dygraphs",
-        "BugReports": "https://github.com/rstudio/dygraphs/issues",
-        "Description": "An R interface to the 'dygraphs' JavaScript charting library\n    (a copy of which is included in the package). Provides rich facilities\n    for charting time-series data in R, including highly configurable\n    series- and axis-display and interactive features like zoom/pan and\n    series/point highlighting.",
-        "License": "MIT + file LICENSE",
-        "Depends": "R (>= 3.0)",
-        "Imports": "magrittr, htmlwidgets (>= 0.6), htmltools (>= 0.3.5), zoo (>=\n1.7-10), xts (>= 0.9-7)",
-        "Suggests": "testthat",
-        "Enhances": "rmarkdown (>= 0.3.3), shiny (>= 0.10.2.1)",
-        "RoxygenNote": "6.0.1",
-        "NeedsCompilation": "no",
-        "Packaged": "2018-07-11 21:29:28 UTC; petr",
-        "Author": "Dan Vanderkam [aut, cph] (dygraphs library in htmlwidgets/lib,\n    http://dygraphs.com/),\n  Petr Shevtsov [cre, cph],\n  JJ Allaire [aut],\n  RStudio [cph],\n  Jonathan Owen [aut, cph],\n  Daniel Gromer [aut, cph],\n  Benoit Thieurmel [aut, cph],\n  Kent Laukhuf [ctb],\n  jQuery Foundation [cph] (jQuery library),\n  jQuery contributors [ctb, cph] (jQuery library; authors listed in\n    inst/htmlwidgets/lib/jquery/AUTHORS.txt)",
-        "Maintainer": "Petr Shevtsov <petr.shevtsov@gmail.com>",
-        "Repository": "RSPM",
-        "Date/Publication": "2018-07-11 22:00:03 UTC",
-        "Encoding": "UTF-8",
-        "Built": "R 4.4.0; ; 2024-04-24 23:47:43 UTC; unix"
       }
     },
     "evaluate": {
@@ -1759,67 +1731,6 @@
         "Built": "R 4.4.0; x86_64-pc-linux-gnu; 2026-03-30 17:47:01 UTC; unix"
       }
     },
-    "stringi": {
-      "Source": "CRAN",
-      "Repository": "https://packagemanager.posit.co/cran/latest",
-      "description": {
-        "Package": "stringi",
-        "Version": "1.8.7",
-        "Date": "2025-03-27",
-        "Title": "Fast and Portable Character String Processing Facilities",
-        "Description": "A collection of character string/text/natural language\n    processing tools for pattern searching (e.g., with 'Java'-like regular\n    expressions or the 'Unicode' collation algorithm), random string generation,\n    case mapping, string transliteration, concatenation, sorting, padding,\n    wrapping, Unicode normalisation, date-time formatting and parsing,\n    and many more. They are fast, consistent, convenient, and -\n    thanks to 'ICU' (International Components for Unicode) -\n    portable across all locales and platforms. Documentation about 'stringi' is\n    provided via its website at <https://stringi.gagolewski.com/> and\n    the paper by Gagolewski (2022, <doi:10.18637/jss.v103.i02>).",
-        "URL": "https://stringi.gagolewski.com/,\nhttps://github.com/gagolews/stringi, https://icu.unicode.org/",
-        "BugReports": "https://github.com/gagolews/stringi/issues",
-        "SystemRequirements": "ICU4C (>= 61, optional)",
-        "Type": "Package",
-        "Depends": "R (>= 3.4)",
-        "Imports": "tools, utils, stats",
-        "Biarch": "TRUE",
-        "License": "file LICENSE",
-        "Authors@R": "c(person(given = \"Marek\",\n                      family = \"Gagolewski\",\n                      role = c(\"aut\", \"cre\", \"cph\"),\n                      email = \"marek@gagolewski.com\",\n                      comment = c(ORCID = \"0000-0003-0637-6028\")),\n               person(given = \"Bartek\",\n                      family = \"Tartanus\",\n                      role = \"ctb\"),\n               person(\"Unicode, Inc. and others\", role=\"ctb\",\n                      comment = \"ICU4C source code, Unicode Character Database\")\n    )",
-        "RoxygenNote": "7.3.2",
-        "Encoding": "UTF-8",
-        "NeedsCompilation": "yes",
-        "Packaged": "2025-03-27 10:27:19 UTC; gagolews",
-        "Author": "Marek Gagolewski [aut, cre, cph]\n    (<https://orcid.org/0000-0003-0637-6028>),\n  Bartek Tartanus [ctb],\n  Unicode, Inc. and others [ctb] (ICU4C source code, Unicode Character\n    Database)",
-        "Maintainer": "Marek Gagolewski <marek@gagolewski.com>",
-        "License_is_FOSS": "yes",
-        "Repository": "RSPM",
-        "Date/Publication": "2025-03-27 13:10:02 UTC",
-        "Built": "R 4.4.0; x86_64-pc-linux-gnu; 2025-03-28 04:44:04 UTC; unix"
-      }
-    },
-    "stringr": {
-      "Source": "CRAN",
-      "Repository": "https://packagemanager.posit.co/cran/latest",
-      "description": {
-        "Package": "stringr",
-        "Title": "Simple, Consistent Wrappers for Common String Operations",
-        "Version": "1.6.0",
-        "Authors@R": "c(\n    person(\"Hadley\", \"Wickham\", , \"hadley@posit.co\", role = c(\"aut\", \"cre\", \"cph\")),\n    person(\"Posit Software, PBC\", role = c(\"cph\", \"fnd\"))\n  )",
-        "Description": "A consistent, simple and easy to use set of wrappers around\n    the fantastic 'stringi' package. All function and argument names (and\n    positions) are consistent, all functions deal with \"NA\"'s and zero\n    length vectors in the same way, and the output from one function is\n    easy to feed into the input of another.",
-        "License": "MIT + file LICENSE",
-        "URL": "https://stringr.tidyverse.org,\nhttps://github.com/tidyverse/stringr",
-        "BugReports": "https://github.com/tidyverse/stringr/issues",
-        "Depends": "R (>= 4.1.0)",
-        "Imports": "cli, glue (>= 1.6.1), lifecycle (>= 1.0.3), magrittr, rlang\n(>= 1.0.0), stringi (>= 1.5.3), vctrs (>= 0.4.0)",
-        "Suggests": "covr, dplyr, gt, htmltools, htmlwidgets, knitr, rmarkdown,\ntestthat (>= 3.0.0), tibble",
-        "VignetteBuilder": "knitr",
-        "Config/Needs/website": "tidyverse/tidytemplate",
-        "Config/potools/style": "explicit",
-        "Config/testthat/edition": "3",
-        "Encoding": "UTF-8",
-        "LazyData": "true",
-        "RoxygenNote": "7.3.3",
-        "NeedsCompilation": "no",
-        "Packaged": "2025-11-03 22:09:58 UTC; hadleywickham",
-        "Author": "Hadley Wickham [aut, cre, cph],\n  Posit Software, PBC [cph, fnd]",
-        "Maintainer": "Hadley Wickham <hadley@posit.co>",
-        "Repository": "RSPM",
-        "Date/Publication": "2025-11-04 14:00:02 UTC",
-        "Built": "R 4.4.0; ; 2025-11-05 04:35:03 UTC; unix"
-      }
-    },
     "sys": {
       "Source": "CRAN",
       "Repository": "https://packagemanager.posit.co/cran/latest",
@@ -1967,33 +1878,6 @@
         "Repository": "RSPM",
         "Date/Publication": "2026-03-28 06:10:10 UTC",
         "Built": "R 4.4.0; ; 2026-03-30 17:47:23 UTC; unix"
-      }
-    },
-    "utf8": {
-      "Source": "CRAN",
-      "Repository": "https://packagemanager.posit.co/cran/latest",
-      "description": {
-        "Package": "utf8",
-        "Title": "Unicode Text Processing",
-        "Version": "1.2.6",
-        "Authors@R": "\n    c(person(given = c(\"Patrick\", \"O.\"),\n             family = \"Perry\",\n             role = c(\"aut\", \"cph\")),\n      person(given = \"Kirill\",\n             family = \"M\\u00fcller\",\n             role = \"cre\",\n             email = \"kirill@cynkra.com\",\n             comment = c(ORCID = \"0000-0002-1416-3412\")),\n      person(given = \"Unicode, Inc.\",\n             role = c(\"cph\", \"dtc\"),\n             comment = \"Unicode Character Database\"))",
-        "Description": "Process and print 'UTF-8' encoded international\n    text (Unicode). Input, validate, normalize, encode, format, and\n    display.",
-        "License": "Apache License (== 2.0) | file LICENSE",
-        "URL": "https://krlmlr.github.io/utf8/, https://github.com/krlmlr/utf8",
-        "BugReports": "https://github.com/krlmlr/utf8/issues",
-        "Depends": "R (>= 2.10)",
-        "Suggests": "cli, covr, knitr, rlang, rmarkdown, testthat (>= 3.0.0),\nwithr",
-        "VignetteBuilder": "knitr, rmarkdown",
-        "Config/testthat/edition": "3",
-        "Encoding": "UTF-8",
-        "RoxygenNote": "7.3.2.9000",
-        "NeedsCompilation": "yes",
-        "Packaged": "2025-06-08 18:28:11 UTC; kirill",
-        "Author": "Patrick O. Perry [aut, cph],\n  Kirill M\u00fcller [cre] (ORCID: <https://orcid.org/0000-0002-1416-3412>),\n  Unicode, Inc. [cph, dtc] (Unicode Character Database)",
-        "Maintainer": "Kirill M\u00fcller <kirill@cynkra.com>",
-        "Repository": "RSPM",
-        "Date/Publication": "2025-06-08 19:00:02 UTC",
-        "Built": "R 4.4.0; x86_64-pc-linux-gnu; 2025-06-09 04:34:39 UTC; unix"
       }
     },
     "vctrs": {
@@ -2224,13 +2108,10 @@
   },
   "files": {
     "app.R": {
-      "checksum": "96e59dadf06f0a69df067d4b243e4274"
+      "checksum": "c8654347036f1306449454427d200b62"
     },
-    "README.md": {
-      "checksum": "49a65f174d0c4fbece71c364450236c2"
-    },
-    "returns.rds": {
-      "checksum": "6a5404de2cea271b60c2b4479ab7832c"
+    "returns.csv": {
+      "checksum": "49828867df27b0b27f757f480e3f92e1"
     }
   },
   "users": null
