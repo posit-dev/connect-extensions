@@ -1640,17 +1640,23 @@
     },
     {
       "name": "landing-page",
-      "title": "Static HTML landing page",
-      "description": "A simple static HTML landing page that can be served from Connect.",
+      "title": "Static HTML: Landing Page",
+      "description": "A static HTML landing page for your Connect server: a simple, branded front door that welcomes your team and links out to the reports, apps, and datasets you publish, instead of dropping people on a plain content list. Customize it with your own name, logo, links, and FAQs.",
       "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/landing-page",
       "category": "example",
       "latestVersion": {
-        "version": "1.0.0",
-        "released": "2025-04-24T19:04:23Z",
-        "url": "https://github.com/posit-dev/connect-extensions/releases/download/landing-page%40v1.0.0/landing-page.tar.gz",
+        "version": "1.0.1",
+        "released": "2026-07-02T17:13:57Z",
+        "url": "https://github.com/posit-dev/connect-extensions/releases/download/landing-page%40v1.0.1/landing-page.tar.gz",
         "minimumConnectVersion": "2025.04.0"
       },
       "versions": [
+        {
+          "version": "1.0.1",
+          "released": "2026-07-02T17:13:57Z",
+          "url": "https://github.com/posit-dev/connect-extensions/releases/download/landing-page%40v1.0.1/landing-page.tar.gz",
+          "minimumConnectVersion": "2025.04.0"
+        },
         {
           "version": "1.0.0",
           "released": "2025-04-24T19:04:23Z",
