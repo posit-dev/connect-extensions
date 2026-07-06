@@ -1289,12 +1289,12 @@
     {
       "name": "script-r",
       "title": "R: Scheduled Script",
-      "description": "This R script is an example of how you might run a scheduled job on Connect to automate regular imports and transformations from a data source. JSON and CSV files are exported and made available for download. Quarto is used to render the script. The script also generates a custom email, with the generated CSV files as attachments. Swap in your own data source to adapt it to any recurring data job.",
+      "description": "An R script, scheduled to run on Connect, that imports and transforms data, saves the results as downloadable JSON and CSV files, and emails them on every run. A starting point for any recurring data job; swap in your own data source.",
       "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/script-r",
       "latestVersion": {
-        "version": "1.0.2",
-        "released": "2026-06-26T03:06:27Z",
-        "url": "https://github.com/posit-dev/connect-extensions/releases/download/script-r%40v1.0.2/script-r.tar.gz",
+        "version": "1.0.3",
+        "released": "2026-07-06T17:30:46Z",
+        "url": "https://github.com/posit-dev/connect-extensions/releases/download/script-r%40v1.0.3/script-r.tar.gz",
         "minimumConnectVersion": "2025.04.0",
         "requiredEnvironment": {
           "quarto": {
@@ -1306,6 +1306,20 @@
         }
       },
       "versions": [
+        {
+          "version": "1.0.3",
+          "released": "2026-07-06T17:30:46Z",
+          "url": "https://github.com/posit-dev/connect-extensions/releases/download/script-r%40v1.0.3/script-r.tar.gz",
+          "minimumConnectVersion": "2025.04.0",
+          "requiredEnvironment": {
+            "quarto": {
+              "requires": "~=1.4"
+            },
+            "r": {
+              "requires": "~=4.4"
+            }
+          }
+        },
         {
           "version": "1.0.2",
           "released": "2026-06-26T03:06:27Z",
