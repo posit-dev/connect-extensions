@@ -1145,12 +1145,12 @@
     {
       "name": "quarto-presentation",
       "title": "Quarto: Presentation",
-      "description": "A slide deck built with Quarto and reveal.js that you publish to Connect, showing how a single document can combine formatted text, syntax-highlighted code, diagrams, interactive charts, and multi-column or step-by-step reveals. A starting point for any presentation.",
+      "description": "A slide deck built with Quarto and reveal.js that you publish to Connect, showing how a single document can combine formatted text, syntax-highlighted code, diagrams, interactive charts, and multi-column or step-by-step reveals. A starting point for any presentation; swap in your own slides and figures.",
       "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/quarto-presentation",
       "latestVersion": {
-        "version": "1.0.1",
-        "released": "2026-07-01T20:10:39Z",
-        "url": "https://github.com/posit-dev/connect-extensions/releases/download/quarto-presentation%40v1.0.1/quarto-presentation.tar.gz",
+        "version": "1.0.2",
+        "released": "2026-07-06T15:08:50Z",
+        "url": "https://github.com/posit-dev/connect-extensions/releases/download/quarto-presentation%40v1.0.2/quarto-presentation.tar.gz",
         "minimumConnectVersion": "2025.04.0",
         "requiredEnvironment": {
           "quarto": {
@@ -1159,6 +1159,17 @@
         }
       },
       "versions": [
+        {
+          "version": "1.0.2",
+          "released": "2026-07-06T15:08:50Z",
+          "url": "https://github.com/posit-dev/connect-extensions/releases/download/quarto-presentation%40v1.0.2/quarto-presentation.tar.gz",
+          "minimumConnectVersion": "2025.04.0",
+          "requiredEnvironment": {
+            "quarto": {
+              "requires": "~=1.6"
+            }
+          }
+        },
         {
           "version": "1.0.1",
           "released": "2026-07-01T20:10:39Z",
