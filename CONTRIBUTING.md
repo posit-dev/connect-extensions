@@ -226,6 +226,34 @@ UI.
 `~=` is the "Compatible release" operator. `~=4.2` means "any version greater
 than or equal to 4.2 but less than 5.0".
 
+#### Node.js
+
+Node.js content is the exception: it declares its version in the `engines.node`
+field of `package.json`, not in the manifest `environment` section. Connect
+selects the Node.js version from `engines.node`, so it is the single source of
+truth, and the Gallery reads it automatically as the `nodejs` requirement. Do not
+add a `nodejs` entry under `environment` in `manifest.json`.
+
+```json
+// package.json
+
+{
+  ...
+  "engines": {
+    "node": ">=22"
+  }
+}
+```
+
+`engines.node` uses npm semver ranges (for example `>=22`, `^22`, or `22.x`),
+which differ from the pep440-style `~=` ranges used for the other languages.
+
+Node.js content must also set `minimumConnectVersion` to at least `2026.06.0`, the
+release where Node.js became generally available. Older Connect UIs ignore the
+`nodejs` requirement because they don't know it, so the minimum version check is
+what keeps the content from appearing installable on Connect versions that can't
+run it.
+
 ## Adding content to the Connect Gallery
 
 Once your content has the requirements above it is ready to be added to the
