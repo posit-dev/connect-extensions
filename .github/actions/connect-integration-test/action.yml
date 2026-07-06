@@ -90,6 +90,9 @@ runs:
         # before Node is enabled).
         NODE_VERSION=24.14.0
         CID="${{ steps.connect.outputs.CONTAINER_ID }}"
+        # Download + unpack Node on the runner, then copy it in, rather than
+        # installing inside the container. This avoids depending on the Connect
+        # image having curl/tar/xz, which varies across versions and image updates.
         curl -fsSL "https://nodejs.org/dist/v${NODE_VERSION}/node-v${NODE_VERSION}-linux-x64.tar.xz" -o /tmp/node.tar.xz
         mkdir -p /tmp/node/${NODE_VERSION}
         tar -xJf /tmp/node.tar.xz -C /tmp/node/${NODE_VERSION} --strip-components=1
