@@ -123,9 +123,13 @@ class ExtensionList {
     if (!semverValid(version.version)) {
       throw new Error(`Invalid version: ${version.version}`);
     }
-    // Check if the version already exists
+    // Skip versions that are already recorded so re-running the workflow over
+    // an already-released version is a no-op instead of a hard failure.
     if (extension.versions.some((v) => semverEq(v.version, version.version))) {
-      throw new Error(`Version ${version.version} already exists`);
+      console.log(
+        `Version ${version.version} already exists for ${name}, skipping.`
+      );
+      return;
     }
 
     // Add the version to the list

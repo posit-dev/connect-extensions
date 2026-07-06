@@ -95,12 +95,20 @@ runs:
         echo "RELEASE_TAG=$RELEASE_TAG" >> "$GITHUB_ENV"
       shell: bash
 
+    # Skip creation if the release already exists so re-running the workflow
+    # over an already-released tag is a no-op. The "Get release data" step
+    # below fetches the release by tag regardless, so the downstream extension
+    # list update still runs off the existing release.
     - name: Release
       if: github.ref_name == 'main' && steps.should_release.outputs.should_release == 'true'
       run: |
-        gh release create $RELEASE_TAG \
-          --title "${{ inputs.extension-name }} v$MANIFEST_VERSION" \
-          ${{ inputs.extension-name }}.tar.gz
+        if gh release view "$RELEASE_TAG" > /dev/null 2>&1; then
+          echo "Release $RELEASE_TAG already exists; skipping creation."
+        else
+          gh release create $RELEASE_TAG \
+            --title "${{ inputs.extension-name }} v$MANIFEST_VERSION" \
+            ${{ inputs.extension-name }}.tar.gz
+        fi
       shell: bash
 
     # We fetch the GitHub release using the GitHub API, storing the data 
