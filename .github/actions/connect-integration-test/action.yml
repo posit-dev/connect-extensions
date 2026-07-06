@@ -91,6 +91,9 @@ runs:
         # Connect so it loads Node. Connect checks that the configured Node
         # executable exists when it starts, so Node must be in place before the
         # restart.
+        # Pin a current Node.js release. It satisfies the open-ended `>=` ranges
+        # the gallery recommends for engines.node (see CONTRIBUTING), so it works
+        # for any compliant Node.js extension.
         NODE_VERSION=24.14.0
         CID="${{ steps.connect.outputs.CONTAINER_ID }}"
         # Download and unpack Node on the CI runner, then copy it into the container,

@@ -245,8 +245,11 @@ add a `nodejs` entry under `environment` in `manifest.json`.
 }
 ```
 
-`engines.node` uses npm semver ranges (for example `>=22`, `^22`, or `22.x`),
-which differ from the pep440-style `~=` ranges used for the other languages.
+`engines.node` uses npm semver ranges, which differ from the pep440-style `~=`
+ranges used for the other languages. Use an open-ended lower bound like `>=22`
+so the content installs on as many Node.js versions as possible. Avoid upper
+bounds such as `^22` or `22.x`, which pin the content to a single Node.js major
+and limit where it can run.
 
 Node.js content must also set `minimumConnectVersion` to at least `2026.06.0`, the
 release where Node.js became generally available. Older Connect UIs ignore the
