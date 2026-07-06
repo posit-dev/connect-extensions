@@ -8,6 +8,7 @@ import semverRcompare from "semver/functions/rcompare";
 import {
   Category,
   Extension,
+  ExtensionEnvironment,
   ExtensionManifest,
   ExtensionVersion,
   RequiredFeature
@@ -29,6 +30,26 @@ function getManifest(extensionName: string): ExtensionManifest {
     "manifest.json"
   );
   return JSON.parse(fs.readFileSync(manifestPath, "utf8"));
+}
+
+// Node.js content declares its required Node version in package.json's
+// `engines.node`, which is the single source of truth Connect reads (it does not
+// read a nodejs field from manifest.json). Returns undefined for non-Node
+// extensions, which have no package.json.
+function getEnginesNode(extensionName: string): string | undefined {
+  const packageJsonPath = path.join(
+    __dirname,
+    "..",
+    "..",
+    "extensions",
+    extensionName,
+    "package.json"
+  );
+  if (!fs.existsSync(packageJsonPath)) {
+    return undefined;
+  }
+  const pkg = JSON.parse(fs.readFileSync(packageJsonPath, "utf8"));
+  return pkg.engines?.node;
 }
 
 // Sort the given extension's version in descending order
@@ -73,13 +94,24 @@ class ExtensionList {
       (asset) => asset.name === `${name}.tar.gz`
     );
 
+    // R/Python/Quarto declare their version range in the manifest environment;
+    // Node.js declares its in package.json's `engines.node`. Merge both so the
+    // Gallery gets a nodejs requirement the same way it gets the others.
+    const enginesNode = getEnginesNode(name);
+    const requiredEnvironment: ExtensionEnvironment = {
+      ...(manifest.environment ?? {}),
+      ...(enginesNode ? { nodejs: { requires: enginesNode } } : {}),
+    };
+
     const newVersion = {
       version,
       released: published_at,
       url: browser_download_url,
       minimumConnectVersion: minimumConnectVersion,
       ...(requiredFeatures ? { requiredFeatures } : {}),
-      ...(manifest.environment ? { requiredEnvironment: manifest.environment } : {}),
+      ...(Object.keys(requiredEnvironment).length > 0
+        ? { requiredEnvironment }
+        : {}),
     };
 
     if (this.getExtension(name)) {

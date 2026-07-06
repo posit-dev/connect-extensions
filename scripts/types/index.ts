@@ -12,6 +12,7 @@ export interface ExtensionEnvironment {
   python?: LanguageRequirement;
   r?: LanguageRequirement;
   quarto?: LanguageRequirement;
+  nodejs?: LanguageRequirement;
 }
 
 export interface ExtensionManifest {
