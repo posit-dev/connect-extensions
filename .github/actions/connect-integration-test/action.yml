@@ -64,19 +64,6 @@ runs:
           | sed 's|URL = https://[^ ]*/cran/__linux__/[^/]*/latest|URL = https://packagemanager.posit.co/cran/__linux__/manylinux_2_28/latest|g' \
           > ${{ github.workspace }}/.github/connect-runtime.gcfg
 
-        # Node.js content: the base Connect image ships no Node runtime, so build a
-        # derived image with Node installed (reusing the same tag so with-connect's
-        # local cache uses it) and enable Node in the runtime config.
-        APPMODE=$(jq -r '.metadata.appmode // ""' extensions/${{ inputs.extension-name }}/manifest.json)
-        if [ "$APPMODE" = "nodejs" ]; then
-          NODE_VERSION=24.14.0
-          printf 'FROM %s\nUSER root\nRUN curl -fsSL "https://nodejs.org/dist/v%s/node-v%s-linux-x64.tar.xz" -o /tmp/node.tar.xz && mkdir -p /opt/node/%s && tar -xJf /tmp/node.tar.xz -C /opt/node/%s --strip-components=1 && rm /tmp/node.tar.xz\n' \
-            "$IMAGE" "$NODE_VERSION" "$NODE_VERSION" "$NODE_VERSION" "$NODE_VERSION" > /tmp/node.Dockerfile
-          docker build -t "$IMAGE" -f /tmp/node.Dockerfile /tmp
-          printf '\n[NodeJs]\nEnabled = true\nExecutable = /opt/node/%s/bin/node\n' "$NODE_VERSION" \
-            >> ${{ github.workspace }}/.github/connect-runtime.gcfg
-        fi
-
     - name: Start Connect
       id: connect
       uses: posit-dev/with-connect@main
@@ -88,6 +75,40 @@ runs:
         env: |
           CONNECT_SERVER_EMAILPROVIDER=None
           CONNECT_APPLICATIONS_PACKAGEAUDITINGENABLED=true
+
+    - name: Provision Node.js runtime (nodejs extensions only)
+      shell: bash
+      run: |
+        APPMODE=$(jq -r '.metadata.appmode // ""' extensions/${{ inputs.extension-name }}/manifest.json)
+        if [ "$APPMODE" != "nodejs" ]; then
+          echo "Not a Node.js extension; skipping Node provisioning."
+          exit 0
+        fi
+        # The base Connect image ships no Node runtime. Install one into the running
+        # container, enable Node in the mounted config, then restart so Connect picks
+        # it up (Connect validates the Node executable at startup, so it must exist
+        # before Node is enabled).
+        NODE_VERSION=24.14.0
+        CID="${{ steps.connect.outputs.CONTAINER_ID }}"
+        curl -fsSL "https://nodejs.org/dist/v${NODE_VERSION}/node-v${NODE_VERSION}-linux-x64.tar.xz" -o /tmp/node.tar.xz
+        mkdir -p /tmp/node/${NODE_VERSION}
+        tar -xJf /tmp/node.tar.xz -C /tmp/node/${NODE_VERSION} --strip-components=1
+        docker exec "$CID" mkdir -p /opt/node
+        docker cp /tmp/node/${NODE_VERSION} "$CID:/opt/node/${NODE_VERSION}"
+        printf '\n[NodeJs]\nEnabled = true\nExecutable = /opt/node/%s/bin/node\n' "$NODE_VERSION" \
+          >> ${{ github.workspace }}/.github/connect-runtime.gcfg
+        docker restart "$CID"
+        echo "Waiting for Connect to restart with Node enabled..."
+        for i in $(seq 1 45); do
+          if curl -fsS "${{ steps.connect.outputs.CONNECT_SERVER }}/__api__/server_settings" >/dev/null 2>&1; then
+            echo "Connect is back up with Node enabled."
+            exit 0
+          fi
+          sleep 2
+        done
+        echo "Connect did not come back up after restart:"
+        docker logs "$CID" 2>&1 | tail -60
+        exit 1
 
     - name: Set bootstrap admin email
       shell: bash
