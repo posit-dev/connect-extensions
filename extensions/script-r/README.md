@@ -2,8 +2,8 @@
 
 ## About this example
 
-This example is a short R script that Quarto runs as a report. It reads the
-`palmerpenguins` dataset, filters out two groups (female Gentoo and male Adelie
+A short R script that Quarto runs as a report. It reads the
+`palmerpenguins` dataset, filters the data down to two groups (female Gentoo and male Adelie
 penguins), and writes each group to a JSON file and a CSV file that viewers can
 download. It also sends an email with the two CSV files attached.
 
@@ -24,18 +24,23 @@ The email and its attachments are set in the `format: email` block at the top of
 server. If none is configured, the script still runs and produces the files, but
 no email is sent.
 
-## Adapt this example
+## Customize it
 
 To use your own data, replace the `palmerpenguins` data with your own source (a
 database query, an API call, or a file), then adjust the filters, the output file
 names, and the attachment list in the email block.
 
+## Deploy it
+
+Deploy it straight from the Connect Gallery to get a copy running and try it
+as-is. To run a customized version, get the
+[example source](https://github.com/posit-dev/connect-extensions/tree/main/extensions/script-r),
+make your changes, and publish with
+[`quarto publish connect`](https://quarto.org/docs/publishing/rstudio-connect.html)
+or a [git-backed deployment](https://docs.posit.co/connect/user/git-backed/).
+Rendering requires Quarto 1.4 or newer and R 4.4 or newer.
+
 ## Learn more
 
-* [Quarto](https://quarto.org)
-* [Quarto: Rendering Script Files](https://quarto.org/docs/computations/render-scripts.html)
-
-## Requirements
-
-* Quarto version 1.4 or higher
-* R version 4.4 or higher
+- [Quarto](https://quarto.org)
+- [Quarto: Rendering Script Files](https://quarto.org/docs/computations/render-scripts.html)
