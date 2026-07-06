@@ -95,13 +95,19 @@ runs:
         echo "RELEASE_TAG=$RELEASE_TAG" >> "$GITHUB_ENV"
       shell: bash
 
-    # Create the release, unless the tag already exists (the "Get release
-    # data" step below reads it by tag either way).
+    # Create the release, or if the tag already exists, ensure its asset is
+    # uploaded. `gh release view` confirms the release exists but not that its
+    # asset finished uploading, so a run that died mid-upload would leave a
+    # release with no asset (a 404 in the gallery feed). Re-uploading with
+    # --clobber heals that case and overwrites an existing asset with the
+    # identical file otherwise. The "Get release data" step below reads the tag
+    # either way.
     - name: Release
       if: github.ref_name == 'main' && steps.should_release.outputs.should_release == 'true'
       run: |
         if gh release view "$RELEASE_TAG" > /dev/null 2>&1; then
-          echo "Release $RELEASE_TAG already exists; skipping creation."
+          echo "Release $RELEASE_TAG already exists; ensuring its asset is uploaded."
+          gh release upload "$RELEASE_TAG" ${{ inputs.extension-name }}.tar.gz --clobber
         else
           gh release create $RELEASE_TAG \
             --title "${{ inputs.extension-name }} v$MANIFEST_VERSION" \
