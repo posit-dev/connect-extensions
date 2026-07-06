@@ -29,6 +29,9 @@ export interface ExtensionManifest {
     imgUrl?: string;
   };
   environment?: ExtensionEnvironment;
+  metadata?: {
+    appmode?: string;
+  };
 }
 
 export enum RequiredFeature {

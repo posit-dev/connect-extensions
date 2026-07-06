@@ -34,9 +34,14 @@ function getManifest(extensionName: string): ExtensionManifest {
 
 // Node.js content declares its required Node version in package.json's
 // `engines.node`, which is the single source of truth Connect reads (it does not
-// read a nodejs field from manifest.json). Returns undefined for non-Node
-// extensions, which have no package.json.
-function getEnginesNode(extensionName: string): string | undefined {
+// read a nodejs field from manifest.json). Only nodejs app mode content uses it;
+// other extensions may carry a package.json for build tooling, so ignore theirs.
+// engines.node is required for nodejs content: Connect needs it to pick a
+// runtime, so a nodejs extension without it can't run.
+function getEnginesNode(extensionName: string, appmode?: string): string | undefined {
+  if (appmode !== "nodejs") {
+    return undefined;
+  }
   const packageJsonPath = path.join(
     __dirname,
     "..",
@@ -46,10 +51,16 @@ function getEnginesNode(extensionName: string): string | undefined {
     "package.json"
   );
   if (!fs.existsSync(packageJsonPath)) {
-    return undefined;
+    throw new Error(`Node.js extension ${extensionName} is missing package.json`);
   }
   const pkg = JSON.parse(fs.readFileSync(packageJsonPath, "utf8"));
-  return pkg.engines?.node;
+  const enginesNode = pkg.engines?.node;
+  if (!enginesNode) {
+    throw new Error(
+      `Node.js extension ${extensionName} must set engines.node in package.json`
+    );
+  }
+  return enginesNode;
 }
 
 // Sort the given extension's version in descending order
@@ -97,7 +108,7 @@ class ExtensionList {
     // R/Python/Quarto declare their version range in the manifest environment;
     // Node.js declares its in package.json's `engines.node`. Merge both so the
     // Gallery gets a nodejs requirement the same way it gets the others.
-    const enginesNode = getEnginesNode(name);
+    const enginesNode = getEnginesNode(name, manifest.metadata?.appmode);
     const requiredEnvironment: ExtensionEnvironment = {
       ...(manifest.environment ?? {}),
       ...(enginesNode ? { nodejs: { requires: enginesNode } } : {}),
