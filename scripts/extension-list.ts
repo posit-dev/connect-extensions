@@ -123,8 +123,7 @@ class ExtensionList {
     if (!semverValid(version.version)) {
       throw new Error(`Invalid version: ${version.version}`);
     }
-    // Skip versions that are already recorded so re-running the workflow over
-    // an already-released version is a no-op instead of a hard failure.
+    // Skip versions that are already recorded.
     if (extension.versions.some((v) => semverEq(v.version, version.version))) {
       console.log(
         `Version ${version.version} already exists for ${name}, skipping.`

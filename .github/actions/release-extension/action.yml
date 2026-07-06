@@ -95,10 +95,8 @@ runs:
         echo "RELEASE_TAG=$RELEASE_TAG" >> "$GITHUB_ENV"
       shell: bash
 
-    # Skip creation if the release already exists so re-running the workflow
-    # over an already-released tag is a no-op. The "Get release data" step
-    # below fetches the release by tag regardless, so the downstream extension
-    # list update still runs off the existing release.
+    # Create the release, unless the tag already exists (the "Get release
+    # data" step below reads it by tag either way).
     - name: Release
       if: github.ref_name == 'main' && steps.should_release.outputs.should_release == 'true'
       run: |
