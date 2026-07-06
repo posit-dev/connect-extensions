@@ -19,7 +19,7 @@
     "description": "A minimal Node.js HTTP server that returns a JSON greeting — a starting point for any Node.js service on Connect.",
     "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/hello-world-nodejs",
     "category": "example",
-    "minimumConnectVersion": "2026.04.1",
+    "minimumConnectVersion": "2026.06.0",
     "version": "0.0.1"
   },
   "files": {

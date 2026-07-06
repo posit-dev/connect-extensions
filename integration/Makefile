@@ -42,6 +42,7 @@ PYTEST_ARGS ?= "-s"
 CONNECT_VERSIONS := \
 	preview \
 	release \
+	2026.06.0 \
 	2026.04.1 \
 	2026.03.1 \
 	2026.02.0 \
