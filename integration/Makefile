@@ -13,6 +13,10 @@ UV_LOCK := uv.lock
 WITH_CONNECT ?= with-connect
 LICENSE_FILE ?= ./license.lic
 
+# Node.js provisioning: the version installed into the container for nodejs
+# extensions (must satisfy their engines.node). Matches the CI action.
+NODE_VERSION ?= 24.14.0
+
 # Extension settings
 EXTENSION_NAME ?=
 
@@ -42,6 +46,7 @@ PYTEST_ARGS ?= "-s"
 CONNECT_VERSIONS := \
 	preview \
 	release \
+	2026.06.0 \
 	2026.04.1 \
 	2026.03.1 \
 	2026.02.0 \
@@ -90,24 +95,32 @@ clean:
 
 
 # Run test suite for a specific Connect version using with-connect.
+# Node.js extensions need a Node runtime installed into the container (the
+# published Connect images don't ship one), so they run through a helper script;
+# every other extension runs directly against with-connect.
 $(CONNECT_VERSIONS): %:
 	@if [ -z "$(EXTENSION_NAME)" ]; then \
 		echo "Error: EXTENSION_NAME is required. Usage: make <version> EXTENSION_NAME=<name>"; \
 		exit 1; \
 	fi
-	mkdir -p reports logs
-	$(WITH_CONNECT) --version $* --license $(LICENSE_FILE) \
-		-e CONNECT_SERVER_EMAILPROVIDER=None \
-		-e CONNECT_APPLICATIONS_PACKAGEAUDITINGENABLED=true \
-		-- bash -c '\
-			set -o pipefail; \
-			cd $(CURDIR) && \
-			$(UV) run tests/posit/connect/set_bootstrap_admin_email.py && \
-			EXTENSION_NAME=$(EXTENSION_NAME) \
-			BUNDLE_BASE_PATH=$(CURDIR)/bundles \
-			$(UV) run pytest $$(echo $(PYTEST_ARGS)) \
-				--junit-xml=./reports/$*.xml \
-			2>&1 | tee ./logs/$*.log'
+	@mkdir -p reports logs
+	@APPMODE=$$(python3 -c "import json; print(json.load(open('../extensions/$(EXTENSION_NAME)/manifest.json')).get('metadata', {}).get('appmode', ''))" 2>/dev/null || echo ""); \
+	if [ "$$APPMODE" = "nodejs" ]; then \
+		NODE_VERSION="$(NODE_VERSION)" WITH_CONNECT="$(WITH_CONNECT)" LICENSE_FILE="$(LICENSE_FILE)" UV="$(UV)" PYTEST_ARGS="$$(echo $(PYTEST_ARGS))" \
+			bash nodejs-integration-test.sh "$*" "$(EXTENSION_NAME)"; \
+	else \
+		$(WITH_CONNECT) --version $* --license $(LICENSE_FILE) \
+			-e CONNECT_SERVER_EMAILPROVIDER=None \
+			-e CONNECT_APPLICATIONS_PACKAGEAUDITINGENABLED=true \
+			-- bash -c 'set -o pipefail; \
+				cd $(CURDIR) && \
+				$(UV) run tests/posit/connect/set_bootstrap_admin_email.py && \
+				EXTENSION_NAME=$(EXTENSION_NAME) \
+				BUNDLE_BASE_PATH=$(CURDIR)/bundles \
+				$(UV) run pytest $$(echo $(PYTEST_ARGS)) \
+					--junit-xml=./reports/$*.xml \
+				2>&1 | tee ./logs/$*.log'; \
+	fi
 
 
 # Run test suite against all Connect versions.
@@ -152,7 +165,11 @@ package-extension:
 	fi
 	@mkdir -p ./bundles
 	@echo "Packaging extension: $(EXTENSION_NAME)"
-	@pushd .. > /dev/null && tar -czf ./integration/bundles/$(EXTENSION_NAME).tar.gz -C ./extensions $(EXTENSION_NAME) && popd > /dev/null
+	@# Package the extension the same way CI does (nested under extensions/<name>).
+	@# Force ustar format: macOS bsdtar defaults to pax, whose extended headers
+	@# Connect's bundle reader cannot parse (it fails with "Cannot open manifest").
+	@# ustar is understood by both bsdtar and GNU tar.
+	@tar --format=ustar -czf ./bundles/$(EXTENSION_NAME).tar.gz -C .. ./extensions/$(EXTENSION_NAME)
 	@echo "Package created: ./bundles/$(EXTENSION_NAME).tar.gz"
 
 
