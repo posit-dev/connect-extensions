@@ -12,6 +12,7 @@ export interface ExtensionEnvironment {
   python?: LanguageRequirement;
   r?: LanguageRequirement;
   quarto?: LanguageRequirement;
+  nodejs?: LanguageRequirement;
 }
 
 export interface ExtensionManifest {
@@ -28,6 +29,9 @@ export interface ExtensionManifest {
     imgUrl?: string;
   };
   environment?: ExtensionEnvironment;
+  metadata?: {
+    appmode?: string;
+  };
 }
 
 export enum RequiredFeature {

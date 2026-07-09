@@ -128,3 +128,25 @@ runs:
       run: |
         semver -c $(jq -c -r '.extension.version' < ./extensions/${{ inputs.extension-name }}/manifest.json)
       shell: bash
+
+    # Node.js content selects its runtime from `engines.node` in package.json
+    # (Connect does not read a nodejs field from manifest.json), and the Gallery
+    # reads engines.node as the nodejs requirement. So require it for nodejs content.
+    - name: Check Node.js engines
+      run: |
+        APPMODE=$(jq -r '.metadata.appmode // ""' ./extensions/${{ inputs.extension-name }}/manifest.json)
+        if [ "$APPMODE" != "nodejs" ]; then
+          exit 0
+        fi
+        PACKAGE_JSON=./extensions/${{ inputs.extension-name }}/package.json
+        if [ ! -f "$PACKAGE_JSON" ]; then
+          echo "Error: Node.js extension '${{ inputs.extension-name }}' is missing package.json."
+          exit 1
+        fi
+        ENGINES_NODE=$(jq -r '.engines.node // ""' "$PACKAGE_JSON")
+        if [ -z "$ENGINES_NODE" ]; then
+          echo "Error: Node.js extension '${{ inputs.extension-name }}' must set 'engines.node' in package.json."
+          echo "Connect selects the Node.js version from engines.node, and the Gallery reads it as the nodejs requirement."
+          exit 1
+        fi
+      shell: bash

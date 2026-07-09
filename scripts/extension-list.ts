@@ -8,6 +8,7 @@ import semverRcompare from "semver/functions/rcompare";
 import {
   Category,
   Extension,
+  ExtensionEnvironment,
   ExtensionManifest,
   ExtensionVersion,
   RequiredFeature
@@ -29,6 +30,37 @@ function getManifest(extensionName: string): ExtensionManifest {
     "manifest.json"
   );
   return JSON.parse(fs.readFileSync(manifestPath, "utf8"));
+}
+
+// Node.js content declares its required Node version in package.json's
+// `engines.node`, which is the single source of truth Connect reads (it does not
+// read a nodejs field from manifest.json). Only nodejs app mode content uses it;
+// other extensions may carry a package.json for build tooling, so ignore theirs.
+// engines.node is required for nodejs content: Connect needs it to pick a
+// runtime, so a nodejs extension without it can't run.
+function getEnginesNode(extensionName: string, appmode?: string): string | undefined {
+  if (appmode !== "nodejs") {
+    return undefined;
+  }
+  const packageJsonPath = path.join(
+    __dirname,
+    "..",
+    "..",
+    "extensions",
+    extensionName,
+    "package.json"
+  );
+  if (!fs.existsSync(packageJsonPath)) {
+    throw new Error(`Node.js extension ${extensionName} is missing package.json`);
+  }
+  const pkg = JSON.parse(fs.readFileSync(packageJsonPath, "utf8"));
+  const enginesNode = pkg.engines?.node;
+  if (!enginesNode) {
+    throw new Error(
+      `Node.js extension ${extensionName} must set engines.node in package.json`
+    );
+  }
+  return enginesNode;
 }
 
 // Sort the given extension's version in descending order
@@ -73,13 +105,24 @@ class ExtensionList {
       (asset) => asset.name === `${name}.tar.gz`
     );
 
+    // R/Python/Quarto declare their version range in the manifest environment;
+    // Node.js declares its in package.json's `engines.node`. Merge both so the
+    // Gallery gets a nodejs requirement the same way it gets the others.
+    const enginesNode = getEnginesNode(name, manifest.metadata?.appmode);
+    const requiredEnvironment: ExtensionEnvironment = {
+      ...(manifest.environment ?? {}),
+      ...(enginesNode ? { nodejs: { requires: enginesNode } } : {}),
+    };
+
     const newVersion = {
       version,
       released: published_at,
       url: browser_download_url,
       minimumConnectVersion: minimumConnectVersion,
       ...(requiredFeatures ? { requiredFeatures } : {}),
-      ...(manifest.environment ? { requiredEnvironment: manifest.environment } : {}),
+      ...(Object.keys(requiredEnvironment).length > 0
+        ? { requiredEnvironment }
+        : {}),
     };
 
     if (this.getExtension(name)) {

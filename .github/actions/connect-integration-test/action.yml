@@ -76,6 +76,52 @@ runs:
           CONNECT_SERVER_EMAILPROVIDER=None
           CONNECT_APPLICATIONS_PACKAGEAUDITINGENABLED=true
 
+    - name: Provision Node.js runtime (nodejs extensions only)
+      shell: bash
+      run: |
+        APPMODE=$(jq -r '.metadata.appmode // ""' extensions/${{ inputs.extension-name }}/manifest.json)
+        if [ "$APPMODE" != "nodejs" ]; then
+          echo "Not a Node.js extension; skipping Node provisioning."
+          exit 0
+        fi
+        # Published Connect images do not include a Node.js runtime, so Connect
+        # cannot run Node.js content until one is installed. The previous step
+        # already started Connect (without Node) in a container; install Node into
+        # that running container, turn Node on in Connect's config, and restart
+        # Connect so it loads Node. Connect checks that the configured Node
+        # executable exists when it starts, so Node must be in place before the
+        # restart.
+        # Pin a current Node.js release. It satisfies the open-ended `>=` ranges
+        # the gallery recommends for engines.node (see CONTRIBUTING), so it works
+        # for any compliant Node.js extension.
+        NODE_VERSION=24.14.0
+        CID="${{ steps.connect.outputs.CONTAINER_ID }}"
+        # Download and unpack Node on the CI runner, then copy it into the container,
+        # instead of downloading inside the container: the Connect images do not
+        # reliably include curl/tar/xz, and what they include changes between versions.
+        curl -fsSL "https://nodejs.org/dist/v${NODE_VERSION}/node-v${NODE_VERSION}-linux-x64.tar.xz" -o /tmp/node.tar.xz
+        mkdir -p /tmp/node/${NODE_VERSION}
+        tar -xJf /tmp/node.tar.xz -C /tmp/node/${NODE_VERSION} --strip-components=1
+        docker exec "$CID" mkdir -p /opt/node
+        docker cp /tmp/node/${NODE_VERSION} "$CID:/opt/node/${NODE_VERSION}"
+        # Turn Node on and point Connect at the executable we just installed. This
+        # appends to the Connect config file passed to with-connect above
+        # (config-file:), which is mounted into the container, so it applies on restart.
+        printf '\n[NodeJs]\nEnabled = true\nExecutable = /opt/node/%s/bin/node\n' "$NODE_VERSION" \
+          >> ${{ github.workspace }}/.github/connect-runtime.gcfg
+        docker restart "$CID"
+        echo "Waiting for Connect to restart with Node enabled..."
+        for i in $(seq 1 45); do
+          if curl -fsS "${{ steps.connect.outputs.CONNECT_SERVER }}/__api__/server_settings" >/dev/null 2>&1; then
+            echo "Connect is back up with Node enabled."
+            exit 0
+          fi
+          sleep 2
+        done
+        echo "Connect did not come back up after restart:"
+        docker logs "$CID" 2>&1 | tail -60
+        exit 1
+
     - name: Set bootstrap admin email
       shell: bash
       working-directory: ./integration
