@@ -1,15 +1,17 @@
 [project]
 name = "simple-mcp-server"
-version = "0.1.0"
-description = "Add your description here"
+version = "0.0.7"
+description = "A FastAPI server that exposes MCP tools on Posit Connect."
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
-    "fastapi==0.115.12",
-    "fastmcp>=2.9.0,<3.0",
+    "fastapi>=0.115.12",
+    "uvicorn>=0.49.0",
+    "mcp>=1.27.0",
+    "cachetools>=5.0",
     "pydantic>=2.13.4",
-    "jinja2==3.1.6",
-    "pandas==3.0.3",
-    "posit-sdk==0.10.0",
-    "scikit-learn==1.9.0",
+    "jinja2>=3.1.6",
+    "pandas>=3.0.3",
+    "posit-sdk>=0.10.0",
+    "scikit-learn>=1.9.0",
 ]
