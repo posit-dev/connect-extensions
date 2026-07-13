@@ -172,8 +172,8 @@
         Connect Gallery), to use these tools as the signed-in viewer, so <code>connect_whoami</code>
         returns who you are.</p>
 
-        <p>2. You can connect your own MCP client (Claude Code, Cursor, and the like) to use the data
-        tools, <code>list_known_datasets</code> and <code>calculate_summary_statistics</code>.</p>
+        <p>2. You can connect your own MCP client (Claude Code, Cursor, and the like). It can call any
+        of these tools; <code>connect_whoami</code> returns whoever owns the API key you connect with.</p>
 
         <p>Either way, you point a client at this MCP server URL:</p>
         <div class="mcp-endpoint-section">
@@ -212,8 +212,11 @@
 
         <h2>2. Connect your own MCP client</h2>
 
-        <p>Point your client at the URL above, and authenticate with a Connect API key to use the
-        data tools, <code>list_known_datasets</code> and <code>calculate_summary_statistics</code>.</p>
+        <p>Point your client at the URL above and authenticate with a Connect API key. It can call any
+        of the tools: <code>list_known_datasets</code> and <code>calculate_summary_statistics</code> need
+        only the API key, while <code>connect_whoami</code> also requires the "Connect Visitor API Key"
+        integration described above, and then reports the identity tied to that API key. To watch the
+        identity resolve per viewer, use the companion chat above.</p>
 
         <details>
             <summary>Claude Code</summary>

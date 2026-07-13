@@ -52,8 +52,10 @@ After deploying, configure it for how you'll use it:
   [OAuth Integrations documentation](https://docs.posit.co/connect/user/oauth-integrations/).
 - **From your own MCP client** (Claude Code, Cursor, ...): point it at `{content-url}/mcp`
   and authenticate with a Connect API key (`Authorization: Key <API_KEY>`); the landing page
-  has copy-paste snippets. This lets you call the data tools (`list_known_datasets` and
-  `calculate_summary_statistics`).
+  has copy-paste snippets. `list_known_datasets` and `calculate_summary_statistics` need only
+  the API key; `connect_whoami` also requires the "Connect Visitor API Key" integration above,
+  and then reports the identity tied to that API key (the per-viewer identity demo is clearest
+  from the companion chat).
 - **Keep it responsive** (optional): on the **Advanced** tab, set **Min processes** to 1 or
   more under **Process Settings** so the server doesn't cold-start. See the
   [process configuration documentation](https://docs.posit.co/connect/user/content-settings/index.html#process-configurations).

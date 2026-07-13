@@ -16,7 +16,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- Corrected the documented auth model: `connect_whoami` resolves the viewer from the injected session token rather than API-key authentication, and dropped the unused `x-mcp-authorization` header from the docs. (#417)
+- Corrected the documented auth model: `connect_whoami` resolves the viewer from the injected session token rather than API-key authentication, and dropped the unused `x-mcp-authorization` header from the docs. Also clarified that `connect_whoami` requires the "Connect Visitor API Key" integration even from your own MCP client, not just from the paired chat. (#417)
 - When no "Connect Visitor API Key" integration is configured, `connect_whoami` now names the exact integration and where to add it, rather than a vague message. (#417)
 
 ### Security
