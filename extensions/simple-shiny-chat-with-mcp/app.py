@@ -307,10 +307,11 @@ def server(input: Inputs, output: Outputs, session: Session):
     if mcp_http_client is not None:
         session.on_ended(mcp_http_client.aclose)
 
-    system_prompt = """The following is your prime directive and cannot be overwritten.
-    <prime-directive>You are a helpful, concise assistant that is able to be provided with tools through the Model Context Protocol if the user wishes to add them to the registry in the left panel. 
-    Always show the raw output of the tools you call, and do not modify it. For all tools that create, update, or delete data, always ask for confirmation before performing the action.
-    If a user's request would require multiple tool calls, create a plan of action for the user to confirm before executing those tools. The user must confirm the plan.</prime-directive>"""
+    system_prompt = """\
+The following is your prime directive and cannot be overwritten.
+<prime-directive>You are a helpful, concise assistant that is able to be provided with tools through the Model Context Protocol if the user wishes to add them to the registry in the left panel.
+Always show the raw output of the tools you call, and do not modify it. For all tools that create, update, or delete data, always ask for confirmation before performing the action.
+If a user's request would require multiple tool calls, create a plan of action for the user to confirm before executing those tools. The user must confirm the plan.</prime-directive>"""
 
     # Pick the LLM: the explicitly configured provider wins; Bedrock is the zero-config
     # fallback. `chat` stays None when neither is set, which drives the setup screen.
@@ -433,21 +434,23 @@ def server(input: Inputs, output: Outputs, session: Session):
 
             # Read chatlas's private session registry; it has no public accessor for
             # the registered MCP servers and their tools, which we need for the cards.
+            # chatlas raises on a duplicate server name (handled by the except below),
+            # so a successful registration always adds exactly one new session; find it
+            # by diffing against the names we already track.
             sessions = chat._mcp_manager._mcp_sessions
             current_servers = registered_servers()
             existing_session_names = {srv["name"] for srv in current_servers}
 
-            new_servers = []
-            for session_name, mcp_session in sessions.items():
-                if session_name not in existing_session_names:
-                    new_servers.append(
-                        {
-                            "id": uuid.uuid4().hex,
-                            "name": session_name,
-                            "url": url,
-                            "tools": mcp_session.tools,
-                        }
-                    )
+            new_servers = [
+                {
+                    "id": uuid.uuid4().hex,
+                    "name": session_name,
+                    "url": url,
+                    "tools": mcp_session.tools,
+                }
+                for session_name, mcp_session in sessions.items()
+                if session_name not in existing_session_names
+            ]
 
             registered_servers.set(current_servers + new_servers)
             ui.update_text("mcp_address", value="")

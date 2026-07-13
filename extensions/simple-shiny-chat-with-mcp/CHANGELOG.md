@@ -14,7 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Pass the MCP auth header through a pre-built `httpx` client so registration works with the current `mcp` transport, which no longer accepts a `headers` argument. (#418)
 - Surface the underlying cause when adding an MCP server fails, instead of a generic "failed to register" message. (#418)
 - Show the actual error text in the chat when a message fails, instead of a generic sanitized notice. (#418)
-- Report removing a server as successful only when it actually succeeds, name the server in add/remove messages, and warn instead of doing nothing visible when a server is already registered. (#418)
+- Report removing a server as successful only when it actually succeeds, name the server in add/remove messages, and warn instead of doing nothing visible when the same MCP server URL is added twice. (#418)
 - Apply the assistant's system prompt on AWS Bedrock too (it was only applied to other providers), and make the LLM-provider selection unambiguous: an explicitly configured `CHATLAS_CHAT_PROVIDER_MODEL` now takes precedence over auto-detected Bedrock credentials (Bedrock previously overrode it), Bedrock is probed only as the zero-config fallback, and the setup screen can't disagree with whether a model is configured. (#418)
 - Reject a blank MCP server URL with a clear message instead of a confusing registration error. (#418)
 - Keep the session alive when resolving the viewer fails for an unexpected reason (anything other than a missing integration); log it and continue instead of raising. (#418)
