@@ -5,13 +5,14 @@ All notable changes to the Python Shiny: AI Chat with MCP Tools extension will b
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.0.7] - 2026-07-10
+## [0.0.7] - 2026-07-14
 
 ### Fixed
 
 - Forward only the viewer's own key to MCP servers; the app no longer falls back to forwarding its own Connect API key, and the unused `X-MCP-Authorization` header was dropped. (#418)
-- Forward the viewer's Connect key only to MCP servers on this Connect server, so it can't leak to an unrelated host entered in the sidebar; off-Connect servers are still reachable, just without it. (#418)
-- Pass the MCP auth header through a pre-built `httpx` client so registration works with the current `mcp` transport, which no longer accepts a `headers` argument. (#418)
+- Forward the viewer's Connect key only to MCP servers on this Connect server, matched by full origin (scheme, host, and port) so it can't leak to another origin entered in the sidebar; off-Connect servers are still reachable, just without it. (#418)
+- Pass the MCP auth header through a pre-built `httpx` client so registration works with the current `mcp` transport, which no longer accepts a `headers` argument. Give that client the MCP SDK's own defaults (a 30s timeout with a 300s read, and redirect following); without them tool calls timed out after 5s and a trailing-slash URL failed to register. (#418)
+- Close each viewer's MCP server connections when their session ends, so their background tasks and open connections don't leak across sessions. (#418)
 - Surface the underlying cause when adding an MCP server fails, instead of a generic "failed to register" message. (#418)
 - Show the actual error text in the chat when a message fails, instead of a generic sanitized notice. (#418)
 - Report removing a server as successful only when it actually succeeds, name the server in add/remove messages, and warn instead of doing nothing visible when the same MCP server URL is added twice. (#418)

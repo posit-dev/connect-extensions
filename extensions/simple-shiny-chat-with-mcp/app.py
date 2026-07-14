@@ -271,14 +271,16 @@ def server(input: Inputs, output: Outputs, session: Session):
     # integration means no viewer key, so registering a server is blocked below.
     visitor_api_key = None
     viewer_name = None
-    connect_host = None
+    connect_origin = None
     VISITOR_API_INTEGRATION_ENABLED = True
     if user_session_token:
         try:
             visitor_client = Client().with_user_session_token(user_session_token)
             visitor_api_key = visitor_client.cfg.api_key
-            # Host of this Connect server, used to keep the viewer's key from leaving it.
-            connect_host = httpx.URL(visitor_client.cfg.url).host
+            # Origin (scheme, host, port) of this Connect server, used to keep the
+            # viewer's key from leaving it.
+            connect_url = httpx.URL(visitor_client.cfg.url)
+            connect_origin = (connect_url.scheme, connect_url.host, connect_url.port)
             me = visitor_client.me
             viewer_name = (
                 f"{me.get('first_name', '')} {me.get('last_name', '')}".strip()
@@ -297,15 +299,19 @@ def server(input: Inputs, output: Outputs, session: Session):
             traceback.print_exc()
 
     # One HTTP client per viewer, carrying their key, shared by every MCP server they
-    # register and closed when the session ends. The MCP transport takes auth through a
-    # client, not a `headers` argument, and won't close a client we pass in, so we do.
+    # register. The MCP transport takes auth through a client, not a `headers` argument.
     mcp_http_client = (
-        httpx.AsyncClient(headers={"Authorization": f"Key {visitor_api_key}"})
+        httpx.AsyncClient(
+            headers={"Authorization": f"Key {visitor_api_key}"},
+            # Passing our own client overrides the one the MCP SDK would build, so match
+            # its defaults: a 30s timeout with a long (300s) read for streamed responses,
+            # and redirect following so a trailing-slash URL still resolves.
+            timeout=httpx.Timeout(30, read=300),
+            follow_redirects=True,
+        )
         if visitor_api_key
         else None
     )
-    if mcp_http_client is not None:
-        session.on_ended(mcp_http_client.aclose)
 
     system_prompt = """\
 The following is your prime directive and cannot be overwritten.
@@ -323,6 +329,23 @@ If a user's request would require multiple tool calls, create a plan of action f
             model=BEDROCK_MODEL,
             system_prompt=system_prompt,
         )
+
+    # When the viewer's session ends, close their MCP server connections first, then the
+    # shared client. Order matters: closing a session can send a termination request over
+    # the client, so it must still be open; and the MCP transport won't close a client we
+    # passed in, so we do it here.
+    if mcp_http_client is not None:
+
+        async def close_mcp_resources():
+            try:
+                if chat is not None:
+                    await chat.cleanup_mcp_tools()
+            finally:
+                # Always close the client, even if session cleanup errored, so it
+                # can't leak.
+                await mcp_http_client.aclose()
+
+        session.on_ended(close_mcp_resources)
 
     # Store list of registered servers
     registered_servers = reactive.value([])
@@ -420,11 +443,12 @@ If a user's request would require multiple tool calls, create a plan of action f
 
         try:
             # Forward the viewer's Connect key only to MCP servers on this Connect
-            # server. A Connect key is meaningless to any other host and must never leak
-            # to one, so off-Connect servers are reached without it (chatlas builds its
-            # own client).
+            # server. A Connect key is meaningless to any other origin and must never
+            # leak to one, so off-Connect servers are reached without it (chatlas builds
+            # its own client).
             transport_kwargs = {}
-            if httpx.URL(url).host == connect_host:
+            target = httpx.URL(url)
+            if (target.scheme, target.host, target.port) == connect_origin:
                 transport_kwargs["http_client"] = mcp_http_client
 
             await chat.register_mcp_tools_http_stream_async(
