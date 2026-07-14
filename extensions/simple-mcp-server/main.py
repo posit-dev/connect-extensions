@@ -1,8 +1,10 @@
 import contextlib
 import json
+import threading
 import traceback
 import urllib.parse
 
+import anyio
 import pandas as pd
 from cachetools import TTLCache, cached
 from fastapi import FastAPI, Request
@@ -24,7 +26,9 @@ client = connect.Client()
 client_cache = TTLCache(maxsize=1024, ttl=3600)
 
 
-@cached(client_cache)
+# The lock keeps the cache consistent: the blocking Connect calls below run in
+# worker threads (via anyio.to_thread), so this function can be entered concurrently.
+@cached(client_cache, lock=threading.Lock())
 def get_visitor_client(token: str | None) -> connect.Client:
     """Return a Connect client scoped to the viewer's session token (cached)."""
     if token:
@@ -104,8 +108,12 @@ async def connect_whoami(context: Context) -> str:
         )
 
     try:
-        visitor_client = get_visitor_client(session_token)
-        return json.dumps(visitor_client.me)
+        # posit-sdk is a blocking (requests-based) client, so run it in a worker
+        # thread to keep it off the event loop and free to serve other requests.
+        me = await anyio.to_thread.run_sync(
+            lambda: get_visitor_client(session_token).me
+        )
+        return json.dumps(me)
     except ClientError as e:
         if e.error_code == 212:
             raise ToolError(
@@ -155,8 +163,12 @@ async def lifespan(app: FastAPI):
         yield
 
 
-app = FastAPI(title="MCP Server", lifespan=lifespan)
+app = FastAPI(title=mcp.name, lifespan=lifespan)
 templates = Jinja2Templates(directory=".")
+# The template is named *.jinja, so Starlette's default select_autoescape leaves
+# escaping off; turn it on so user-controlled values (e.g. the viewer's name) are
+# HTML-escaped.
+templates.env.autoescape = True
 
 
 @app.get("/")
@@ -173,7 +185,10 @@ async def get_index_page(request: Request):
     session_token = request.headers.get("posit-connect-user-session-token")
     if session_token:
         try:
-            me = get_visitor_client(session_token).me
+            # Blocking posit-sdk call; run it off the event loop (see connect_whoami).
+            me = await anyio.to_thread.run_sync(
+                lambda: get_visitor_client(session_token).me
+            )
             # Prefer the viewer's display name; fall back to username, since not
             # every Connect user has a first and last name set.
             display_name = f"{me.get('first_name', '')} {me.get('last_name', '')}".strip()
@@ -193,7 +208,7 @@ async def get_index_page(request: Request):
         request,
         "index.html.jinja",
         {
-            "title": "MCP Server",
+            "title": mcp.name,
             "endpoint": endpoint,
             "tools": tools,
             "viewer_name": viewer_name,
