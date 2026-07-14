@@ -272,7 +272,7 @@ def server(input: Inputs, output: Outputs, session: Session):
     visitor_api_key = None
     viewer_name = None
     connect_origin = None
-    VISITOR_API_INTEGRATION_ENABLED = True
+    visitor_api_integration_enabled = True
     if user_session_token:
         try:
             visitor_client = Client().with_user_session_token(user_session_token)
@@ -291,7 +291,7 @@ def server(input: Inputs, output: Outputs, session: Session):
             # covers that. Any other Connect error is unexpected: log it and leave the
             # viewer key unset (which blocks registration) rather than crash the session.
             if err.error_code == 212:
-                VISITOR_API_INTEGRATION_ENABLED = False
+                visitor_api_integration_enabled = False
             else:
                 traceback.print_exc()
         except Exception:
@@ -356,10 +356,10 @@ If a user's request would require multiple tool calls, create a plan of action f
 
     @render.ui
     def screen():
-        if chat is None or not VISITOR_API_INTEGRATION_ENABLED:
+        if chat is None or not visitor_api_integration_enabled:
             return setup_ui(
                 need_llm=chat is None,
-                need_integration=not VISITOR_API_INTEGRATION_ENABLED,
+                need_integration=not visitor_api_integration_enabled,
             )
         return app_ui
 
@@ -456,11 +456,10 @@ If a user's request would require multiple tool calls, create a plan of action f
                 transport_kwargs=transport_kwargs,
             )
 
-            # Read chatlas's private session registry; it has no public accessor for
-            # the registered MCP servers and their tools, which we need for the cards.
-            # chatlas raises on a duplicate server name (handled by the except below),
-            # so a successful registration always adds exactly one new session; find it
-            # by diffing against the names we already track.
+            # chatlas exposes no accessor for the registered servers/tools we need for the
+            # cards, so read its private session registry. A duplicate name raises above,
+            # so a successful call adds exactly one session; find it by diffing the names
+            # we already track.
             sessions = chat._mcp_manager._mcp_sessions
             current_servers = registered_servers()
             existing_session_names = {srv["name"] for srv in current_servers}
