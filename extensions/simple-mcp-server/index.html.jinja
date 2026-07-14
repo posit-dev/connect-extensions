@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ server_name }}</title>
+    <title>{{ title }}</title>
     <style>
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
@@ -12,7 +12,7 @@
             padding: 20px;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: #333;
-            height: 100vh;
+            min-height: 100vh;
         }
         .container {
             max-width: 800px;
@@ -163,29 +163,60 @@
 </head>
 <body>
     <div class="container">
-        <h1>{{ server_name }}</h1>
+        <h1>{{ title }}</h1>
 
-        <p>This server provides sample data-related tools via the Model Context Protocol (MCP).</p>
+        <p>This server exposes sample tools to AI assistants over the Model Context Protocol (MCP).
+        There are two ways to use it:</p>
 
-        <div class="info-box">
-            <strong>Visitor API Integration Required:</strong> The <code>connect_whoami</code> tool requires a
-            Visitor API Key integration to identify visitors. To enable this, go to the content settings in
-            Posit Connect and add a "Connect Visitor API Key" integration under the "Integrations" section.
-            See the <a href="https://docs.posit.co/connect/user/oauth-integrations/" target="_blank">OAuth Integrations documentation</a> for more information.
-        </div>
+        <p>1. You can deploy the companion chat, <strong>"Python Shiny: AI Chat with MCP Tools"</strong> (from the
+        Connect Gallery), to use these tools as the signed-in viewer, so <code>connect_whoami</code>
+        returns who you are.</p>
 
-        <p>Please note that it is recommended to set the minimum number of instances/processes for
-        this application to >= 1 in the content settings. This will ensure that the MCP server is
-        always available for clients to connect. See the <a href="https://docs.posit.co/connect/user/content-settings/index.html#process-configurations" target="_blank">content process configuration documentation</a>.</p>
+        <p>2. You can connect your own MCP client (Claude Code, Cursor, and the like). It can call any
+        of these tools; <code>connect_whoami</code> returns whoever owns the API key you connect with.</p>
 
-        <p>The MCP endpoint is available at:</p>
+        <p>Either way, you point a client at this MCP server URL:</p>
         <div class="mcp-endpoint-section">
             <input type="text" id="mcpEndpointUrl" value="{{ endpoint }}" readonly>
             <button class="copy-button" onclick="copyToClipboard()">Copy</button>
             <span id="copyStatus"></span>
         </div>
 
-        <h2>Setup Instructions</h2>
+        <p><strong>Whichever way you use it, keep the server warm:</strong> in the content's settings, on
+        the "Advanced" tab, set "Min Processes" to 1 or more under "Process Settings", so it responds
+        without a cold-start delay. For more information, see the
+        <a href="https://docs.posit.co/connect/user/content-settings/index.html#process-configurations" target="_blank">content process configuration documentation</a>.</p>
+
+        <h2>1. Use it from the companion chat</h2>
+
+        <p>Deploy <strong>"Python Shiny: AI Chat with MCP Tools"</strong> from the Connect Gallery, and add the
+        URL above to its MCP registry. The chat then calls these tools as the signed-in viewer.</p>
+
+        {% if viewer_name %}
+        <div class="info-box">
+            <strong>You are signed in as {{ viewer_name }}.</strong> The integration is working: this
+            page resolved your identity from your Connect session token, with no API key. The
+            <code>connect_whoami</code> tool uses the same mechanism, so an AI assistant that calls it
+            will act as you, with your permissions.
+        </div>
+        {% else %}
+        <div class="info-box">
+            <strong>"Connect Visitor API Key" integration required.</strong> In the content's settings, on
+            the "Access" tab, add a "Connect Visitor API Key" integration under "Integrations". The
+            <code>connect_whoami</code> tool needs it to identify the viewer. Once it's added, you can confirm
+            that it works here: this page will greet you by name, resolved from your session token with no API
+            key. For more information, see the
+            <a href="https://docs.posit.co/connect/user/oauth-integrations/" target="_blank">OAuth Integrations documentation</a>.
+        </div>
+        {% endif %}
+
+        <h2>2. Connect your own MCP client</h2>
+
+        <p>Point your client at the URL above and authenticate with a Connect API key. It can call any
+        of the tools: <code>list_known_datasets</code> and <code>calculate_summary_statistics</code> need
+        only the API key, while <code>connect_whoami</code> also requires the "Connect Visitor API Key"
+        integration described above, and then reports the identity tied to that API key. To watch the
+        identity resolve per viewer, use the companion chat above.</p>
 
         <details>
             <summary>Claude Code</summary>
@@ -199,16 +230,20 @@
         <details>
             <summary>Claude Desktop</summary>
             <div class="details-content">
-                <p>Add to <code>~/Library/Application Support/Claude/claude_desktop_config.json</code> (macOS)
+                <p>Claude Desktop reaches HTTP MCP servers through the <code>mcp-remote</code> bridge
+                (needs Node / <code>npx</code>). Add to
+                <code>~/Library/Application Support/Claude/claude_desktop_config.json</code> (macOS)
                 or <code>%APPDATA%\Claude\claude_desktop_config.json</code> (Windows):</p>
                 <pre>{
   "mcpServers": {
     "simple-mcp": {
-      "type": "streamable-http",
-      "url": "{{ endpoint }}",
-      "headers": {
-        "Authorization": "Key YOUR_POSIT_CONNECT_API_KEY"
-      }
+      "command": "npx",
+      "args": [
+        "mcp-remote",
+        "{{ endpoint }}",
+        "--header",
+        "Authorization: Key YOUR_POSIT_CONNECT_API_KEY"
+      ]
     }
   }
 }</pre>
@@ -238,17 +273,22 @@
             <div class="details-content">
                 <p>Add to your MCP settings in Cursor preferences:</p>
                 <pre>{
-  "simple-mcp": {
-    "url": "{{ endpoint }}",
-    "headers": {
-      "Authorization": "Key YOUR_POSIT_CONNECT_API_KEY"
+  "mcpServers": {
+    "simple-mcp": {
+      "url": "{{ endpoint }}",
+      "headers": {
+        "Authorization": "Key YOUR_POSIT_CONNECT_API_KEY"
+      }
     }
   }
 }</pre>
             </div>
         </details>
 
-        <h2>Available MCP Tools:</h2>
+        <h2>Available tools</h2>
+
+        <p>These are the tools this server currently exposes, discovered live. Swap in your own, and they'll
+        appear here.</p>
         {% if tools %}
             <ul>
                 {% for tool in tools %}

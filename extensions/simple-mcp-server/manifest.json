@@ -6,7 +6,7 @@
     "entrypoint": "main"
   },
   "python": {
-    "version": "3.12.7",
+    "version": "3.11.15",
     "package_manager": {
       "name": "pip",
       "version": "24.2",
@@ -20,24 +20,24 @@
   },
   "extension": {
     "name": "simple-mcp-server",
-    "title": "Simple MCP Server",
-    "description": "A simple example of a Connect extension that serves tools via the MCP protocol. This is meant to be used with the Simple Shiny Chat with MCP Support extension.",
+    "title": "FastAPI: MCP Server",
+    "description": "A FastAPI server that exposes tools to AI assistants over the Model Context Protocol (MCP), running on Connect. Its tools run as the signed-in viewer, using their Connect identity instead of an API key, and ship as demos you can replace with your own. Meant to be used with the Python Shiny: AI Chat with MCP Tools extension, but works with any MCP client.",
     "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/simple-mcp-server",
     "category": "example",
     "tags": ["python", "fastapi", "mcp"],
     "requiredFeatures": ["API Publishing", "OAuth Integrations"],
     "minimumConnectVersion": "2025.04.0",
-    "version": "0.0.6"
+    "version": "0.0.7"
   },
   "files": {
     "requirements.txt": {
-      "checksum": "7e117f484a0b0fd00417ca30caadeb4e"
+      "checksum": "1706532b05f4f9ed11d98f990134e15f"
     },
     "main.py": {
-      "checksum": "3ade377979f07f22a836784f81412927"
+      "checksum": "f251569a4d149959815befd3f69d73f4"
     },
     "index.html.jinja": {
-      "checksum": "d17f4d06a32358f80a0f53672c529fe5"
+      "checksum": "1d5c621d2bfdb1bb073f9f2b39cdc63a"
     }
   }
 }
