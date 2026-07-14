@@ -6,7 +6,7 @@
     "entrypoint": "app"
   },
   "python": {
-    "version": "3.11.3",
+    "version": "3.11.15",
     "package_manager": {
       "name": "pip",
       "version": "22.3.1",
@@ -15,13 +15,13 @@
   },
   "environment": {
       "python": {
-        "requires": "~=3.10"
+        "requires": "~=3.11"
       }
     },
   "extension": {
     "name": "simple-shiny-chat-with-mcp",
-    "title": "Simple Shiny Chat with MCP Support",
-    "description": "A simple Shiny chat application that demonstrates how to use the MCP client to facilitate remote tool calls. This is meant to be used with the Simple MCP Server extension.",
+    "title": "Python Shiny: AI Chat with MCP Tools",
+    "description": "A Python Shiny chat app that connects an LLM to tools over the Model Context Protocol (MCP), running on Connect. The tools run as the signed-in viewer, with their Connect permissions, not a shared key. Meant to be used with the FastAPI: MCP Server extension, but you can also point it at your own MCP server to build a chat over your own tools.",
     "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/simple-shiny-chat-with-mcp",
     "category": "example",
     "tags": ["python", "shiny", "mcp", "llm"],
@@ -29,17 +29,14 @@
       "OAuth Integrations"
     ],
     "minimumConnectVersion": "2025.04.0",
-    "version": "0.0.6"
+    "version": "0.0.7"
   },
   "files": {
     "requirements.txt": {
-      "checksum": "04704e5cc2a144ccfdd9c6bb990db570"
-    },
-    "README.md": {
-      "checksum": "123a88ebb3df0e35fc1f45e0194504ce"
+      "checksum": "6d5f6221f547d843153e65cb81b5206c"
     },
     "app.py": {
-      "checksum": "7f4fe933bfae37297ad51d6e50bf6146"
+      "checksum": "055e91c4f285cf171c1eb4de1a297f8e"
     }
   }
 }
