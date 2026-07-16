@@ -5,6 +5,33 @@ All notable changes to the Chat with Content extension will be documented in thi
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.0.8] - 2026-07-16
+
+### Added
+
+- Backend test suite (`test_helpers.py`) run in a dedicated CI workflow. (#433)
+- An in-app note explaining that the app runs as the signed-in viewer, reads
+  content with their own permissions via the Visitor API Key, and stores no admin
+  key. (#433)
+
+### Changed
+
+- Retitled to "Shiny: Chat with your content", rewrote the description, and
+  rewrote the README. (#433)
+- Refreshed the default model names to Claude Sonnet 4.5. (#433)
+- Only probe AWS Bedrock credentials at startup when no chat provider is
+  configured, avoiding an unnecessary live Bedrock call. (#433)
+- Surfaced real chat errors in the UI (`on_error="actual"`). (#433)
+- Trimmed the bundled manifest to the files the app needs to run. (#433)
+
+### Fixed
+
+- Guarded against content with no deployment time and against a missing chat
+  provider, which could previously crash the app. (#433)
+- Truncated large content before sending it to the model so a big page can't
+  overflow the context window. (#433)
+- Removed a duplicate `chatlas` dependency pin. (#433)
+
 ## [0.0.7] - 2026-06-15
 
 ### Changed
