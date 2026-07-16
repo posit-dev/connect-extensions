@@ -56,7 +56,6 @@ jobs:
             stock-report: extensions/stock-report/**
             simple-mcp-server: extensions/simple-mcp-server/**
             simple-shiny-chat-with-mcp: extensions/simple-shiny-chat-with-mcp/**
-            chat-with-content: extensions/chat-with-content/**
             pqr: extensions/pqr/**
 
       # When infra changed, test all simple extensions; otherwise use the filter output
@@ -212,6 +211,7 @@ jobs:
       package-vulnerability-scanner: ${{ steps.resolve.outputs.package-vulnerability-scanner }}
       runtime-version-scanner: ${{ steps.resolve.outputs.runtime-version-scanner }}
       usage-metrics-dashboard: ${{ steps.resolve.outputs.usage-metrics-dashboard }}
+      chat-with-content: ${{ steps.resolve.outputs.chat-with-content }}
 
     steps:
       - uses: actions/checkout@v4
@@ -233,6 +233,7 @@ jobs:
             package-vulnerability-scanner: extensions/package-vulnerability-scanner/**
             runtime-version-scanner: extensions/runtime-version-scanner/**
             usage-metrics-dashboard: extensions/usage-metrics-dashboard/**
+            chat-with-content: extensions/chat-with-content/**
 
       # When infra changed, trigger all complex extensions too
       - id: resolve
@@ -243,11 +244,13 @@ jobs:
             echo "package-vulnerability-scanner=true" >> $GITHUB_OUTPUT
             echo "runtime-version-scanner=true" >> $GITHUB_OUTPUT
             echo "usage-metrics-dashboard=true" >> $GITHUB_OUTPUT
+            echo "chat-with-content=true" >> $GITHUB_OUTPUT
           else
             echo "publisher-command-center=${{ steps.changes.outputs.publisher-command-center }}" >> $GITHUB_OUTPUT
             echo "package-vulnerability-scanner=${{ steps.changes.outputs.package-vulnerability-scanner }}" >> $GITHUB_OUTPUT
             echo "runtime-version-scanner=${{ steps.changes.outputs.runtime-version-scanner }}" >> $GITHUB_OUTPUT
             echo "usage-metrics-dashboard=${{ steps.changes.outputs.usage-metrics-dashboard }}" >> $GITHUB_OUTPUT
+            echo "chat-with-content=${{ steps.changes.outputs.chat-with-content }}" >> $GITHUB_OUTPUT
           fi
 
   # Creates and releases the Publisher Command Center extension using a custom
@@ -287,6 +290,15 @@ jobs:
     uses: ./.github/workflows/usage-metrics-dashboard.yml
     secrets: inherit
 
+  # Creates and releases the Chat with Content extension using a custom workflow
+  chat-with-content:
+    needs: [complex-extension-changes]
+    # Only runs if the `complex-extension-changes` job detects changes in the
+    # chat-with-content extension directory
+    if: ${{ needs.complex-extension-changes.outputs.chat-with-content == 'true' }}
+    uses: ./.github/workflows/chat-with-content.yml
+    secrets: inherit
+
   # All extensions have been linted, packaged, and released, if necessary
   # Continuing to update the extension list with the latest release data
 
@@ -300,6 +312,7 @@ jobs:
       package-vulnerability-scanner,
       runtime-version-scanner,
       usage-metrics-dashboard,
+      chat-with-content,
     ]
     permissions:
       pull-requests: write
@@ -383,6 +396,7 @@ jobs:
       package-vulnerability-scanner,
       runtime-version-scanner,
       usage-metrics-dashboard,
+      chat-with-content,
     ]
     if: ${{ always() }}
     outputs:
