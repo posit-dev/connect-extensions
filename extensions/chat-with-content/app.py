@@ -1,21 +1,27 @@
 import os
 from posit import connect
-from posit.connect.content import ContentItem
 from posit.connect.errors import ClientError
 from chatlas import ChatAuto, ChatBedrockAnthropic, SystemTurn, UserTurn
 import markdownify
 from shiny import App, Inputs, Outputs, Session, ui, reactive, render
 
-from helpers import time_since_deployment
+from helpers import (
+    content_choice_label,
+    is_chattable_content,
+    truncate_for_context,
+)
+
+# Model used when the app falls back to AWS Bedrock (no CHATLAS_CHAT_PROVIDER_MODEL
+# set). Overridable per provider via CHATLAS_CHAT_PROVIDER_MODEL; see the README.
+DEFAULT_BEDROCK_MODEL = "us.anthropic.claude-sonnet-4-5-20250929-v1:0"
 
 
 def check_aws_bedrock_credentials():
-    # Check if AWS credentials are available in the environment
-    # that can be used to access Bedrock
+    # Probe whether the botocore credential chain can reach Bedrock, so the app can
+    # fall back to it when no chatlas provider is configured. Makes a live call, so
+    # it is only run when there is no explicit provider (see below).
     try:
-        chat = ChatBedrockAnthropic(
-            model="us.anthropic.claude-sonnet-4-20250514-v1:0",
-        )
+        chat = ChatBedrockAnthropic(model=DEFAULT_BEDROCK_MODEL)
         chat.chat("test", echo="none")
         return True
     except Exception as e:
@@ -26,18 +32,8 @@ def check_aws_bedrock_credentials():
 
 
 def fetch_connect_content_list(client: connect.Client):
-    content_list: list[ContentItem] = client.content.find(include=["owner", "tags"])
-    app_modes = ["jupyter-static", "quarto-static", "rmd-static", "static"]
-    filtered_content_list = []
-    for content in content_list:
-        if (
-            content.app_mode in app_modes
-            and content.app_role != "none"
-            and content.content_category != "pin"
-        ):
-            filtered_content_list.append(content)
-
-    return filtered_content_list
+    content_list = client.content.find(include=["owner", "tags"])
+    return [item for item in content_list if is_chattable_content(item)]
 
 
 setup_ui = ui.page_fillable(
@@ -164,6 +160,8 @@ app_ui = ui.page_sidebar(
         ui.p(
             "Use this app to select content and ask questions about it. It currently supports static/rendered content."
         ),
+        # Show the viewer how their identity and permissions drive the app
+        ui.output_ui("identity_note"),
         ui.input_selectize("content_selection", "", choices=[], width="100%"),
         ui.chat_ui(
             "chat",
@@ -204,12 +202,20 @@ screen_ui = ui.page_output("screen")
 CHATLAS_CHAT_PROVIDER = os.getenv("CHATLAS_CHAT_PROVIDER")
 CHATLAS_CHAT_PROVIDER_MODEL = os.getenv("CHATLAS_CHAT_PROVIDER_MODEL")
 CHATLAS_CHAT_ARGS = os.getenv("CHATLAS_CHAT_ARGS")
-HAS_AWS_CREDENTIALS = check_aws_bedrock_credentials()
+
+# Only probe Bedrock when no provider is explicitly configured. The probe makes a
+# live Bedrock call at startup, so skip it whenever CHATLAS_CHAT_PROVIDER(_MODEL)
+# already tells us which provider to use.
+HAS_AWS_CREDENTIALS = (
+    check_aws_bedrock_credentials()
+    if not (CHATLAS_CHAT_PROVIDER_MODEL or CHATLAS_CHAT_PROVIDER)
+    else False
+)
 
 
 def server(input: Inputs, output: Outputs, session: Session):
     client = connect.Client()
-    chat_obj = ui.Chat("chat")
+    chat_obj = ui.Chat("chat", on_error="actual")
     current_markdown = reactive.Value("")
 
     VISITOR_API_INTEGRATION_ENABLED = True
@@ -242,6 +248,9 @@ def server(input: Inputs, output: Outputs, session: Session):
         </important>
     """
 
+    # `chat` stays None when no provider is available; the setup screen is shown in
+    # that case, so the handlers below guard against it rather than assume it exists.
+    chat = None
     if CHATLAS_CHAT_PROVIDER_MODEL or CHATLAS_CHAT_PROVIDER:
         # This will pull its configuration from environment variables
         # CHATLAS_CHAT_PROVIDER_MODEL, or the deprecated CHATLAS_CHAT_PROVIDER and CHATLAS_CHAT_ARGS
@@ -251,26 +260,46 @@ def server(input: Inputs, output: Outputs, session: Session):
     elif HAS_AWS_CREDENTIALS:
         # Fall back to Bedrock if AWS credentials are available and no provider is explicitly configured
         chat = ChatBedrockAnthropic(
-            model="us.anthropic.claude-sonnet-4-20250514-v1:0",
+            model=DEFAULT_BEDROCK_MODEL,
             system_prompt=system_prompt,
         )
 
     @render.ui
     def screen():
-        if (
-            CHATLAS_CHAT_PROVIDER_MODEL is None and CHATLAS_CHAT_PROVIDER is None and not HAS_AWS_CREDENTIALS
-        ) or not VISITOR_API_INTEGRATION_ENABLED:
+        if chat is None or not VISITOR_API_INTEGRATION_ENABLED:
             return setup_ui
         else:
             return app_ui
+
+    # Explain in-app how identity and permissions flow, using the viewer's own name
+    @render.ui
+    def identity_note():
+        name = "you"
+        try:
+            me = client.me
+            name = (
+                f"{me.first_name or ''} {me.last_name or ''}".strip()
+                or me.username
+                or "you"
+            )
+        except Exception:
+            pass
+        return ui.p(
+            ui.HTML(
+                f"Signed in as <strong>{name}</strong>, resolved from your Connect "
+                "session. Content is listed and read with your own permissions through "
+                "a Connect Visitor API Key &mdash; no admin key is stored, and answers "
+                "draw only on the content you select."
+            ),
+            class_="text-muted small",
+        )
 
     # Set up content selector
     @reactive.Effect
     def _():
         content_list = fetch_connect_content_list(client)
         content_choices = {
-            item.guid: f"{item.title or item.name} - {item.owner.first_name} {item.owner.last_name} {time_since_deployment(item.last_deployed_time)}"
-            for item in content_list
+            item.guid: content_choice_label(item) for item in content_list
         }
         ui.update_select(
             "content_selection",
@@ -291,25 +320,30 @@ def server(input: Inputs, output: Outputs, session: Session):
     @reactive.Effect
     @reactive.event(input.iframe_content)
     async def _():
-        if input.iframe_content():
-            markdown = markdownify.markdownify(
-                input.iframe_content(), heading_style="atx"
-            )
-            current_markdown.set(markdown)
+        if chat is None or not input.iframe_content():
+            return
 
-            chat._turns = [
-                SystemTurn(chat.system_prompt),
-                UserTurn(f"<context>{markdown}</context>"),
-            ]
+        # Truncate before sending so a large page can't overflow the model context
+        markdown = truncate_for_context(
+            markdownify.markdownify(input.iframe_content(), heading_style="atx")
+        )
+        current_markdown.set(markdown)
 
-            response = await chat.stream_async(
-                """Write a brief "### Summary" of the content."""
-            )
-            await chat_obj.append_message_stream(response)
+        chat._turns = [
+            SystemTurn(chat.system_prompt),
+            UserTurn(f"<context>{markdown}</context>"),
+        ]
+
+        response = await chat.stream_async(
+            """Write a brief "### Summary" of the content."""
+        )
+        await chat_obj.append_message_stream(response)
 
     # Handle chat messages
     @chat_obj.on_user_submit
     async def _(message):
+        if chat is None:
+            return
         response = await chat.stream_async(message)
         await chat_obj.append_message_stream(response)
 
