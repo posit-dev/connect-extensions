@@ -1,4 +1,4 @@
-# Shiny: Chat with your content
+# Chat with Content
 
 ## About this extension
 
@@ -41,63 +41,23 @@ Connect 2025.04.0 or newer with OAuth Integrations enabled.
 
 ## Setup
 
-After deploying, open the content's settings and configure two things.
+After deploying, in the content's settings:
 
-### 1. Choose an LLM provider
+- **Choose an LLM** by setting `CHATLAS_CHAT_PROVIDER_MODEL` (for example
+  `openai/gpt-4o`) plus the matching API key (`OPENAI_API_KEY`,
+  `ANTHROPIC_API_KEY`, `GOOGLE_API_KEY`, ...) on the **Advanced** tab, under
+  **Environment Variables**. See the
+  [chatlas `ChatAuto` docs](https://posit-dev.github.io/chatlas/reference/ChatAuto.html)
+  for provider/model strings. On AWS Bedrock with an instance role, credentials
+  are detected automatically and no vars are needed. (The older
+  `CHATLAS_CHAT_PROVIDER` and `CHATLAS_CHAT_ARGS` still work but are deprecated.)
+- **Add a Visitor API Key integration** so the app lists and reads content as the
+  viewer: on the **Access** tab, add a "Connect Visitor API Key" integration under
+  **Integrations**. See the
+  [OAuth Integrations documentation](https://docs.posit.co/connect/user/oauth-integrations/).
 
-Set the `CHATLAS_CHAT_PROVIDER_MODEL` environment variable to a
-`provider/model` string, plus the API key for that provider (set the key as a
-secret). Until a provider is configured, the app shows a setup screen. See the
-[chatlas documentation](https://posit-dev.github.io/chatlas/reference/ChatAuto.html)
-for the full list of providers and arguments.
-
-**OpenAI**
-
-- `CHATLAS_CHAT_PROVIDER_MODEL`: `openai/gpt-4o`
-- `OPENAI_API_KEY`: `<your-openai-api-key>`
-
-**Anthropic**
-
-- `CHATLAS_CHAT_PROVIDER_MODEL`: `anthropic/claude-sonnet-4-5-20250929`
-- `ANTHROPIC_API_KEY`: `<your-anthropic-api-key>`
-
-**Google Gemini**
-
-- `CHATLAS_CHAT_PROVIDER_MODEL`: `google/gemini-2.0-flash`
-- `GOOGLE_API_KEY`: `<your-google-api-key>`
-
-**Azure OpenAI**
-
-Set `CHATLAS_CHAT_PROVIDER_MODEL` to `azure-openai` (no model suffix) and pass the
-deployment-specific arguments via `CHATLAS_CHAT_ARGS`:
-
-- `CHATLAS_CHAT_PROVIDER_MODEL`: `azure-openai`
-- `AZURE_OPENAI_API_KEY`: `<your-azure-openai-api-key>`
-- `CHATLAS_CHAT_ARGS`: `{"deployment_id": "gpt-4.1-mini", "endpoint": "https://{your-resource-name}.openai.azure.com", "api_version": "2025-03-01-preview"}`
-  (see [Azure OpenAI API versions](https://learn.microsoft.com/en-us/azure/ai-services/openai/api-version-deprecation))
-
-**Anthropic on AWS Bedrock**
-
-The app uses the
-[botocore](https://botocore.amazonaws.com/v1/documentation/api/latest/reference/credentials.html)
-credential chain for AWS. If Connect runs on an EC2 instance with an IAM role that
-grants Bedrock access, credentials are detected automatically and no configuration
-is needed; the app defaults to the `us.anthropic.claude-sonnet-4-5-20250929-v1:0`
-model. To use Bedrock without an IAM role, set:
-
-- `AWS_ACCESS_KEY_ID`: `<your-aws-access-key>`
-- `AWS_SECRET_ACCESS_KEY`: `<your-aws-secret-key>` (set as a secret)
-- `AWS_REGION`: `<your-aws-region>` (e.g. `us-east-1`)
-- `AWS_SESSION_TOKEN`: `<your-session-token>` (optional, for temporary credentials)
-
-### 2. Add a Connect Visitor API Key integration
-
-The app lists and reads content as the signed-in viewer, so it needs a Visitor
-API Key integration to call the Connect API with that person's identity. On the
-content's **Access** tab, add a **Connect Visitor API Key** integration under
-**Integrations**. Until it is added, the app shows the setup screen. If you don't
-see one in the list, an administrator must enable it on your Connect server. See
-the [OAuth Integrations documentation](https://docs.posit.co/connect/user/oauth-integrations/).
+Until an LLM provider and the integration are configured, the app shows a setup
+screen with just the step(s) still missing.
 
 ## Customize it
 

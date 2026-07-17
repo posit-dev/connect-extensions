@@ -11,22 +11,23 @@ from helpers import (
     truncate_for_context,
 )
 
-# Model used when the app falls back to AWS Bedrock (no CHATLAS_CHAT_PROVIDER_MODEL
-# set). Overridable per provider via CHATLAS_CHAT_PROVIDER_MODEL; see the README.
-DEFAULT_BEDROCK_MODEL = "us.anthropic.claude-sonnet-4-5-20250929-v1:0"
+# Zero-config fallback model, used only when no LLM provider is configured. Bedrock
+# picks up credentials from an instance role, so it needs no API key.
+BEDROCK_MODEL = "us.anthropic.claude-sonnet-4-5-20250929-v1:0"
 
 
 def check_aws_bedrock_credentials():
-    # Probe whether the botocore credential chain can reach Bedrock, so the app can
-    # fall back to it when no chatlas provider is configured. Makes a live call, so
-    # it is only run when there is no explicit provider (see below).
+    # Probe for usable Bedrock credentials by making a real (throwaway) Bedrock call.
+    # Bedrock is the zero-config fallback: this only runs when no provider is set via
+    # CHATLAS_CHAT_PROVIDER_MODEL, so an explicit choice is never probed over.
     try:
-        chat = ChatBedrockAnthropic(model=DEFAULT_BEDROCK_MODEL)
+        chat = ChatBedrockAnthropic(model=BEDROCK_MODEL)
         chat.chat("test", echo="none")
         return True
     except Exception as e:
         print(
-            f"AWS Bedrock credentials check failed and will fall back to checking for values for the CHATLAS_CHAT_PROVIDER_MODEL env var. Err: {e}"
+            f"AWS Bedrock credential probe failed; with no LLM provider configured, "
+            f"the app will show the setup screen. Err: {e}"
         )
         return False
 
@@ -36,9 +37,9 @@ def fetch_connect_content_list(client: connect.Client):
     return [item for item in content_list if is_chattable_content(item)]
 
 
-setup_ui = ui.page_fillable(
-    ui.tags.style(
-        """
+# Shared styling for the setup screen.
+_SETUP_STYLE = ui.tags.style(
+    """
         body {
             padding: 0;
             margin: 0;
@@ -114,44 +115,71 @@ setup_ui = ui.page_fillable(
             }
         }
         """
-    ),
-    ui.div(
-        ui.div(
-            ui.h1("Setup", class_="setup-title"),
-            ui.h2("LLM API", class_="setup-section-title"),
-            ui.div(
-                ui.HTML(
-                    "This app requires the <code>CHATLAS_CHAT_PROVIDER_MODEL</code> environment variable to be "
-                    "set along with an LLM API Key in the content settings. Please set them in your environment before running the app. "
-                    'See the <a href="https://posit-dev.github.io/chatlas/reference/ChatAuto.html" class="setup-link" target="_blank" rel="noopener">documentation</a> for more details on which arguments can be set for each Chatlas provider.'
-                ),
-                class_="setup-description",
-            ),
-            ui.h3("Example for OpenAI API", class_="setup-section-title"),
-            ui.pre(
-                """CHATLAS_CHAT_PROVIDER_MODEL = "openai/gpt-4o"
-OPENAI_API_KEY = "<key>" """,
-                class_="setup-code-block",
-            ),
-            ui.div(
-                ui.HTML(
-                    'For other provider examples (Azure OpenAI, Anthropic, AWS Bedrock, etc.), see the '
-                    '<a href="https://github.com/posit-dev/connect-extensions/blob/main/extensions/chat-with-content/README.md" class="setup-link" target="_blank" rel="noopener">README</a>.'
-                ),
-                class_="setup-description",
-            ),
-            ui.h2("Connect Visitor API Key", class_="setup-section-title"),
-            ui.div(
-                "Before you are able to use this app, you need to add a Connect Visitor API Key integration in the content settings.",
-                class_="setup-description",
-            ),
-            class_="setup-card",
-        ),
-        class_="setup-container",
-    ),
-    fillable_mobile=True,
-    fillable=True,
 )
+
+
+# The two setup steps, each shown only while its piece is still unconfigured.
+_LLM_SETUP_SECTION = (
+    ui.h2("LLM API", class_="setup-section-title"),
+    ui.div(
+        ui.HTML(
+            "This app needs the <code>CHATLAS_CHAT_PROVIDER_MODEL</code> environment variable "
+            "and a matching LLM API key. In the content settings, on the "
+            "<strong>Advanced</strong> tab, add both of them under <strong>Environment Variables</strong>. "
+            "On AWS Bedrock with an instance role, credentials are detected automatically and no "
+            "variables are needed. For more information, "
+            '<a href="https://posit-dev.github.io/chatlas/reference/ChatAuto.html" class="setup-link" target="_blank" rel="noopener">see the chatlas documentation</a>.'
+        ),
+        class_="setup-description",
+    ),
+    ui.h3("Example Environment Variables for OpenAI API", class_="setup-section-title"),
+    ui.pre(
+        """Name:   CHATLAS_CHAT_PROVIDER_MODEL
+Value:  openai/gpt-4o
+
+Name:   OPENAI_API_KEY
+Value:  <your OpenAI API key>""",
+        class_="setup-code-block",
+    ),
+)
+
+_INTEGRATION_SETUP_SECTION = (
+    ui.h2("Connect Visitor API Key", class_="setup-section-title"),
+    ui.div(
+        ui.HTML(
+            'This app needs a "Connect Visitor API Key" integration so it can list and read '
+            "content as the signed-in viewer. In the content settings, on the "
+            '<strong>Access</strong> tab, add the "Connect Visitor API Key" integration under '
+            "<strong>Integrations</strong>. For more information, "
+            '<a href="https://docs.posit.co/connect/user/oauth-integrations/" class="setup-link" target="_blank" rel="noopener">see the OAuth Integrations documentation</a>.'
+        ),
+        class_="setup-description",
+    ),
+)
+
+
+def setup_ui(need_llm: bool, need_integration: bool):
+    # Show only the piece(s) still unconfigured, so a partially configured app doesn't
+    # repeat setup steps the publisher has already done.
+    sections = []
+    if need_llm:
+        sections.extend(_LLM_SETUP_SECTION)
+    if need_integration:
+        sections.extend(_INTEGRATION_SETUP_SECTION)
+    return ui.page_fillable(
+        _SETUP_STYLE,
+        ui.div(
+            ui.div(
+                ui.h1("Setup", class_="setup-title"),
+                *sections,
+                class_="setup-card",
+            ),
+            class_="setup-container",
+        ),
+        fillable_mobile=True,
+        fillable=True,
+    )
+
 
 app_ui = ui.page_sidebar(
     # Sidebar with content selector and chat
@@ -203,10 +231,9 @@ CHATLAS_CHAT_PROVIDER = os.getenv("CHATLAS_CHAT_PROVIDER")
 CHATLAS_CHAT_PROVIDER_MODEL = os.getenv("CHATLAS_CHAT_PROVIDER_MODEL")
 CHATLAS_CHAT_ARGS = os.getenv("CHATLAS_CHAT_ARGS")
 
-# Only probe Bedrock when no provider is explicitly configured. The probe makes a
-# live Bedrock call at startup, so skip it whenever CHATLAS_CHAT_PROVIDER(_MODEL)
-# already tells us which provider to use.
-HAS_AWS_CREDENTIALS = (
+# An explicitly configured provider always wins; only probe for Bedrock credentials
+# as the zero-config fallback when nothing is set.
+HAS_AWS_BEDROCK_CREDENTIALS = (
     check_aws_bedrock_credentials()
     if not (CHATLAS_CHAT_PROVIDER_MODEL or CHATLAS_CHAT_PROVIDER)
     else False
@@ -257,19 +284,21 @@ def server(input: Inputs, output: Outputs, session: Session):
         chat = ChatAuto(
             system_prompt=system_prompt,
         )
-    elif HAS_AWS_CREDENTIALS:
+    elif HAS_AWS_BEDROCK_CREDENTIALS:
         # Fall back to Bedrock if AWS credentials are available and no provider is explicitly configured
         chat = ChatBedrockAnthropic(
-            model=DEFAULT_BEDROCK_MODEL,
+            model=BEDROCK_MODEL,
             system_prompt=system_prompt,
         )
 
     @render.ui
     def screen():
-        if chat is None or not VISITOR_API_INTEGRATION_ENABLED:
-            return setup_ui
-        else:
-            return app_ui
+        # Show only the setup step(s) still missing; otherwise the app itself.
+        need_llm = chat is None
+        need_integration = not VISITOR_API_INTEGRATION_ENABLED
+        if need_llm or need_integration:
+            return setup_ui(need_llm, need_integration)
+        return app_ui
 
     # Explain in-app how identity and permissions flow, using the viewer's own name
     @render.ui
@@ -278,8 +307,8 @@ def server(input: Inputs, output: Outputs, session: Session):
         try:
             me = client.me
             name = (
-                f"{me.first_name or ''} {me.last_name or ''}".strip()
-                or me.username
+                f"{me.get('first_name', '')} {me.get('last_name', '')}".strip()
+                or me.get("username")
                 or "you"
             )
         except Exception:

@@ -16,8 +16,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- Retitled to "Shiny: Chat with your content", rewrote the description, and
-  rewrote the README. (#433)
+- Rewrote the description and the README, and aligned the in-app setup screen
+  with the MCP chat extension (only the still-missing step is shown). (#433)
 - Refreshed the default model names to Claude Sonnet 4.5. (#433)
 - Only probe AWS Bedrock credentials at startup when no chat provider is
   configured, avoiding an unnecessary live Bedrock call. (#433)
