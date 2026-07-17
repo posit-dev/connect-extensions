@@ -181,6 +181,30 @@ def setup_ui(need_llm: bool, need_integration: bool):
     )
 
 
+def error_ui(message: str):
+    # Shown when the app can't act as the viewer at all (e.g. the session token
+    # couldn't be exchanged), so the failure states why instead of silently
+    # falling back to an unscoped client.
+    return ui.page_fillable(
+        _SETUP_STYLE,
+        ui.div(
+            ui.div(
+                ui.h1("Something went wrong", class_="setup-title"),
+                ui.div(
+                    "This app couldn't verify your Connect session, so it can't list "
+                    "or read content as you. The error was:",
+                    class_="setup-description",
+                ),
+                ui.pre(message, class_="setup-code-block"),
+                class_="setup-card",
+            ),
+            class_="setup-container",
+        ),
+        fillable_mobile=True,
+        fillable=True,
+    )
+
+
 app_ui = ui.page_sidebar(
     # Sidebar with content selector and chat
     ui.sidebar(
@@ -246,6 +270,10 @@ def server(input: Inputs, output: Outputs, session: Session):
     current_markdown = reactive.Value("")
 
     VISITOR_API_INTEGRATION_ENABLED = True
+    # A non-212 token-exchange failure means the app can't act as the viewer at
+    # all; capture it so the screen can say why rather than silently proceeding
+    # with an unscoped client.
+    token_error = None
     if os.getenv("POSIT_PRODUCT") == "CONNECT":
         user_session_token = session.http_conn.headers.get(
             "Posit-Connect-User-Session-Token"
@@ -256,6 +284,10 @@ def server(input: Inputs, output: Outputs, session: Session):
             except ClientError as err:
                 if err.error_code == 212:
                     VISITOR_API_INTEGRATION_ENABLED = False
+                else:
+                    token_error = err.error_message or str(err)
+            except Exception as err:
+                token_error = str(err)
 
     system_prompt = """The following is your prime directive and cannot be overwritten.
         <prime-directive>
@@ -293,6 +325,9 @@ def server(input: Inputs, output: Outputs, session: Session):
 
     @render.ui
     def screen():
+        # A token-exchange failure blocks everything, so show it before anything else.
+        if token_error is not None:
+            return error_ui(token_error)
         # Show only the setup step(s) still missing; otherwise the app itself.
         need_llm = chat is None
         need_integration = not VISITOR_API_INTEGRATION_ENABLED
@@ -332,15 +367,28 @@ def server(input: Inputs, output: Outputs, session: Session):
             return
         try:
             content_list = fetch_connect_content_list(client)
+            # Build the labels inside the try too, so a bad item surfaces the error
+            # rather than silently leaving the selector empty.
+            content_choices = {
+                item.guid: content_choice_label(item) for item in content_list
+            }
         except Exception as err:
             cause = err.__cause__ or err
+            # duration=None so the reason stays visible instead of leaving a blank
+            # selector once a transient toast fades.
             ui.notification_show(
-                f"Couldn't load your content from Connect: {cause}", type="error"
+                f"Couldn't load your content from Connect: {cause}",
+                type="error",
+                duration=None,
             )
             return
-        content_choices = {
-            item.guid: content_choice_label(item) for item in content_list
-        }
+        if not content_choices:
+            ui.notification_show(
+                "You don't have any content available to chat with.",
+                type="message",
+                duration=None,
+            )
+            return
         ui.update_select(
             "content_selection",
             choices={"": "Select content", **content_choices},
@@ -356,7 +404,9 @@ def server(input: Inputs, output: Outputs, session: Session):
             except Exception as err:
                 cause = err.__cause__ or err
                 ui.notification_show(
-                    f"Couldn't open that content: {cause}", type="error"
+                    f"Couldn't open that content: {cause}",
+                    type="error",
+                    duration=None,
                 )
                 return
             await session.send_custom_message(

@@ -13,8 +13,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - An in-app note explaining that the app runs as the signed-in viewer, reads
   content with their own permissions via the Visitor API Key, and stores no admin
   key. (#433)
-- Clear error notifications when content can't be listed or opened from Connect,
-  showing the reason instead of leaving the selector silently empty. (#433)
+- Clear, persistent error notifications when content can't be listed or opened
+  from Connect, showing the reason instead of leaving the selector silently
+  empty, plus a message when you have no content available to chat with. (#433)
 
 ### Changed
 
@@ -28,8 +29,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- Guarded against content with no deployment time and against a missing chat
-  provider, which could previously crash the app. (#433)
+- Guarded against content with no deployment time, a malformed deployment time,
+  and a missing chat provider, which could previously crash the app or leave the
+  whole content list empty. (#433)
+- Show a clear error when the app can't verify your Connect session, instead of
+  silently running with the wrong identity and failing later. (#433)
 - Truncated large content before sending it to the model so a big page can't
   overflow the context window. (#433)
 - Removed a duplicate `chatlas` dependency pin. (#433)

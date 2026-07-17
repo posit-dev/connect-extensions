@@ -26,7 +26,14 @@ def time_since_deployment(deployment_time_str):
     if not deployment_time_str:
         return ""
 
-    deployment_time = datetime.fromisoformat(deployment_time_str.replace("Z", "+00:00"))
+    try:
+        deployment_time = datetime.fromisoformat(
+            deployment_time_str.replace("Z", "+00:00")
+        )
+    except (ValueError, TypeError):
+        # A malformed timestamp shouldn't crash the whole content list; just omit
+        # the "last deployed" phrase for this one item.
+        return ""
     current_time = datetime.now(timezone.utc)
 
     time_diff = current_time - deployment_time

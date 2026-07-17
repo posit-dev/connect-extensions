@@ -36,6 +36,12 @@ def test_time_since_deployment_none_and_empty():
     assert helpers.time_since_deployment("") == ""
 
 
+def test_time_since_deployment_malformed_returns_empty():
+    # A malformed timestamp must not raise (it would otherwise crash the whole
+    # content list); it just omits the "last deployed" phrase.
+    assert helpers.time_since_deployment("not-a-date") == ""
+
+
 def test_time_since_deployment_future():
     future = (datetime.now(timezone.utc) + timedelta(hours=1)).strftime(
         "%Y-%m-%dT%H:%M:%SZ"
