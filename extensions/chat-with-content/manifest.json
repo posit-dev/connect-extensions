@@ -24,9 +24,16 @@
     "description": "Chat with your published content on Connect using an LLM. Pick a report, notebook, or static page you can access, and the app answers questions about it in a chat panel beside the rendered page, running as the signed-in viewer through a Connect Visitor API Key so each person only chats with content they are allowed to open. Works with OpenAI, Anthropic, Google, Azure, or AWS Bedrock.",
     "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/chat-with-content",
     "category": "extension",
-    "tags": ["llm", "shiny", "chat", "python"],
+    "tags": [
+      "llm",
+      "shiny",
+      "chat",
+      "python"
+    ],
     "minimumConnectVersion": "2025.04.0",
-    "requiredFeatures": ["OAuth Integrations"],
+    "requiredFeatures": [
+      "OAuth Integrations"
+    ],
     "version": "0.0.8"
   },
   "files": {
@@ -34,7 +41,7 @@
       "checksum": "0c56ba1ce838560d153c50e71dc2b025"
     },
     "app.py": {
-      "checksum": "7ff9ef215ec7a96f993321b0cae7ec50"
+      "checksum": "6a0d74d082574b1743646b4f62c4e6f5"
     },
     "helpers.py": {
       "checksum": "bc54e313091d80eb228c44d988fa519d"

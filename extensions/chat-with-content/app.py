@@ -326,7 +326,18 @@ def server(input: Inputs, output: Outputs, session: Session):
     # Set up content selector
     @reactive.Effect
     def _():
-        content_list = fetch_connect_content_list(client)
+        # The selector only appears once setup is complete; skip the fetch (and its
+        # error toast) while the setup screen is still up.
+        if not VISITOR_API_INTEGRATION_ENABLED:
+            return
+        try:
+            content_list = fetch_connect_content_list(client)
+        except Exception as err:
+            cause = err.__cause__ or err
+            ui.notification_show(
+                f"Couldn't load your content from Connect: {cause}", type="error"
+            )
+            return
         content_choices = {
             item.guid: content_choice_label(item) for item in content_list
         }
@@ -340,7 +351,14 @@ def server(input: Inputs, output: Outputs, session: Session):
     @reactive.event(input.content_selection)
     async def _():
         if input.content_selection() and input.content_selection() != "":
-            content = client.content.get(input.content_selection())
+            try:
+                content = client.content.get(input.content_selection())
+            except Exception as err:
+                cause = err.__cause__ or err
+                ui.notification_show(
+                    f"Couldn't open that content: {cause}", type="error"
+                )
+                return
             await session.send_custom_message(
                 "update-iframe", {"url": content.content_url}
             )

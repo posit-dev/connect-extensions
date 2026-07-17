@@ -13,6 +13,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - An in-app note explaining that the app runs as the signed-in viewer, reads
   content with their own permissions via the Visitor API Key, and stores no admin
   key. (#433)
+- Clear error notifications when content can't be listed or opened from Connect,
+  showing the reason instead of leaving the selector silently empty. (#433)
 
 ### Changed
 
