@@ -5,7 +5,7 @@ All notable changes to the Chat with Content extension will be documented in thi
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.0.8] - 2026-07-16
+## [0.0.8] - 2026-07-17
 
 ### Added
 
@@ -34,6 +34,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   whole content list empty. (#433)
 - Show a clear error when the app can't verify your Connect session, instead of
   silently running with the wrong identity and failing later. (#433)
+- Don't summarize an unrelated page if the content frame redirects cross-origin
+  (for example to an external login). (#433)
 - Truncated large content before sending it to the model so a big page can't
   overflow the context window. (#433)
 - Removed a duplicate `chatlas` dependency pin. (#433)

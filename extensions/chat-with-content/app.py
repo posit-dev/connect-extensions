@@ -238,8 +238,14 @@ app_ui = ui.page_sidebar(
             iframe.src = message.url;
 
             iframe.onload = function() {
-                var iframeDoc = iframe.contentWindow.document;
-                var content = iframeDoc.documentElement.outerHTML;
+                var content;
+                try {
+                    content = iframe.contentWindow.document.documentElement.outerHTML;
+                } catch (e) {
+                    // Cross-origin (e.g. Connect redirected to an external login):
+                    // this isn't the content we asked for, so don't summarize it.
+                    return;
+                }
                 Shiny.setInputValue('iframe_content', content);
             };
         });
