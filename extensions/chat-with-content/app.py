@@ -354,7 +354,7 @@ def server(input: Inputs, output: Outputs, session: Session):
             ui.HTML(
                 f"Signed in as <strong>{name}</strong>, resolved from your Connect "
                 "session. Content is listed and read with your own permissions through "
-                "a Connect Visitor API Key &mdash; no admin key is stored, and answers "
+                "a Connect Visitor API Key. No admin key is stored, and answers "
                 "draw only on the content you select."
             ),
             class_="text-muted small",
