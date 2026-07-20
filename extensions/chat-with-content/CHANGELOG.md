@@ -34,6 +34,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   whole content list empty. (#433)
 - Show a clear error when the app can't verify your Connect session, instead of
   silently running with the wrong identity and failing later. (#433)
+- Require the viewer's Connect session before listing content: when the app can't
+  read a session token (for example if OAuth integrations are disabled on the
+  server), it shows the setup screen instead of listing the deployer's content. (#433)
 - Don't summarize an unrelated page if the content frame redirects cross-origin
   (for example to an external login). (#433)
 - Truncated large content before sending it to the model so a big page can't

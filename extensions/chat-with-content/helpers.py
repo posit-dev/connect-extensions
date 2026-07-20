@@ -1,3 +1,4 @@
+import os
 from datetime import datetime, timezone
 
 # Static/rendered content the app can extract text from. Interactive apps (Shiny,
@@ -10,17 +11,31 @@ CHATTABLE_APP_MODES = ("jupyter-static", "quarto-static", "rmd-static", "static"
 MAX_CONTEXT_CHARS = 100_000
 
 
+# Both env vars are checked because a missed "on Connect" detection would fall back
+# to the deploy client for a viewer (see resolve_visitor_client), so err toward True.
+def running_on_connect():
+    return "CONNECT" in (os.getenv("POSIT_PRODUCT"), os.getenv("RSTUDIO_PRODUCT"))
+
+
+# Returns (client, integration_enabled, error). The gate is the point: on Connect
+# with no token (or no Visitor API Key integration, Connect error 212), keep the
+# client unchanged and integration_enabled False so the caller shows the setup
+# screen instead of listing the deployer's content. Off Connect, the deploy client
+# is the intended one.
+def resolve_visitor_client(client, on_connect, token):
+    if not on_connect:
+        return client, True, None
+    if not token:
+        return client, False, None
+    try:
+        return client.with_user_session_token(token), True, None
+    except Exception as err:
+        if getattr(err, "error_code", None) == 212:
+            return client, False, None
+        return client, True, getattr(err, "error_message", None) or str(err)
+
+
 def time_since_deployment(deployment_time_str):
-    """
-    Human-readable time since deployment, e.g. "last deployed 3 hours ago".
-
-    Args:
-        deployment_time_str: ISO datetime string like "2025-03-19T23:16:11Z",
-            or None/empty when Connect has no deployment time for the content.
-
-    Returns:
-        str: The phrase, or "" when no deployment time is available.
-    """
     # Content that has never been deployed reports no time; skip the label rather
     # than crash on a None passed to fromisoformat().
     if not deployment_time_str:
@@ -39,7 +54,7 @@ def time_since_deployment(deployment_time_str):
     time_diff = current_time - deployment_time
     total_seconds = time_diff.total_seconds()
 
-    # Handle clock skew where the deployment time is slightly in the future
+    # Deployment time slightly in the future (clock skew between servers).
     if total_seconds < 0:
         return "last deployed in the future"
 
@@ -69,7 +84,6 @@ def time_since_deployment(deployment_time_str):
 
 
 def is_chattable_content(item):
-    """Whether a Connect content item exposes static text the app can chat with."""
     return (
         item.app_mode in CHATTABLE_APP_MODES
         and item.app_role != "none"
@@ -78,7 +92,6 @@ def is_chattable_content(item):
 
 
 def content_choice_label(item):
-    """Dropdown label for a content item, tolerating a missing title or owner."""
     title = item.title or item.name or item.guid
     owner = getattr(item, "owner", None)
     name = ""
@@ -92,7 +105,6 @@ def content_choice_label(item):
 
 
 def truncate_for_context(markdown, max_chars=MAX_CONTEXT_CHARS):
-    """Cap the content markdown so a large page can't overflow the model context."""
     if len(markdown) <= max_chars:
         return markdown
     return (

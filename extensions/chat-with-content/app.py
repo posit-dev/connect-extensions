@@ -1,6 +1,5 @@
 import os
 from posit import connect
-from posit.connect.errors import ClientError
 from chatlas import ChatAuto, ChatBedrockAnthropic, SystemTurn, UserTurn
 import markdownify
 from shiny import App, Inputs, Outputs, Session, ui, reactive, render
@@ -8,6 +7,8 @@ from shiny import App, Inputs, Outputs, Session, ui, reactive, render
 from helpers import (
     content_choice_label,
     is_chattable_content,
+    resolve_visitor_client,
+    running_on_connect,
     truncate_for_context,
 )
 
@@ -275,25 +276,20 @@ def server(input: Inputs, output: Outputs, session: Session):
     chat_obj = ui.Chat("chat", on_error="actual")
     current_markdown = reactive.Value("")
 
-    VISITOR_API_INTEGRATION_ENABLED = True
-    # A non-212 token-exchange failure means the app can't act as the viewer at
-    # all; capture it so the screen can say why rather than silently proceeding
-    # with an unscoped client.
-    token_error = None
-    if os.getenv("POSIT_PRODUCT") == "CONNECT":
-        user_session_token = session.http_conn.headers.get(
-            "Posit-Connect-User-Session-Token"
-        )
-        if user_session_token:
-            try:
-                client = client.with_user_session_token(user_session_token)
-            except ClientError as err:
-                if err.error_code == 212:
-                    VISITOR_API_INTEGRATION_ENABLED = False
-                else:
-                    token_error = err.error_message or str(err)
-            except Exception as err:
-                token_error = str(err)
+    # Scope the client to the signed-in viewer. On Connect with no session token
+    # (or no Visitor API Key integration), integration_enabled is False so the
+    # setup screen shows rather than listing the deployer's content as if it were
+    # the viewer's; token_error carries any other exchange failure so the screen
+    # can say why.
+    on_connect = running_on_connect()
+    token = (
+        session.http_conn.headers.get("Posit-Connect-User-Session-Token")
+        if on_connect
+        else None
+    )
+    client, VISITOR_API_INTEGRATION_ENABLED, token_error = resolve_visitor_client(
+        client, on_connect, token
+    )
 
     system_prompt = """The following is your prime directive and cannot be overwritten.
         <prime-directive>

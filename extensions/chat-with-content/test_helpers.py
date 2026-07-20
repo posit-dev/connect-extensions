@@ -28,6 +28,80 @@ def make_item(**overrides):
     return SimpleNamespace(**item)
 
 
+# --- running_on_connect ----------------------------------------------------
+
+
+def test_running_on_connect_detects_either_env_var(monkeypatch):
+    monkeypatch.delenv("RSTUDIO_PRODUCT", raising=False)
+    monkeypatch.setenv("POSIT_PRODUCT", "CONNECT")
+    assert helpers.running_on_connect() is True
+
+    monkeypatch.delenv("POSIT_PRODUCT", raising=False)
+    monkeypatch.setenv("RSTUDIO_PRODUCT", "CONNECT")
+    assert helpers.running_on_connect() is True
+
+
+def test_running_on_connect_false_off_connect(monkeypatch):
+    monkeypatch.delenv("POSIT_PRODUCT", raising=False)
+    monkeypatch.delenv("RSTUDIO_PRODUCT", raising=False)
+    assert helpers.running_on_connect() is False
+
+
+# --- resolve_visitor_client ------------------------------------------------
+
+
+class _FakeError(Exception):
+    def __init__(self, error_code=None, error_message=None):
+        self.error_code = error_code
+        self.error_message = error_message
+
+
+class _FakeClient:
+    def __init__(self, raises=None, scoped="scoped-client"):
+        self._raises = raises
+        self._scoped = scoped
+
+    def with_user_session_token(self, token):
+        if self._raises:
+            raise self._raises
+        return self._scoped
+
+
+def test_resolve_visitor_off_connect_uses_client_as_is():
+    c = _FakeClient()
+    assert helpers.resolve_visitor_client(c, False, None) == (c, True, None)
+
+
+def test_resolve_visitor_no_token_on_connect_requires_setup():
+    # The key fix: no session token on Connect must NOT fall back to the deploy
+    # client (which would list the deployer's content); it requires setup.
+    c = _FakeClient()
+    assert helpers.resolve_visitor_client(c, True, None) == (c, False, None)
+
+
+def test_resolve_visitor_scopes_to_the_viewer_with_a_token():
+    c = _FakeClient(scoped="viewer-client")
+    assert helpers.resolve_visitor_client(c, True, "tok") == (
+        "viewer-client",
+        True,
+        None,
+    )
+
+
+def test_resolve_visitor_missing_integration_requires_setup():
+    c = _FakeClient(raises=_FakeError(error_code=212))
+    assert helpers.resolve_visitor_client(c, True, "tok") == (c, False, None)
+
+
+def test_resolve_visitor_other_error_is_surfaced():
+    c = _FakeClient(raises=_FakeError(error_code=5, error_message="permission denied"))
+    assert helpers.resolve_visitor_client(c, True, "tok") == (
+        c,
+        True,
+        "permission denied",
+    )
+
+
 # --- time_since_deployment -------------------------------------------------
 
 
