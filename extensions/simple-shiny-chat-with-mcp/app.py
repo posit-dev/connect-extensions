@@ -15,7 +15,7 @@ load_dotenv()
 
 # Zero-config fallback model, used only when no LLM provider is configured. Bedrock
 # picks up credentials from an instance role, so it needs no API key.
-BEDROCK_MODEL = "us.anthropic.claude-sonnet-4-20250514-v1:0"
+BEDROCK_MODEL = "us.anthropic.claude-sonnet-4-5-20250929-v1:0"
 
 
 def check_aws_bedrock_credentials():
@@ -241,14 +241,10 @@ app_ui = ui.page_fillable(
         }
 
         #info_link {
+            color: white;
             font-size: medium;
             vertical-align: super;
             margin-left: 10px;
-        }
-        .sdk_suggested_prompt {
-            cursor: pointer;
-            border-radius: 0.5em;
-            display: list-item;
         }
         .external-link {
             cursor: alias;
@@ -515,9 +511,23 @@ If a user's request would require multiple tool calls, create a plan of action f
     @reactive.event(input.info_link)
     async def _():
         modal = ui.modal(
-            ui.h1("Information"),
-            ui.h3("Model"),
-            ui.p(f"{chat.provider.name} / {chat.provider.model}"),
+            ui.h3("About this app"),
+            ui.p(
+                "Add MCP servers in the sidebar to give the assistant tools, then "
+                "ask it to use them."
+            ),
+            ui.p(
+                ui.tags.strong("Model: "),
+                f"{chat.provider.name} / {chat.provider.model}",
+            ),
+            ui.p(
+                ui.tags.a(
+                    "Learn more about the Model Context Protocol",
+                    href="https://modelcontextprotocol.io/",
+                    target="_blank",
+                    rel="noopener",
+                )
+            ),
             easy_close=True,
         )
         ui.modal_show(modal)
