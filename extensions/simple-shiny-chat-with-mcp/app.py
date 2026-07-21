@@ -140,8 +140,9 @@ _LLM_SETUP_SECTION = (
             "This app needs the <code>CHATLAS_CHAT_PROVIDER_MODEL</code> environment variable "
             "and a matching LLM API key. In the content settings, on the "
             "<strong>Advanced</strong> tab, add both of them under <strong>Environment Variables</strong>. "
+            "On AWS Bedrock with an instance role, credentials are detected automatically and no variables are needed. "
             "For more information, "
-            '<a href="https://posit-dev.github.io/chatlas/reference/ChatAuto.html" class="setup-link">see the chatlas documentation</a>.'
+            '<a href="https://posit-dev.github.io/chatlas/reference/ChatAuto.html" class="setup-link" target="_blank" rel="noopener">see the chatlas documentation</a>.'
         ),
         class_="setup-description",
     ),
@@ -165,7 +166,7 @@ _INTEGRATION_SETUP_SECTION = (
             "<strong>Access</strong> tab, add the \"Connect Visitor API Key\" integration under "
             "<strong>Integrations</strong>. "
             "For more information, "
-            '<a href="https://docs.posit.co/connect/user/oauth-integrations/" class="setup-link">see the OAuth Integrations documentation</a>.'
+            '<a href="https://docs.posit.co/connect/user/oauth-integrations/" class="setup-link" target="_blank" rel="noopener">see the OAuth Integrations documentation</a>.'
         ),
         class_="setup-description",
     ),
@@ -366,7 +367,9 @@ If a user's request would require multiple tool calls, create a plan of action f
         if not viewer_name:
             return None
         return ui.p(
-            f"Signed in as {viewer_name}. Tools you add run as you, with your Connect permissions.",
+            f"Signed in as {viewer_name}, resolved from your Connect session. Tools you "
+            "add run as you, with your own permissions, through a Connect Visitor API "
+            "Key. No admin key is stored.",
             class_="small",
             style="opacity: 0.85;",
         )
@@ -482,7 +485,7 @@ If a user's request would require multiple tool calls, create a plan of action f
             # surface that cause so the toast says why, not just "failed".
             traceback.print_exc()
             cause = e.__cause__ or e
-            ui.notification_show(f"Error adding server: {cause}", type="error")
+            ui.notification_show(f"Couldn't add server: {cause}", type="error")
 
     @reactive.effect
     async def handle_delete_buttons():
@@ -497,7 +500,7 @@ If a user's request would require multiple tool calls, create a plan of action f
                     traceback.print_exc()
                     cause = e.__cause__ or e
                     ui.notification_show(
-                        f"Error removing server '{srv['name']}': {cause}",
+                        f"Couldn't remove server '{srv['name']}': {cause}",
                         type="error",
                     )
                     return
