@@ -27,7 +27,7 @@
     "tags": ["python", "fastapi", "mcp"],
     "requiredFeatures": ["API Publishing", "OAuth Integrations"],
     "minimumConnectVersion": "2025.04.0",
-    "version": "0.0.7"
+    "version": "0.0.8"
   },
   "files": {
     "requirements.txt": {
@@ -37,7 +37,7 @@
       "checksum": "f251569a4d149959815befd3f69d73f4"
     },
     "index.html.jinja": {
-      "checksum": "1d5c621d2bfdb1bb073f9f2b39cdc63a"
+      "checksum": "dda978e56248215b690216664eb5f8e8"
     }
   }
 }
