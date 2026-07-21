@@ -52,7 +52,9 @@ After deploying, in the content's settings:
   detected automatically and no vars are needed. (The older `CHATLAS_CHAT_PROVIDER`
   and `CHATLAS_CHAT_ARGS` still work but are deprecated.)
 - **Add a Visitor API Key integration** so tools run as the viewer: on the **Access**
-  tab, add a "Connect Visitor API Key" integration under **Integrations**. See the
+  tab, add a "Connect Visitor API Key" integration under **Integrations**. If it
+  isn't listed, an administrator must first create a **Connect API** integration on
+  your server. See the
   [OAuth Integrations documentation](https://docs.posit.co/connect/user/oauth-integrations/).
 
 ## Customize it
