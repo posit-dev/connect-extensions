@@ -1,18 +1,18 @@
 # Contributing to the FastAPI: MCP Server extension
 
-## Local Development
+## Prerequisites
 
-For local testing and development:
+- Python 3.11 or higher
+- [uv](https://docs.astral.sh/uv/)
 
-```bash
-# Install dependencies
-pip install -r requirements.txt
+## Setup
 
-# Run the server locally
-python main.py
-```
+Run `uv sync` to install dependencies.
 
-The server will start on `http://127.0.0.1:8001` with the MCP endpoint at `/mcp`.
+## Development
+
+Run `uv run python main.py` to start the server locally on
+`http://127.0.0.1:8001`, with the MCP endpoint at `/mcp`.
 
 ## Tool Development
 
@@ -25,10 +25,10 @@ To add new MCP tools, use the `@mcp.tool()` decorator:
 def your_new_tool(parameter: str) -> str:
     """
     Description of what your tool does.
-    
+
     Args:
         parameter: Description of the parameter
-        
+
     Returns:
         Description of the return value
     """
@@ -61,3 +61,19 @@ There are two distinct layers, and only the first is something a client sets:
   `Posit-Connect-User-Session-Token` header that Connect injects automatically for the
   logged-in viewer and exchanges it for a viewer-scoped client. There is no header to
   set for this, and it requires a Visitor API Key integration on the content.
+
+## Bundle
+
+The files sent in the deployment bundle are:
+
+- `main.py`
+- `index.html.jinja`
+- `requirements.txt`
+
+`pyproject.toml`, `uv.lock`, and repo docs are not bundled.
+
+## Changelog
+
+Update the [CHANGELOG](./CHANGELOG.md) using the
+[Keep a Changelog](https://keepachangelog.com/en/1.1.0/) format, referencing the
+PR number, and bump `extension.version` in `manifest.json` to trigger a release.
