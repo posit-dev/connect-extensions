@@ -311,9 +311,9 @@
       "description": "A FastAPI server that exposes tools to AI assistants over the Model Context Protocol (MCP), running on Connect. Its tools run as the signed-in viewer, using their Connect identity instead of an API key, and ship as demos you can replace with your own. Meant to be used with the Python Shiny: AI Chat with MCP Tools extension, but works with any MCP client.",
       "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/simple-mcp-server",
       "latestVersion": {
-        "version": "0.0.7",
-        "released": "2026-07-14T19:19:12Z",
-        "url": "https://github.com/posit-dev/connect-extensions/releases/download/simple-mcp-server%40v0.0.7/simple-mcp-server.tar.gz",
+        "version": "0.0.8",
+        "released": "2026-07-21T18:30:10Z",
+        "url": "https://github.com/posit-dev/connect-extensions/releases/download/simple-mcp-server%40v0.0.8/simple-mcp-server.tar.gz",
         "minimumConnectVersion": "2025.04.0",
         "requiredFeatures": [
           "API Publishing",
@@ -326,6 +326,21 @@
         }
       },
       "versions": [
+        {
+          "version": "0.0.8",
+          "released": "2026-07-21T18:30:10Z",
+          "url": "https://github.com/posit-dev/connect-extensions/releases/download/simple-mcp-server%40v0.0.8/simple-mcp-server.tar.gz",
+          "minimumConnectVersion": "2025.04.0",
+          "requiredFeatures": [
+            "API Publishing",
+            "OAuth Integrations"
+          ],
+          "requiredEnvironment": {
+            "python": {
+              "requires": "~=3.11"
+            }
+          }
+        },
         {
           "version": "0.0.7",
           "released": "2026-07-14T19:19:12Z",
