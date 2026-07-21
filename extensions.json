@@ -827,9 +827,9 @@
       "description": "A Python Shiny chat app that connects an LLM to tools over the Model Context Protocol (MCP), running on Connect. The tools run as the signed-in viewer, with their Connect permissions, not a shared key. Meant to be used with the FastAPI: MCP Server extension, but you can also point it at your own MCP server to build a chat over your own tools.",
       "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/simple-shiny-chat-with-mcp",
       "latestVersion": {
-        "version": "0.0.7",
-        "released": "2026-07-14T19:18:48Z",
-        "url": "https://github.com/posit-dev/connect-extensions/releases/download/simple-shiny-chat-with-mcp%40v0.0.7/simple-shiny-chat-with-mcp.tar.gz",
+        "version": "0.0.8",
+        "released": "2026-07-21T18:30:26Z",
+        "url": "https://github.com/posit-dev/connect-extensions/releases/download/simple-shiny-chat-with-mcp%40v0.0.8/simple-shiny-chat-with-mcp.tar.gz",
         "minimumConnectVersion": "2025.04.0",
         "requiredFeatures": [
           "OAuth Integrations"
@@ -841,6 +841,20 @@
         }
       },
       "versions": [
+        {
+          "version": "0.0.8",
+          "released": "2026-07-21T18:30:26Z",
+          "url": "https://github.com/posit-dev/connect-extensions/releases/download/simple-shiny-chat-with-mcp%40v0.0.8/simple-shiny-chat-with-mcp.tar.gz",
+          "minimumConnectVersion": "2025.04.0",
+          "requiredFeatures": [
+            "OAuth Integrations"
+          ],
+          "requiredEnvironment": {
+            "python": {
+              "requires": "~=3.11"
+            }
+          }
+        },
         {
           "version": "0.0.7",
           "released": "2026-07-14T19:18:48Z",
