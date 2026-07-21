@@ -53,7 +53,8 @@ After deploying, in the content's settings:
   `CHATLAS_CHAT_PROVIDER` and `CHATLAS_CHAT_ARGS` still work but are deprecated.)
 - **Add a Visitor API Key integration** so the app lists and reads content as the
   viewer: on the **Access** tab, add a "Connect Visitor API Key" integration under
-  **Integrations**. See the
+  **Integrations**. If it isn't listed, an administrator must first create a
+  **Connect API** integration on your server. See the
   [OAuth Integrations documentation](https://docs.posit.co/connect/user/oauth-integrations/).
 
 Until an LLM provider and the integration are configured, the app shows a setup
