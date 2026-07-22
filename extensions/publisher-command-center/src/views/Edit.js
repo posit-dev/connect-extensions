@@ -1,5 +1,6 @@
 import m from "mithril";
 
+import { reason } from "../utils/notify";
 import Content from "../models/Content";
 import About from "../components/About";
 import Releases from "../components/Releases";
@@ -12,12 +13,11 @@ const Edit = {
   error: null,
 
   oninit: function (vnode) {
-    try {
-      Content.load(vnode.attrs.id);
-    } catch (err) {
-      this.error = "Failed to load data.";
+    Content.load(vnode.attrs.id).catch((err) => {
+      this.error = `Couldn't load content: ${reason(err)}`;
       console.error(err);
-    }
+      m.redraw();
+    });
   },
 
   onremove: function () {
@@ -52,13 +52,14 @@ const Edit = {
           {
             href: content?.dashboard_url,
             target: "_blank",
+            rel: "noopener",
             ariaLabel: "Open in a new tab",
           },
           ["Open", m("i.fa-solid.fa-arrow-up-right-from-square")],
         ),
       ]),
       m(".row", m(".pb-3", m(Languages, content))),
-      m(".row.", [
+      m(".row", [
         m(".col-8", [
           m(
             ".pt-3.pb-3.border-top",

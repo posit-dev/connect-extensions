@@ -1,5 +1,6 @@
 import m from "mithril";
-import { format } from "date-fns";
+import { formatDate } from "../utils/dates";
+import { reason } from "../utils/notify";
 import Contents from "../models/Contents";
 import Languages from "./Languages";
 import LockContentButton from "./LockContentButton";
@@ -10,12 +11,12 @@ const ContentsComponent = {
   error: null,
 
   oninit: function () {
-    try {
-      Contents.load();
-    } catch (err) {
-      this.error = "Failed to load data.";
+    // load() is async, so catch the rejection and redraw so the error shows.
+    Contents.load().catch((err) => {
+      this.error = `Couldn't load content: ${reason(err)}`;
       console.error(err);
-    }
+      m.redraw();
+    });
   },
 
   view: function () {
@@ -29,7 +30,7 @@ const ContentsComponent = {
     }
 
     if (contents.length === 0) {
-      return "";
+      return;
     }
 
     return m(
@@ -64,9 +65,14 @@ const ContentsComponent = {
               title || m("i", "No Name"),
             ),
             m("td", m(Languages, content)),
-            m("td", content?.active_jobs?.length),
-            m("td", format(content["last_deployed_time"], "MMM do, yyyy")),
-            m("td", format(content["created_time"], "MMM do, yyyy")),
+            m(
+              "td",
+              content?.active_jobs === null
+                ? m("span", { title: "Couldn't determine" }, "—")
+                : content?.active_jobs?.length,
+            ),
+            m("td", formatDate(content["last_deployed_time"], "MMM do, yyyy")),
+            m("td", formatDate(content["created_time"], "MMM do, yyyy")),
             m(
               "td",
               m(
@@ -111,6 +117,7 @@ const ContentsComponent = {
                 ariaLabel: `Open ${title} (opens in new tab)`,
                 title: `Open ${title}`,
                 target: "_blank",
+                rel: "noopener",
                 onclick: (e) => e.stopPropagation(),
               }),
             ),

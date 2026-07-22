@@ -23,6 +23,8 @@ const Processes = {
         this._fetch = null;
         throw err;
       });
+
+    return this._fetch;
   },
 
   destroy: function (content_id, process_id) {

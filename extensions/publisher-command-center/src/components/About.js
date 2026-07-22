@@ -1,6 +1,7 @@
 import m from "mithril";
 
-import { format, formatDistanceToNow } from "date-fns";
+import { formatDate, formatRelative } from "../utils/dates";
+import { reason } from "../utils/notify";
 
 import Content from "../models/Content";
 
@@ -8,12 +9,11 @@ const About = {
   error: null,
 
   oninit: function (vnode) {
-    try {
-      Content.load(vnode.attrs.content_id);
-    } catch (err) {
-      this.error = "Failed to load author.";
+    Content.load(vnode.attrs.content_id).catch((err) => {
+      this.error = `Couldn't load content: ${reason(err)}`;
       console.error(err);
-    }
+      m.redraw();
+    });
   },
 
   onremove: function () {
@@ -40,16 +40,13 @@ const About = {
         m("p", desc || m("i", "No Description")),
         m(
           "p",
-          m(
-            "small.text-body-secondary",
-            "Updated " + formatDistanceToNow(updated, { addSuffix: true }),
-          ),
+          m("small.text-body-secondary", "Updated " + formatRelative(updated)),
         ),
         m(
           "p",
           m(
             "small.text-body-secondary",
-            "Created on " + format(created, "MMMM do, yyyy"),
+            "Created on " + formatDate(created, "MMMM do, yyyy"),
           ),
         ),
       ]),
