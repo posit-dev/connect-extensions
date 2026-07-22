@@ -34,3 +34,49 @@ describe("Contents.load", () => {
     expect(m.request).toHaveBeenCalledTimes(1);
   });
 });
+
+describe("Contents.delete", () => {
+  it("sends DELETE to the content's route and drops it from data", async () => {
+    Contents.data = [{ guid: "g1" }, { guid: "g2" }];
+    m.request.mockResolvedValue(undefined);
+
+    await Contents.delete("g1");
+
+    expect(m.request).toHaveBeenCalledWith({
+      method: "DELETE",
+      url: "api/contents/g1",
+    });
+    expect(Contents.data).toEqual([{ guid: "g2" }]);
+  });
+});
+
+describe("Contents.lock", () => {
+  it("sends PATCH to the lock route and merges the response into the item", async () => {
+    Contents.data = [{ guid: "g1", locked: false }];
+    m.request.mockResolvedValue({ guid: "g1", locked: true });
+
+    await Contents.lock("g1");
+
+    expect(m.request).toHaveBeenCalledWith({
+      method: "PATCH",
+      url: "api/contents/g1/lock",
+    });
+    expect(Contents.data[0].locked).toBe(true);
+  });
+});
+
+describe("Contents.rename", () => {
+  it("sends PATCH to the rename route with the new title and merges the response", async () => {
+    Contents.data = [{ guid: "g1", title: "Old" }];
+    m.request.mockResolvedValue({ guid: "g1", title: "New" });
+
+    await Contents.rename("g1", "New");
+
+    expect(m.request).toHaveBeenCalledWith({
+      method: "PATCH",
+      url: "api/contents/g1/rename",
+      body: { title: "New" },
+    });
+    expect(Contents.data[0].title).toBe("New");
+  });
+});
