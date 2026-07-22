@@ -1,109 +1,53 @@
 # Contributing to Publisher Command Center
 
-## Uses
+## Prerequisites
 
-- **Mithril.js** for lightweight and efficient UI rendering
-- **Bootstrap** for responsive and consistent styling
-- **FontAwesome** for scalable vector icons
-- **Vite** for a fast development build system
-- **FastAPI** as the backend framework
+- Python 3.9 or higher
+- [Node.js](https://nodejs.org/en) 20 or higher
+- [uv](https://docs.astral.sh/uv/)
 
-## Getting Started
+It is recommended to use [nvm (Node Version Manager)](https://github.com/nvm-sh/nvm)
+to manage Node.js versions.
 
-### Prerequisites
+## Setup
 
-Ensure you have the following installed:
+1. Run `uv sync` to install dependencies for the FastAPI server.
+2. Run `npm install` to install frontend dependencies.
 
-- [Node.js](https://nodejs.org/) (for frontend development)
-- [Python](https://www.python.org/) (for backend development)
-- [uv](https://github.com/astral-sh/uv) (for running backend server)
+## Development
 
-### Installation
+1. Run `uv run fastapi dev app.py` to start the FastAPI server.
+2. Run the frontend development server with `npm run dev`.
 
-Clone the repository and install dependencies:
+## Testing
 
-```sh
-npm install
-uv sync
-```
+- Backend: `uv run pytest` runs the FastAPI API tests in `test_app.py`.
+- Frontend: `npm test` runs the frontend unit tests with [Vitest](https://vitest.dev/).
 
-### Running the Development Server
+Both suites also run in CI on every change.
 
-Start the frontend development server:
+## Deploy
 
-```sh
-npm run preview
-```
+Run `npm run build` to generate the frontend JS and CSS files in the `dist`
+directory.
 
-Start the backend development server:
+From there the required files to be sent in the bundle are:
 
-```sh
-npm run server
-```
+- `app.py`
+- `requirements.txt`
+- `dist/**`
 
-Start the watcher to enable continuous rebuilds of the frontend:
+## Changelog
 
-```sh
-npm run watch
-```
+We use the [CHANGELOG](./CHANGELOG.md) to document all notable changes to the
+Publisher Command Center. When contributing, update the changelog as follows:
 
-### Building for Production
+1. For unreleased changes:
+   - Add your changes to the "Unreleased" section
+   - Include a brief description under the appropriate subsection
+     using the [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) format
+   - Reference any PR or issue number (e.g., #123)
 
-To build the frontend for production:
-
-```sh
-npm run build
-```
-
-### Deploying to Connect
-
-When deploying, include `app.py`, `requirements.txt`, and the contents of the `dist` directory created by `npm run build`.
-
-### Publishing on Connect
-
-This extension utilizes the [Connect API OAuth Integration](https://docs.posit.co/connect/admin/integrations/oauth-integrations/connect/index.html#create-connect-api-integration-in-posit-connect).
-
-After deploying the extension create a Connect API Viewer role integration, if
-one doesn't already exist on the server, and select it as a integration.
-
-## Technologies Used
-
-### [Mithril.js](https://mithril.js.org/)
-
-Mithril.js is a modern client-side JavaScript framework that focuses on simplicity and performance. It is lightweight (~10kb gzipped) and offers a virtual DOM implementation for efficient rendering.
-
-### [Bootstrap](https://getbootstrap.com/)
-
-Bootstrap is a popular CSS framework that helps create responsive and mobile-first designs with prebuilt components and utilities.
-
-### [FontAwesome](https://fontawesome.com/)
-
-FontAwesome provides scalable vector icons and social logos that can be used in web applications.
-
-### [Date-fns](https://date-fns.org/)
-
-Date-fns is a modern JavaScript date utility library that provides comprehensive, yet simple-to-use functions for date manipulation.
-
-### [Filesize.js](https://filesizejs.com/)
-
-Filesize.js is a small utility for formatting file sizes in human-readable formats.
-
-### [Vite](https://vitejs.dev/)
-
-Vite is a next-generation frontend tooling system that enables fast build times and instant development server start-up.
-
-### [SASS](https://sass-lang.com/)
-
-SASS (Syntactically Awesome Stylesheets) is a CSS preprocessor that extends CSS with features like variables, nested rules, and mixins.
-
-### [FastAPI](https://fastapi.tiangolo.com/)
-
-FastAPI is a modern web framework for building APIs with Python 3.7+ that provides automatic OpenAPI and JSON Schema documentation.
-
-## Code Formatting
-
-This project uses **Prettier** for consistent code formatting. Run the following command to format your code:
-
-```sh
-npx prettier --write .
-```
+2. For releases:
+   - A new version section will be created during the release process
+   - Follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html) guidelines
