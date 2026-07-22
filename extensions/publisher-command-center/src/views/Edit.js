@@ -75,17 +75,11 @@ const Edit = {
           m(Processes, { id: vnode.attrs.id }),
         ]),
         m(".col-4", [
-          m(About, {
-            desc: content?.description,
-            updated: content?.last_deployed_time,
-            created: content?.created_time,
-          }),
+          m(About),
           m(Author, {
             contentId: content?.guid,
           }),
-          m(Collaborators, {
-            contentId: content?.guid,
-          }),
+          m(Collaborators),
           m(Releases, {
             contentId: content?.guid,
           }),

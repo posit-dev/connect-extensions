@@ -1,30 +1,11 @@
 import m from "mithril";
 
 import { formatDate, formatRelative } from "../utils/dates";
-import { reason } from "../utils/notify";
-
 import Content from "../models/Content";
 
 const About = {
-  error: null,
-
-  oninit: function (vnode) {
-    Content.load(vnode.attrs.contentId).catch((err) => {
-      this.error = `Couldn't load content: ${reason(err)}`;
-      console.error(err);
-      m.redraw();
-    });
-  },
-
-  onremove: function () {
-    Content.reset();
-  },
-
-  view: function (vnode) {
-    if (this.error) {
-      return m("div", { class: "error" }, this.error);
-    }
-
+  view: function () {
+    // Reads the content that Edit has already loaded into the Content model.
     const content = Content.data;
     if (content === null) {
       return "";
