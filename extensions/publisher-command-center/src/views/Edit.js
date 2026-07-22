@@ -81,13 +81,13 @@ const Edit = {
             created: content?.created_time,
           }),
           m(Author, {
-            content_id: content?.guid,
+            contentId: content?.guid,
           }),
           m(Collaborators, {
-            content_id: content?.guid,
+            contentId: content?.guid,
           }),
           m(Releases, {
-            content_id: content?.guid,
+            contentId: content?.guid,
           }),
         ]),
       ]),

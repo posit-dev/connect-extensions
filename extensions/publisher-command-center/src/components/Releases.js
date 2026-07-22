@@ -27,7 +27,7 @@ export default {
   error: null,
 
   oninit: function (vnode) {
-    Releases.load(vnode.attrs.content_id).catch((err) => {
+    Releases.load(vnode.attrs.contentId).catch((err) => {
       this.error = `Couldn't load releases: ${reason(err)}`;
       console.error(err);
       m.redraw();

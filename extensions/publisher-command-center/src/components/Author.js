@@ -9,7 +9,7 @@ export default {
   error: null,
 
   oninit: function (vnode) {
-    Author.load(vnode.attrs.content_id).catch((err) => {
+    Author.load(vnode.attrs.contentId).catch((err) => {
       this.error = `Couldn't load author: ${reason(err)}`;
       console.error(err);
       m.redraw();

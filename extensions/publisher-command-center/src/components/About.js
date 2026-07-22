@@ -9,7 +9,7 @@ const About = {
   error: null,
 
   oninit: function (vnode) {
-    Content.load(vnode.attrs.content_id).catch((err) => {
+    Content.load(vnode.attrs.contentId).catch((err) => {
       this.error = `Couldn't load content: ${reason(err)}`;
       console.error(err);
       m.redraw();
