@@ -1,0 +1,189 @@
+---
+title: "Content Collection"
+format:
+  html:
+    theme: none
+    page-layout: full
+    toc: false
+server: shiny
+---
+
+```{r}
+#| echo: false
+#| include: false
+#| label: knit-setup
+
+# Runs at knit time (no `context:`). Sources helpers and reads
+# `collection.json` so the chrome below can render statically and be
+# present before Shiny boots — the page no longer briefly shows Quarto's
+# generic "Content Collection" title.
+
+library(jsonlite)
+
+.source_helper <- function(name) {
+  candidates <- c(name, file.path("..", "R", name))
+  for (p in candidates) {
+    if (file.exists(p)) { source(p); return(invisible(p)) }
+  }
+  stop(sprintf("Cannot find helper file: %s", name))
+}
+.source_helper("icons.R")
+.source_helper("render.R")
+
+`%||%` <- function(a, b) if (is.null(a) || (length(a) == 1 && is.na(a))) b else a
+
+knit_config <- tryCatch(
+  jsonlite::read_json("collection.json", simplifyVector = TRUE),
+  error = function(e) { message("No collection.json: ", e$message); list() }
+)
+```
+
+```{r}
+#| echo: false
+#| context: server-start
+#| label: server-setup
+
+library(httr2)
+library(jsonlite)
+library(shiny)
+
+.source_helper <- function(name) {
+  candidates <- c(name, file.path("..", "R", name))
+  for (p in candidates) {
+    if (file.exists(p)) { source(p); return(invisible(p)) }
+  }
+  stop(sprintf("Cannot find helper file: %s", name))
+}
+.source_helper("icons.R")
+.source_helper("render.R")
+.source_helper("connect_api.R")
+
+`%||%` <- function(a, b) if (is.null(a) || (length(a) == 1 && is.na(a))) b else a
+
+connect_server <- sub("/$", "", Sys.getenv("CONNECT_SERVER", ""))
+publisher_key  <- Sys.getenv("CONNECT_API_KEY", "")
+
+config <- tryCatch(
+  jsonlite::read_json("collection.json", simplifyVector = TRUE),
+  error = function(e) { message("No collection.json: ", e$message); list() }
+)
+```
+
+```{r}
+#| echo: false
+#| context: server
+#| label: server-grid
+
+# Per-session: mint a viewer-scoped key and fetch only items the viewer
+# has access to. Items the viewer cannot see return NULL from
+# get_content() (which swallows 403/404), and we filter NULLs out.
+# Tag-based collections use /v1/search/content, which is already
+# permission-scoped server-side.
+output$collection_grid <- renderUI({
+  key <- visitor_api_key(session, connect_server, publisher_key)$key
+
+  source_type <- config$source_type %||% "manual"
+  items <- if (identical(source_type, "tag") &&
+               nzchar(config$source_tag %||% "")) {
+    fetch_content_by_tag(connect_server, key, config$source_tag)
+  } else {
+    lapply(config$guids %||% character(0),
+           function(g) get_content(connect_server, key, g))
+  }
+  items <- Filter(Negate(is.null), items)
+
+  html <- if (length(items) == 0) {
+    empty_state_html(config, THEME_COLORS)
+  } else {
+    build_collection_html(config, items, THEME_COLORS,
+                          connect_server = connect_server,
+                          include_chrome = FALSE)
+  }
+  htmltools::HTML(html)
+})
+```
+
+```{r}
+#| echo: false
+#| results: asis
+#| label: knit-chrome
+
+# Renders chrome statically at knit time. Quarto's default title block is
+# hidden via CSS in this style block (the rules ship with the static HTML,
+# not after Shiny boots, so they apply from page load).
+
+knit_colors <- THEME_COLORS[[knit_config$theme %||% "minimal"]] %||% THEME_COLORS$minimal
+knit_esc <- htmltools::htmlEscape
+knit_title <- knit_config$title %||% ""
+knit_description <- knit_config$description %||% ""
+knit_intro <- knit_config$intro_markdown %||% ""
+
+cat(sprintf('<style>
+body { background-color: %s; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; margin: 0; }
+.collection-header { max-width: 960px; margin: 0 auto; padding: 2rem 2rem 0; }
+.collection-title { font-size: 1.75rem; font-weight: 700; color: #111; margin: 0; }
+.collection-description { margin-top: 0.25rem; color: #666; font-size: 1rem; }
+.collection-intro { max-width: 960px; margin: 1.5rem auto; background: white; border-radius: 0.5rem; padding: 1.25rem; border-left: 4px solid %s; font-size: 0.9rem; line-height: 1.6; }
+.collection-intro h1, .collection-intro h2, .collection-intro h3 { margin-top: 0.75rem; margin-bottom: 0.5rem; font-weight: 600; }
+.collection-intro p { margin-bottom: 0.5rem; }
+.collection-intro a { color: %s; }
+
+/* Hide Quarto chrome from page-load (these rules are part of the static
+   HTML, not waiting for Shiny). */
+#quarto-header, #quarto-footer, .quarto-title-block, #title-block-header {
+  display: none !important;
+}
+.cell, .cell-output, .cell-output-stdout, .cell-output-display,
+.quarto-layout-row {
+  margin: 0 !important; padding: 0 !important; border: 0 !important;
+  background: transparent !important; box-shadow: none !important;
+}
+.cell:empty, .cell-output:empty { display: none !important; }
+
+/* Loading state: while the grid output has no children, show a centered
+   indicator. The pseudo-element disappears automatically the moment
+   renderUI inserts content — no JavaScript event listeners required. */
+#collection_grid:empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 50vh;
+}
+#collection_grid:empty::before {
+  content: "Loading\\2026";
+  color: #aaa;
+  font-style: italic;
+  font-size: 0.95rem;
+  margin-bottom: 6vh;
+}
+</style>
+', knit_colors$bg, knit_colors$accent, knit_colors$accent))
+
+cat(sprintf('<script>%s</script>\n', DATETIME_LOCALIZER_JS))
+
+if (nzchar(knit_title) || nzchar(knit_description)) {
+  cat('<div class="collection-header">\n')
+  if (nzchar(knit_title)) {
+    cat(sprintf('<h1 class="collection-title">%s</h1>\n',
+                knit_esc(knit_title)))
+  }
+  if (nzchar(knit_description)) {
+    cat(sprintf('<p class="collection-description">%s</p>\n',
+                knit_esc(knit_description)))
+  }
+  cat('</div>\n')
+}
+
+if (nzchar(knit_intro)) {
+  intro_html <- commonmark::markdown_html(text = knit_intro)
+  cat(sprintf('<div class="collection-intro">%s</div>\n', intro_html))
+}
+```
+
+::: {.collection-grid-container}
+```{r}
+#| echo: false
+#| label: ui-grid
+uiOutput("collection_grid")
+```
+:::
