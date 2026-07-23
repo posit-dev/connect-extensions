@@ -35,6 +35,15 @@ def resolve_visitor_client(client, on_connect, token):
         return client, True, getattr(err, "error_message", None) or str(err)
 
 
+# Whether the app is fully set up and should load and use the viewer's content.
+# The content selector runs as a reactive effect independent of the rendered
+# screen, so it gates on this itself: a token error leaves the client as the
+# unscoped deploy client (must never load with it), and a missing LLM or
+# integration means the setup screen is up, so there's nothing to load for yet.
+def content_ready(token_error, chat, integration_enabled):
+    return token_error is None and chat is not None and integration_enabled
+
+
 def time_since_deployment(deployment_time_str):
     # Content that has never been deployed reports no time; skip the label rather
     # than crash on a None passed to fromisoformat().

@@ -6,6 +6,7 @@ from shiny import App, Inputs, Outputs, Session, ui, reactive, render
 
 from helpers import (
     content_choice_label,
+    content_ready,
     is_chattable_content,
     resolve_visitor_client,
     running_on_connect,
@@ -363,9 +364,11 @@ def server(input: Inputs, output: Outputs, session: Session):
     # Set up content selector
     @reactive.Effect
     def _():
-        # The selector only appears once setup is complete; skip the fetch (and its
-        # error toast) while the setup screen is still up.
-        if not VISITOR_API_INTEGRATION_ENABLED:
+        # This effect runs regardless of which screen is rendered, so it gates on
+        # the same readiness the setup screen uses. Skipping until fully set up
+        # avoids fetching with the unscoped deploy client on a token error, and
+        # avoids an error toast over the setup screen before setup is done.
+        if not content_ready(token_error, chat, VISITOR_API_INTEGRATION_ENABLED):
             return
         try:
             content_list = fetch_connect_content_list(client)

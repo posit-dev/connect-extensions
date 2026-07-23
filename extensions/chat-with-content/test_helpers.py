@@ -198,3 +198,24 @@ def test_truncate_for_context_caps_long_content():
     assert result.startswith("a" * 1000)
     assert "truncated" in result
     assert len(result) < len(text)
+
+
+# --- content_ready ---------------------------------------------------------
+
+
+def test_content_ready_true_when_session_llm_and_integration_all_present():
+    assert helpers.content_ready(None, object(), True) is True
+
+
+def test_content_ready_false_on_token_error():
+    # A token error leaves the client as the unscoped deploy client, so content
+    # must not load even though the integration flag is True.
+    assert helpers.content_ready("exchange failed", object(), True) is False
+
+
+def test_content_ready_false_without_llm():
+    assert helpers.content_ready(None, None, True) is False
+
+
+def test_content_ready_false_when_integration_disabled():
+    assert helpers.content_ready(None, object(), False) is False
