@@ -27,7 +27,7 @@ runs:
     # this avoids including extra files in the extension
     - name: Download optional artifact
       if: ${{ inputs.artifact-name != '' }}
-      uses: actions/download-artifact@v4
+      uses: actions/download-artifact@v8
       with:
         name: ${{ inputs.artifact-name }}
         path: ${{ inputs.extension-name }}
@@ -39,7 +39,7 @@ runs:
 
     # Upload the extension's tarball for use in other actions in the workflow
     - name: Upload extension tar
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v7
       with:
         name: ${{ inputs.extension-name }}.tar.gz
         path: ${{ inputs.extension-name }}.tar.gz
