@@ -5,6 +5,13 @@ All notable changes to the Quarto Stock Report using Python extension will be do
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.6] - 2026-07-24
+
+### Changed
+
+- Pinned the Quarto `project.render` list to `index.qmd` so only the report renders, preventing a sibling `CHANGELOG.md` from rendering as a stray page. (#442)
+- Removed `connect-extension.qmd`, a superseded legacy gallery-metadata file that is no longer used. (#442)
+
 ## [1.0.5] - 2026-06-15
 
 ### Changed

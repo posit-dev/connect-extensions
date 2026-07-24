@@ -442,3 +442,24 @@ to document changes made on each release.
 
 A recommended format is the [keep a changelog](https://keepachangelog.com/en/1.1.0/)
 format and ahering to the [Semantic Versioning](https://semver.org/) guidelines.
+
+### Quarto: render only what you serve
+
+Quarto renders every sibling Markdown file as its own page. It ignores
+`README.md`, but not `CHANGELOG.md`. So a `CHANGELOG.md` in a Quarto extension
+is rendered into a `CHANGELOG.html` page, and with no pinned primary the default
+served document can silently flip to it instead of your entrypoint, with every
+build-time check still passing.
+
+A Quarto extension should render only the document it serves. Pin the entrypoint
+in `_quarto.yml` so nothing else renders:
+
+```yaml
+project:
+  render:
+    - index.qmd  # or your real entrypoint, e.g. script.py or script.R
+```
+
+Websites are the exception: they render many pages and serve `index.html` by
+convention. Linting fails any non-website extension that renders a sibling
+Markdown page like a `CHANGELOG`.

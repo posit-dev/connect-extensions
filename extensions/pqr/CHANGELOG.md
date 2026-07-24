@@ -5,6 +5,12 @@ All notable changes to the Quarto Document with Python and R extension will be d
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.4] - 2026-07-24
+
+### Changed
+
+- Added a `_quarto.yml` pinning `project.render` to `index.qmd` so only the document renders, preventing a sibling `CHANGELOG.md` from rendering as a stray page. (#442)
+
 ## [0.1.3] - 2026-06-22
 
 ### Fixed
