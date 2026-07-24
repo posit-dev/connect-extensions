@@ -21,9 +21,9 @@ jobs:
       releasable: ${{ steps.resolve.outputs.releasable }}
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
-      - uses: dorny/paths-filter@v3
+      - uses: dorny/paths-filter@v4
         id: changes
         with:
           # Adding a new extension that has a directory that can be TARed?
@@ -97,7 +97,7 @@ jobs:
       GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - uses: ./.github/actions/lint-extension
         with:
@@ -114,7 +114,7 @@ jobs:
       - name: Mark successful jobs
         run: echo "${{ matrix.extension }}" >> ${{ matrix.extension }}.packaged.successfully
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: ${{ matrix.extension }}.packaged.successfully
           path: ${{ matrix.extension }}.packaged.successfully
@@ -127,7 +127,7 @@ jobs:
     outputs:
       successful_extensions: ${{ steps.collect.outputs.successful_extensions }}
     steps:
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v8
         with:
           # Uses artifacts generated from package-extension which are only present if packaging was successful
           pattern: "*.packaged.successfully"
@@ -186,7 +186,7 @@ jobs:
     # otherwise, the release is skipped
     # See the action comments for more details
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       # Skipped for extensions that were only swept in for testing by an
       # infra change; releases require the extension's own files to change
@@ -214,9 +214,9 @@ jobs:
       usage-metrics-dashboard: ${{ steps.resolve.outputs.usage-metrics-dashboard }}
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
-      - uses: dorny/paths-filter@v3
+      - uses: dorny/paths-filter@v4
         id: changes
         with:
           # Adding a new extension that has a complex build process?
@@ -307,7 +307,7 @@ jobs:
       GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
       - name: Download release check artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           pattern: would-release-*.json
           path: would-release
@@ -392,7 +392,7 @@ jobs:
       # Downloads every release data file from the release-extension action
       # merging them under the .releases/ directory
       - name: Download GitHub release data
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           pattern: release-*.json
           path: releases
@@ -424,7 +424,7 @@ jobs:
     steps:
       - name: Generate token for GitHub App
         id: generate-token
-        uses: actions/create-github-app-token@v2
+        uses: actions/create-github-app-token@v3
         with:
           app-id: 1129585
           private-key: ${{ secrets.POSIT_CONNECT_PROJECTS_PEM }}
@@ -433,12 +433,12 @@ jobs:
       # Checkout main to commit the updated extension list
       # reduces the chance of conflicts when updating the extension list with
       # multiple running workflows
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           ref: main
           token: ${{ steps.generate-token.outputs.token }}
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           node-version: "lts/*"
           cache: "npm"
