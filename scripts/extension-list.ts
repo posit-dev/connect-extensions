@@ -11,12 +11,12 @@ import {
   ExtensionEnvironment,
   ExtensionManifest,
   ExtensionVersion,
+  GithubRelease,
   RequiredFeature
 } from "./types";
 
-function getExtensionNameFromRelease(release: any): string {
-  const tag = release.tag_name as string;
-  return tag.split("@")[0];
+function getExtensionNameFromRelease(release: GithubRelease): string {
+  return release.tag_name.split("@")[0];
 }
 
 function getManifest(extensionName: string): ExtensionManifest {
@@ -86,7 +86,7 @@ class ExtensionList {
     );
   }
 
-  public addRelease(manifest: ExtensionManifest, githubRelease) {
+  public addRelease(manifest: ExtensionManifest, githubRelease: GithubRelease) {
     const {
       name,
       title,
@@ -101,9 +101,11 @@ class ExtensionList {
     } = manifest.extension;
     const { assets, published_at } = githubRelease;
 
-    const { browser_download_url } = assets.find(
-      (asset) => asset.name === `${name}.tar.gz`
-    );
+    const asset = assets.find((asset) => asset.name === `${name}.tar.gz`);
+    if (asset === undefined) {
+      throw new Error(`No release asset named ${name}.tar.gz found`);
+    }
+    const { browser_download_url } = asset;
 
     // R/Python/Quarto declare their version range in the manifest environment;
     // Node.js declares its in package.json's `engines.node`. Merge both so the
@@ -241,7 +243,10 @@ const extensionListFilePath = path.join(
   "extensions.json"
 );
 
-const releases = JSON.parse(process.env.RELEASES);
+if (!process.env.RELEASES) {
+  throw new Error("RELEASES environment variable is not set");
+}
+const releases: GithubRelease[] = JSON.parse(process.env.RELEASES);
 const list = ExtensionList.fromFile(extensionListFilePath);
 
 releases.forEach((release) => {
