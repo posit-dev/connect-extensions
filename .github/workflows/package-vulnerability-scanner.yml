@@ -34,7 +34,20 @@ jobs:
           cache-dependency-path: extensions/${{ env.EXTENSION_NAME }}/package-lock.json
 
       - run: npm ci
+
+      # Run the frontend unit tests before building.
+      - name: Run frontend tests
+        run: npm test
+
       - run: npm run build
+
+      # Run the Python backend tests.
+      - uses: astral-sh/setup-uv@v5
+        with:
+          pyproject-file: ./extensions/${{ env.EXTENSION_NAME }}/pyproject.toml
+
+      - name: Run backend tests
+        run: uv run pytest
 
       # Now that the extension is built we need to upload an artifact to pass
       # to the package-extension action that contains the files we want to be
