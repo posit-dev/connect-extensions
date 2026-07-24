@@ -1,7 +1,8 @@
 import m from "mithril";
 import Contents from "../models/Contents";
+import { notifyError, reason } from "../utils/notify";
 
-const LockedContentButton = {
+const LockContentButton = {
   oninit: function () {
     this.isLoading = false;
   },
@@ -9,7 +10,7 @@ const LockedContentButton = {
   view: function (vnode) {
     const labelMessage = vnode.attrs.isLocked
       ? `Unlock ${vnode.attrs.contentTitle}`
-      : `Lock Content ${vnode.attrs.contentTitle}`;
+      : `Lock ${vnode.attrs.contentTitle}`;
 
     const iconClassName = () => {
       if (this.isLoading) return "fa-spinner fa-spin lock-loading";
@@ -38,6 +39,12 @@ const LockedContentButton = {
 
           try {
             await Contents.lock(vnode.attrs.contentId);
+          } catch (err) {
+            console.error(err);
+            const action = vnode.attrs.isLocked ? "unlock" : "lock";
+            notifyError(
+              `Couldn't ${action} "${vnode.attrs.contentTitle}": ${reason(err)}`,
+            );
           } finally {
             this.isLoading = false;
             m.redraw();
@@ -53,4 +60,4 @@ const LockedContentButton = {
   },
 };
 
-export default LockedContentButton;
+export default LockContentButton;

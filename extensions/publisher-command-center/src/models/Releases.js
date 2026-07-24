@@ -23,6 +23,8 @@ export default {
         this._fetch = null;
         throw err;
       });
+
+    return this._fetch;
   },
 
   reset: function () {

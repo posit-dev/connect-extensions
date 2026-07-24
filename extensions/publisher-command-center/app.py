@@ -1,149 +1,195 @@
-from http import client
 import asyncio
+import os
 from typing import Optional
-from fastapi import FastAPI, Header, Body
+
+from cachetools import TTLCache, cached
+from fastapi import Body, FastAPI, Header, HTTPException
+from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 from posit import connect
 from posit.connect.errors import ClientError
-import os
 
-from cachetools import TTLCache, cached
-
+# Base client. Used only to exchange each viewer's session token into a
+# viewer-scoped client; its own credentials are never used to read or manage content.
 client = connect.Client()
 
 app = FastAPI()
 
-# Create cache with TTL=1hour and unlimited size
+# Cache the per-viewer client by session token (1h TTL) so repeated requests in a
+# session reuse one client instead of re-exchanging the token every call.
 client_cache = TTLCache(maxsize=float("inf"), ttl=3600)
 
 
-@app.get("/api/visitor-auth")
-async def integration_status(posit_connect_user_session_token: str = Header(None)):
-    """
-    If running on Connect, attempt to build a visitor client.
-    If that raises the 212 error (no OAuth integration), return authorized=False.
-    """
+@cached(client_cache)
+def _build_visitor_client(token: Optional[str]) -> connect.Client:
+    return client.with_user_session_token(token) if token else client
 
-    if os.getenv("RSTUDIO_PRODUCT") == "CONNECT":
+
+def _connect_http_error(err: ClientError) -> HTTPException:
+    # Error 212 means no Visitor API Key integration is configured; the frontend
+    # treats 424 as "needs setup" and shows the integration prompt. Any other
+    # Connect error is an upstream failure the caller can't fix, so surface a 502
+    # with Connect's message rather than a raw 500.
+    if err.error_code == 212:
+        return HTTPException(
+            status_code=424,
+            detail="A Connect Visitor API Key integration is required.",
+        )
+    return HTTPException(
+        status_code=502, detail=f"Connect API error: {err.error_message}"
+    )
+
+
+# Anything not already turned into an HTTPException (a network failure, an
+# unexpected SDK error) becomes a 502 with a curated message; the real error is
+# logged for the publisher rather than shown to the viewer.
+@app.exception_handler(Exception)
+async def _unexpected_error(request, exc):
+    print(f"Unexpected error handling {request.url.path}: {exc}")
+    return JSONResponse(
+        status_code=502, content={"detail": "Connect API error. Please try again."}
+    )
+
+
+def _running_on_connect() -> bool:
+    return "CONNECT" in (os.getenv("POSIT_PRODUCT"), os.getenv("RSTUDIO_PRODUCT"))
+
+
+# The viewer-scoped client. On Connect with no session token there's no viewer to
+# act as, so require setup instead of falling back to the base client (which would
+# read and manage content as the deployer).
+def get_visitor_client(token: Optional[str]) -> connect.Client:
+    if _running_on_connect() and not token:
+        raise HTTPException(
+            status_code=424,
+            detail="A Connect Visitor API Key integration is required.",
+        )
+    try:
+        return _build_visitor_client(token)
+    except ClientError as err:
+        raise _connect_http_error(err)
+
+
+# The bootstrap authorization check. On Connect the app is authorized only if the
+# viewer's session token exchanges into a client; no token or a missing integration
+# (error 212) means not authorized, so the frontend shows the setup instructions.
+@app.get("/api/visitor-auth")
+def integration_status(posit_connect_user_session_token: str = Header(None)):
+    if _running_on_connect():
         if not posit_connect_user_session_token:
             return {"authorized": False}
         try:
-            get_visitor_client(posit_connect_user_session_token)
+            _build_visitor_client(posit_connect_user_session_token)
         except ClientError as err:
             if err.error_code == 212:
                 return {"authorized": False}
-            raise
+            raise _connect_http_error(err)
 
     return {"authorized": True}
 
 
-@app.put("/api/visitor-auth")
-async def set_integration(integration_guid: str = Body(..., embed=True)):
-    if os.getenv("RSTUDIO_PRODUCT") == "CONNECT":
-        content_guid = os.getenv("CONNECT_CONTENT_GUID")
-        content = client.content.get(content_guid)
-        content.oauth.associations.update(integration_guid)
-    else:
-        # Raise an error if not running on Connect
-        raise ClientError(
-            error_code=400,
-            message="This endpoint is only available when running on Posit Connect.",
-        )
-    return {"status": "success"}
-
-
-@app.get("/api/integrations")
-async def get_integrations():
-    integrations = client.oauth.integrations.find()
-    admin_integrations = [
-        i
-        for i in integrations
-        if i["template"] == "connect" and i["config"]["max_role"] == "Admin"
-    ]
-    publisher_integrations = [
-        i
-        for i in integrations
-        if i["template"] == "connect" and i["config"]["max_role"] == "Publisher"
-    ]
-    eligible_integrations = admin_integrations + publisher_integrations
-    return eligible_integrations[0] if eligible_integrations else None
-
-
-@cached(client_cache)
-def get_visitor_client(token: Optional[str]) -> connect.Client:
-    """Create and cache API client per token with 1 hour TTL"""
-    if token:
-        return client.with_user_session_token(token)
-    else:
-        return client
+# The signed-in viewer, so the UI can show whose identity the app is acting as.
+@app.get("/api/user")
+def get_user(posit_connect_user_session_token: str = Header(None)):
+    visitor = get_visitor_client(posit_connect_user_session_token)
+    try:
+        return visitor.me
+    except ClientError as err:
+        raise _connect_http_error(err)
 
 
 @app.get("/api/contents")
 async def contents(posit_connect_user_session_token: str = Header(None)):
     visitor = get_visitor_client(posit_connect_user_session_token)
-
-    all_content = visitor.content.find()
+    try:
+        all_content = visitor.content.find()
+    except ClientError as err:
+        raise _connect_http_error(err)
     contents = [c for c in all_content if c.app_role in ["owner", "editor"]]
 
-    for content in contents:
-        content["active_jobs"] = [job for job in content.jobs if job["status"] == 0]
+    # Each item's running-process count needs its own jobs call. posit-sdk is
+    # synchronous, so run those blocking calls in threads and gather them
+    # concurrently rather than one at a time in series. A failure on one item
+    # yields None (not 0) so it doesn't fail the whole listing and the UI can tell
+    # "couldn't determine" apart from a genuine "0 running".
+    async def active_jobs(content):
+        try:
+            jobs = await asyncio.to_thread(lambda: list(content.jobs))
+            return [job for job in jobs if job["status"] == 0]
+        except Exception as err:
+            print(f"Couldn't read jobs for {content.get('guid')}: {err}")
+            return None
+
+    results = await asyncio.gather(*(active_jobs(c) for c in contents))
+    for content, jobs in zip(contents, results):
+        content["active_jobs"] = jobs
 
     return contents
 
 
 @app.get("/api/contents/{content_id}")
-async def content(
+def content(
     content_id: str, posit_connect_user_session_token: str = Header(None)
 ):
     visitor = get_visitor_client(posit_connect_user_session_token)
-    return visitor.content.get(content_id)
+    try:
+        return visitor.content.get(content_id)
+    except ClientError as err:
+        raise _connect_http_error(err)
 
-@app.patch("/api/content/{content_id}/lock")
-async def lock_content(
+
+@app.patch("/api/contents/{content_id}/lock")
+def lock_content(
     content_id: str,
     posit_connect_user_session_token: str = Header(None),
 ):
     visitor = get_visitor_client(posit_connect_user_session_token)
-    content = visitor.content.get(content_id)
-    is_locked = content.locked
-
-    content.update(locked=not is_locked)
+    try:
+        content = visitor.content.get(content_id)
+        content.update(locked=not content.locked)
+    except ClientError as err:
+        raise _connect_http_error(err)
     return content
 
-@app.patch("/api/content/{content_id}/rename")
-async def rename_content(
+
+@app.patch("/api/contents/{content_id}/rename")
+def rename_content(
     content_id: str,
-    title: str = Body(..., embed = True),
+    title: str = Body(..., embed=True),
     posit_connect_user_session_token: str = Header(None),
 ):
     visitor = get_visitor_client(posit_connect_user_session_token)
-    content = visitor.content.get(content_id)
-
-    content.update(title = title)
+    try:
+        content = visitor.content.get(content_id)
+        content.update(title=title)
+    except ClientError as err:
+        raise _connect_http_error(err)
     return content
+
 
 @app.get("/api/contents/{content_id}/processes")
-async def get_content_processes(
+def get_content_processes(
     content_id: str, posit_connect_user_session_token: str = Header(None)
 ):
     visitor = get_visitor_client(posit_connect_user_session_token)
-
-    # Assert the viewer has access to the content
-    content = visitor.content.get(content_id)
-    # make a list of the iterable:
-    active_jobs = [job for job in content.jobs if job["status"] == 0]
-    return active_jobs
+    try:
+        # Fetching the content first asserts the viewer can access it.
+        content = visitor.content.get(content_id)
+        return [job for job in content.jobs if job["status"] == 0]
+    except ClientError as err:
+        raise _connect_http_error(err)
 
 
 @app.delete("/api/contents/{content_id}")
-async def delete_content(
+def delete_content(
     content_id: str,
     posit_connect_user_session_token: str = Header(None),
 ):
     visitor = get_visitor_client(posit_connect_user_session_token)
-
-    content = visitor.content.get(content_id)
-    content.delete()
+    try:
+        visitor.content.get(content_id).delete()
+    except ClientError as err:
+        raise _connect_http_error(err)
 
 
 @app.delete("/api/contents/{content_id}/processes/{process_id}")
@@ -153,47 +199,50 @@ async def destroy_process(
     posit_connect_user_session_token: str = Header(None),
 ):
     visitor = get_visitor_client(posit_connect_user_session_token)
-
-    content = visitor.content.get(content_id)
-    job = content.jobs.find(process_id)
-    if job:
+    try:
+        content = visitor.content.get(content_id)
+        job = content.jobs.find(process_id)
+        if not job:
+            return  # already gone; nothing to stop
         job.destroy()
+        # Poll briefly until the job is no longer active before returning.
         for _ in range(30):
             job = content.jobs.find(process_id)
             if job["status"] != 0:
                 return
             await asyncio.sleep(1)
+    except ClientError as err:
+        raise _connect_http_error(err)
+    # Still running after the wait: report it instead of a false success.
+    raise HTTPException(
+        status_code=504, detail="The process didn't stop in time. Please try again."
+    )
 
 
 @app.get("/api/contents/{content_id}/author")
-async def get_author(
+def get_author(
     content_id,
     posit_connect_user_session_token: str = Header(None),
 ):
     visitor = get_visitor_client(posit_connect_user_session_token)
-    content = visitor.content.get(content_id)
-    return content.owner
+    try:
+        return visitor.content.get(content_id).owner
+    except ClientError as err:
+        raise _connect_http_error(err)
 
 
 @app.get("/api/contents/{content_id}/releases")
-async def get_releases(
+def get_releases(
     content_id,
     posit_connect_user_session_token: str = Header(None),
 ):
     visitor = get_visitor_client(posit_connect_user_session_token)
-    content = visitor.content.get(content_id)
-    return content.bundles.find()
+    try:
+        return visitor.content.get(content_id).bundles.find()
+    except ClientError as err:
+        raise _connect_http_error(err)
 
 
-@app.get("/api/contents/{content_id}/metrics")
-async def get_metrics(
-    content_id,
-    posit_connect_user_session_token: str = Header(None),
-):
-    visitor = get_visitor_client(posit_connect_user_session_token)
-    content = visitor.content.get(content_id)
-    metrics = visitor.metrics.usage.find(content_guid=content["guid"])
-    return metrics
-
-
-app.mount("/", StaticFiles(directory="dist", html=True), name="static")
+# check_dir=False so importing this module (e.g. for the backend tests) doesn't
+# require the built frontend; on Connect the bundle always includes dist/.
+app.mount("/", StaticFiles(directory="dist", html=True, check_dir=False), name="static")

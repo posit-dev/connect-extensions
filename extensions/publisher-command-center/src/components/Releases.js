@@ -1,6 +1,7 @@
 import m from "mithril";
 
-import { format } from "date-fns";
+import { formatDate } from "../utils/dates";
+import { reason } from "../utils/notify";
 
 import Releases from "../models/Releases";
 
@@ -16,7 +17,7 @@ const Release = {
       ]),
       m(
         "small.text-secondary",
-        format(vnode.attrs?.created_time, "MMM do, yyyy"),
+        formatDate(vnode.attrs?.created_time, "MMM do, yyyy"),
       ),
     ]);
   },
@@ -26,12 +27,11 @@ export default {
   error: null,
 
   oninit: function (vnode) {
-    try {
-      Releases.load(vnode.attrs.content_id);
-    } catch (err) {
-      this.error = "Failed to load releases.";
+    Releases.load(vnode.attrs.contentId).catch((err) => {
+      this.error = `Couldn't load releases: ${reason(err)}`;
       console.error(err);
-    }
+      m.redraw();
+    });
   },
 
   onremove: function () {
