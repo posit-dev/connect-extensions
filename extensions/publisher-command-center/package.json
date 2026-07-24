@@ -1,6 +1,6 @@
 {
   "name": "publisher-command-center",
-  "description": "A dashboard for publishers to help manage and track their content",
+  "description": "Manage the content you publish to Connect from one place, acting as the signed-in viewer through a Connect Visitor API Key",
   "version": "0.0.1",
   "scripts": {
     "dev": "vite",
