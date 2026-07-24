@@ -150,3 +150,65 @@ runs:
           exit 1
         fi
       shell: bash
+
+    # The render-set guard below only applies to Quarto content.
+    - name: Detect Quarto appmode
+      id: quarto-appmode
+      run: |
+        APPMODE=$(jq -r '.metadata.appmode // ""' ./extensions/${{ inputs.extension-name }}/manifest.json)
+        if [[ "$APPMODE" == quarto-* ]]; then
+          echo "is-quarto=true" >> "$GITHUB_OUTPUT"
+        else
+          echo "is-quarto=false" >> "$GITHUB_OUTPUT"
+        fi
+      shell: bash
+
+    - name: Set up Quarto
+      if: steps.quarto-appmode.outputs.is-quarto == 'true'
+      uses: quarto-dev/quarto-actions/setup@v2
+
+    # Guards against the served-document bug (#392): Quarto renders every sibling
+    # Markdown file (e.g. CHANGELOG.md) as its own page, and with no pinned
+    # primary the default served document can silently flip to that page (e.g.
+    # CHANGELOG.html) instead of the entrypoint. Every build-time check stays
+    # green, so nothing else catches it. The standard is that a Quarto extension
+    # renders only what it serves: single-document content pins project.render to
+    # its entrypoint, while websites render their own pages. So this fails when a
+    # non-website extension renders a sibling Markdown page.
+    - name: Check Quarto render set
+      if: steps.quarto-appmode.outputs.is-quarto == 'true'
+      run: |
+        set -euo pipefail
+        EXT_DIR=./extensions/${{ inputs.extension-name }}
+
+        # Without a _quarto.yml the directory is not a project, so Connect renders
+        # only the entrypoint and no sibling Markdown becomes a page.
+        if ! INSPECT=$(quarto inspect "$EXT_DIR" 2>/dev/null); then
+          echo "Not a Quarto project; only the entrypoint renders. OK."
+          exit 0
+        fi
+
+        # Websites legitimately render many pages and serve index.html by convention.
+        PROJECT_TYPE=$(jq -r '.config.project.type // "default"' <<< "$INSPECT")
+        if [ "$PROJECT_TYPE" == "website" ]; then
+          echo "Website project; many pages are expected. OK."
+          exit 0
+        fi
+
+        # Rendered input basenames.
+        INPUTS=$(jq -r '.files.input[] | split("/") | last' <<< "$INSPECT")
+        COUNT=$(grep -c . <<< "$INPUTS")
+
+        # A lone document is unambiguously the served document. Otherwise a
+        # rendered sibling Markdown file (Quarto ignores README.md) is a stray
+        # page that could become the served document.
+        STRAY_MD=$(grep -iE '\.md$' <<< "$INPUTS" | grep -viE '^README\.md$' || true)
+        if [ "$COUNT" -gt 1 ] && [ -n "$STRAY_MD" ]; then
+          echo "Error: Quarto extension '${{ inputs.extension-name }}' renders sibling Markdown page(s):"
+          echo "$STRAY_MD"
+          echo "Pin the entrypoint in _quarto.yml (project.render) so only it renders and becomes the served document."
+          exit 1
+        fi
+
+        echo "No stray Markdown pages render. OK."
+      shell: bash

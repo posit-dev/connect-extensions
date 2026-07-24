@@ -5,6 +5,12 @@ All notable changes to the Quarto Stock Report using R extension will be documen
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.5] - 2026-07-24
+
+### Changed
+
+- Pinned the Quarto `project.render` list to `index.qmd` so only the report renders, preventing a sibling `CHANGELOG.md` from rendering as a stray page. (#442)
+
 ## [1.0.4] - 2026-06-11
 
 ### Changed

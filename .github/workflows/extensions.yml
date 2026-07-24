@@ -35,6 +35,7 @@ jobs:
             _infra:
               - integration/**
               - .github/actions/connect-integration-test/**
+              - .github/actions/lint-extension/**
               - .github/workflows/connect-integration-tests.yml
               - .github/workflows/extensions.yml
             quarto-stock-report-python: extensions/quarto-stock-report-python/**
