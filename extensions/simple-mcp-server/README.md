@@ -46,11 +46,11 @@ Connect 2025.04.0 or newer with API Publishing and OAuth Integrations enabled.
 
 After deploying, configure it for how you'll use it:
 
-- As the signed-in viewer (the paired chat, or any Connect content): on the
-  **Access** tab, add a "Connect Visitor API Key" integration under
-  **Integrations**. If it isn't listed, an administrator must first create a
-  **Connect API** integration on your server. This lets `connect_whoami` identify
-  who's calling. See the
+- As the signed-in viewer (the paired chat, or any Connect content): in the
+  content's settings, on the **Access** tab, add a "Connect Visitor API Key"
+  integration under **Integrations**. If it isn't listed, an administrator must
+  first create a **Connect API** integration on your server. This lets
+  `connect_whoami` identify who's calling. See the
   [OAuth Integrations documentation](https://docs.posit.co/connect/user/oauth-integrations/).
 - From your own MCP client (Claude Code, Cursor, ...): point it at `{content-url}/mcp`
   and authenticate with a Connect API key (`Authorization: Key <API_KEY>`); the landing page
