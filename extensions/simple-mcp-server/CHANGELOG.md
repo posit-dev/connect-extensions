@@ -11,7 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Retitled to "FastAPI: MCP Server", rewrote the README and description, and reframed the example so its three tools read as starting points to swap out. (#417)
 - The landing page now greets the signed-in viewer by name, resolved from their Connect session token (the same identity the `connect_whoami` tool returns). (#417)
-- Regenerated `requirements.txt` to resolve from the minimum supported Python (3.11) rather than a single 3.14 lock, for broader install compatibility. (#417)
+- Regenerated `requirements.txt` to resolve from the minimum supported Python (3.11) for broader install compatibility. (#417)
 - Bounded the per-viewer client cache so a long-running server can't grow it without limit. (#417)
 
 ### Fixed
@@ -33,15 +33,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.0.5] - 2026-06-11
 
-### Changed
-
-- Switched to with-connect for integration tests. (#355)
+- Maintenance release; no user-facing changes. (#355)
 
 ## [0.0.4] - 2026-05-04
 
-### Fixed
-
-- Fixed deprecation warnings. (#349)
+- Maintenance release; no user-facing changes. (#349)
 
 ## [0.0.3] - 2026-02-03
 
