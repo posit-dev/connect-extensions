@@ -1,4 +1,4 @@
-# Contributing to the Python Shiny: AI Chat with MCP Tools extension
+# Contributing to Python Shiny: AI Chat with MCP Tools
 
 ## Prerequisites
 
