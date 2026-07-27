@@ -352,12 +352,11 @@ def server(input: Inputs, output: Outputs, session: Session):
         except Exception:
             pass
         return ui.p(
-            ui.HTML(
-                f"Signed in as <strong>{name}</strong>, resolved from your Connect "
-                "session. Content is listed and read with your own permissions through "
-                "a Connect Visitor API Key. No admin key is stored, and answers "
-                "draw only on the content you select."
-            ),
+            "Signed in as ",
+            ui.strong(name),
+            ", resolved from your Connect session. Content is listed and read "
+            "with your own permissions through a Connect Visitor API Key. No "
+            "admin key is stored, and answers draw only on the content you select.",
             class_="text-muted small",
         )
 
