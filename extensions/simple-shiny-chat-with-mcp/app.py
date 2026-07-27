@@ -15,7 +15,7 @@ load_dotenv()
 
 # Zero-config fallback model, used only when no LLM provider is configured. Bedrock
 # picks up credentials from an instance role, so it needs no API key.
-BEDROCK_MODEL = "us.anthropic.claude-sonnet-4-20250514-v1:0"
+BEDROCK_MODEL = "us.anthropic.claude-sonnet-4-5-20250929-v1:0"
 
 
 def check_aws_bedrock_credentials():
@@ -140,8 +140,9 @@ _LLM_SETUP_SECTION = (
             "This app needs the <code>CHATLAS_CHAT_PROVIDER_MODEL</code> environment variable "
             "and a matching LLM API key. In the content settings, on the "
             "<strong>Advanced</strong> tab, add both of them under <strong>Environment Variables</strong>. "
+            "On AWS Bedrock with an instance role, credentials are detected automatically and no variables are needed. "
             "For more information, "
-            '<a href="https://posit-dev.github.io/chatlas/reference/ChatAuto.html" class="setup-link">see the chatlas documentation</a>.'
+            '<a href="https://posit-dev.github.io/chatlas/reference/ChatAuto.html" class="setup-link" target="_blank" rel="noopener">see the chatlas documentation</a>.'
         ),
         class_="setup-description",
     ),
@@ -165,7 +166,7 @@ _INTEGRATION_SETUP_SECTION = (
             "<strong>Access</strong> tab, add the \"Connect Visitor API Key\" integration under "
             "<strong>Integrations</strong>. "
             "For more information, "
-            '<a href="https://docs.posit.co/connect/user/oauth-integrations/" class="setup-link">see the OAuth Integrations documentation</a>.'
+            '<a href="https://docs.posit.co/connect/user/oauth-integrations/" class="setup-link" target="_blank" rel="noopener">see the OAuth Integrations documentation</a>.'
         ),
         class_="setup-description",
     ),
@@ -241,14 +242,10 @@ app_ui = ui.page_fillable(
         }
 
         #info_link {
+            color: white;
             font-size: medium;
             vertical-align: super;
             margin-left: 10px;
-        }
-        .sdk_suggested_prompt {
-            cursor: pointer;
-            border-radius: 0.5em;
-            display: list-item;
         }
         .external-link {
             cursor: alias;
@@ -370,7 +367,9 @@ If a user's request would require multiple tool calls, create a plan of action f
         if not viewer_name:
             return None
         return ui.p(
-            f"Signed in as {viewer_name}. Tools you add run as you, with your Connect permissions.",
+            f"Signed in as {viewer_name}, resolved from your Connect session. Tools you "
+            "add run as you, with your own permissions, through a Connect Visitor API "
+            "Key. No admin key is stored.",
             class_="small",
             style="opacity: 0.85;",
         )
@@ -486,7 +485,7 @@ If a user's request would require multiple tool calls, create a plan of action f
             # surface that cause so the toast says why, not just "failed".
             traceback.print_exc()
             cause = e.__cause__ or e
-            ui.notification_show(f"Error adding server: {cause}", type="error")
+            ui.notification_show(f"Couldn't add server: {cause}", type="error")
 
     @reactive.effect
     async def handle_delete_buttons():
@@ -501,7 +500,7 @@ If a user's request would require multiple tool calls, create a plan of action f
                     traceback.print_exc()
                     cause = e.__cause__ or e
                     ui.notification_show(
-                        f"Error removing server '{srv['name']}': {cause}",
+                        f"Couldn't remove server '{srv['name']}': {cause}",
                         type="error",
                     )
                     return
@@ -515,9 +514,23 @@ If a user's request would require multiple tool calls, create a plan of action f
     @reactive.event(input.info_link)
     async def _():
         modal = ui.modal(
-            ui.h1("Information"),
-            ui.h3("Model"),
-            ui.p(f"{chat.provider.name} / {chat.provider.model}"),
+            ui.h3("About this app"),
+            ui.p(
+                "Add MCP servers in the sidebar to give the assistant tools, then "
+                "ask it to use them."
+            ),
+            ui.p(
+                ui.tags.strong("Model: "),
+                f"{chat.provider.name} / {chat.provider.model}",
+            ),
+            ui.p(
+                ui.tags.a(
+                    "Learn more about the Model Context Protocol",
+                    href="https://modelcontextprotocol.io/",
+                    target="_blank",
+                    rel="noopener",
+                )
+            ),
             easy_close=True,
         )
         ui.modal_show(modal)

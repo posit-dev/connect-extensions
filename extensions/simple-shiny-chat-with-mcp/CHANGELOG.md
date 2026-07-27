@@ -5,6 +5,23 @@ All notable changes to the Python Shiny: AI Chat with MCP Tools extension will b
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.0.8] - 2026-07-20
+
+### Changed
+
+- Refresh the zero-config Bedrock fallback model to Claude Sonnet 4.5. (#435)
+- Standardized the server add/remove failure messages on "Couldn't ..." wording. (#435)
+- Sharpened the setup screen and identity note: they now name the Connect Visitor API
+  Key and note that no admin key is stored, and the setup screen mentions that AWS
+  Bedrock with an instance role needs no credentials. (#435)
+
+### Fixed
+
+- Make the header's info button visible against the background (it was low-contrast
+  and easy to miss), and give the panel it opens a short description of the app and
+  a Model Context Protocol docs link alongside the model. (#435)
+- Open the setup-screen documentation links in a new tab with `rel="noopener"`. (#435)
+
 ## [0.0.7] - 2026-07-14
 
 ### Fixed

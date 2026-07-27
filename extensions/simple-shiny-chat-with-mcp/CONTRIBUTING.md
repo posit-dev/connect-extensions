@@ -1,18 +1,18 @@
 # Contributing to the Python Shiny: AI Chat with MCP Tools extension
 
-## Local Development
+## Prerequisites
 
-For local testing and development:
+- Python 3.11 or higher
+- [uv](https://docs.astral.sh/uv/)
 
-```bash
-# Install dependencies
-pip install -r requirements.txt
+## Setup
 
-# Run the app locally
-shiny run --reload app.py
-```
+Run `uv sync` to install dependencies.
 
-The app starts on `http://127.0.0.1:8000`.
+## Development
+
+Run `uv run shiny run --reload app.py` to start the app locally on
+`http://127.0.0.1:8000`.
 
 Set an LLM provider first, or the app shows its setup screen instead of the chat.
 It reads these from the environment (a local `.env` works, via `python-dotenv`):
@@ -49,3 +49,18 @@ Tools run as the signed-in viewer, never as the app:
 - The key is forwarded only to MCP servers on this Connect server. A Connect key is
   meaningless to another host and must not leak to one, so servers elsewhere are
   reached without it.
+
+## Bundle
+
+The files sent in the deployment bundle are:
+
+- `app.py`
+- `requirements.txt`
+
+`pyproject.toml`, `uv.lock`, and repo docs are not bundled.
+
+## Changelog
+
+Update the [CHANGELOG](./CHANGELOG.md) using the
+[Keep a Changelog](https://keepachangelog.com/en/1.1.0/) format, referencing the
+PR number, and bump `extension.version` in `manifest.json` to trigger a release.

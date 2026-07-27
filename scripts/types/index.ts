@@ -60,3 +60,14 @@ export interface Extension {
   category?: Category['id'];
   imgUrl?: string;
 }
+
+export interface GithubReleaseAsset {
+  name: string;
+  browser_download_url: string;
+}
+
+export interface GithubRelease {
+  tag_name: string;
+  published_at: string;
+  assets: GithubReleaseAsset[];
+}

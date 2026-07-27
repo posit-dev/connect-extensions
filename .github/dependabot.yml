@@ -1,0 +1,12 @@
+version: 2
+updates:
+  - package-ecosystem: "github-actions"
+    directories:
+      - "/"                    # .github/workflows/*
+      - "/.github/actions/*"   # composite actions (action.yml)
+    schedule:
+      interval: "weekly"
+    groups:
+      github-actions:
+        patterns:
+          - "*"

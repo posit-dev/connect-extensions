@@ -1,6 +1,6 @@
 [project]
 name = "simple-mcp-server"
-version = "0.0.7"
+version = "0.0.8"
 description = "A FastAPI server that exposes MCP tools on Posit Connect."
 readme = "README.md"
 requires-python = ">=3.11"

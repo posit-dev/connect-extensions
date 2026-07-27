@@ -5,6 +5,13 @@ All notable changes to the FastAPI: MCP Server extension will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.0.8] - 2026-07-21
+
+### Security
+
+- Set `rel="noopener"` on the landing page's external links so a linked page can't
+  reach back into the app through `window.opener`. (#436)
+
 ## [0.0.7] - 2026-07-14
 
 ### Changed
