@@ -14,20 +14,18 @@ documents, and static HTML.
 
 ## How it works
 
-- **Runs as the signed-in viewer.** The app calls the Connect API with the
-  viewer's own identity, through a Connect Visitor API Key integration, so each
-  person only sees and chats with the content they already have permission to
-  open. No admin API key is stored in the app.
-- **Answers only from the selected content.** When you choose a document, the app
-  renders it in the main panel, converts it to markdown, and sends that markdown
-  to the LLM as the only context. A system prompt instructs the model to answer
-  from that content alone and to say when it can't.
-- **Provider-agnostic.** The LLM connection is built with
-  [chatlas](https://posit-dev.github.io/chatlas/), so you can point it at OpenAI,
-  Azure OpenAI, Anthropic, Google Gemini, or Anthropic on AWS Bedrock by setting
-  environment variables (see [Setup](#setup)).
-- **Keeps requests bounded.** Very large pages are truncated before they are sent
-  to the model, so a big report won't overflow the model's context window.
+The app calls the Connect API as the signed-in viewer, through a Connect Visitor
+API Key integration, so each person sees and chats only with the content they
+already have permission to open. No admin API key is stored in the app. When you
+choose a document, the app renders it in the main panel, converts it to markdown,
+and sends that markdown to the LLM as the only context, with a system prompt that
+tells the model to answer from that content alone and to say when it can't.
+
+The LLM connection is built with [chatlas](https://posit-dev.github.io/chatlas/),
+so you can point it at OpenAI, Azure OpenAI, Anthropic, Google Gemini, or
+Anthropic on AWS Bedrock by setting environment variables (see [Setup](#setup)).
+Very large pages are truncated before they are sent to the model, so a big report
+won't overflow its context window.
 
 ## Deploy it
 
@@ -41,11 +39,11 @@ Connect 2025.04.0 or newer with OAuth Integrations enabled.
 
 ## Setup
 
-After deploying, in the content's settings:
+After deploying, configure two things in the content's settings:
 
-- **Choose an LLM** by setting `CHATLAS_CHAT_PROVIDER_MODEL` plus the matching
-  API key on the **Advanced** tab, under **Environment Variables**. For example,
-  to use OpenAI's GPT-4o:
+- Set an LLM provider and its API key on the **Advanced** tab, under
+  **Environment Variables**: set `CHATLAS_CHAT_PROVIDER_MODEL` plus the matching
+  key. For example, to use OpenAI's GPT-4o:
 
   ```
   CHATLAS_CHAT_PROVIDER_MODEL = openai/gpt-4o
@@ -56,12 +54,12 @@ After deploying, in the content's settings:
   (`ANTHROPIC_API_KEY`, `GOOGLE_API_KEY`, ...); see the
   [chatlas `ChatAuto` docs](https://posit-dev.github.io/chatlas/reference/ChatAuto.html)
   for the full list. On AWS Bedrock with an instance role, credentials are
-  detected automatically and no vars are needed. (The older
+  detected automatically and no variables are needed. (The older
   `CHATLAS_CHAT_PROVIDER` and `CHATLAS_CHAT_ARGS` still work but are deprecated.)
-- **Add a Visitor API Key integration** so the app lists and reads content as the
-  viewer: on the **Access** tab, add a "Connect Visitor API Key" integration under
-  **Integrations**. If it isn't listed, an administrator must first create a
-  **Connect API** integration on your server. See the
+- Add a "Connect Visitor API Key" integration so the app lists and reads content
+  as the viewer: on the **Access** tab, add it under **Integrations**. If it
+  isn't listed, an administrator must first create a **Connect API** integration
+  on your server. See the
   [OAuth Integrations documentation](https://docs.posit.co/connect/user/oauth-integrations/).
 
 Until an LLM provider and the integration are configured, the app shows a setup
@@ -69,10 +67,10 @@ screen with just the step(s) still missing.
 
 ## Customize it
 
-- **Swap the model or provider** by changing the environment variables above.
-- **Change how the assistant behaves** by editing the system prompt in `app.py`
-  (for example, to change its tone or the suggested-prompt format).
-- **Adjust the context limit** by changing `MAX_CONTEXT_CHARS` in `helpers.py`.
+- Swap the model or provider by changing the environment variables above.
+- Change how the assistant behaves by editing the system prompt in `app.py` (for
+  example, its tone or the suggested-prompt format).
+- Adjust the context limit by changing `MAX_CONTEXT_CHARS` in `helpers.py`.
 
 ## Learn more
 
