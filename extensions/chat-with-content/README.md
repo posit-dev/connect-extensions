@@ -43,13 +43,20 @@ Connect 2025.04.0 or newer with OAuth Integrations enabled.
 
 After deploying, in the content's settings:
 
-- **Choose an LLM** by setting `CHATLAS_CHAT_PROVIDER_MODEL` (for example
-  `openai/gpt-4o`) plus the matching API key (`OPENAI_API_KEY`,
-  `ANTHROPIC_API_KEY`, `GOOGLE_API_KEY`, ...) on the **Advanced** tab, under
-  **Environment Variables**. See the
+- **Choose an LLM** by setting `CHATLAS_CHAT_PROVIDER_MODEL` plus the matching
+  API key on the **Advanced** tab, under **Environment Variables**. For example,
+  to use OpenAI's GPT-4o:
+
+  ```
+  CHATLAS_CHAT_PROVIDER_MODEL = openai/gpt-4o
+  OPENAI_API_KEY              = <your OpenAI API key>
+  ```
+
+  Other providers follow the same pattern with their own model string and key
+  (`ANTHROPIC_API_KEY`, `GOOGLE_API_KEY`, ...); see the
   [chatlas `ChatAuto` docs](https://posit-dev.github.io/chatlas/reference/ChatAuto.html)
-  for provider/model strings. On AWS Bedrock with an instance role, credentials
-  are detected automatically and no vars are needed. (The older
+  for the full list. On AWS Bedrock with an instance role, credentials are
+  detected automatically and no vars are needed. (The older
   `CHATLAS_CHAT_PROVIDER` and `CHATLAS_CHAT_ARGS` still work but are deprecated.)
 - **Add a Visitor API Key integration** so the app lists and reads content as the
   viewer: on the **Access** tab, add a "Connect Visitor API Key" integration under
