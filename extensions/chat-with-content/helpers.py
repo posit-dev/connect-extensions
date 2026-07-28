@@ -56,9 +56,10 @@ def time_since_deployment(deployment_time_str):
         deployment_time = datetime.fromisoformat(
             deployment_time_str.replace("Z", "+00:00")
         )
-    except (ValueError, TypeError):
+    except (AttributeError, TypeError, ValueError):
         # A malformed timestamp shouldn't crash the whole content list; just omit
-        # the "last deployed" phrase for this one item.
+        # the "last deployed" phrase for this one item. AttributeError covers a
+        # value that isn't a string at all, which has no .replace().
         return ""
     # A timestamp with no offset would raise when subtracted from an aware "now";
     # treat it as UTC so a naive-but-valid time still renders instead of crashing.
@@ -98,21 +99,25 @@ def time_since_deployment(deployment_time_str):
     return f"last deployed {value} {unit} ago"
 
 
+# Content items are read with .get() throughout: Connect leaves optional fields out
+# of the payload, and the SDK raises AttributeError for a field accessed as an
+# attribute but absent, which would take out the whole content list over one unusual
+# item. Attribute access is also deprecated in the SDK in favour of key access.
 def is_chattable_content(item):
     return (
-        item.app_mode in CHATTABLE_APP_MODES
-        and item.app_role != "none"
-        and item.content_category != "pin"
+        item.get("app_mode") in CHATTABLE_APP_MODES
+        and item.get("app_role") != "none"
+        and item.get("content_category") != "pin"
     )
 
 
 def content_choice_label(item):
-    title = item.title or item.name or item.guid
-    owner = getattr(item, "owner", None)
-    name = ""
-    if owner is not None:
-        name = f"{owner.first_name or ''} {owner.last_name or ''}".strip()
-    deployed = time_since_deployment(item.last_deployed_time)
+    title = item.get("title") or item.get("name") or item.get("guid")
+    # .get() also sidesteps ContentItem.owner, a property that fetches the owner
+    # over HTTP (one request per item) when Connect didn't include it.
+    owner = item.get("owner") or {}
+    name = f"{owner.get('first_name') or ''} {owner.get('last_name') or ''}".strip()
+    deployed = time_since_deployment(item.get("last_deployed_time"))
 
     # Join only the parts we actually have so the label never shows " -  ".
     suffix = " ".join(part for part in (name, deployed) if part)

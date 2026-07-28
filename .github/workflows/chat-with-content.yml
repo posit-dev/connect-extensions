@@ -25,10 +25,14 @@ jobs:
         with:
           extension-name: ${{ env.EXTENSION_NAME }}
 
-      # Run the Python tests before packaging.
+      # Run the Python tests before packaging. pyproject-file only picks the uv
+      # version, so pin the interpreter separately: without it uv resolves the
+      # newest Python satisfying requires-python, and the tests would stop matching
+      # the version Connect deploys on (manifest.json's python.version).
       - uses: astral-sh/setup-uv@v5
         with:
           pyproject-file: ./extensions/${{ env.EXTENSION_NAME }}/pyproject.toml
+          python-version: "3.12"
 
       - name: Run tests
         run: uv run pytest

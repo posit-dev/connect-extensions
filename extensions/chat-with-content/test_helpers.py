@@ -1,31 +1,57 @@
-# Unit tests for the pure helpers. The Shiny app (app.py) is intentionally kept
-# thin over these functions so the logic can be tested without a running session
-# or any LLM / Connect calls.
+# Unit tests for the pure helpers. Logic goes in helpers.py when it can be tested
+# without a running Shiny session or any LLM / Connect calls; what stays in app.py
+# needs a live session, so it is checked by running the app.
 from datetime import datetime, timedelta, timezone
-from types import SimpleNamespace
+
+import pytest
+from posit.connect.content import ContentItem
 
 import helpers
 
+# "now" is frozen for the time tests so a bucket boundary can be asserted exactly
+# and a slow test run can't tip "5 seconds" over to "6 seconds".
+FROZEN_NOW = datetime(2026, 7, 28, 12, 0, 0, tzinfo=timezone.utc)
 
-def iso_ago(**delta):
-    # ISO timestamp `delta` in the past, in the "...Z" form Connect returns.
-    dt = datetime.now(timezone.utc) - timedelta(**delta)
-    return dt.strftime("%Y-%m-%dT%H:%M:%SZ")
+
+@pytest.fixture
+def frozen_now(monkeypatch):
+    class _FrozenDatetime(datetime):
+        @classmethod
+        def now(cls, tz=None):
+            return FROZEN_NOW
+
+    monkeypatch.setattr(helpers, "datetime", _FrozenDatetime)
+
+
+def ago(**delta):
+    # ISO timestamp `delta` before FROZEN_NOW, in the "...Z" form Connect returns.
+    return (FROZEN_NOW - timedelta(**delta)).strftime("%Y-%m-%dT%H:%M:%SZ")
+
+
+class _FakeContext(dict):
+    # ContentItem wants a context to make further requests with. The helpers never
+    # trigger one, so an empty stand-in is enough.
+    pass
 
 
 def make_item(**overrides):
-    item = {
+    # A real ContentItem, not a look-alike. The SDK raises on an absent field and
+    # exposes `owner` as a property that fetches over HTTP, so a hand-rolled fake
+    # can pass while the real object fails.
+    fields = {
         "guid": "g1",
         "name": "the-name",
         "title": "The Title",
         "app_mode": "static",
         "app_role": "owner",
         "content_category": "",
-        "last_deployed_time": iso_ago(hours=2),
-        "owner": SimpleNamespace(first_name="Ada", last_name="Lovelace"),
+        "last_deployed_time": ago(hours=2),
+        "owner": {"first_name": "Ada", "last_name": "Lovelace"},
     }
-    item.update(overrides)
-    return SimpleNamespace(**item)
+    fields.update(overrides)
+    # None means "Connect left this field out", so drop the key entirely rather
+    # than sending a None the real payload would never contain.
+    return ContentItem(_FakeContext(), **{k: v for k, v in fields.items() if v is not None})
 
 
 # --- running_on_connect ----------------------------------------------------
@@ -44,6 +70,12 @@ def test_running_on_connect_detects_either_env_var(monkeypatch):
 def test_running_on_connect_false_off_connect(monkeypatch):
     monkeypatch.delenv("POSIT_PRODUCT", raising=False)
     monkeypatch.delenv("RSTUDIO_PRODUCT", raising=False)
+    assert helpers.running_on_connect() is False
+
+
+def test_running_on_connect_false_on_another_posit_product(monkeypatch):
+    monkeypatch.delenv("RSTUDIO_PRODUCT", raising=False)
+    monkeypatch.setenv("POSIT_PRODUCT", "WORKBENCH")
     assert helpers.running_on_connect() is False
 
 
@@ -109,6 +141,17 @@ def test_resolve_visitor_other_error_is_surfaced():
     )
 
 
+def test_resolve_visitor_error_without_a_message_still_says_something():
+    # Not every failure is a ClientError with error_message; the viewer must still
+    # be told why rather than getting an empty error screen.
+    c = _FakeClient(raises=RuntimeError("connection refused"))
+    assert helpers.resolve_visitor_client(c, True, "tok") == (
+        c,
+        True,
+        "connection refused",
+    )
+
+
 # --- time_since_deployment -------------------------------------------------
 
 
@@ -123,39 +166,78 @@ def test_time_since_deployment_malformed_returns_empty():
     assert helpers.time_since_deployment("not-a-date") == ""
 
 
-def test_time_since_deployment_naive_timestamp_does_not_crash():
+def test_time_since_deployment_non_string_returns_empty():
+    # Anything that isn't a string has no .replace(); it must degrade, not raise.
+    assert helpers.time_since_deployment(1750000000) == ""
+    assert helpers.time_since_deployment(["2026-01-01"]) == ""
+
+
+def test_time_since_deployment_naive_timestamp_does_not_crash(frozen_now):
     # A timezone-naive but otherwise valid timestamp must be treated as UTC rather
     # than raising when subtracted from an aware "now".
-    naive = (datetime.now(timezone.utc) - timedelta(hours=2)).strftime(
-        "%Y-%m-%dT%H:%M:%S"
-    )
+    naive = (FROZEN_NOW - timedelta(hours=2)).strftime("%Y-%m-%dT%H:%M:%S")
     assert helpers.time_since_deployment(naive) == "last deployed 2 hours ago"
 
 
-def test_time_since_deployment_future():
-    future = (datetime.now(timezone.utc) + timedelta(hours=1)).strftime(
-        "%Y-%m-%dT%H:%M:%SZ"
+def test_time_since_deployment_future(frozen_now):
+    assert (
+        helpers.time_since_deployment(ago(hours=-1))
+        == "last deployed in the future"
     )
-    assert helpers.time_since_deployment(future) == "last deployed in the future"
 
 
-def test_time_since_deployment_units_and_pluralization():
-    assert helpers.time_since_deployment(iso_ago(seconds=5)) == "last deployed 5 seconds ago"
-    assert helpers.time_since_deployment(iso_ago(seconds=90)) == "last deployed 1 minute ago"
-    assert helpers.time_since_deployment(iso_ago(minutes=5)) == "last deployed 5 minutes ago"
-    assert helpers.time_since_deployment(iso_ago(hours=2)) == "last deployed 2 hours ago"
-    assert helpers.time_since_deployment(iso_ago(days=1, hours=1)) == "last deployed 1 day ago"
-    assert helpers.time_since_deployment(iso_ago(days=20)) == "last deployed 2 weeks ago"
-    assert helpers.time_since_deployment(iso_ago(days=45)) == "last deployed 1 month ago"
-    assert helpers.time_since_deployment(iso_ago(days=400)) == "last deployed 1 year ago"
+def test_time_since_deployment_plural_units(frozen_now):
+    assert helpers.time_since_deployment(ago(seconds=5)) == "last deployed 5 seconds ago"
+    assert helpers.time_since_deployment(ago(minutes=5)) == "last deployed 5 minutes ago"
+    assert helpers.time_since_deployment(ago(hours=2)) == "last deployed 2 hours ago"
+    assert helpers.time_since_deployment(ago(days=3)) == "last deployed 3 days ago"
+    assert helpers.time_since_deployment(ago(days=20)) == "last deployed 2 weeks ago"
+    assert helpers.time_since_deployment(ago(days=95)) == "last deployed 3 months ago"
+    assert helpers.time_since_deployment(ago(days=800)) == "last deployed 2 years ago"
+
+
+def test_time_since_deployment_singular_units(frozen_now):
+    # Every unit has its own singular form, so every unit needs pinning.
+    assert helpers.time_since_deployment(ago(seconds=1)) == "last deployed 1 second ago"
+    assert helpers.time_since_deployment(ago(seconds=90)) == "last deployed 1 minute ago"
+    assert helpers.time_since_deployment(ago(hours=1)) == "last deployed 1 hour ago"
+    assert helpers.time_since_deployment(ago(days=1)) == "last deployed 1 day ago"
+    assert helpers.time_since_deployment(ago(days=7)) == "last deployed 1 week ago"
+    assert helpers.time_since_deployment(ago(days=45)) == "last deployed 1 month ago"
+    assert helpers.time_since_deployment(ago(days=400)) == "last deployed 1 year ago"
+
+
+def test_time_since_deployment_unit_boundaries(frozen_now):
+    # Each threshold rolls over to the next unit exactly once, so an off-by-one in
+    # any boundary shows up here.
+    assert helpers.time_since_deployment(ago(seconds=59)) == "last deployed 59 seconds ago"
+    assert helpers.time_since_deployment(ago(seconds=60)) == "last deployed 1 minute ago"
+    assert helpers.time_since_deployment(ago(minutes=59)) == "last deployed 59 minutes ago"
+    assert helpers.time_since_deployment(ago(minutes=60)) == "last deployed 1 hour ago"
+    assert helpers.time_since_deployment(ago(hours=23)) == "last deployed 23 hours ago"
+    assert helpers.time_since_deployment(ago(hours=24)) == "last deployed 1 day ago"
+    assert helpers.time_since_deployment(ago(days=6)) == "last deployed 6 days ago"
+    assert helpers.time_since_deployment(ago(seconds=0)) == "last deployed 0 seconds ago"
 
 
 # --- is_chattable_content --------------------------------------------------
 
 
-def test_is_chattable_content_accepts_static_content():
-    assert helpers.is_chattable_content(make_item()) is True
-    assert helpers.is_chattable_content(make_item(app_mode="quarto-static")) is True
+def test_chattable_modes_are_the_four_static_modes():
+    # Pin the list itself: dropping a mode would silently hide that content type.
+    assert set(helpers.CHATTABLE_APP_MODES) == {
+        "jupyter-static",
+        "quarto-static",
+        "rmd-static",
+        "static",
+    }
+
+
+@pytest.mark.parametrize(
+    "mode", ["static", "quarto-static", "rmd-static", "jupyter-static"]
+)
+def test_is_chattable_content_accepts_every_static_mode(mode):
+    assert helpers.is_chattable_content(make_item(app_mode=mode)) is True
 
 
 def test_is_chattable_content_rejects_interactive_apps():
@@ -170,16 +252,16 @@ def test_is_chattable_content_rejects_unpublished_and_pins():
 # --- content_choice_label --------------------------------------------------
 
 
-def test_content_choice_label_full():
+def test_content_choice_label_full(frozen_now):
     label = helpers.content_choice_label(make_item())
     assert label == "The Title - Ada Lovelace last deployed 2 hours ago"
 
 
 def test_content_choice_label_falls_back_to_name_then_guid():
     assert helpers.content_choice_label(make_item(title=None)).startswith("the-name")
-    assert helpers.content_choice_label(
-        make_item(title=None, name=None)
-    ).startswith("g1")
+    assert helpers.content_choice_label(make_item(title=None, name=None)).startswith(
+        "g1"
+    )
 
 
 def test_content_choice_label_tolerates_missing_owner_and_date():
@@ -193,11 +275,31 @@ def test_content_choice_label_tolerates_missing_owner_and_date():
 def test_content_choice_label_handles_blank_owner_names():
     label = helpers.content_choice_label(
         make_item(
-            owner=SimpleNamespace(first_name=None, last_name=None),
+            owner={"first_name": None, "last_name": None},
             last_deployed_time=None,
         )
     )
     assert label == "The Title"
+
+
+def test_content_choice_label_with_owner_but_no_date():
+    assert helpers.content_choice_label(
+        make_item(last_deployed_time=None)
+    ) == "The Title - Ada Lovelace"
+
+
+def test_content_choice_label_with_date_but_no_owner(frozen_now):
+    assert helpers.content_choice_label(make_item(owner=None)) == (
+        "The Title - last deployed 2 hours ago"
+    )
+
+
+def test_helpers_tolerate_content_missing_every_optional_field():
+    # Connect omits optional fields, and the SDK raises when one is read as an
+    # attribute. One unusual item must not be able to empty the whole selector.
+    bare = ContentItem(_FakeContext(), guid="g9")
+    assert helpers.is_chattable_content(bare) is False
+    assert helpers.content_choice_label(bare) == "g9"
 
 
 # --- truncate_for_context --------------------------------------------------
@@ -208,12 +310,28 @@ def test_truncate_for_context_leaves_short_content_untouched():
     assert helpers.truncate_for_context(text, max_chars=1000) == text
 
 
-def test_truncate_for_context_caps_long_content():
-    text = "a" * 5000
-    result = helpers.truncate_for_context(text, max_chars=1000)
+def test_truncate_for_context_keeps_exactly_the_limit():
+    result = helpers.truncate_for_context("a" * 5000, max_chars=1000)
     assert result.startswith("a" * 1000)
+    # Exactly max_chars of content, not merely "fewer than we started with".
+    assert not result.startswith("a" * 1001)
     assert "truncated" in result
-    assert len(result) < len(text)
+
+
+def test_context_limit_is_the_documented_100k():
+    # The README tells people to tune this, so the shipped value is pinned.
+    assert helpers.MAX_CONTEXT_CHARS == 100_000
+
+
+def test_truncate_for_context_applies_the_limit_by_default():
+    # The default is what production uses; the explicit-max_chars tests above
+    # would pass even if it were wrong.
+    limit = helpers.MAX_CONTEXT_CHARS
+    assert helpers.truncate_for_context("a" * limit) == "a" * limit
+    over = helpers.truncate_for_context("a" * (limit + 1))
+    assert over.startswith("a" * limit)
+    assert not over.startswith("a" * (limit + 1))
+    assert "truncated" in over
 
 
 # --- content_ready ---------------------------------------------------------
