@@ -286,6 +286,19 @@ def test_destroy_process_still_running_returns_504(monkeypatch, api):
     assert "didn't stop" in resp.json()["detail"]
 
 
+def test_destroy_process_culled_after_stop_is_ok(monkeypatch, api):
+    # After destroy(), Connect may cull the job so the poll's find() returns None;
+    # treat that as a successful stop, not a dereference of None (a false error).
+    content = MagicMock()
+    content.jobs.find.side_effect = [FakeJob(status=0), None]
+    monkeypatch.setattr(app.asyncio, "sleep", _noop_sleep)
+    monkeypatch.setattr(
+        app, "get_visitor_client", lambda token: _visitor_with_content(content)
+    )
+
+    assert api.delete("/api/contents/c1/processes/p1").status_code == 200
+
+
 # --- /api/visitor-auth (bootstrap authorization check) ---------------------
 
 

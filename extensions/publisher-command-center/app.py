@@ -16,8 +16,10 @@ client = connect.Client()
 app = FastAPI()
 
 # Cache the per-viewer client by session token (1h TTL) so repeated requests in a
-# session reuse one client instead of re-exchanging the token every call.
-client_cache = TTLCache(maxsize=float("inf"), ttl=3600)
+# session reuse one client instead of re-exchanging the token every call. Bounded so
+# a long-running server with many rotating session tokens can't grow it without limit;
+# an evicted client is simply re-exchanged on the next request.
+client_cache = TTLCache(maxsize=1024, ttl=3600)
 
 
 @cached(client_cache)
@@ -103,9 +105,13 @@ def get_user(posit_connect_user_session_token: str = Header(None)):
 
 @app.get("/api/contents")
 async def contents(posit_connect_user_session_token: str = Header(None)):
-    visitor = get_visitor_client(posit_connect_user_session_token)
+    # Offload the blocking token exchange and listing to threads so they don't block
+    # the event loop (the per-item jobs below already run in threads).
+    visitor = await asyncio.to_thread(
+        get_visitor_client, posit_connect_user_session_token
+    )
     try:
-        all_content = visitor.content.find()
+        all_content = await asyncio.to_thread(visitor.content.find)
     except ClientError as err:
         raise _connect_http_error(err)
     contents = [c for c in all_content if c.app_role in ["owner", "editor"]]
@@ -201,17 +207,23 @@ async def destroy_process(
     process_id: str,
     posit_connect_user_session_token: str = Header(None),
 ):
-    visitor = get_visitor_client(posit_connect_user_session_token)
+    # Offload the blocking posit-sdk calls to threads so the poll loop doesn't block
+    # the event loop.
+    visitor = await asyncio.to_thread(
+        get_visitor_client, posit_connect_user_session_token
+    )
     try:
-        content = visitor.content.get(content_id)
-        job = content.jobs.find(process_id)
+        content = await asyncio.to_thread(lambda: visitor.content.get(content_id))
+        job = await asyncio.to_thread(lambda: content.jobs.find(process_id))
         if not job:
             return  # already gone; nothing to stop
-        job.destroy()
+        await asyncio.to_thread(job.destroy)
         # Poll briefly until the job is no longer active before returning.
         for _ in range(30):
-            job = content.jobs.find(process_id)
-            if job["status"] != 0:
+            job = await asyncio.to_thread(lambda: content.jobs.find(process_id))
+            # A missing job means it was culled after stopping, so treat it as done
+            # rather than dereferencing None (which would surface as a false error).
+            if job is None or job["status"] != 0:
                 return
             await asyncio.sleep(1)
     except ClientError as err:
