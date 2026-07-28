@@ -104,11 +104,22 @@ def test_resolve_visitor_off_connect_uses_client_as_is():
     assert helpers.resolve_visitor_client(c, False, None) == (c, True, None)
 
 
-def test_resolve_visitor_no_token_on_connect_requires_setup():
-    # The key fix: no session token on Connect must NOT fall back to the deploy
-    # client (which would list the deployer's content); it requires setup.
-    c = _FakeClient()
-    assert helpers.resolve_visitor_client(c, True, None) == (c, False, None)
+def test_resolve_visitor_no_token_on_connect_never_uses_the_deploy_client():
+    # No session token on Connect must NOT fall back to the deploy client, which
+    # would list the deployer's content as if it were the viewer's.
+    client, integration_enabled, session_error = helpers.resolve_visitor_client(
+        _FakeClient(), True, None
+    )
+    assert session_error is not None
+    detail, raw = session_error
+    assert raw is None  # nothing technical to show; the cause is the access setup
+    # It must NOT be reported as a missing integration: neither being signed out nor
+    # server-wide OAuth being off is fixed by adding one, so the setup screen (which
+    # integration_enabled=False would trigger) would be unactionable.
+    assert integration_enabled is True
+    assert "signed in" in detail
+    assert "OAuth integrations" in detail
+    assert "Visitor API Key" not in detail
 
 
 def test_resolve_visitor_scopes_to_the_viewer_with_a_token():
@@ -137,7 +148,7 @@ def test_resolve_visitor_other_error_is_surfaced():
     assert helpers.resolve_visitor_client(c, True, "tok") == (
         c,
         True,
-        "permission denied",
+        (helpers.EXCHANGE_FAILED_DETAIL, "permission denied"),
     )
 
 
@@ -148,8 +159,19 @@ def test_resolve_visitor_error_without_a_message_still_says_something():
     assert helpers.resolve_visitor_client(c, True, "tok") == (
         c,
         True,
-        "connection refused",
+        (helpers.EXCHANGE_FAILED_DETAIL, "connection refused"),
     )
+
+
+def test_the_two_session_failures_are_told_apart():
+    # A missing integration is actionable on the Access tab, so it keeps the setup
+    # screen; a missing session is not, so it must not be reported the same way.
+    missing_integration = helpers.resolve_visitor_client(
+        _FakeClient(raises=_FakeError(error_code=212)), True, "tok"
+    )
+    no_session = helpers.resolve_visitor_client(_FakeClient(), True, None)
+    assert missing_integration[1] is False and missing_integration[2] is None
+    assert no_session[1] is True and no_session[2] is not None
 
 
 # --- time_since_deployment -------------------------------------------------

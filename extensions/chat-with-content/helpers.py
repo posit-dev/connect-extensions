@@ -17,16 +17,33 @@ def running_on_connect():
     return "CONNECT" in (os.getenv("POSIT_PRODUCT"), os.getenv("RSTUDIO_PRODUCT"))
 
 
-# Returns (client, integration_enabled, error). The gate is the point: on Connect
-# with no token (or no Visitor API Key integration, Connect error 212), keep the
-# client unchanged and integration_enabled False so the caller shows the setup
-# screen instead of listing the deployer's content. Off Connect, the deploy client
-# is the intended one.
+# What the viewer is told when their session can't be used at all. Adding the
+# integration fixes neither case, so these are kept separate from the setup screen.
+NO_SESSION_DETAIL = (
+    "Couldn't read your Connect session, so the app can't list or read content as "
+    "you. Make sure you're signed in to Connect. If you are, your administrator may "
+    "need to enable OAuth integrations on this server."
+)
+EXCHANGE_FAILED_DETAIL = (
+    "Couldn't read your Connect session, so the app can't list or read content as "
+    "you. The error was:"
+)
+
+
+# Returns (client, integration_enabled, session_error), where session_error is a
+# (detail, raw_error) pair when the viewer's session can't be used and raw_error is
+# None if there is no underlying exception worth showing. The gate is the point:
+# never fall back to the deploy client for a viewer, because that would list the
+# deployer's content as if it were theirs. Off Connect, the deploy client is the
+# intended one.
 def resolve_visitor_client(client, on_connect, token):
     if not on_connect:
         return client, True, None
     if not token:
-        return client, False, None
+        # No token means there is no signed-in viewer to act as: content that allows
+        # anonymous access sends none, and OAuth integrations may be off server-wide.
+        # Neither is fixed on the Access tab, so say that rather than showing setup.
+        return client, True, (NO_SESSION_DETAIL, None)
     try:
         return client.with_user_session_token(token), True, None
     except Exception as err:
@@ -34,7 +51,8 @@ def resolve_visitor_client(client, on_connect, token):
         # missing-integration case (setup screen) rather than a scary error screen.
         if str(getattr(err, "error_code", "")) == "212":
             return client, False, None
-        return client, True, getattr(err, "error_message", None) or str(err)
+        raw = getattr(err, "error_message", None) or str(err)
+        return client, True, (EXCHANGE_FAILED_DETAIL, raw)
 
 
 # Whether the app is fully set up and should load and use the viewer's content.
