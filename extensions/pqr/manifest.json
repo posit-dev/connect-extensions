@@ -1264,6 +1264,9 @@
     ".Rprofile": {
       "checksum": "57f9047cb06fdbef821b61f49e21406e"
     },
+    "_quarto.yml": {
+      "checksum": "6087acf57476d9f95b353c3db3ae0fb2"
+    },
     "index.qmd": {
       "checksum": "e3c9e1907f7e77e8d7da0492e92d9def"
     },
@@ -1289,6 +1292,6 @@
     "category": "example",
     "tags": ["python", "quarto", "r"],
     "minimumConnectVersion": "2025.04.0",
-    "version": "0.1.3"
+    "version": "0.1.4"
   }
 }
