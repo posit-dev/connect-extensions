@@ -52,12 +52,14 @@ Tools run as the signed-in viewer, never as the app:
 
 ## Bundle
 
-The files sent in the deployment bundle are:
+The release tarball is this whole directory, so everything committed here ships,
+including this file. What Connect checksums is `manifest.json`'s `files` list:
 
 - `app.py`
 - `requirements.txt`
 
-`pyproject.toml`, `uv.lock`, and repo docs are not bundled.
+Refresh those checksums whenever you edit one of them. `uv.lock` is gitignored, so it
+never reaches the bundle.
 
 ## Changelog
 

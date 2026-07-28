@@ -64,13 +64,15 @@ There are two distinct layers, and only the first is something a client sets:
 
 ## Bundle
 
-The files sent in the deployment bundle are:
+The release tarball is this whole directory, so everything committed here ships,
+including this file. What Connect checksums is `manifest.json`'s `files` list:
 
-- `main.py`
 - `index.html.jinja`
+- `main.py`
 - `requirements.txt`
 
-`pyproject.toml`, `uv.lock`, and repo docs are not bundled.
+Refresh those checksums whenever you edit one of them. `uv.lock` is gitignored, so it
+never reaches the bundle.
 
 ## Changelog
 
