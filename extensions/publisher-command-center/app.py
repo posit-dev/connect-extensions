@@ -71,18 +71,21 @@ def get_visitor_client(token: Optional[str]) -> connect.Client:
 
 
 # The bootstrap authorization check. On Connect the app is authorized only if the
-# viewer's session token exchanges into a client; no token or a missing integration
-# (error 212) means not authorized, so the frontend shows the setup instructions.
+# viewer's session token exchanges into a client. When it isn't, `reason` tells the
+# frontend which setup message to show: "no_session" when there's no token to read
+# (the viewer isn't signed in, or OAuth integrations are disabled on the server),
+# or "integration_missing" when the Visitor API Key integration hasn't been added
+# (error 212).
 @app.get("/api/visitor-auth")
 def integration_status(posit_connect_user_session_token: str = Header(None)):
     if _running_on_connect():
         if not posit_connect_user_session_token:
-            return {"authorized": False}
+            return {"authorized": False, "reason": "no_session"}
         try:
             _build_visitor_client(posit_connect_user_session_token)
         except ClientError as err:
             if err.error_code == 212:
-                return {"authorized": False}
+                return {"authorized": False, "reason": "integration_missing"}
             raise _connect_http_error(err)
 
     return {"authorized": True}

@@ -32,7 +32,7 @@
   },
   "files": {
     "app.py": {
-      "checksum": "2cb7ceebd5eb47c25f8359805a979f00"
+      "checksum": "f450b2a0423b9952e59dc22a50b11f08"
     },
     "dist/assets/fa-brands-400-D1LuMI3I.ttf": {
       "checksum": "15d54d142da2f2d6f2e90ed1d55121af"
@@ -61,11 +61,11 @@
     "dist/assets/index-Bv8u6L4N.css": {
       "checksum": "4386908c2564af5a16dc7b2eabd4dcc5"
     },
-    "dist/assets/index-CSNFiwIp.js": {
-      "checksum": "0301376827106a86681dfabbbee73b99"
+    "dist/assets/index-ckm9EsEZ.js": {
+      "checksum": "78ea1165825c6dd3671bc42012fdbe0b"
     },
     "dist/index.html": {
-      "checksum": "9198dfda74c0a9e515aeb4b354aa9271"
+      "checksum": "1f0862b5b21021ea6cb3dbd9efd2c7b3"
     },
     "requirements.txt": {
       "checksum": "a162a98758867a701ce693948ffdfa67"

@@ -17,8 +17,11 @@ const root = document.getElementById("app");
 m.request({ method: "GET", url: "api/visitor-auth" })
   .then((res) => {
     if (!res.authorized) {
-      // Unauthorized: mount the UnauthorizedView component.
-      m.mount(root, UnauthorizedView);
+      // Unauthorized: mount the setup card, passing why so it can show the right
+      // instructions (no session to read vs. a missing integration).
+      m.mount(root, {
+        view: () => m(UnauthorizedView, { reason: res.reason }),
+      });
     } else {
       // Authorized: wire up routes.
       m.route(root, "/contents", {

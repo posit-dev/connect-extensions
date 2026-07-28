@@ -293,7 +293,7 @@ def test_visitor_auth_unauthorized_without_session_on_connect(monkeypatch, api):
     monkeypatch.setenv("POSIT_PRODUCT", "CONNECT")
     resp = api.get("/api/visitor-auth")
     assert resp.status_code == 200
-    assert resp.json() == {"authorized": False}
+    assert resp.json() == {"authorized": False, "reason": "no_session"}
 
 
 def test_visitor_auth_unauthorized_when_integration_missing(monkeypatch, api):
@@ -302,7 +302,7 @@ def test_visitor_auth_unauthorized_when_integration_missing(monkeypatch, api):
         app, "_build_visitor_client", MagicMock(side_effect=make_client_error(212))
     )
     resp = api.get("/api/visitor-auth", headers={"Posit-Connect-User-Session-Token": "t"})
-    assert resp.json() == {"authorized": False}
+    assert resp.json() == {"authorized": False, "reason": "integration_missing"}
 
 
 def test_visitor_auth_authorized_off_connect(monkeypatch, api):
