@@ -145,7 +145,12 @@ def content_choice_label(item):
 def truncate_for_context(markdown, max_chars=MAX_CONTEXT_CHARS):
     if len(markdown) <= max_chars:
         return markdown
+    kept = markdown[:max_chars]
+    # Cutting mid-page can leave a code fence open, which would make the model read
+    # the notice below as more code instead of as a note about the content.
+    if kept.count("```") % 2:
+        kept += "\n```"
     return (
-        markdown[:max_chars]
+        kept
         + "\n\n[Content truncated because it exceeds the size this app sends to the model.]"
     )

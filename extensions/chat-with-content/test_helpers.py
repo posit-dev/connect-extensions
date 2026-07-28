@@ -340,6 +340,19 @@ def test_truncate_for_context_keeps_exactly_the_limit():
     assert "truncated" in result
 
 
+def test_truncate_for_context_closes_a_code_fence_it_cut_open():
+    # Cutting inside a fenced block would leave the notice below inside the block,
+    # where the model reads it as more code rather than as a note about the content.
+    result = helpers.truncate_for_context("```python\n" + "x = 1\n" * 500, max_chars=50)
+    assert result.count("```") % 2 == 0
+    assert "\n```\n\n[Content truncated" in result
+
+
+def test_truncate_for_context_leaves_balanced_fences_alone():
+    result = helpers.truncate_for_context("```\ncode\n```\n" + "a" * 5000, max_chars=1000)
+    assert result.count("```") == 2
+
+
 def test_context_limit_is_the_documented_100k():
     # The README tells people to tune this, so the shipped value is pinned.
     assert helpers.MAX_CONTEXT_CHARS == 100_000

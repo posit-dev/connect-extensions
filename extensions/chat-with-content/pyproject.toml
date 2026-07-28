@@ -10,7 +10,9 @@ dependencies = [
     "google-genai>=1.22.0",
     "markdownify>=1.1.0",
     "openai>=1.91.0",
-    "posit-sdk>=0.10.0",
+    # Upper bound matches requirements.txt: posit-sdk 1.0.0 removes attribute access
+    # on API objects, which this app relies on the dict form of.
+    "posit-sdk>=0.10.0,<1.0.0",
     "shiny>=1.4.0",
     "chatlas>=0.10.0",
 ]
