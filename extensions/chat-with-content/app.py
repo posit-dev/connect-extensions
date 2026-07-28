@@ -1,6 +1,7 @@
+import concurrent.futures
 import os
 from posit import connect
-from chatlas import ChatAuto, ChatBedrockAnthropic, SystemTurn, UserTurn
+from chatlas import ChatAuto, ChatBedrockAnthropic, SystemTurn
 import markdownify
 from shiny import App, Inputs, Outputs, Session, ui, reactive, render
 
@@ -17,21 +18,33 @@ from helpers import (
 # picks up credentials from an instance role, so it needs no API key.
 BEDROCK_MODEL = "us.anthropic.claude-sonnet-4-5-20250929-v1:0"
 
+# Cap the startup Bedrock probe so a reachable-but-slow endpoint can't hang the worker.
+BEDROCK_PROBE_TIMEOUT_SECONDS = 10
+
 
 def check_aws_bedrock_credentials():
     # Probe for usable Bedrock credentials by making a real (throwaway) Bedrock call.
     # Bedrock is the zero-config fallback: this only runs when no provider is set via
     # CHATLAS_CHAT_PROVIDER_MODEL, so an explicit choice is never probed over.
-    try:
-        chat = ChatBedrockAnthropic(model=BEDROCK_MODEL)
-        chat.chat("test", echo="none")
+    # The probe makes a live network call at import, so run it under a timeout: a
+    # reachable-but-slow Bedrock (partial credentials, throttling) must not block
+    # worker startup. On timeout, fall back to the setup screen.
+    def _probe():
+        ChatBedrockAnthropic(model=BEDROCK_MODEL).chat("test", echo="none")
         return True
+
+    pool = concurrent.futures.ThreadPoolExecutor(max_workers=1)
+    try:
+        return pool.submit(_probe).result(timeout=BEDROCK_PROBE_TIMEOUT_SECONDS)
     except Exception as e:
         print(
-            f"AWS Bedrock credential probe failed; with no LLM provider configured, "
-            f"the app will show the setup screen. Err: {e}"
+            f"AWS Bedrock credential probe failed or timed out; with no LLM provider "
+            f"configured, the app will show the setup screen. Err: {e}"
         )
         return False
+    finally:
+        # Don't wait on a hung probe thread; let startup continue.
+        pool.shutdown(wait=False)
 
 
 def fetch_connect_content_list(client: connect.Client):
@@ -248,7 +261,9 @@ app_ui = ui.page_sidebar(
                     // this isn't the content we asked for, so don't summarize it.
                     return;
                 }
-                Shiny.setInputValue('iframe_content', content);
+                // priority 'event' so selecting a different item whose HTML is
+                // byte-identical to the last still re-fires and re-summarizes.
+                Shiny.setInputValue('iframe_content', content, {priority: 'event'});
             };
         });
     """),
@@ -275,7 +290,6 @@ HAS_AWS_BEDROCK_CREDENTIALS = (
 def server(input: Inputs, output: Outputs, session: Session):
     client = connect.Client()
     chat_obj = ui.Chat("chat", on_error="actual")
-    current_markdown = reactive.Value("")
 
     # Scope the client to the signed-in viewer. On Connect with no session token
     # (or no Visitor API Key integration), integration_enabled is False so the
@@ -428,15 +442,14 @@ def server(input: Inputs, output: Outputs, session: Session):
         markdown = truncate_for_context(
             markdownify.markdownify(input.iframe_content(), heading_style="atx")
         )
-        current_markdown.set(markdown)
 
-        chat._turns = [
-            SystemTurn(chat.system_prompt),
-            UserTurn(f"<context>{markdown}</context>"),
-        ]
-
+        # Reset the conversation to just the system prompt, then send the content and
+        # the summary request together as one user turn. Sending them as two separate
+        # user turns puts two user messages in a row, which strict providers (Anthropic
+        # on Bedrock, the zero-config fallback) reject.
+        chat._turns = [SystemTurn(chat.system_prompt)]
         response = await chat.stream_async(
-            """Write a brief "### Summary" of the content."""
+            f'<context>{markdown}</context>\n\nWrite a brief "### Summary" of the content.'
         )
         await chat_obj.append_message_stream(response)
 

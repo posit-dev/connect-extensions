@@ -38,10 +38,10 @@
   },
   "files": {
     "requirements.txt": {
-      "checksum": "0c56ba1ce838560d153c50e71dc2b025"
+      "checksum": "cb941e127f37bee990fb5d435ae994ff"
     },
     "app.py": {
-      "checksum": "9ea3ec38d0104e0aa63a9681321e9777"
+      "checksum": "15a43097e593d3a9ff50785833a1d3f9"
     },
     "helpers.py": {
       "checksum": "6c84b2c2aa126481f9daf150523dd704"

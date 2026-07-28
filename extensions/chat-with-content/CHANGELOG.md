@@ -22,8 +22,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   step still missing rather than repeating both. (#433)
 - Refreshed the default model names to Claude Sonnet 4.5. (#433)
 - Skip the AWS Bedrock credential probe at startup when a chat provider is
-  configured, so the app doesn't wait on an unnecessary Bedrock call before
-  loading. (#433)
+  configured, and cap it with a timeout when it does run, so a slow or
+  unreachable Bedrock endpoint can't delay or hang the app's startup. (#433)
 - Show the actual error in the chat when a request fails, instead of a generic
   message. (#433)
 
@@ -39,6 +39,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   server), it shows the setup screen instead of listing the deployer's content. (#433)
 - Don't summarize an unrelated page if the content frame redirects cross-origin
   (for example to an external login). (#433)
+- Re-summarize when you switch to a different content item whose rendered HTML is
+  byte-identical to the previous one, instead of leaving the earlier summary up. (#433)
 - Truncated large content before sending it to the model so a big page can't
   overflow the context window. (#433)
 
