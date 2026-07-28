@@ -14,12 +14,11 @@ for your own.
 Pick a portfolio, a starting date, a Minimum Acceptable Rate (MAR), and a
 rolling-window length in the sidebar, and four linked plots update:
 
-- **Rolling Sortino**: the Sortino ratio over the rolling window, with a range
-  selector.
-- **Scatterplot**: monthly returns, colored by whether they land above or below
+- A rolling Sortino plot of the ratio over the window, with a range selector.
+- A scatterplot of monthly returns, colored by whether they land above or below
   the MAR.
-- **Histogram**: the distribution of returns, with the MAR marked.
-- **Density**: the return density, with the downside (below-MAR) region shaded.
+- A histogram of the return distribution, with the MAR marked.
+- A density plot of returns, with the downside (below-MAR) region shaded.
 
 The Sortino ratio measures return per unit of *downside* volatility (returns
 below the MAR), so unlike the Sharpe ratio it doesn't penalize upside swings.
