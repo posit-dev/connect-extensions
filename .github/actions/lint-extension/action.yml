@@ -182,15 +182,15 @@ runs:
         EXT_DIR=./extensions/${{ inputs.extension-name }}
 
         # Without a _quarto.yml the directory is not a project, so Connect renders
-        # only the entrypoint and no sibling document becomes a page. A
-        # _quarto.yml that exists but is invalid is a real error, so let
-        # `quarto inspect` fail loudly rather than treating it the same as "not
-        # a project".
-        if [ ! -f "$EXT_DIR/_quarto.yml" ]; then
-          echo "No _quarto.yml; only the entrypoint renders. OK."
+        # only the entrypoint and no sibling document becomes a page. This also
+        # catches engines that need a runtime this job doesn't install (e.g. a
+        # bare .R script needs Rscript just to be inspected), so a quarto
+        # inspect failure is treated the same as "not a project" rather than
+        # failing the lint.
+        if ! INSPECT=$(quarto inspect "$EXT_DIR" 2>/dev/null); then
+          echo "Not a Quarto project, or inspection needs a runtime this job doesn't have; only the entrypoint renders. OK."
           exit 0
         fi
-        INSPECT=$(quarto inspect "$EXT_DIR")
 
         # Websites legitimately render many pages and serve index.html by convention.
         PROJECT_TYPE=$(jq -r '.config.project.type // "default"' <<< "$INSPECT")
