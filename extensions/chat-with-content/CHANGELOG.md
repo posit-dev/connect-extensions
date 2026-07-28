@@ -18,6 +18,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Rewrote the description and the README. (#448)
 - The setup screen now shows only the step still missing rather than repeating
   both. (#447)
 - Refreshed the default model names to Claude Sonnet 4.5. (#447)

@@ -21,7 +21,7 @@
   "extension": {
     "name": "chat-with-content",
     "title": "Chat with Content",
-    "description": "Provides a way to interact with and query content using an LLM chat interface.",
+    "description": "Chat with your published content on Connect using an LLM. Pick a report, notebook, or static page you can access, and the app answers questions about it in a chat panel beside the rendered page, running as the signed-in viewer through a Connect Visitor API Key so each person only chats with content they are allowed to open. Works with OpenAI, Anthropic, Google, Azure, or AWS Bedrock.",
     "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/chat-with-content",
     "category": "extension",
     "tags": [
@@ -34,7 +34,7 @@
     "requiredFeatures": [
       "OAuth Integrations"
     ],
-    "version": "0.0.7"
+    "version": "0.0.8"
   },
   "files": {
     "requirements.txt": {
