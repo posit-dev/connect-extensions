@@ -147,8 +147,12 @@ def truncate_for_context(markdown, max_chars=MAX_CONTEXT_CHARS):
         return markdown
     kept = markdown[:max_chars]
     # Cutting mid-page can leave a code fence open, which would make the model read
-    # the notice below as more code instead of as a note about the content.
-    if kept.count("```") % 2:
+    # the notice below as more code instead of as a note about the content. Only a
+    # fence starting a line opens or closes a block: page content that merely
+    # mentions ``` mid-line must not be counted, or a balanced block would be
+    # "closed" again and the notice pushed inside the new one.
+    fences = sum(1 for line in kept.splitlines() if line.lstrip().startswith("```"))
+    if fences % 2:
         kept += "\n```"
     return (
         kept

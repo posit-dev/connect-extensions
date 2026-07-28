@@ -51,7 +51,9 @@ def make_item(**overrides):
     fields.update(overrides)
     # None means "Connect left this field out", so drop the key entirely rather
     # than sending a None the real payload would never contain.
-    return ContentItem(_FakeContext(), **{k: v for k, v in fields.items() if v is not None})
+    return ContentItem(
+        _FakeContext(), **{k: v for k, v in fields.items() if v is not None}
+    )
 
 
 # --- running_on_connect ----------------------------------------------------
@@ -202,15 +204,16 @@ def test_time_since_deployment_naive_timestamp_does_not_crash(frozen_now):
 
 
 def test_time_since_deployment_future(frozen_now):
-    assert (
-        helpers.time_since_deployment(ago(hours=-1))
-        == "last deployed in the future"
-    )
+    assert helpers.time_since_deployment(ago(hours=-1)) == "last deployed in the future"
 
 
 def test_time_since_deployment_plural_units(frozen_now):
-    assert helpers.time_since_deployment(ago(seconds=5)) == "last deployed 5 seconds ago"
-    assert helpers.time_since_deployment(ago(minutes=5)) == "last deployed 5 minutes ago"
+    assert (
+        helpers.time_since_deployment(ago(seconds=5)) == "last deployed 5 seconds ago"
+    )
+    assert (
+        helpers.time_since_deployment(ago(minutes=5)) == "last deployed 5 minutes ago"
+    )
     assert helpers.time_since_deployment(ago(hours=2)) == "last deployed 2 hours ago"
     assert helpers.time_since_deployment(ago(days=3)) == "last deployed 3 days ago"
     assert helpers.time_since_deployment(ago(days=20)) == "last deployed 2 weeks ago"
@@ -221,7 +224,9 @@ def test_time_since_deployment_plural_units(frozen_now):
 def test_time_since_deployment_singular_units(frozen_now):
     # Every unit has its own singular form, so every unit needs pinning.
     assert helpers.time_since_deployment(ago(seconds=1)) == "last deployed 1 second ago"
-    assert helpers.time_since_deployment(ago(seconds=90)) == "last deployed 1 minute ago"
+    assert (
+        helpers.time_since_deployment(ago(seconds=90)) == "last deployed 1 minute ago"
+    )
     assert helpers.time_since_deployment(ago(hours=1)) == "last deployed 1 hour ago"
     assert helpers.time_since_deployment(ago(days=1)) == "last deployed 1 day ago"
     assert helpers.time_since_deployment(ago(days=7)) == "last deployed 1 week ago"
@@ -232,14 +237,22 @@ def test_time_since_deployment_singular_units(frozen_now):
 def test_time_since_deployment_unit_boundaries(frozen_now):
     # Each threshold rolls over to the next unit exactly once, so an off-by-one in
     # any boundary shows up here.
-    assert helpers.time_since_deployment(ago(seconds=59)) == "last deployed 59 seconds ago"
-    assert helpers.time_since_deployment(ago(seconds=60)) == "last deployed 1 minute ago"
-    assert helpers.time_since_deployment(ago(minutes=59)) == "last deployed 59 minutes ago"
+    assert (
+        helpers.time_since_deployment(ago(seconds=59)) == "last deployed 59 seconds ago"
+    )
+    assert (
+        helpers.time_since_deployment(ago(seconds=60)) == "last deployed 1 minute ago"
+    )
+    assert (
+        helpers.time_since_deployment(ago(minutes=59)) == "last deployed 59 minutes ago"
+    )
     assert helpers.time_since_deployment(ago(minutes=60)) == "last deployed 1 hour ago"
     assert helpers.time_since_deployment(ago(hours=23)) == "last deployed 23 hours ago"
     assert helpers.time_since_deployment(ago(hours=24)) == "last deployed 1 day ago"
     assert helpers.time_since_deployment(ago(days=6)) == "last deployed 6 days ago"
-    assert helpers.time_since_deployment(ago(seconds=0)) == "last deployed 0 seconds ago"
+    assert (
+        helpers.time_since_deployment(ago(seconds=0)) == "last deployed 0 seconds ago"
+    )
 
 
 # --- is_chattable_content --------------------------------------------------
@@ -287,9 +300,7 @@ def test_content_choice_label_falls_back_to_name_then_guid():
 
 
 def test_content_choice_label_tolerates_missing_owner_and_date():
-    label = helpers.content_choice_label(
-        make_item(owner=None, last_deployed_time=None)
-    )
+    label = helpers.content_choice_label(make_item(owner=None, last_deployed_time=None))
     # No owner and no deploy time -> just the title, no dangling " - ".
     assert label == "The Title"
 
@@ -305,9 +316,10 @@ def test_content_choice_label_handles_blank_owner_names():
 
 
 def test_content_choice_label_with_owner_but_no_date():
-    assert helpers.content_choice_label(
-        make_item(last_deployed_time=None)
-    ) == "The Title - Ada Lovelace"
+    assert (
+        helpers.content_choice_label(make_item(last_deployed_time=None))
+        == "The Title - Ada Lovelace"
+    )
 
 
 def test_content_choice_label_with_date_but_no_owner(frozen_now):
@@ -349,8 +361,25 @@ def test_truncate_for_context_closes_a_code_fence_it_cut_open():
 
 
 def test_truncate_for_context_leaves_balanced_fences_alone():
-    result = helpers.truncate_for_context("```\ncode\n```\n" + "a" * 5000, max_chars=1000)
+    result = helpers.truncate_for_context(
+        "```\ncode\n```\n" + "a" * 5000, max_chars=1000
+    )
     assert result.count("```") == 2
+
+
+def test_truncate_for_context_ignores_a_fence_mentioned_mid_line():
+    # markdownify copies <pre> bodies verbatim, so a page that documents markdown can
+    # contain ``` inside an already-closed block. Counting those would "close" the
+    # block a second time and push the notice inside the new one.
+    body = "x" * 40 + "\n```text\nTo make a code block write ```\nlike that\n```\n"
+    result = helpers.truncate_for_context(body + "y" * 200, max_chars=len(body))
+    assert result.endswith("]")
+    # The notice must sit outside any block: an even number of fence lines precede it.
+    before_notice = result.split("\n\n[Content truncated")[0]
+    fence_lines = sum(
+        1 for line in before_notice.splitlines() if line.lstrip().startswith("```")
+    )
+    assert fence_lines % 2 == 0
 
 
 def test_context_limit_is_the_documented_100k():
