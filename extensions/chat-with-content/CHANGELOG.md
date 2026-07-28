@@ -11,6 +11,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Guarded against content with a missing, malformed, or timezone-naive deployment
   time, which could previously leave the whole content list empty. (#446)
+- Close a code block that truncation cut open, so the model reads the truncation
+  note as a note rather than as more code. (#446)
 
 ## [0.0.7] - 2026-06-15
 
