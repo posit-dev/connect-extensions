@@ -5,6 +5,13 @@ All notable changes to the Chat with Content extension will be documented in thi
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.0.8] - 2026-07-17
+
+### Fixed
+
+- Guarded against content with a missing, malformed, or timezone-naive deployment
+  time, which could previously leave the whole content list empty. (#446)
+
 ## [0.0.7] - 2026-06-15
 
 ### Changed

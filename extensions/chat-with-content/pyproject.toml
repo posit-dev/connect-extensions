@@ -1,17 +1,22 @@
 [project]
 name = "chat-with-content"
 version = "0.1.0"
-description = "Add your description here"
+description = "Shiny app that lets Connect viewers chat with their deployed content using an LLM."
 readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [
     "anthropic[bedrock]>=0.54.0",
     "boto3>=1.38.40",
-    "chatlas",
     "google-genai>=1.22.0",
     "markdownify>=1.1.0",
     "openai>=1.91.0",
     "posit-sdk>=0.10.0",
     "shiny>=1.4.0",
     "chatlas>=0.10.0",
+]
+
+# Test-only dependencies; not bundled into the extension (requirements.txt is).
+[dependency-groups]
+dev = [
+    "pytest>=8",
 ]
