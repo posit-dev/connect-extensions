@@ -19,7 +19,7 @@ to manage Node.js versions.
 1. Run `uv run fastapi dev app.py` to start the FastAPI server.
 2. Run the frontend development server with `npm run dev`.
 
-## Testing
+## Tests
 
 - Backend: `uv run pytest` runs the FastAPI API tests in `test_app.py`.
 - Frontend: `npm test` runs the frontend unit tests with [Vitest](https://vitest.dev/).
@@ -39,15 +39,6 @@ From there the required files to be sent in the bundle are:
 
 ## Changelog
 
-We use the [CHANGELOG](./CHANGELOG.md) to document all notable changes to the
-Publisher Command Center. When contributing, update the changelog as follows:
-
-1. For unreleased changes:
-   - Add your changes to the "Unreleased" section
-   - Include a brief description under the appropriate subsection
-     using the [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) format
-   - Reference any PR or issue number (e.g., #123)
-
-2. For releases:
-   - A new version section will be created during the release process
-   - Follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html) guidelines
+Update the [CHANGELOG](./CHANGELOG.md) using the
+[Keep a Changelog](https://keepachangelog.com/en/1.1.0/) format, referencing the
+PR number, and bump `extension.version` in `manifest.json` to trigger a release.

@@ -9,11 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Backend test suite (`test_app.py`) and frontend test suite (`vitest`), both run
-  in CI. (#434)
 - A "how this works" panel showing that the app acts as the signed-in viewer via
   a Connect Visitor API Key, with no admin key stored. (#434)
-- Set `category` to `extension` and rewrote the description and README. (#434)
+- Rewrote the description and README. (#434)
 - Clear error notifications when a write action (lock, rename, delete, or stop
   process) fails, instead of failing silently. (#434)
 - Error messages now include the reason reported by Connect (both failed actions
@@ -66,7 +64,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   credentials. (#434)
 - Deleted the non-functional Metrics feature (it was unreferenced, depended on an
   undeclared Chart.js global, and rendered hardcoded data) and its API endpoint. (#434)
-- Removed stray `console.log`s and dead imports. (#434)
 
 ## [0.0.8] - 2026-06-09
 
