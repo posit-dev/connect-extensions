@@ -229,7 +229,9 @@ app_ui = ui.page_sidebar(
         ),
         # Show the viewer how their identity and permissions drive the app
         ui.output_ui("identity_note"),
-        ui.input_selectize("content_selection", "", choices=[], width="100%"),
+        # Rendered with its choices (see content_selector) rather than declared empty
+        # and filled with update_select, so the dropdown paints already populated.
+        ui.output_ui("content_selector"),
         ui.chat_ui(
             "chat",
             placeholder="Type your question here...",
@@ -374,7 +376,12 @@ def server(input: Inputs, output: Outputs, session: Session):
             class_="text-muted small",
         )
 
-    # Set up content selector
+    # The content selector's choices. Held in a reactive value and rendered directly
+    # by content_selector, so the dropdown is populated when it first paints instead
+    # of racing an update_select message against the dynamically rendered screen.
+    selector_choices = reactive.Value({})
+
+    # Load the viewer's content into the selector.
     @reactive.Effect
     def _():
         # This effect runs regardless of which screen is rendered, so it gates on
@@ -387,7 +394,7 @@ def server(input: Inputs, output: Outputs, session: Session):
             content_list = fetch_connect_content_list(client)
             # Build the labels inside the try too, so a bad item surfaces the error
             # rather than silently leaving the selector empty.
-            content_choices = {
+            choices = {
                 item.guid: content_choice_label(item) for item in content_list
             }
         except Exception as err:
@@ -400,16 +407,22 @@ def server(input: Inputs, output: Outputs, session: Session):
                 duration=None,
             )
             return
-        if not content_choices:
+        if not choices:
             ui.notification_show(
                 "You don't have any content available to chat with.",
                 type="message",
                 duration=None,
             )
             return
-        ui.update_select(
+        selector_choices.set({"": "Select content", **choices})
+
+    @render.ui
+    def content_selector():
+        return ui.input_selectize(
             "content_selection",
-            choices={"": "Select content", **content_choices},
+            "",
+            choices=selector_choices.get(),
+            width="100%",
         )
 
     # Update iframe when content selection changes
