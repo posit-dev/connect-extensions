@@ -29,6 +29,15 @@ BEDROCK_PROBE_TIMEOUT_SECONDS = 10
 # ten-minute default.
 STREAM_STALL_TIMEOUT_SECONDS = 120
 
+# Give up on a Connect API call (session exchange, listing content, opening an
+# item). The SDK sets no request timeout of its own, so an unresponsive Connect
+# server would otherwise hang the calling task indefinitely. This bounds how long
+# the app waits, not how long the underlying thread runs: asyncio.to_thread can't
+# interrupt a call already in flight, so a timeout here lets the app move on and
+# report the failure, though the abandoned thread still runs until Connect (or the
+# OS) eventually gives up on its end.
+CONNECT_API_TIMEOUT_SECONDS = 30
+
 
 def check_aws_bedrock_credentials():
     # Probe for usable Bedrock credentials by making a real (throwaway) Bedrock call.
@@ -389,9 +398,24 @@ def server(input: Inputs, output: Outputs, session: Session):
         # integration_enabled is False so the setup screen shows; session_error
         # carries the cases setup can't fix (no signed-in viewer, or the exchange
         # failing) so the screen can say why.
-        scoped_client, integration_enabled, session_error = await asyncio.to_thread(
-            resolve_visitor_client, deploy_client, on_connect, token
-        )
+        try:
+            scoped_client, integration_enabled, session_error = await asyncio.wait_for(
+                asyncio.to_thread(
+                    resolve_visitor_client, deploy_client, on_connect, token
+                ),
+                CONNECT_API_TIMEOUT_SECONDS,
+            )
+        except asyncio.TimeoutError:
+            print(
+                f"chat-with-content: session token exchange timed out after "
+                f"{CONNECT_API_TIMEOUT_SECONDS} seconds"
+            )
+            scoped_client, integration_enabled, session_error = (
+                deploy_client,
+                True,
+                "Couldn't read your Connect session: Connect didn't respond in "
+                "time. Try reloading the page.",
+            )
         name = "you"
         # None until content is actually attempted, so the loading effect below can
         # tell "not set up yet" apart from "set up, but there's nothing to show".
@@ -402,8 +426,9 @@ def server(input: Inputs, output: Outputs, session: Session):
             async def _load_choices():
                 nonlocal choices, content_error
                 try:
-                    content_list = await asyncio.to_thread(
-                        fetch_connect_content_list, scoped_client
+                    content_list = await asyncio.wait_for(
+                        asyncio.to_thread(fetch_connect_content_list, scoped_client),
+                        CONNECT_API_TIMEOUT_SECONDS,
                     )
                     # Build the labels here too, so a bad item surfaces the error
                     # rather than silently leaving the selector empty.
@@ -414,10 +439,11 @@ def server(input: Inputs, output: Outputs, session: Session):
                 except Exception as err:
                     # The raw cause may be full of Connect API/SDK detail a viewer
                     # can't act on, so it goes to the log rather than onto the toast.
-                    print(
-                        f"chat-with-content: couldn't load content list: "
-                        f"{err.__cause__ or err}"
-                    )
+                    if isinstance(err, asyncio.TimeoutError):
+                        cause = f"timed out after {CONNECT_API_TIMEOUT_SECONDS} seconds"
+                    else:
+                        cause = err.__cause__ or err
+                    print(f"chat-with-content: couldn't load content list: {cause}")
                     content_error = (
                         "Couldn't load your content from Connect. Try reloading "
                         "the page; if this keeps happening, contact your "
@@ -427,7 +453,10 @@ def server(input: Inputs, output: Outputs, session: Session):
             async def _load_name():
                 nonlocal name
                 try:
-                    me = await asyncio.to_thread(lambda: scoped_client.me)
+                    me = await asyncio.wait_for(
+                        asyncio.to_thread(lambda: scoped_client.me),
+                        CONNECT_API_TIMEOUT_SECONDS,
+                    )
                     name = (
                         f"{me.get('first_name', '')} {me.get('last_name', '')}".strip()
                         or me.get("username")
@@ -676,14 +705,18 @@ def server(input: Inputs, output: Outputs, session: Session):
         try:
             # to_thread: content.get() is blocking I/O, and this effect runs under
             # the process-wide reactive lock during a flush (see resolve_session).
-            content = await asyncio.to_thread(scoped_client.content.get, selection)
+            content = await asyncio.wait_for(
+                asyncio.to_thread(scoped_client.content.get, selection),
+                CONNECT_API_TIMEOUT_SECONDS,
+            )
         except Exception as err:
             # The raw cause may be full of Connect API/SDK detail a viewer can't act
             # on, so it goes to the log rather than onto the toast.
-            print(
-                f"chat-with-content: couldn't open content {selection}: "
-                f"{err.__cause__ or err}"
-            )
+            if isinstance(err, asyncio.TimeoutError):
+                cause = f"timed out after {CONNECT_API_TIMEOUT_SECONDS} seconds"
+            else:
+                cause = err.__cause__ or err
+            print(f"chat-with-content: couldn't open content {selection}: {cause}")
             ui.notification_show(
                 "Couldn't open that content. Try selecting it again; if this keeps "
                 "happening, contact your administrator.",
