@@ -7,6 +7,7 @@ import markdownify
 from shiny import App, Inputs, Outputs, Session, ui, reactive, render
 
 from helpers import (
+    SESSION_TIMEOUT_DETAIL,
     content_choice_label,
     content_ready,
     is_chattable_content,
@@ -29,14 +30,21 @@ BEDROCK_PROBE_TIMEOUT_SECONDS = 10
 # ten-minute default.
 STREAM_STALL_TIMEOUT_SECONDS = 120
 
-# Give up on a Connect API call (session exchange, listing content, opening an
-# item). The SDK sets no request timeout of its own, so an unresponsive Connect
-# server would otherwise hang the calling task indefinitely. This bounds how long
-# the app waits, not how long the underlying thread runs: asyncio.to_thread can't
-# interrupt a call already in flight, so a timeout here lets the app move on and
-# report the failure, though the abandoned thread still runs until Connect (or the
-# OS) eventually gives up on its end.
+# Give up on a single-item Connect API call: the session token exchange, reading
+# the viewer's own name, or opening a selected item. The SDK sets no request
+# timeout of its own, so an unresponsive Connect server would otherwise hang the
+# calling task indefinitely. This bounds how long the app waits, not how long the
+# underlying thread runs: asyncio.to_thread can't interrupt a call already in
+# flight, so a timeout here lets the app move on and report the failure, though
+# the abandoned thread still runs until Connect (or the OS) eventually gives up on
+# its end.
 CONNECT_API_TIMEOUT_SECONDS = 30
+
+# Give up on listing the viewer's content. Separate from CONNECT_API_TIMEOUT_SECONDS
+# because content.find() is a paginated fetch of everything the viewer can see, not
+# a single-item lookup: on a large Connect instance it can legitimately take longer
+# than the single-item timeout without anything being wrong.
+CONTENT_LIST_TIMEOUT_SECONDS = 120
 
 
 def check_aws_bedrock_credentials():
@@ -413,8 +421,7 @@ def server(input: Inputs, output: Outputs, session: Session):
             scoped_client, integration_enabled, session_error = (
                 deploy_client,
                 True,
-                "Couldn't read your Connect session: Connect didn't respond in "
-                "time. Try reloading the page.",
+                SESSION_TIMEOUT_DETAIL,
             )
         name = "you"
         # None until content is actually attempted, so the loading effect below can
@@ -428,7 +435,7 @@ def server(input: Inputs, output: Outputs, session: Session):
                 try:
                     content_list = await asyncio.wait_for(
                         asyncio.to_thread(fetch_connect_content_list, scoped_client),
-                        CONNECT_API_TIMEOUT_SECONDS,
+                        CONTENT_LIST_TIMEOUT_SECONDS,
                     )
                     # Build the labels here too, so a bad item surfaces the error
                     # rather than silently leaving the selector empty.
@@ -440,7 +447,9 @@ def server(input: Inputs, output: Outputs, session: Session):
                     # The raw cause may be full of Connect API/SDK detail a viewer
                     # can't act on, so it goes to the log rather than onto the toast.
                     if isinstance(err, asyncio.TimeoutError):
-                        cause = f"timed out after {CONNECT_API_TIMEOUT_SECONDS} seconds"
+                        cause = (
+                            f"timed out after {CONTENT_LIST_TIMEOUT_SECONDS} seconds"
+                        )
                     else:
                         cause = err.__cause__ or err
                     print(f"chat-with-content: couldn't load content list: {cause}")
