@@ -398,35 +398,47 @@ def server(input: Inputs, output: Outputs, session: Session):
         choices = None
         content_error = None
         if content_ready(session_error, chat, integration_enabled):
-            try:
-                content_list = await asyncio.to_thread(
-                    fetch_connect_content_list, scoped_client
-                )
-                # Build the labels here too, so a bad item surfaces the error rather
-                # than silently leaving the selector empty.
-                choices = {
-                    item["guid"]: content_choice_label(item) for item in content_list
-                }
-            except Exception as err:
-                # The raw cause may be full of Connect API/SDK detail a viewer can't
-                # act on, so it goes to the log rather than onto the toast.
-                print(
-                    f"chat-with-content: couldn't load content list: "
-                    f"{err.__cause__ or err}"
-                )
-                content_error = (
-                    "Couldn't load your content from Connect. Try reloading the "
-                    "page; if this keeps happening, contact your administrator."
-                )
-            try:
-                me = await asyncio.to_thread(lambda: scoped_client.me)
-                name = (
-                    f"{me.get('first_name', '')} {me.get('last_name', '')}".strip()
-                    or me.get("username")
-                    or "you"
-                )
-            except Exception:
-                pass
+
+            async def _load_choices():
+                nonlocal choices, content_error
+                try:
+                    content_list = await asyncio.to_thread(
+                        fetch_connect_content_list, scoped_client
+                    )
+                    # Build the labels here too, so a bad item surfaces the error
+                    # rather than silently leaving the selector empty.
+                    choices = {
+                        item["guid"]: content_choice_label(item)
+                        for item in content_list
+                    }
+                except Exception as err:
+                    # The raw cause may be full of Connect API/SDK detail a viewer
+                    # can't act on, so it goes to the log rather than onto the toast.
+                    print(
+                        f"chat-with-content: couldn't load content list: "
+                        f"{err.__cause__ or err}"
+                    )
+                    content_error = (
+                        "Couldn't load your content from Connect. Try reloading "
+                        "the page; if this keeps happening, contact your "
+                        "administrator."
+                    )
+
+            async def _load_name():
+                nonlocal name
+                try:
+                    me = await asyncio.to_thread(lambda: scoped_client.me)
+                    name = (
+                        f"{me.get('first_name', '')} {me.get('last_name', '')}".strip()
+                        or me.get("username")
+                        or "you"
+                    )
+                except Exception:
+                    pass
+
+            # Independent of each other, so run them concurrently rather than
+            # paying for two sequential Connect API round trips.
+            await asyncio.gather(_load_choices(), _load_name())
         return (
             scoped_client,
             integration_enabled,
@@ -660,7 +672,7 @@ def server(input: Inputs, output: Outputs, session: Session):
             return
         # The dropdown is only populated once resolve_session has succeeded, so its
         # result is available here without blocking.
-        scoped_client, *_ = resolve_session.result()
+        scoped_client, _, _, _, _, _ = resolve_session.result()
         try:
             # to_thread: content.get() is blocking I/O, and this effect runs under
             # the process-wide reactive lock during a flush (see resolve_session).
