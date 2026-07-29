@@ -13,8 +13,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   content with their own permissions via the Visitor API Key, and stores no admin
   key. (#447)
 - Clear, persistent error notifications when content can't be listed or opened
-  from Connect, showing the reason instead of leaving the selector silently
-  empty, plus a message when you have no content available to chat with. (#447)
+  from Connect, instead of leaving the selector silently empty, plus a message
+  when you have no content available to chat with. (#447)
 
 ### Changed
 
@@ -24,8 +24,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Skip the AWS Bedrock credential probe at startup when a chat provider is
   configured, and cap it with a timeout when it does run, so a slow or
   unreachable Bedrock endpoint can't delay or hang the app's startup. (#447)
-- Show the actual error in the chat when a request fails, instead of a generic
-  message. (#447)
+- Show a specific, readable message in the chat when a request fails, instead of
+  a generic one; the technical detail goes to the application logs rather than
+  the chat, since a viewer can't act on provider/SDK internals. (#447)
 
 ### Fixed
 

@@ -210,11 +210,12 @@ def setup_ui(need_llm: bool, need_integration: bool):
     )
 
 
-def error_ui(detail: str, message: str | None = None):
+def error_ui(detail: str):
     # Shown when the app can't start for the viewer (e.g. the session couldn't be
     # read, or the chat provider couldn't be initialized), so the failure states why
-    # in plain language instead of crashing. message carries the underlying error
-    # when there is one; some failures are entirely explained by the detail.
+    # in plain language instead of crashing. detail is always a self-contained,
+    # non-technical sentence: the underlying error goes to the server log instead,
+    # since a viewer can't act on SDK/vendor detail and it isn't meant for them.
     return ui.page_fillable(
         _SETUP_STYLE,
         ui.div(
@@ -224,7 +225,6 @@ def error_ui(detail: str, message: str | None = None):
                     detail,
                     class_="setup-description",
                 ),
-                ui.pre(message, class_="setup-code-block") if message else None,
                 class_="setup-card",
             ),
             class_="setup-container",
@@ -356,7 +356,8 @@ def server(input: Inputs, output: Outputs, session: Session):
     # that case, so the handlers below guard against it rather than assume it exists.
     # chat_error carries a configured-but-broken provider (bad model, missing key):
     # initializing would otherwise raise and crash the session, so catch it and show
-    # a readable error screen instead.
+    # a readable error screen instead. Only an administrator can fix a broken
+    # provider, so the raw error goes to the log rather than onto the screen.
     chat = None
     chat_error = None
     try:
@@ -373,7 +374,8 @@ def server(input: Inputs, output: Outputs, session: Session):
                 system_prompt=system_prompt,
             )
     except Exception as err:
-        chat_error = str(err.__cause__ or err)
+        chat_error = err.__cause__ or err
+        print(f"chat-with-content: chat provider failed to start: {chat_error}")
 
     @render.ui
     def screen():
@@ -381,14 +383,15 @@ def server(input: Inputs, output: Outputs, session: Session):
         # The helper supplies the detail because the reason differs: no signed-in
         # viewer reads differently from an exchange that failed.
         if session_error is not None:
-            return error_ui(*session_error)
+            return error_ui(session_error)
         # A configured-but-broken chat provider can't be fixed from the setup screen,
         # so say what actually failed rather than showing setup steps.
         if chat_error is not None:
             return error_ui(
                 "Couldn't start the chat provider, so the app can't answer "
-                "questions about your content. The error was:",
-                chat_error,
+                "questions about your content. Contact your administrator to check "
+                "the LLM provider configuration; the technical detail is in the "
+                "application logs."
             )
         # Show only the setup step(s) still missing; otherwise the app itself.
         need_llm = chat is None
@@ -441,11 +444,16 @@ def server(input: Inputs, output: Outputs, session: Session):
                 item["guid"]: content_choice_label(item) for item in content_list
             }
         except Exception as err:
-            cause = err.__cause__ or err
+            # The raw cause may be full of Connect API/SDK detail a viewer can't act
+            # on, so it goes to the log rather than onto the toast.
+            print(
+                f"chat-with-content: couldn't load content list: {err.__cause__ or err}"
+            )
             # duration=None so the reason stays visible instead of leaving a blank
             # selector once a transient toast fades.
             ui.notification_show(
-                f"Couldn't load your content from Connect: {cause}",
+                "Couldn't load your content from Connect. Try reloading the page; "
+                "if this keeps happening, contact your administrator.",
                 type="error",
                 duration=None,
             )
@@ -518,9 +526,14 @@ def server(input: Inputs, output: Outputs, session: Session):
                     )
                 except Exception as err:
                     await reset_conversation()
-                    cause = err.__cause__ or err
+                    print(
+                        f"chat-with-content: couldn't convert content to summarize "
+                        f"it: {err.__cause__ or err}"
+                    )
                     ui.notification_show(
-                        f"Couldn't read this content to summarize it: {cause}",
+                        "Couldn't read this content to summarize it. Try selecting "
+                        "it again; if this keeps happening, contact your "
+                        "administrator.",
                         type="error",
                         duration=None,
                     )
@@ -577,14 +590,25 @@ def server(input: Inputs, output: Outputs, session: Session):
             if turns and turns[-1].role == "assistant" and not turns[-1].contents:
                 chat.set_turns(turns[:-2])
             if isinstance(err, asyncio.TimeoutError):
-                cause = f"it stopped responding after {STREAM_STALL_TIMEOUT_SECONDS} seconds"
+                # Already a plain-language description, not a raw exception, so
+                # showing it to the viewer directly is fine.
+                message = (
+                    "Couldn't get a response from the chat provider: it stopped "
+                    f"responding after {STREAM_STALL_TIMEOUT_SECONDS} seconds. Try "
+                    "asking again."
+                )
             else:
-                cause = err.__cause__ or err
-            ui.notification_show(
-                f"Couldn't get a response from the chat provider: {cause}",
-                type="error",
-                duration=None,
-            )
+                # The raw cause may be full of provider SDK detail a viewer can't act
+                # on, so it goes to the log rather than onto the toast.
+                print(
+                    f"chat-with-content: chat provider request failed: "
+                    f"{err.__cause__ or err}"
+                )
+                message = (
+                    "Couldn't get a response from the chat provider. Try asking "
+                    "again; if this keeps happening, contact your administrator."
+                )
+            ui.notification_show(message, type="error", duration=None)
 
     # Stop a reply the viewer will never see. Nothing streams after the session
     # ends, so there is no later stream for the cancellation to disturb.
@@ -600,9 +624,15 @@ def server(input: Inputs, output: Outputs, session: Session):
         try:
             content = client.content.get(selection)
         except Exception as err:
-            cause = err.__cause__ or err
+            # The raw cause may be full of Connect API/SDK detail a viewer can't act
+            # on, so it goes to the log rather than onto the toast.
+            print(
+                f"chat-with-content: couldn't open content {selection}: "
+                f"{err.__cause__ or err}"
+            )
             ui.notification_show(
-                f"Couldn't open that content: {cause}",
+                "Couldn't open that content. Try selecting it again; if this keeps "
+                "happening, contact your administrator.",
                 type="error",
                 duration=None,
             )
