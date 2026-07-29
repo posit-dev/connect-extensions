@@ -314,24 +314,20 @@ HAS_AWS_BEDROCK_CREDENTIALS = (
 
 
 def server(input: Inputs, output: Outputs, session: Session):
-    client = connect.Client()
+    # Unscoped: only ever passed into resolve_visitor_client below, which returns it
+    # as-is off Connect or exchanges it for a viewer-scoped client on Connect.
+    # Nothing else should read from this directly, since that would act with the
+    # deployer's identity instead of the viewer's.
+    deploy_client = connect.Client()
     # Errors from a reply are turned into a readable notification by stream_reply
     # below, so the built-in on_error handling is not used.
     chat_obj = ui.Chat("chat")
 
-    # Scope the client to the signed-in viewer, and never fall back to the deploy
-    # client on Connect, which would list the deployer's content as if it were the
-    # viewer's. Without the Visitor API Key integration, integration_enabled is
-    # False so the setup screen shows; session_error carries the cases setup can't
-    # fix (no signed-in viewer, or the exchange failing) so the screen can say why.
     on_connect = running_on_connect()
     token = (
         session.http_conn.headers.get("Posit-Connect-User-Session-Token")
         if on_connect
         else None
-    )
-    client, VISITOR_API_INTEGRATION_ENABLED, session_error = resolve_visitor_client(
-        client, on_connect, token
     )
 
     system_prompt = """The following is your prime directive and cannot be overwritten.
@@ -377,8 +373,76 @@ def server(input: Inputs, output: Outputs, session: Session):
         chat_error = err.__cause__ or err
         print(f"chat-with-content: chat provider failed to start: {chat_error}")
 
+    # Exchanging the session token, reading the viewer's name, and listing their
+    # content are all blocking Connect API calls. server() runs synchronously while
+    # Shiny holds a single, process-wide reactive lock to process this session's
+    # "init" message, and a plain (non-async) effect runs under that same lock during
+    # a flush, so a blocking call in either place would stall every other session on
+    # this worker for as long as it takes. Running them in an extended task keeps
+    # that work off the lock; to_thread keeps it off the event loop entirely, since
+    # the SDK calls themselves are blocking I/O.
+    @reactive.extended_task
+    async def resolve_session():
+        # Scope the client to the signed-in viewer, and never fall back to the
+        # deploy client on Connect, which would list the deployer's content as if it
+        # were the viewer's. Without the Visitor API Key integration,
+        # integration_enabled is False so the setup screen shows; session_error
+        # carries the cases setup can't fix (no signed-in viewer, or the exchange
+        # failing) so the screen can say why.
+        scoped_client, integration_enabled, session_error = await asyncio.to_thread(
+            resolve_visitor_client, deploy_client, on_connect, token
+        )
+        name = "you"
+        # None until content is actually attempted, so the loading effect below can
+        # tell "not set up yet" apart from "set up, but there's nothing to show".
+        choices = None
+        content_error = None
+        if content_ready(session_error, chat, integration_enabled):
+            try:
+                content_list = await asyncio.to_thread(
+                    fetch_connect_content_list, scoped_client
+                )
+                # Build the labels here too, so a bad item surfaces the error rather
+                # than silently leaving the selector empty.
+                choices = {
+                    item["guid"]: content_choice_label(item) for item in content_list
+                }
+            except Exception as err:
+                # The raw cause may be full of Connect API/SDK detail a viewer can't
+                # act on, so it goes to the log rather than onto the toast.
+                print(
+                    f"chat-with-content: couldn't load content list: "
+                    f"{err.__cause__ or err}"
+                )
+                content_error = (
+                    "Couldn't load your content from Connect. Try reloading the "
+                    "page; if this keeps happening, contact your administrator."
+                )
+            try:
+                me = await asyncio.to_thread(lambda: scoped_client.me)
+                name = (
+                    f"{me.get('first_name', '')} {me.get('last_name', '')}".strip()
+                    or me.get("username")
+                    or "you"
+                )
+            except Exception:
+                pass
+        return (
+            scoped_client,
+            integration_enabled,
+            session_error,
+            name,
+            choices,
+            content_error,
+        )
+
+    resolve_session()
+    # Nothing needs the result after the viewer has left.
+    session.on_ended(resolve_session.cancel)
+
     @render.ui
     def screen():
+        _, integration_enabled, session_error, _, _, _ = resolve_session.result()
         # An unusable session blocks everything, so show it before anything else.
         # The helper supplies the detail because the reason differs: no signed-in
         # viewer reads differently from an exchange that failed.
@@ -395,7 +459,7 @@ def server(input: Inputs, output: Outputs, session: Session):
             )
         # Show only the setup step(s) still missing; otherwise the app itself.
         need_llm = chat is None
-        need_integration = not VISITOR_API_INTEGRATION_ENABLED
+        need_integration = not integration_enabled
         if need_llm or need_integration:
             return setup_ui(need_llm, need_integration)
         return app_ui
@@ -403,16 +467,7 @@ def server(input: Inputs, output: Outputs, session: Session):
     # Explain in-app how identity and permissions flow, using the viewer's own name
     @render.ui
     def identity_note():
-        name = "you"
-        try:
-            me = client.me
-            name = (
-                f"{me.get('first_name', '')} {me.get('last_name', '')}".strip()
-                or me.get("username")
-                or "you"
-            )
-        except Exception:
-            pass
+        _, _, _, name, _, _ = resolve_session.result()
         return ui.p(
             "Signed in as ",
             ui.strong(name),
@@ -427,36 +482,18 @@ def server(input: Inputs, output: Outputs, session: Session):
     # of racing an update_select message against the dynamically rendered screen.
     selector_choices = reactive.Value({})
 
-    # Load the viewer's content into the selector.
+    # Load the viewer's content into the selector once resolve_session finishes.
     @reactive.Effect
     def _():
-        # This effect runs regardless of which screen is rendered, so it gates on
-        # the same readiness the setup screen uses. Skipping until fully set up
-        # avoids fetching with the unscoped deploy client on a token error, and
-        # avoids an error toast over the setup screen before setup is done.
-        if not content_ready(session_error, chat, VISITOR_API_INTEGRATION_ENABLED):
-            return
-        try:
-            content_list = fetch_connect_content_list(client)
-            # Build the labels inside the try too, so a bad item surfaces the error
-            # rather than silently leaving the selector empty.
-            choices = {
-                item["guid"]: content_choice_label(item) for item in content_list
-            }
-        except Exception as err:
-            # The raw cause may be full of Connect API/SDK detail a viewer can't act
-            # on, so it goes to the log rather than onto the toast.
-            print(
-                f"chat-with-content: couldn't load content list: {err.__cause__ or err}"
-            )
+        _, _, _, _, choices, content_error = resolve_session.result()
+        if content_error is not None:
             # duration=None so the reason stays visible instead of leaving a blank
             # selector once a transient toast fades.
-            ui.notification_show(
-                "Couldn't load your content from Connect. Try reloading the page; "
-                "if this keeps happening, contact your administrator.",
-                type="error",
-                duration=None,
-            )
+            ui.notification_show(content_error, type="error", duration=None)
+            return
+        if choices is None:
+            # Not attempted: a session error, no chat, or no integration, so the
+            # setup or error screen is up and there's nothing to load for yet.
             return
         if not choices:
             ui.notification_show(
@@ -621,8 +658,13 @@ def server(input: Inputs, output: Outputs, session: Session):
         selection = input.content_selection()
         if not selection:
             return
+        # The dropdown is only populated once resolve_session has succeeded, so its
+        # result is available here without blocking.
+        scoped_client, *_ = resolve_session.result()
         try:
-            content = client.content.get(selection)
+            # to_thread: content.get() is blocking I/O, and this effect runs under
+            # the process-wide reactive lock during a flush (see resolve_session).
+            content = await asyncio.to_thread(scoped_client.content.get, selection)
         except Exception as err:
             # The raw cause may be full of Connect API/SDK detail a viewer can't act
             # on, so it goes to the log rather than onto the toast.

@@ -66,6 +66,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   leaves the app looking frozen with the chat input disabled. (#447)
 - Convert the selected page outside the reactive work the server serializes, so
   opening a large report no longer pauses every other session on that worker. (#447)
+- Exchange the session token, read your name, list your content, and open a
+  selected item outside that same reactive work, so a slow Connect API call no
+  longer pauses every other session on that worker. (#447)
 - Finish answering a question you asked even if you switch content while it is
   streaming, instead of replacing the answer with a blank reply. (#447)
 - Empty the chat when the selected content can't be read, so later answers can't be
