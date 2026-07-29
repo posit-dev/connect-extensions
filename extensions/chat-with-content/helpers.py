@@ -31,6 +31,12 @@ EXCHANGE_FAILED_DETAIL = (
     "Couldn't read your Connect session, so the app can't list or read content as "
     "you. Contact your administrator; the technical detail is in the application logs."
 )
+# Raised by app.py, not resolve_visitor_client: the exchange itself has no timeout,
+# so app.py bounds the call with asyncio.wait_for and reports this on expiry.
+SESSION_TIMEOUT_DETAIL = (
+    "Couldn't read your Connect session, so the app can't list or read content as "
+    "you. Connect didn't respond in time; try reloading the page."
+)
 
 
 # Returns (client, integration_enabled, session_error), where session_error is the
