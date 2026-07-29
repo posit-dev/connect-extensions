@@ -83,6 +83,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   spending a second request to say the same thing. (#447)
 - Truncated large content before sending it to the model so a big page can't
   overflow the context window. (#447)
+- Fix the setup screen's background cutting off partway down the page when its
+  content is taller than one screen (e.g. both setup steps showing), leaving a
+  hard line and plain white below it on scroll. (#447)
 
 ## [0.0.7] - 2026-06-15
 

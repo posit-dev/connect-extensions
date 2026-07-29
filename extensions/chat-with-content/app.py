@@ -93,8 +93,15 @@ _SETUP_STYLE = ui.tags.style(
         }
 
         .setup-container {
-            max-width: 800px;
-            margin: 0 auto;
+            /* Also on the background here, matching body's: Shiny's fillable page
+            locks body to exactly the viewport height, so with both setup sections
+            open (taller than one screen) body's own background stops at the
+            viewport edge and shows a hard line on scroll. This element already
+            grows to fit its actual content, full width, so its identical
+            background extends seamlessly past that point. The 800px reading width
+            is capped on .setup-card below instead, since this element must stay
+            full width for its background to reach the sides of the viewport. */
+            background: linear-gradient(135deg, #f7f8fa 0%, #e2e8f0 100%);
             padding: 2rem;
             min-height: 100vh;
             display: flex;
@@ -107,6 +114,7 @@ _SETUP_STYLE = ui.tags.style(
             padding: 3rem;
             box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
             width: 100%;
+            max-width: 800px;
         }
         .setup-title {
             color: #2d3748;
