@@ -19,6 +19,9 @@ def running_on_connect():
 
 # What the viewer is told when their session can't be used at all. Adding the
 # integration fixes neither case, so these are kept separate from the setup screen.
+# Self-contained sentences: the underlying error, if any, goes to the server log
+# instead (see resolve_visitor_client), since a viewer can't act on it and it may
+# be full of vendor/SDK detail that isn't meant for them.
 NO_SESSION_DETAIL = (
     "Couldn't read your Connect session, so the app can't list or read content as "
     "you. Make sure you're signed in to Connect. If you are, your administrator may "
@@ -26,16 +29,15 @@ NO_SESSION_DETAIL = (
 )
 EXCHANGE_FAILED_DETAIL = (
     "Couldn't read your Connect session, so the app can't list or read content as "
-    "you. The error was:"
+    "you. Contact your administrator; the technical detail is in the application logs."
 )
 
 
-# Returns (client, integration_enabled, session_error), where session_error is a
-# (detail, raw_error) pair when the viewer's session can't be used and raw_error is
-# None if there is no underlying exception worth showing. The gate is the point:
-# never fall back to the deploy client for a viewer, because that would list the
-# deployer's content as if it were theirs. Off Connect, the deploy client is the
-# intended one.
+# Returns (client, integration_enabled, session_error), where session_error is the
+# detail to show the viewer when their session can't be used, or None otherwise. The
+# gate is the point: never fall back to the deploy client for a viewer, because that
+# would list the deployer's content as if it were theirs. Off Connect, the deploy
+# client is the intended one.
 def resolve_visitor_client(client, on_connect, token):
     if not on_connect:
         return client, True, None
@@ -43,7 +45,7 @@ def resolve_visitor_client(client, on_connect, token):
         # No token means there is no signed-in viewer to act as: content that allows
         # anonymous access sends none, and OAuth integrations may be off server-wide.
         # Neither is fixed on the Access tab, so say that rather than showing setup.
-        return client, True, (NO_SESSION_DETAIL, None)
+        return client, True, NO_SESSION_DETAIL
     try:
         return client.with_user_session_token(token), True, None
     except Exception as err:
@@ -51,8 +53,11 @@ def resolve_visitor_client(client, on_connect, token):
         # missing-integration case (setup screen) rather than a scary error screen.
         if str(getattr(err, "error_code", "")) == "212":
             return client, False, None
+        # The raw error may be full of SDK/vendor detail a viewer can't act on, so it
+        # goes to the log for an administrator rather than onto the screen.
         raw = getattr(err, "error_message", None) or str(err)
-        return client, True, (EXCHANGE_FAILED_DETAIL, raw)
+        print(f"chat-with-content: session token exchange failed: {raw}")
+        return client, True, EXCHANGE_FAILED_DETAIL
 
 
 # Whether the app is fully set up and should load and use the viewer's content.

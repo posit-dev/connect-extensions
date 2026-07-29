@@ -109,12 +109,10 @@ def test_resolve_visitor_off_connect_uses_client_as_is():
 def test_resolve_visitor_no_token_on_connect_never_uses_the_deploy_client():
     # No session token on Connect must NOT fall back to the deploy client, which
     # would list the deployer's content as if it were the viewer's.
-    client, integration_enabled, session_error = helpers.resolve_visitor_client(
+    client, integration_enabled, detail = helpers.resolve_visitor_client(
         _FakeClient(), True, None
     )
-    assert session_error is not None
-    detail, raw = session_error
-    assert raw is None  # nothing technical to show; the cause is the access setup
+    assert detail is not None
     # It must NOT be reported as a missing integration: neither being signed out nor
     # server-wide OAuth being off is fixed by adding one, so the setup screen (which
     # integration_enabled=False would trigger) would be unactionable.
@@ -145,24 +143,28 @@ def test_resolve_visitor_missing_integration_string_code_requires_setup():
     assert helpers.resolve_visitor_client(c, True, "tok") == (c, False, None)
 
 
-def test_resolve_visitor_other_error_is_surfaced():
+def test_resolve_visitor_other_error_is_surfaced(capsys):
     c = _FakeClient(raises=_FakeError(error_code=5, error_message="permission denied"))
     assert helpers.resolve_visitor_client(c, True, "tok") == (
         c,
         True,
-        (helpers.EXCHANGE_FAILED_DETAIL, "permission denied"),
+        helpers.EXCHANGE_FAILED_DETAIL,
     )
+    # The technical detail isn't shown to the viewer (it may be full of SDK/vendor
+    # detail they can't act on), so it goes to the log for an administrator instead.
+    assert "permission denied" in capsys.readouterr().out
 
 
-def test_resolve_visitor_error_without_a_message_still_says_something():
+def test_resolve_visitor_error_without_a_message_still_says_something(capsys):
     # Not every failure is a ClientError with error_message; the viewer must still
     # be told why rather than getting an empty error screen.
     c = _FakeClient(raises=RuntimeError("connection refused"))
     assert helpers.resolve_visitor_client(c, True, "tok") == (
         c,
         True,
-        (helpers.EXCHANGE_FAILED_DETAIL, "connection refused"),
+        helpers.EXCHANGE_FAILED_DETAIL,
     )
+    assert "connection refused" in capsys.readouterr().out
 
 
 def test_the_two_session_failures_are_told_apart():
