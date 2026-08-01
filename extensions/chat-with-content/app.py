@@ -14,6 +14,7 @@ from helpers import (
     resolve_visitor_client,
     running_on_connect,
     truncate_for_context,
+    with_request_timeout,
 )
 
 # Zero-config fallback model, used only when no LLM provider is configured. Bedrock
@@ -30,14 +31,13 @@ BEDROCK_PROBE_TIMEOUT_SECONDS = 10
 # ten-minute default.
 STREAM_STALL_TIMEOUT_SECONDS = 120
 
-# Give up on a single-item Connect API call: the session token exchange, reading
-# the viewer's own name, or opening a selected item. The SDK sets no request
-# timeout of its own, so an unresponsive Connect server would otherwise hang the
-# calling task indefinitely. This bounds how long the app waits, not how long the
-# underlying thread runs: asyncio.to_thread can't interrupt a call already in
-# flight, so a timeout here lets the app move on and report the failure, though
-# the abandoned thread still runs until Connect (or the OS) eventually gives up on
-# its end.
+# Stop waiting on a single-item Connect API call: the session token exchange,
+# reading the viewer's own name, or opening a selected item.
+#
+# Deliberately shorter than helpers.CONNECT_REQUEST_TIMEOUT_SECONDS, because the
+# two bound different things. This one caps how long the app waits before moving
+# on and reporting the failure; asyncio.to_thread can't interrupt the call it
+# abandons, so that thread lives on until the request-level deadline frees it.
 CONNECT_API_TIMEOUT_SECONDS = 30
 
 # Give up on listing the viewer's content. Separate from CONNECT_API_TIMEOUT_SECONDS
@@ -342,7 +342,7 @@ def server(input: Inputs, output: Outputs, session: Session):
     # as-is off Connect or exchanges it for a viewer-scoped client on Connect.
     # Nothing else should read from this directly, since that would act with the
     # deployer's identity instead of the viewer's.
-    deploy_client = connect.Client()
+    deploy_client = with_request_timeout(connect.Client())
     # Errors from a reply are turned into a readable notification by stream_reply
     # below, so the built-in on_error handling is not used.
     chat_obj = ui.Chat("chat")
