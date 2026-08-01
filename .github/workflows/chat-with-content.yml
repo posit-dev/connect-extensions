@@ -29,7 +29,10 @@ jobs:
       # version, so pin the interpreter separately: without it uv resolves the
       # newest Python satisfying requires-python, and the tests would stop matching
       # the version Connect deploys on (manifest.json's python.version).
-      - uses: astral-sh/setup-uv@v5
+      # `uses` steps ignore the job's working-directory, so this can't read the
+      # extension's .python-version; it preinstalls the same version that file
+      # pins for `uv run` below. Keep the two in step.
+      - uses: astral-sh/setup-uv@v9.0.0
         with:
           pyproject-file: ./extensions/${{ env.EXTENSION_NAME }}/pyproject.toml
           python-version: "3.12"
