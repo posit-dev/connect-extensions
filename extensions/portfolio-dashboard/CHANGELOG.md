@@ -22,4 +22,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.0.4] - 2026-06-11
 
-- Maintenance release; no user-facing changes. (#365)
+### Changed
+
+- Modernized R code to use the native pipe (`|>`) and consolidated `mutate()` calls. (#365)

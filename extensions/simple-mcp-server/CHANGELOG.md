@@ -40,11 +40,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.0.5] - 2026-06-11
 
-- Maintenance release; no user-facing changes. (#355)
+### Changed
+
+- Switched to with-connect for integration tests. (#355)
 
 ## [0.0.4] - 2026-05-04
 
-- Maintenance release; no user-facing changes. (#349)
+### Fixed
+
+- Fixed deprecation warnings. (#349)
 
 ## [0.0.3] - 2026-02-03
 
