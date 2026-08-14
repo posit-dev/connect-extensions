@@ -18,7 +18,7 @@
   "packages": null,
   "files": {
     "_quarto.yml": {
-      "checksum": "e498dcc5956dba39a6df10ac9568fcb9"
+      "checksum": "d5f926f04e252b3042f30d8b7e0c6902"
     },
     "index.qmd": {
       "checksum": "52f82c15783f37b2de073e22e1b5a648"
@@ -32,7 +32,7 @@
     "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/quarto-document",
     "minimumConnectVersion": "2025.04.0",
     "category": "example",
-    "version": "1.0.1"
+    "version": "1.0.2"
   },
   "environment": {
     "quarto": {
