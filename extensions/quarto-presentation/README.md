@@ -14,14 +14,14 @@ business flavor (a quarterly revenue readout) that you can swap for your own.
 The deck (`index.qmd`) is roughly one slide per capability, each linking to its
 Quarto docs:
 
-- **What goes on a slide**: an overview of the features, with links.
-- **Show your work with code**: a syntax-highlighted code block (Quarto can also
-  execute R, Python, and Julia and embed the output).
-- **Diagrams**: a Mermaid diagram drawn from text.
-- **Interactive charts**: an Observable JS chart with a segment filter, loaded
-  from a bundled `data.csv` you can swap out.
-- **Layout and reveals**: a multi-column slide with an incremental list.
-- **Publish to Connect**: how to render and publish.
+- An overview slide of the deck's features, with links.
+- A syntax-highlighted code block (Quarto can also execute R, Python, and Julia
+  and embed the output).
+- A Mermaid diagram drawn from text.
+- An interactive Observable JS chart with a segment filter, loaded from a bundled
+  `data.csv` you can swap out.
+- A multi-column slide with an incremental list.
+- A slide on how to render and publish to Connect.
 
 ## Customize it
 

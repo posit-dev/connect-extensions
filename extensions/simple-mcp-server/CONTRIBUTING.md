@@ -1,4 +1,4 @@
-# Contributing to the FastAPI: MCP Server extension
+# Contributing to FastAPI: MCP Server
 
 ## Prerequisites
 
@@ -54,23 +54,25 @@ def example_tool(input_value: str) -> str:
 
 There are two distinct layers, and only the first is something a client sets:
 
-- **Reaching the content** (transport): an MCP client authenticates to Connect with a
+- Reaching the content (transport): an MCP client authenticates to Connect with a
   Connect API key in the standard `Authorization` header (`Authorization: Key
   YOUR_API_KEY`). This is how the request reaches the deployed server.
-- **Acting as the viewer** (tools like `connect_whoami`): the tool reads the
+- Acting as the viewer (tools like `connect_whoami`): the tool reads the
   `Posit-Connect-User-Session-Token` header that Connect injects automatically for the
   logged-in viewer and exchanges it for a viewer-scoped client. There is no header to
   set for this, and it requires a Visitor API Key integration on the content.
 
 ## Bundle
 
-The files sent in the deployment bundle are:
+The release tarball is this whole directory, so everything committed here ships,
+including this file. What Connect checksums is `manifest.json`'s `files` list:
 
-- `main.py`
 - `index.html.jinja`
+- `main.py`
 - `requirements.txt`
 
-`pyproject.toml`, `uv.lock`, and repo docs are not bundled.
+Refresh those checksums whenever you edit one of them. `uv.lock` is gitignored, so it
+never reaches the bundle.
 
 ## Changelog
 

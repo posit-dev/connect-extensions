@@ -21,12 +21,12 @@ tools, but it works with any streamable HTTP MCP server.
 - Enter an MCP server URL in the sidebar and the app registers its tools. The LLM
   then calls them in conversation, shows the raw tool output, and asks for
   confirmation before any action that creates, updates, or deletes data.
-- **Viewer identity:** the app reads the viewer's Connect session token and, when it
-  calls an MCP server on this same Connect server, forwards the viewer's own
-  credentials, so the tools act as the viewer with their permissions, never as this
-  app. The sidebar shows who you're signed in as. This needs a Visitor API Key
-  integration (see Setup). MCP servers on other hosts are reached without the Connect
-  key, since it wouldn't apply there.
+- The app reads the viewer's Connect session token and, when it calls an MCP server
+  on this same Connect server, forwards the viewer's own credentials, so the tools
+  act as the viewer with their permissions, never as this app. The sidebar shows who
+  you're signed in as. This needs a Visitor API Key integration (see Setup). MCP
+  servers on other hosts are reached without the Connect key, since it wouldn't apply
+  there.
 - Until an LLM provider and that integration are configured, the app shows a setup
   screen instead of the chat.
 
@@ -44,17 +44,25 @@ Connect 2025.04.0 or newer with OAuth Integrations enabled.
 
 After deploying, in the content's settings:
 
-- **Choose an LLM** by setting `CHATLAS_CHAT_PROVIDER_MODEL` (for example
-  `openai/gpt-4o`) plus the matching API key (`OPENAI_API_KEY`, `ANTHROPIC_API_KEY`,
-  `GOOGLE_API_KEY`, ...) on the **Advanced** tab, under **Environment Variables**. See the
+- Set an LLM provider and its API key on the **Advanced** tab, under
+  **Environment Variables**: set `CHATLAS_CHAT_PROVIDER_MODEL` plus the matching
+  key. For example, to use OpenAI's GPT-4o:
+
+  ```
+  CHATLAS_CHAT_PROVIDER_MODEL = openai/gpt-4o
+  OPENAI_API_KEY              = <your OpenAI API key>
+  ```
+
+  Other providers follow the same pattern with their own model string and key
+  (`ANTHROPIC_API_KEY`, `GOOGLE_API_KEY`, ...); see the
   [chatlas `ChatAuto` docs](https://posit-dev.github.io/chatlas/reference/ChatAuto.html)
-  for provider/model strings. On AWS Bedrock with an instance role, credentials are
-  detected automatically and no vars are needed. (The older `CHATLAS_CHAT_PROVIDER`
-  and `CHATLAS_CHAT_ARGS` still work but are deprecated.)
-- **Add a Visitor API Key integration** so tools run as the viewer: on the **Access**
-  tab, add a "Connect Visitor API Key" integration under **Integrations**. If it
-  isn't listed, an administrator must first create a **Connect API** integration on
-  your server. See the
+  for the full list. On AWS Bedrock with an instance role, credentials are
+  detected automatically and no variables are needed. (The older
+  `CHATLAS_CHAT_PROVIDER` and `CHATLAS_CHAT_ARGS` still work but are deprecated.)
+- Add a "Connect Visitor API Key" integration so tools run as the viewer: on the
+  **Access** tab, add it under **Integrations**. If it isn't listed, an
+  administrator must first create a **Connect API** integration on your server.
+  See the
   [OAuth Integrations documentation](https://docs.posit.co/connect/user/oauth-integrations/).
 
 ## Customize it
