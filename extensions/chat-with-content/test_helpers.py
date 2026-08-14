@@ -90,10 +90,21 @@ class _FakeError(Exception):
         self.error_message = error_message
 
 
+class _FakeSession:
+    # Records what with_request_timeout mounts, so a test can assert the deadline
+    # was applied without making a real request.
+    def __init__(self):
+        self.adapters = {}
+
+    def mount(self, prefix, adapter):
+        self.adapters[prefix] = adapter
+
+
 class _FakeClient:
-    def __init__(self, raises=None, scoped="scoped-client"):
+    def __init__(self, raises=None, scoped=None):
         self._raises = raises
         self._scoped = scoped
+        self.session = _FakeSession()
 
     def with_user_session_token(self, token):
         if self._raises:
@@ -123,12 +134,25 @@ def test_resolve_visitor_no_token_on_connect_never_uses_the_deploy_client():
 
 
 def test_resolve_visitor_scopes_to_the_viewer_with_a_token():
-    c = _FakeClient(scoped="viewer-client")
-    assert helpers.resolve_visitor_client(c, True, "tok") == (
-        "viewer-client",
-        True,
-        None,
+    scoped = _FakeClient()
+    client, integration_enabled, detail = helpers.resolve_visitor_client(
+        _FakeClient(scoped=scoped), True, "tok"
     )
+    assert client is scoped
+    assert (integration_enabled, detail) == (True, None)
+
+
+def test_resolve_visitor_gives_the_scoped_client_a_request_deadline():
+    # The exchange builds a fresh client with its own session, so the deadline the
+    # deploy client carries doesn't come with it; without this the viewer-scoped
+    # calls (which is all of them) would be the ones that can hang a thread.
+    scoped = _FakeClient()
+    client, _, _ = helpers.resolve_visitor_client(
+        _FakeClient(scoped=scoped), True, "tok"
+    )
+    assert set(client.session.adapters) == {"http://", "https://"}
+    for adapter in client.session.adapters.values():
+        assert isinstance(adapter, helpers._TimeoutAdapter)
 
 
 def test_resolve_visitor_missing_integration_requires_setup():
@@ -419,3 +443,40 @@ def test_content_ready_false_without_llm():
 
 def test_content_ready_false_when_integration_disabled():
     assert helpers.content_ready(None, object(), False) is False
+
+
+# --- with_request_timeout --------------------------------------------------
+
+
+def test_with_request_timeout_mounts_on_both_schemes():
+    client = _FakeClient()
+    assert helpers.with_request_timeout(client) is client
+    assert set(client.session.adapters) == {"http://", "https://"}
+
+
+def test_timeout_adapter_supplies_the_default(monkeypatch):
+    seen = {}
+    monkeypatch.setattr(
+        helpers.requests.adapters.HTTPAdapter,
+        "send",
+        lambda self, request, **kwargs: seen.update(kwargs),
+    )
+
+    helpers._TimeoutAdapter().send(None, timeout=None)
+
+    assert seen["timeout"] == helpers.CONNECT_REQUEST_TIMEOUT_SECONDS
+
+
+def test_timeout_adapter_leaves_an_explicit_timeout_alone(monkeypatch):
+    # requests passes a caller's own timeout through this same path; the default is
+    # a floor for calls that set none, not an override.
+    seen = {}
+    monkeypatch.setattr(
+        helpers.requests.adapters.HTTPAdapter,
+        "send",
+        lambda self, request, **kwargs: seen.update(kwargs),
+    )
+
+    helpers._TimeoutAdapter().send(None, timeout=5)
+
+    assert seen["timeout"] == 5
