@@ -1,2 +1,7 @@
 project:
   title: Stock Report
+  # Render only the report so it is the unambiguous primary document.
+  # Without this, Quarto also renders sibling Markdown (e.g. CHANGELOG.md)
+  # and the default served document can become that file instead.
+  render:
+    - index.qmd

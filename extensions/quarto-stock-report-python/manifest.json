@@ -12,7 +12,7 @@
     "minimumConnectVersion": "2025.04.0",
     "category": "example",
     "tags": ["quarto", "python"],
-    "version": "1.0.5"
+    "version": "1.0.6"
   },
   "environment": {
     "python": {
@@ -38,7 +38,7 @@
   },
   "files": {
     "_quarto.yml": {
-      "checksum": "35b4c4c58cce875b126683c525ad40f4"
+      "checksum": "c18e19d86e99c788e4ccfabf68179aa2"
     },
     "index.qmd": {
       "checksum": "7eeaeddb32075ffea02ef77ada5b719b"

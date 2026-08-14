@@ -1,5 +1,4 @@
 project:
-  title: Quarto Document
   # Render only the document so it is the unambiguous primary document.
   # Without this, Quarto also renders sibling Markdown (e.g. CHANGELOG.md)
   # and the default served document can become that file instead.

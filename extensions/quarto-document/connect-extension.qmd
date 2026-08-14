@@ -1,8 +1,0 @@
----
-title: Quarto Document
-categories:
-    - quarto
----
-
-This Quarto example shows how a basic document can present diagrams and
-interactivity.
