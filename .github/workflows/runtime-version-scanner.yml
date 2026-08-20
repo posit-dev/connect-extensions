@@ -20,7 +20,7 @@ jobs:
 
     steps:
       # Checkout the repository so the rest of the actions can run with no issue
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       # We want to fail quickly if the linting fails, do that first
       - uses: ./.github/actions/lint-extension
@@ -51,7 +51,7 @@ jobs:
       # This only includes necessary files for the extension to run leaving out
       # the files that were used to build the /dist/ directory
       - name: Upload built extension
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: ${{ env.EXTENSION_NAME }}
           # Replace the below with the files your content needs
@@ -86,7 +86,7 @@ jobs:
     # version has been updated
     steps:
       # Checkout the repository so the rest of the actions can run with no issue
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - uses: ./.github/actions/release-extension
         with:
