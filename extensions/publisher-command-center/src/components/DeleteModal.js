@@ -1,5 +1,6 @@
 import m from "mithril";
 import Contents from "../models/Contents";
+import { notifyError, reason } from "../utils/notify";
 
 const ConfirmDeleteButton = {
   view(vnode) {
@@ -10,7 +11,12 @@ const ConfirmDeleteButton = {
         ariaLabel: "Yes",
         "data-bs-dismiss": "modal",
         onclick: () => {
-          Contents.delete(vnode.attrs.contentId);
+          Contents.delete(vnode.attrs.contentId).catch((err) => {
+            console.error(err);
+            notifyError(
+              `Couldn't delete "${vnode.attrs.contentTitle}": ${reason(err)}`,
+            );
+          });
         },
       },
       "Yes",
@@ -56,16 +62,16 @@ const DeleteModal = {
             m("section", { class: "modal-body" }, [
               m(
                 "p",
-                {
-                  id: "modal-message",
-                  class: "mb-3",
-                },
+                { class: "mb-3" },
                 `Are you sure you want to delete ${vnode.attrs.contentTitle}?`,
               ),
             ]),
             m("div", { class: "modal-footer" }, [
               m(CancelDeleteButton),
-              m(ConfirmDeleteButton, { contentId: vnode.attrs.contentId }),
+              m(ConfirmDeleteButton, {
+                contentId: vnode.attrs.contentId,
+                contentTitle: vnode.attrs.contentTitle,
+              }),
             ]),
           ]),
         ]),

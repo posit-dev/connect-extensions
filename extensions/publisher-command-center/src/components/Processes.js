@@ -1,8 +1,7 @@
 import m from "mithril";
-import { formatDistanceToNow } from "date-fns";
-import { filesize } from "filesize";
+import { formatRelative } from "../utils/dates";
+import { notifyError, reason } from "../utils/notify";
 import Processes from "../models/Processes";
-import Process from "../models/Process";
 
 const StopButton = {
   oninit(vnode) {
@@ -24,21 +23,24 @@ const StopButton = {
           vnode.state.disabled = true;
           m.redraw();
 
-          console.log(`Stopping process ${vnode.attrs.process_id}`);
-          Processes.destroy(vnode.attrs.content_id, vnode.attrs.process_id)
-            .then(() => {
-              console.log(`Stopped process ${vnode.attrs.process_id}`);
+          Processes.destroy(vnode.attrs.contentId, vnode.attrs.processId).then(
+            () => {
+              // The stop succeeded; refresh the list. A failed refresh is not a
+              // stop failure, so it must not report "Couldn't stop the process".
               Processes.reset();
-              return Processes.load();
-            })
-            .then(() => {
-              m.redraw(); // Trigger UI refresh after reload
-            })
-            .catch((err) => {
-              console.error("Failed to reload processes:", err);
+              Processes.load()
+                .catch((err) =>
+                  console.error("Failed to reload processes after stop:", err),
+                )
+                .finally(() => m.redraw());
+            },
+            (err) => {
+              console.error("Failed to stop process:", err);
               vnode.state.disabled = false; // Re-enable button on error
+              notifyError(`Couldn't stop the process: ${reason(err)}`);
               m.redraw();
-            });
+            },
+          );
         },
         title: "Stop Process",
         onmouseover: () => {
@@ -64,12 +66,11 @@ export default {
   error: null,
 
   oninit: function (vnode) {
-    try {
-      Processes.load(vnode.attrs.id);
-    } catch (err) {
-      this.error = "Failed to load data.";
+    Processes.load(vnode.attrs.id).catch((err) => {
+      this.error = `Couldn't load processes: ${reason(err)}`;
       console.error(err);
-    }
+      m.redraw();
+    });
   },
 
   onremove: function (vnode) {
@@ -112,15 +113,12 @@ export default {
               m(
                 "td.text-center.py-2",
                 m(StopButton, {
-                  content_id: vnode.attrs.id,
-                  process_id: process?.key,
+                  contentId: vnode.attrs.id,
+                  processId: process?.key,
                 }),
               ),
               m("td", process?.pid),
-              m(
-                "td",
-                formatDistanceToNow(process?.start_time, { addSuffix: true }),
-              ),
+              m("td", formatRelative(process?.start_time)),
               m("td", process?.hostname),
             ]);
           }),

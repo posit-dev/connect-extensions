@@ -1,8 +1,12 @@
 import m from "mithril";
 
+import Notifications from "../components/Notifications";
+
 export default {
   view: (vnode) => {
     return m("div", [
+      // App-wide error alerts (fixed, top-right).
+      m(Notifications),
       // Navbar Header
       m("nav.navbar.navbar-expand-lg.bg-light", [
         m("div.container-xxl", [
