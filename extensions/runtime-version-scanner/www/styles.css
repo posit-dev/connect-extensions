@@ -107,3 +107,20 @@
 .sidebar hr {
   margin: 0.25rem 0;
 }
+
+/* Full-screen setup takeover, shown when the Visitor API Key integration is missing */
+.visitor-setup-takeover {
+  position: fixed;
+  inset: 0;
+  z-index: 2000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  background-color: var(--bs-secondary-bg, #e9ecef);
+}
+
+.visitor-setup-card {
+  max-width: 28rem;
+  width: 100%;
+}
