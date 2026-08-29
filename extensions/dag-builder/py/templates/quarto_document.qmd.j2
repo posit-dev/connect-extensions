@@ -1,0 +1,248 @@
+---
+title: "DAG Execution Report"
+date: "today"
+format:
+  html:
+    toc: true
+    code-fold: false
+    mermaid:
+      theme: default
+---
+
+## 1. Execution Plan
+
+This report details the execution of a DAG with {{ nodes|length }} nodes and {{ edges|length }} edges. The visual plan below shows the nodes and their dependencies. Nodes grouped in the same batch were executed in parallel.
+
+```{mermaid}
+{{ mermaid_diagram }}
+```
+
+### DAG Statistics
+
+- **Total Nodes**: {{ nodes|length }}
+- **Total Edges**: {{ edges|length }}
+- **Execution Batches**: {{ dag_batches|length }}
+- **Content Nodes**: {{ content_node_count }}
+- **Custom Action Nodes**: {{ custom_node_count }}
+
+## 2. Execution Logs
+
+```{python}
+#| echo: false
+
+import os
+import posit.connect
+import concurrent.futures
+import time
+
+def process_node(guid: str, client: posit.connect.Client) -> str:
+    try:
+        content_item = client.content.get(guid=guid)
+        item_name = content_item['name']
+        print(f"Processing: '{item_name}' (GUID: {guid})")
+
+        if content_item.is_rendered:
+            task = content_item.render()
+            task.wait_for()
+            return f"✅ SUCCESS: Rendered '{item_name}'"
+        elif content_item.is_interactive:
+            content_item.restart()
+            return f"✅ SUCCESS: Restarted '{item_name}'"
+        else:
+            return f"⚪ SKIPPED: '{item_name}' (type: {content_item.type}) has no action."
+    except Exception as e:
+        return f"❌ ERROR processing node {guid}: {e}"
+
+print('--- Initializing Execution ---')
+client = posit.connect.Client(api_key=os.getenv('CONNECT_API_KEY'), url=os.getenv('CONNECT_SERVER_URL'))
+MAX_WORKERS = 8
+```
+
+```{python}
+#| echo: false
+
+# Execution control variables
+batch_execution_successful = True
+failed_batches = []
+total_batches = {{ dag_batches|length }}
+```
+
+{% for batch_num, batch in dag_batches %}
+```{python}
+#| echo: false
+
+# Check if previous batches were successful before proceeding
+if not batch_execution_successful:
+    print(f'\n🛑 STOPPING EXECUTION: Previous batch failed. Skipping Batch {{ batch_num }}.')
+    print(f'Failed batches: {", ".join(map(str, failed_batches))}')
+else:
+    print(f'\nExecuting Batch {{ batch_num }}...')
+    batch_{{ batch_num }}_success = True
+    batch_{{ batch_num }}_results = []
+
+    # Build runtime context for condition evaluation
+    import os
+    from datetime import datetime
+
+    current_time = datetime.now()
+    runtime_context = {
+        "current_hour": current_time.hour,
+        "current_minute": current_time.minute,
+        "weekday": current_time.weekday(),  # 0=Monday, 6=Sunday
+        "is_weekday": current_time.weekday() < 5,
+        "is_weekend": current_time.weekday() >= 5,
+        "environment": os.getenv("ENVIRONMENT", "development"),
+        "user": os.getenv("USER", "unknown"),
+        "file_exists": lambda path: os.path.exists(path),
+        "current_datetime": current_time.isoformat(),
+        "batch_number": {{ batch_num }},
+        "total_batches": {{ dag_batches|length }}
+    }
+
+    # Collect results from all previous nodes (across all previous batches)
+    if 'all_node_results' not in globals():
+        all_node_results = {}
+
+    previous_nodes = all_node_results.copy()
+
+    print(f"🔍 Runtime context available: {list(runtime_context.keys())}")
+    print(f"🔍 Previous nodes available: {list(previous_nodes.keys())}")
+
+    # Execute custom nodes first (they run synchronously)
+    custom_node_results = []
+
+{% for custom_node in batch.custom_nodes %}
+{{ custom_node.code | indent(4, first=True) }}
+
+{% endfor %}
+    # Process custom nodes in sequence
+    custom_nodes_to_process = [
+{% for custom_node in batch.custom_nodes %}
+        {"id": "{{ custom_node.id }}", "label": "{{ custom_node.label }}", "type": "{{ custom_node.type }}"}{{ "," if not loop.last }}
+{% endfor %}
+    ]
+
+    # Execute each custom node by calling its function
+    for custom_node_info in custom_nodes_to_process:
+        node_id = custom_node_info["id"]
+        node_label = custom_node_info["label"]
+        custom_type = custom_node_info["type"]
+        result_var_name = f'{custom_type}_result_{node_id.replace("-", "_")}'
+
+        try:
+            # The function was already defined above, just retrieve the result variable
+            node_result = globals().get(result_var_name, {"status": "completed"})
+            all_node_results[node_id] = node_result
+
+            custom_node_results.append(f"✅ CUSTOM: {node_label} completed")
+
+            # Handle execution flow control for condition nodes
+            if "halt_execution" in node_result and node_result["halt_execution"]:
+                halt_reason = node_result.get("halt_reason", "unknown")
+                if halt_reason == "stop":
+                    print(f"🛑 STOPPING: Condition {node_id} triggered stop execution")
+                    batch_{{ batch_num }}_success = False
+                    batch_execution_successful = False
+                    break
+                elif halt_reason == "skip_remaining":
+                    print(f"⏭️  SKIPPING: Condition {node_id} triggered skip remaining batches")
+                    # This will be handled after the batch completes
+                    pass
+
+        except Exception as e:
+            error_msg = f"❌ CUSTOM: {node_label} failed: {str(e)}"
+            custom_node_results.append(error_msg)
+            batch_{{ batch_num }}_success = False
+            print(error_msg)
+
+    # Print custom node results
+    for result in custom_node_results:
+        print(result)
+        batch_{{ batch_num }}_results.append(result)
+
+    # Execute content nodes (Posit Connect content) in parallel
+    if {{ batch.content_nodes|length }} > 0:
+        with concurrent.futures.ThreadPoolExecutor(max_workers=MAX_WORKERS) as executor:
+            guids_to_process = {{ batch.content_guids }}
+            future_to_guid = {executor.submit(process_node, guid, client): guid for guid in guids_to_process}
+
+            for future in concurrent.futures.as_completed(future_to_guid):
+                guid = future_to_guid[future]
+                try:
+                    result = future.result()
+                    batch_{{ batch_num }}_results.append(result)
+                    print(result)
+
+                    # Store content node results for future reference
+                    content_node_result = {
+                        "status": "success" if result.startswith('✅') else "error",
+                        "result_message": result,
+                        "guid": guid
+                    }
+
+                    # Store using GUID as key for content nodes
+                    if guid:
+                        all_node_results[guid] = content_node_result
+
+                    # Check if this specific node failed
+                    if result.startswith('❌ ERROR'):
+                        batch_{{ batch_num }}_success = False
+
+                except Exception as exc:
+                    error_msg = f'❌ ERROR: Node {guid} in batch {{ batch_num }} generated an exception: {exc}'
+                    batch_{{ batch_num }}_results.append(error_msg)
+                    print(error_msg)
+                    batch_{{ batch_num }}_success = False
+
+                    # Store error result
+                    if guid:
+                        all_node_results[guid] = {
+                            "status": "error",
+                            "error": str(exc),
+                            "guid": guid
+                        }
+
+    # Check if any condition node triggered skip_remaining
+    skip_remaining_triggered = False
+    for node_id, result in all_node_results.items():
+        if isinstance(result, dict) and result.get("halt_execution") and result.get("halt_reason") == "skip_remaining":
+            skip_remaining_triggered = True
+            print(f'⏭️  SKIP REMAINING: Condition {node_id} triggered skip remaining batches')
+            break
+
+    # Update global execution status
+    if not batch_{{ batch_num }}_success:
+        batch_execution_successful = False
+        failed_batches.append({{ batch_num }})
+        print(f'\n💥 BATCH {{ batch_num }} FAILED - Stopping execution of remaining batches')
+        print(f'Failed nodes in batch {{ batch_num }}:')
+        for result in batch_{{ batch_num }}_results:
+            if result.startswith('❌'):
+                print(f'  - {result}')
+    elif skip_remaining_triggered:
+        # Mark as successful but stop further execution
+        print(f'\n⏭️  BATCH {{ batch_num }} COMPLETED - Skipping remaining batches due to condition')
+        batch_execution_successful = False  # This will prevent further batches
+    else:
+        print(f'\n✅ BATCH {{ batch_num }} COMPLETED SUCCESSFULLY')
+```
+
+{% endfor %}
+```{python}
+#| echo: false
+
+# Final execution summary
+print('\n' + '='*50)
+print('--- DAG EXECUTION SUMMARY ---')
+print('='*50)
+
+if batch_execution_successful:
+    print(f'✅ SUCCESS: All {total_batches} batches completed successfully!')
+    print('🎉 DAG execution completed without errors.')
+else:
+    print(f'❌ FAILURE: DAG execution stopped due to batch failures.')
+    print(f'📊 Failed batches: {", ".join(map(str, failed_batches))} out of {total_batches} total batches')
+    print(f'⚠️  Remaining batches were skipped to prevent cascading failures.')
+
+print('='*50)
+```
