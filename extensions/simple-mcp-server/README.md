@@ -47,10 +47,11 @@ Connect 2025.04.0 or newer with API Publishing and OAuth Integrations enabled.
 After deploying, configure it for how you'll use it:
 
 - As the signed-in viewer (the paired chat, or any Connect content): in the
-  content's settings, on the **Access** tab, add a "Connect Visitor API Key"
-  integration under **Integrations**. If it isn't listed, an administrator must
-  first create a **Connect API** integration on your server. This lets
-  `connect_whoami` identify who's calling. See the
+  content's settings, on the **Runtime** tab (**Access** before Connect
+  2026.08.0), add a "Connect Visitor API Key" integration under
+  **Integrations**. If it isn't listed, an administrator must first create a
+  **Connect API** integration on your server. This lets `connect_whoami`
+  identify who's calling. See the
   [OAuth Integrations documentation](https://docs.posit.co/connect/user/oauth-integrations/).
 - From your own MCP client (Claude Code, Cursor, ...): point it at `{content-url}/mcp`
   and authenticate with a Connect API key (`Authorization: Key <API_KEY>`); the landing page
@@ -58,8 +59,10 @@ After deploying, configure it for how you'll use it:
   the API key; `connect_whoami` also requires the "Connect Visitor API Key" integration above,
   and then reports the identity tied to that API key (the per-viewer identity demo is clearest
   from the companion chat).
-- Keep it responsive (optional): on the **Advanced** tab, set **Min processes** to 1 or
-  more under **Process Settings** so the server doesn't cold-start. See the
+- Keep it responsive: Connect 2026.05.0 and newer recognize this as an MCP server
+  and set **Min processes** to 1 on first deploy, so it doesn't cold-start. To check
+  or change it, or to set it yourself on an older Connect, see **Process Settings**
+  on the **Runtime** tab (**Advanced** before Connect 2026.08.0). See the
   [process configuration documentation](https://docs.posit.co/connect/user/content-settings/index.html#process-configurations).
 
 ## Customize it

@@ -44,9 +44,10 @@ Connect 2025.04.0 or newer with OAuth Integrations enabled.
 
 After deploying, in the content's settings:
 
-- Set an LLM provider and its API key on the **Advanced** tab, under
-  **Environment Variables**: set `CHATLAS_CHAT_PROVIDER_MODEL` plus the matching
-  key. For example, to use OpenAI's GPT-4o:
+- Set an LLM provider and its API key on the **Runtime** tab (**Advanced**
+  before Connect 2026.08.0), under **Environment Variables**: set
+  `CHATLAS_CHAT_PROVIDER_MODEL` plus the matching key. For example, to use
+  OpenAI's GPT-4o:
 
   ```
   CHATLAS_CHAT_PROVIDER_MODEL = openai/gpt-4o
@@ -60,8 +61,9 @@ After deploying, in the content's settings:
   detected automatically and no variables are needed. (The older
   `CHATLAS_CHAT_PROVIDER` and `CHATLAS_CHAT_ARGS` still work but are deprecated.)
 - Add a "Connect Visitor API Key" integration so tools run as the viewer: on the
-  **Access** tab, add it under **Integrations**. If it isn't listed, an
-  administrator must first create a **Connect API** integration on your server.
+  **Runtime** tab (**Access** before Connect 2026.08.0), add it under
+  **Integrations**. If it isn't listed, an administrator must first create a
+  **Connect API** integration on your server.
   See the
   [OAuth Integrations documentation](https://docs.posit.co/connect/user/oauth-integrations/).
 
