@@ -34,14 +34,14 @@
       "OAuth Integrations"
     ],
     "minimumConnectVersion": "2025.04.0",
-    "version": "0.0.8"
+    "version": "0.0.9"
   },
   "files": {
     "requirements.txt": {
       "checksum": "6d5f6221f547d843153e65cb81b5206c"
     },
     "app.py": {
-      "checksum": "2559ded4a34e3bdbaa602d6e9afbc852"
+      "checksum": "c9f04c9e48d7e128fd658b3d1540fdb3"
     }
   }
 }
