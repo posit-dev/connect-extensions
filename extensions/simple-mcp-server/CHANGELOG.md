@@ -5,6 +5,18 @@ All notable changes to the FastAPI: MCP Server extension will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.0.9] - 2026-09-11
+
+### Changed
+
+- Updated the setup instructions in the README, the landing page, and the
+  `connect_whoami` error message for the content settings panel Connect 2026.08.0
+  introduced: Integrations and Process Settings are on the **Runtime** tab, which was
+  named **Advanced** (and, for Integrations, **Access**) on earlier versions. (#469)
+- Reframed the "keep the server warm" note: Connect 2026.05.0 and newer detect MCP
+  content and set **Min processes** to 1 on first deploy, so setting it by hand is only
+  needed on older versions. (#469)
+
 ## [0.0.8] - 2026-07-21
 
 ### Security

@@ -118,7 +118,7 @@ async def connect_whoami(context: Context) -> str:
         if e.error_code == 212:
             raise ToolError(
                 'No "Connect Visitor API Key" integration configured. In the content '
-                'settings, on the "Access" tab, add a "Connect Visitor API Key" '
+                'settings, on the "Runtime" tab, add a "Connect Visitor API Key" '
                 'integration under "Integrations".'
             )
         raise ToolError(f"Error calling Connect API: {str(e)}")

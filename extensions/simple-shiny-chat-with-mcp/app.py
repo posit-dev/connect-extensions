@@ -139,7 +139,8 @@ _LLM_SETUP_SECTION = (
         ui.HTML(
             "This app needs the <code>CHATLAS_CHAT_PROVIDER_MODEL</code> environment variable "
             "and a matching LLM API key. In the content settings, on the "
-            "<strong>Advanced</strong> tab, add both of them under <strong>Environment Variables</strong>. "
+            "<strong>Runtime</strong> tab (<strong>Advanced</strong> before Connect 2026.08.0), "
+            "add both of them under <strong>Environment Variables</strong>. "
             "On AWS Bedrock with an instance role, credentials are detected automatically and no variables are needed. "
             "For more information, "
             '<a href="https://posit-dev.github.io/chatlas/reference/ChatAuto.html" class="setup-link" target="_blank" rel="noopener">see the chatlas documentation</a>.'
@@ -163,7 +164,8 @@ _INTEGRATION_SETUP_SECTION = (
         ui.HTML(
             "This app needs a \"Connect Visitor API Key\" integration so its tools run "
             "as the signed-in viewer. In the content settings, on the "
-            "<strong>Access</strong> tab, add the \"Connect Visitor API Key\" integration under "
+            "<strong>Runtime</strong> tab (<strong>Access</strong> before Connect 2026.08.0), "
+            "add the \"Connect Visitor API Key\" integration under "
             "<strong>Integrations</strong>. "
             "For more information, "
             '<a href="https://docs.posit.co/connect/user/oauth-integrations/" class="setup-link" target="_blank" rel="noopener">see the OAuth Integrations documentation</a>.'
