@@ -77,9 +77,9 @@ SESSION_TOKEN_HEADER = "Posit-Connect-User-Session-Token"
 # Connect's error codes for the conditions the setup screen explains. They
 # are distinct on purpose: an empty marketplace list is a normal answer and
 # must not be confused with any of these.
-NOT_ENABLED_ERROR = 289
-NO_SESSION_TOKEN_ERROR = 290
-BAD_SESSION_TOKEN_ERROR = 291
+NOT_ENABLED_ERROR = 291
+NO_SESSION_TOKEN_ERROR = 292
+BAD_SESSION_TOKEN_ERROR = 293
 
 # How long a viewer's plugin set is reused before being re-read. Entitlements
 # change in Connect, not here, so this only bounds staleness; it is not a
