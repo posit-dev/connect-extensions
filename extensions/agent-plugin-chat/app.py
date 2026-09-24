@@ -51,16 +51,18 @@ import subprocess
 import tempfile
 import threading
 import time
-import urllib.error
-import urllib.request
 from pathlib import Path
 from urllib.parse import quote, urlsplit, urlunsplit
 
 import chatlas
+import requests
+from posit.connect import Client
+from posit.connect.errors import ClientError
 from shiny import App, Inputs, Outputs, Session, reactive, render, ui
 
-# Connect injects both. The API key says which content is asking; it is not
-# an identity this app ever acts as.
+# Connect injects both, and posit-sdk's Client reads them itself. They are
+# read here only so the setup screen can name a missing one. The API key says
+# which content is asking; it is not an identity this app ever acts as.
 CONNECT_SERVER = os.environ.get("CONNECT_SERVER", "").rstrip("/")
 CONNECT_API_KEY = os.environ.get("CONNECT_API_KEY", "")
 
@@ -80,11 +82,6 @@ SESSION_TOKEN_HEADER = "Posit-Connect-User-Session-Token"
 NOT_ENABLED_ERROR = 291
 NO_SESSION_TOKEN_ERROR = 292
 BAD_SESSION_TOKEN_ERROR = 293
-
-# How long a viewer's plugin set is reused before being re-read. Entitlements
-# change in Connect, not here, so this only bounds staleness; it is not a
-# correctness boundary.
-CACHE_SECONDS = 300
 
 
 # --------------------------------------------------------------------------
@@ -324,7 +321,7 @@ def probe_model() -> tuple[bool, str]:
 
 
 def resolve_marketplaces(
-    origin: str, api_key: str, session_token: str
+    session_token: str,
 ) -> tuple[list[dict], str | None, int | None]:
     """Ask Connect which marketplaces this viewer may read.
 
@@ -343,30 +340,17 @@ def resolve_marketplaces(
     Posit-Connect-User-Session-Token header before any handler sees it, so
     that a caller cannot assert whichever viewer it likes.
     """
-    body = json.dumps({"user_session_token": session_token}).encode()
-    request = urllib.request.Request(
-        f"{origin}/__api__/v1/agent-plugins/credentials", data=body, method="POST"
-    )
-    request.add_header("Authorization", "Key " + api_key)
-    request.add_header("Content-Type", "application/json")
     try:
-        with urllib.request.urlopen(request, timeout=30) as response:
-            payload = json.loads(response.read())
-    except urllib.error.HTTPError as error:
-        body = error.read().decode("utf-8", "replace")
-        code = None
-        message = body[:300]
-        try:
-            parsed = json.loads(body)
-            code = parsed.get("code")
-            message = parsed.get("error", message)
-        except ValueError:
-            pass
-        return [], message, code
-    except OSError as error:
+        response = Client().post(
+            "v1/agent-plugins/credentials",
+            json={"user_session_token": session_token},
+            timeout=30,
+        )
+        return response.json(), None, None
+    except ClientError as error:
+        return [], error.error_message, error.error_code
+    except requests.RequestException as error:
         return [], f"Could not reach Connect: {error}", None
-
-    return payload, None, None
 
 
 def authenticated_url(clone_url: str, credential: dict | None) -> str:
@@ -612,92 +596,76 @@ def _cleanup():
     shutil.rmtree(WORKDIR, ignore_errors=True)
 
 
-class PluginCache:
-    """Per-viewer plugin sets, held briefly so a reload does not re-clone.
+def load_plugins(username: str, payload: dict) -> dict:
+    """Clone every marketplace in a credentials response and read its skills.
 
-    One deployment serves every viewer, so this holds one entry per identity
-    rather than one for the process. The lock matters: two viewers arriving
-    together would otherwise clone into the same directory.
+    Nothing is kept between sessions. The response is Connect's decision about
+    this viewer at the moment it was asked, and reusing it would keep granting
+    a marketplace after an administrator revoked it. Each call clones into a
+    directory of its own, which it removes once the skills are read, so two
+    sessions arriving together never share one.
     """
+    marketplaces = payload.get("marketplaces") or []
+    # Connect reports a marketplace this viewer may read but could not be let
+    # into. Carried through rather than dropped: "Connect cannot get you in"
+    # is not "you may read nothing". Each warning is an object; its message is
+    # the part Connect says is safe to show a viewer.
+    problems = [
+        f"Marketplace {warning.get('marketplace', '?')!r}: {warning.get('message', '')}"
+        for warning in payload.get("warnings") or []
+    ]
 
-    def __init__(self):
-        self._entries: dict[str, dict] = {}
-        self._lock = threading.Lock()
+    skills: list[dict] = []
+    names = []
+    root = Path(tempfile.mkdtemp(dir=WORKDIR))
+    try:
+        for marketplace in marketplaces:
+            name = marketplace.get("name", "?")
+            names.append(name)
+            found, failure = clone_marketplace(
+                name,
+                marketplace.get("url", ""),
+                marketplace.get("credential"),
+                root / name,
+            )
+            skills.extend(found)
+            if failure:
+                problems.append(failure)
+    finally:
+        shutil.rmtree(root, ignore_errors=True)
 
-    def get(self, username: str, payload: dict) -> dict:
-        """Clone every marketplace in a credentials response.
+    qualified = assign_tool_names(skills)
+    entry = {
+        "marketplaces": sorted(names),
+        "skills": skills,
+        "by_name": {skill["tool_name"]: skill for skill in skills},
+        "qualified": qualified,
+        "error": " ".join(problems) if problems else None,
+    }
 
-        Takes the response rather than fetching it, because credentials are
-        short-lived: the caller requests them per refill, and a cache hit must
-        not reuse a token that has since expired.
-        """
-        with self._lock:
-            cached = self._entries.get(username)
-            if cached and time.monotonic() - cached["at"] < CACHE_SECONDS:
-                return cached
-
-            root = WORKDIR / username
-            shutil.rmtree(root, ignore_errors=True)
-
-            marketplaces = payload.get("marketplaces") or []
-            # Connect reports a marketplace this viewer may read but could not
-            # be let into. Carried through rather than dropped: "Connect
-            # cannot get you in" is not "you may read nothing".
-            problems = list(payload.get("warnings") or [])
-
-            skills: list[dict] = []
-            names = []
-            for marketplace in marketplaces:
-                name = marketplace.get("name", "?")
-                names.append(name)
-                found, failure = clone_marketplace(
-                    name,
-                    marketplace.get("url", ""),
-                    marketplace.get("credential"),
-                    root / name,
-                )
-                skills.extend(found)
-                if failure:
-                    problems.append(failure)
-
-            qualified = assign_tool_names(skills)
-            entry = {
-                "at": time.monotonic(),
-                "marketplaces": sorted(names),
-                "skills": skills,
-                "by_name": {skill["tool_name"]: skill for skill in skills},
-                "qualified": qualified,
-                "error": " ".join(problems) if problems else None,
-            }
-            self._entries[username] = entry
-            error = entry["error"]
-
-        # Logged because the sidebar reaches only a viewer who already has the
-        # app open, and Shiny delivers it over the websocket rather than in the
-        # initial HTML -- so this is otherwise invisible in the logs.
-        if error:
-            print(f"[agent-plugins] {username}: {error}", flush=True)
-        else:
+    # Logged because the sidebar reaches only a viewer who already has the
+    # app open, and Shiny delivers it over the websocket rather than in the
+    # initial HTML -- so this is otherwise invisible in the logs.
+    if entry["error"]:
+        print(f"[agent-plugins] {username}: {entry['error']}", flush=True)
+    else:
+        print(
+            "[agent-plugins] %s received %d skill(s) from %s: %s"
+            % (
+                username,
+                len(skills),
+                ", ".join(entry["marketplaces"]) or "no marketplaces",
+                ", ".join(entry["by_name"]) or "none",
+            ),
+            flush=True,
+        )
+        if qualified:
             print(
-                "[agent-plugins] %s received %d skill(s) from %s: %s"
-                % (
-                    username,
-                    len(skills),
-                    ", ".join(entry["marketplaces"]) or "no marketplaces",
-                    ", ".join(entry["by_name"]) or "none",
-                ),
+                "[agent-plugins] %s: qualified colliding skill name(s): %s"
+                % (username, ", ".join(sorted(qualified))),
                 flush=True,
             )
-            if qualified:
-                print(
-                    "[agent-plugins] %s: qualified colliding skill name(s): %s"
-                    % (username, ", ".join(sorted(qualified))),
-                    flush=True,
-                )
-        return entry
-
-
-PLUGINS = PluginCache()
+    return entry
 
 
 # --------------------------------------------------------------------------
@@ -749,9 +717,7 @@ def server(input: Inputs, output: Outputs, session: Session):
             "enabled so Connect injects one."
         )
     else:
-        payload, error, code = resolve_marketplaces(
-            CONNECT_SERVER, CONNECT_API_KEY, session_token
-        )
+        payload, error, code = resolve_marketplaces(session_token)
         if error:
             # Not being enabled for this content is the case the setup screen
             # exists for. Anything else is reported as-is rather than
@@ -763,14 +729,15 @@ def server(input: Inputs, output: Outputs, session: Session):
             if code == BAD_SESSION_TOKEN_ERROR:
                 # Reloading mints a fresh token, which is the whole fix.
                 detail = error + " Reload the page."
-            detail = error
+            else:
+                detail = error
             print(f"[agent-plugins] {error}", flush=True)
         else:
             resolved = payload
             viewer_name = (payload.get("viewer") or {}).get("username")
 
     entry = (
-        PLUGINS.get(viewer_name, resolved)
+        load_plugins(viewer_name, resolved)
         if resolved is not None and viewer_name
         else {
             "marketplaces": [],
