@@ -36,7 +36,7 @@ jobs:
     outputs:
       versions: ${{ steps.versions.outputs.versions }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - id: versions
         working-directory: ./integration
@@ -55,7 +55,7 @@ jobs:
     outputs:
       matrix: ${{ steps.generate_matrix.outputs.matrix }}
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
       
       # This step generates a matrix of compatible extension/version combinations
       # by checking each extension's minimumConnectVersion against available Connect versions
@@ -161,7 +161,7 @@ jobs:
       matrix:
         include: ${{ fromJson(needs.setup-extension-versions.outputs.matrix) }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       # Run the integration test for this extension/version combination
       - uses: ./.github/actions/connect-integration-test
@@ -172,7 +172,7 @@ jobs:
           connect-license: ${{ secrets.CONNECT_LICENSE }}
 
       # Upload the test report XML files as artifacts for use by downstream jobs
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         if: always() && steps.test.outcome != 'cancelled' && steps.test.outcome != 'skipped'
         with:
           name: ${{ matrix.extension }}-${{ matrix.connect_version }}-test-report
@@ -188,7 +188,7 @@ jobs:
       successful_extensions: ${{ steps.collect.outputs.successful_extensions }}
     if: always()
     steps:
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v8
         id: download
         with:
           path: artifacts
