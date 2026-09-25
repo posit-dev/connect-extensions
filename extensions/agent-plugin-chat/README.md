@@ -107,7 +107,7 @@ Access is **per marketplace**, not per plugin. Package Manager authorizes whole 
 
 Content reads each upstream as its author published it, so two things this app cannot assume away are handled here:
 
-**Resolving each plugin's declared source.** A plugin's location comes from its entry in the marketplace document, not from a directory named after it. A repository that is itself one plugin declares `"./"` and keeps its skills at the root; both `cloudflare/skills` and `stripe/ai` are that shape.
+**Resolving each plugin's declared source.** A plugin's location comes from its entry in the marketplace document, not from a directory named after it. A repository that is itself one plugin declares `"./"` and keeps its skills at the root; both `cloudflare/skills` and `stripe/ai` are that shape. An entry can also name its skills with a `skills` list of paths, each one skill directory or a directory of them. When the entry's source is the repository root, only those paths load, which is how one repository such as `posit-dev/skills` or `anthropics/skills` publishes several plugins from a shared tree. Otherwise they add to the plugin's `skills/` directory, as a `skills` field in the plugin's own `.claude-plugin/plugin.json` does.
 
 **Coping with the upstream's transport.** A shallow clone is what a marketplace consumer wants, but not every host offers one — a repository served as static files over HTTP has no upload-pack to negotiate with. The app tries shallow, then falls back.
 

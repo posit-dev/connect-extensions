@@ -455,24 +455,89 @@ def read_document(root: Path) -> list[dict]:
     return []
 
 
+def confined(root: Path, path: str, base: Path | None = None) -> Path | None:
+    """Resolve a path from the marketplace document inside the clone.
+
+    The path is relative to `base`, or to the clone when there is none. A
+    path that is not relative names something outside this clone and is
+    skipped rather than guessed at, as is one climbing out of it.
+    """
+    if "://" in path or path.startswith("/"):
+        return None
+    candidate = ((base or root) / path).resolve()
+    try:
+        candidate.relative_to(root.resolve())
+    except ValueError:
+        return None
+    return candidate if candidate.is_dir() else None
+
+
 def plugin_root(root: Path, entry: dict) -> Path | None:
     """Resolve where in the clone a marketplace entry's plugin lives.
 
     The entry's source is a path relative to the repository, and "./" means
     the repository itself -- the layout a repository that is one plugin uses.
-    A source that is not a relative path names something outside this clone
-    and is skipped rather than guessed at.
     """
     source = entry.get("source")
-    if not isinstance(source, str) or "://" in source or source.startswith("/"):
+    if not isinstance(source, str):
         return None
-    candidate = (root / source).resolve() if source else root.resolve()
+    return confined(root, source)
+
+
+def declared_paths(value) -> list[str]:
+    """Normalise a `skills` field, which may be one path or a list of them."""
+    if isinstance(value, str):
+        return [value]
+    if isinstance(value, list):
+        return [path for path in value if isinstance(path, str)]
+    return []
+
+
+def plugin_manifest(base: Path) -> dict:
+    """Read a plugin's own manifest, or nothing if it has none."""
+    path = base / ".claude-plugin" / "plugin.json"
+    if not path.is_file():
+        return {}
     try:
-        candidate.relative_to(root.resolve())
+        manifest = json.loads(path.read_text(encoding="utf-8"))
     except ValueError:
-        # A source climbing out of the clone.
-        return None
-    return candidate if candidate.is_dir() else None
+        return {}
+    return manifest if isinstance(manifest, dict) else {}
+
+
+def skill_files(root: Path, entry: dict, base: Path) -> list[Path]:
+    """List the SKILL.md files one plugin carries.
+
+    A plugin's skills live in its `skills/` directory unless something says
+    otherwise. Both the marketplace entry and the plugin's own manifest can
+    name more directories, each either one skill (holding SKILL.md itself) or
+    a directory of skill folders. Paths are relative to the plugin, and each
+    is confined to the clone.
+
+    An entry whose source is the repository root and which names its skills
+    loads only those, because that is how one repository publishes several
+    plugins: each entry picks its own skills out of a shared tree, and
+    scanning `skills/` would hand every plugin all of them. Anywhere else the
+    named directories add to `skills/`.
+    """
+    entry_paths = declared_paths(entry.get("skills"))
+    directories = entry_paths + declared_paths(plugin_manifest(base).get("skills"))
+    if not (entry_paths and base == root.resolve()):
+        directories.insert(0, "skills")
+
+    found: list[Path] = []
+    for directory in directories:
+        resolved = confined(root, directory, base)
+        if resolved is None:
+            continue
+        if (resolved / "SKILL.md").is_file():
+            candidates = [resolved / "SKILL.md"]
+        else:
+            candidates = sorted(resolved.glob("*/SKILL.md"))
+        for skill_file in candidates:
+            if skill_file not in found:
+                found.append(skill_file)
+    return found
 
 
 def collect_skills(root: Path, marketplace: str) -> list[dict]:
@@ -489,7 +554,7 @@ def collect_skills(root: Path, marketplace: str) -> list[dict]:
         base = plugin_root(root, entry)
         if not name or base is None:
             continue
-        for skill_file in sorted(base.glob("skills/*/SKILL.md")):
+        for skill_file in skill_files(root, entry, base):
             body = skill_file.read_text(encoding="utf-8", errors="replace")
             skills.append(
                 {
@@ -779,8 +844,9 @@ def server(input: Inputs, output: Outputs, session: Session):
             ),
             ui.tags.small(
                 "Connect exchanged your session token for a key carrying your "
-                "identity and filtered the marketplace with it. A plugin you "
-                "are not granted was never sent to this app."
+                "identity and used it to decide which marketplaces you may "
+                "read. A marketplace you are not granted was never sent to "
+                "this app."
             ),
         )
 
@@ -789,15 +855,17 @@ def server(input: Inputs, output: Outputs, session: Session):
         if entry["error"]:
             return ui.div(entry["error"], class_="text-warning")
         if not skills:
+            if entry["marketplaces"]:
+                summary = (
+                    "No skills were found in " + ", ".join(entry["marketplaces"]) + "."
+                )
+            else:
+                summary = "No marketplaces are granted to you."
             return ui.div(
-                ui.tags.p(
-                    "No plugins are granted to you in "
-                    + (", ".join(entry["marketplaces"]) or "any marketplace")
-                    + "."
-                ),
+                ui.tags.p(summary),
                 ui.tags.small(
-                    "An administrator grants access per marketplace and per "
-                    "plugin under System › Agent plugins."
+                    "An administrator grants access per marketplace under "
+                    "System › Agent plugins."
                 ),
             )
         # Grouped by marketplace so provenance is visible: with more than one
