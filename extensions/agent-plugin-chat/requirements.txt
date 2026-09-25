@@ -1,0 +1,5 @@
+shiny
+shinychat
+chatlas
+anthropic
+posit-sdk>=0.10.0
