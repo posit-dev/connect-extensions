@@ -1,0 +1,26 @@
+{
+  "private": true,
+  "name": "dag-builder",
+  "version": "0.1.0",
+  "type": "module",
+  "description": "DAG Builder - FastAPI + React web app",
+  "scripts": {
+    "dev": "concurrently -c auto \"npm run watch\" \"npm run fastapi\"",
+    "build": "concurrently -c auto \"tsc --noEmit\" \"esbuild srcts/main.tsx --bundle --outfile=py/www/main.js --format=esm --sourcemap --minify --alias:react=react\"",
+    "watch": "concurrently -c auto \"tsc --noEmit --watch --preserveWatchOutput\" \"esbuild srcts/main.tsx --bundle --outfile=py/www/main.js --format=esm --sourcemap --minify --alias:react=react --watch\"",
+    "fastapi": "cd py && uvicorn app:app --reload --port ${PORT:-8000}",
+    "clean": "rm -rf py/www"
+  },
+  "devDependencies": {
+    "@types/react": "^19.1.12",
+    "@types/react-dom": "^19.1.9",
+    "concurrently": "^9.0.1",
+    "esbuild": "^0.25.9",
+    "typescript": "^5.9.2"
+  },
+  "dependencies": {
+    "@xyflow/react": "^12.8.5",
+    "react": "^19.1.1",
+    "react-dom": "^19.1.1"
+  }
+}
