@@ -1,6 +1,8 @@
 import os
 from datetime import datetime, timezone
 
+import requests
+
 # Static/rendered content the app can extract text from. Interactive apps (Shiny,
 # Streamlit, ...) render in the browser, so their HTML holds no content to chat with.
 CHATTABLE_APP_MODES = ("jupyter-static", "quarto-static", "rmd-static", "static")
@@ -9,6 +11,32 @@ CHATTABLE_APP_MODES = ("jupyter-static", "quarto-static", "rmd-static", "static"
 # far bigger than the model's context window; truncating keeps the request within
 # bounds instead of erroring, at the cost of dropping the tail of very long pages.
 MAX_CONTEXT_CHARS = 100_000
+
+# How long a single Connect HTTP request may stall. This is requests' read timeout,
+# i.e. the gap between bytes, so a slow but progressing response (a large paginated
+# content list) is not cut off; only a genuinely stuck one is.
+CONNECT_REQUEST_TIMEOUT_SECONDS = 60
+
+
+# The SDK ships its session with no timeout of its own, so a Connect server that
+# accepts a connection and then goes quiet would hang the calling thread forever.
+# app.py runs these calls through asyncio.to_thread, which can stop waiting on a
+# stuck call but cannot interrupt it, so without a deadline here those threads
+# accumulate and eventually starve the worker. Supplying the default through an
+# adapter uses requests' own extension point rather than reaching into the SDK.
+class _TimeoutAdapter(requests.adapters.HTTPAdapter):
+    def send(self, request, **kwargs):
+        if kwargs.get("timeout") is None:
+            kwargs["timeout"] = CONNECT_REQUEST_TIMEOUT_SECONDS
+        return super().send(request, **kwargs)
+
+
+# Applied to every client the app uses. The token exchange builds a fresh client
+# with its own session, so that one needs it as much as the deploy client does.
+def with_request_timeout(client):
+    for prefix in ("http://", "https://"):
+        client.session.mount(prefix, _TimeoutAdapter())
+    return client
 
 
 # Both env vars are checked because a missed "on Connect" detection would fall back
@@ -53,7 +81,7 @@ def resolve_visitor_client(client, on_connect, token):
         # Neither is fixed on the Access tab, so say that rather than showing setup.
         return client, True, NO_SESSION_DETAIL
     try:
-        return client.with_user_session_token(token), True, None
+        return with_request_timeout(client.with_user_session_token(token)), True, None
     except Exception as err:
         # Compare as a string so a code reported as 212 or "212" both count as the
         # missing-integration case (setup screen) rather than a scary error screen.
