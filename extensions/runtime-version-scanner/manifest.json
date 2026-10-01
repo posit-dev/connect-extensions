@@ -2619,7 +2619,7 @@
       "checksum": "1f458d627fc174c123e24baa3a3934cf"
     },
     "R/connect_module.R": {
-      "checksum": "b06c872e41c16ee85834394daccfc19d"
+      "checksum": "06feb635d434bbdec3e99fad5753fd5d"
     },
     "R/fetch_content.R": {
       "checksum": "a99f3e21b2612e9d889b14b8a6201d83"
@@ -2634,7 +2634,7 @@
       "checksum": "4d281186c3749dbd4f351043d5063ee1"
     },
     "www/styles.css": {
-      "checksum": "48340b42bcc9fbed7bdac0c216bb6964"
+      "checksum": "df3aa54b9ea7b3d8e7d369f283e259d7"
     }
   },
   "users": null,
@@ -2649,6 +2649,6 @@
     "requiredFeatures": [
       "OAuth Integrations"
     ],
-    "version": "1.0.5"
+    "version": "1.0.6"
   }
 }
