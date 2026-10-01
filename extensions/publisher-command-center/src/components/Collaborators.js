@@ -19,7 +19,7 @@ export default {
             " ",
             m(
               "a",
-              { href: accessUrl, target: "_blank" },
+              { href: accessUrl, target: "_blank", rel: "noopener" },
               "See Collaborators and Manage Access",
             ),
           ]),

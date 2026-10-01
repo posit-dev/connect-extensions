@@ -3,9 +3,15 @@ name = "publisher-command-center"
 version = "0.1.0"
 description = "A dashboard for publishers to help manage and track their content"
 readme = "README.md"
-requires-python = ">=3.12"
+requires-python = ">=3.9"
 dependencies = [
     "cachetools>=5.5.1",
     "fastapi[standard]>=0.115.8",
     "posit-sdk>=0.8.0",
+]
+
+# Test-only dependencies; not bundled into the extension (requirements.txt is).
+[dependency-groups]
+dev = [
+    "pytest>=8",
 ]

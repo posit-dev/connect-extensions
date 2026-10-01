@@ -1,32 +1,35 @@
 import m from "mithril";
 import Contents from "../models/Contents";
 import { Modal } from "bootstrap";
+import { notifyError, reason } from "../utils/notify";
 
 const RenameModalForm = {
-  newName: "",
-  guid: "",
-  isValid: false,
-  onsubmit: function (e) {
-    if (RenameModalForm.isValid) {
-      e.preventDefault();
-      Contents.rename(RenameModalForm.guid, RenameModalForm.newName);
-
-      const modalEl = document.getElementById(
-        `renameModal-${RenameModalForm.guid}`,
-      );
-      const modal = Modal.getInstance(modalEl);
-      modal.hide();
-
-      RenameModalForm.newName = "";
+  onsubmit: function (e, contentId) {
+    e.preventDefault();
+    // Read the title from this form's own input rather than shared module state,
+    // so a reused modal can never submit a stale guid or an empty title.
+    const input = e.target.querySelector("input");
+    if (!input || !input.validity.valid) {
+      return;
     }
+    // Only close the modal and clear the field once the rename succeeds; on
+    // failure keep it open and surface the error.
+    Contents.rename(contentId, input.value)
+      .then(() => {
+        const modalEl = document.getElementById(`renameModal-${contentId}`);
+        Modal.getInstance(modalEl)?.hide();
+        input.value = "";
+      })
+      .catch((err) => {
+        console.error(err);
+        notifyError(`Couldn't rename the content: ${reason(err)}`);
+      });
   },
   view: function (vnode) {
     return m(
       "form",
       {
-        onsubmit: (e) => {
-          this.onsubmit(e);
-        },
+        onsubmit: (e) => RenameModalForm.onsubmit(e, vnode.attrs.contentId),
       },
       [
         m("section", { class: "modal-body" }, [
@@ -34,25 +37,19 @@ const RenameModalForm = {
             m(
               "label",
               {
-                for: "rename-content-input",
+                for: `rename-content-input-${vnode.attrs.contentId}`,
                 class: "mb-3",
               },
               "Enter new name for ",
               [m("span", { class: "fw-bold" }, `${vnode.attrs.contentTitle}`)],
             ),
             m("input", {
-              oninput: function (e) {
-                RenameModalForm.isValid = e.target.validity.valid;
-                RenameModalForm.guid = vnode.attrs.contentId;
-                RenameModalForm.newName = e.target.value;
-              },
-              id: "rename-content-input",
+              id: `rename-content-input-${vnode.attrs.contentId}`,
               type: "text",
               class: "form-control",
               required: true,
               minlength: 3,
               maxlength: 1024,
-              value: RenameModalForm.newName,
             }),
           ]),
         ]),

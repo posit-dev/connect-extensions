@@ -23,6 +23,8 @@ export default {
         this._fetch = null;
         throw err;
       });
+
+    return this._fetch;
   },
 
   delete: async function (guid) {
@@ -38,7 +40,7 @@ export default {
     await m
       .request({
         method: "PATCH",
-        url: `api/content/${guid}/lock`,
+        url: `api/contents/${guid}/lock`,
       })
       .then((response) => {
         const targetContent = this.data.find((c) => c.guid === guid);
@@ -50,7 +52,7 @@ export default {
     await m
       .request({
         method: "PATCH",
-        url: `api/content/${guid}/rename`,
+        url: `api/contents/${guid}/rename`,
         body: {
           title: newName,
         },

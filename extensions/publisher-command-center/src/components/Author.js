@@ -1,6 +1,7 @@
 import m from "mithril";
 
-import { formatDistanceToNow } from "date-fns";
+import { formatRelative } from "../utils/dates";
+import { reason } from "../utils/notify";
 
 import Author from "../models/Author";
 
@@ -8,12 +9,11 @@ export default {
   error: null,
 
   oninit: function (vnode) {
-    try {
-      Author.load(vnode.attrs.content_id);
-    } catch (err) {
-      this.error = "Failed to load author.";
+    Author.load(vnode.attrs.contentId).catch((err) => {
+      this.error = `Couldn't load author: ${reason(err)}`;
       console.error(err);
-    }
+      m.redraw();
+    });
   },
 
   onremove: function () {
@@ -54,7 +54,7 @@ export default {
           "p",
           m("small.text-body-secondary", [
             "Active ",
-            formatDistanceToNow(author?.active_time, { addSuffix: true }),
+            formatRelative(author?.active_time),
           ]),
         ),
       ]),

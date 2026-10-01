@@ -1,10 +1,10 @@
 import m from "mithril";
 
 const Process = {
-  destroy: function (content_id, process_id) {
+  destroy: function (contentId, processId) {
     return m.request({
       method: "DELETE",
-      url: `api/contents/${content_id}/processes/${process_id}`,
+      url: `api/contents/${contentId}/processes/${processId}`,
     });
   },
 };
