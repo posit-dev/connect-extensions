@@ -1,0 +1,59 @@
+{
+  "version": 1,
+  "locale": "en_US.UTF-8",
+  "metadata": {
+    "appmode": "quarto-static"
+  },
+  "quarto": {
+    "version": "1.10.18",
+    "engines": [
+      "jupyter"
+    ]
+  },
+  "python": {
+    "version": "3.9.21",
+    "package_manager": {
+      "name": "pip",
+      "version": "26.0.1",
+      "package_file": "requirements.txt"
+    }
+  },
+  "files": {
+    "requirements.txt": {
+      "checksum": "de04009acba7f652e143ef63d5828240"
+    },
+    "_quarto.yml": {
+      "checksum": "a663b580ed1512cccbb106b2dd380b76"
+    },
+    "index.qmd": {
+      "checksum": "18758a795f0070c6684ea9a858b1e6ee"
+    },
+    "odbc_check.py": {
+      "checksum": "f10501f61ea1949a6bc6ce4b8ddc90ce"
+    }
+  },
+  "extension": {
+    "name": "odbc-integration-test",
+    "title": "ODBC Integration Test",
+    "description": "A report that tests an ODBC integration from the content runtime. It checks the integration variable, the ODBC driver manager, the driver registration, and the database connection, and it explains each failure.",
+    "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/odbc-integration-test",
+    "category": "example",
+    "tags": [
+      "python",
+      "quarto"
+    ],
+    "minimumConnectVersion": "2026.10.0",
+    "requiredFeatures": [
+      "OAuth Integrations"
+    ],
+    "version": "0.0.0"
+  },
+  "environment": {
+    "python": {
+      "requires": "~=3.9"
+    },
+    "quarto": {
+      "requires": "~=1.4"
+    }
+  }
+}
