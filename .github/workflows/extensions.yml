@@ -68,6 +68,12 @@ jobs:
             echo "Infrastructure changed — testing all simple extensions"
             changes=$(find extensions -maxdepth 1 -mindepth 1 -type d -printf '%f\n' \
               | while read -r ext; do
+                  # An extension with its own workflow is tested by the
+                  # complex-extension-changes path, which also runs on infra changes.
+                  # Skip it here.
+                  if [ -f ".github/workflows/$ext.yml" ]; then
+                    continue
+                  fi
                   if jq -e '.extension.minimumConnectVersion' "extensions/$ext/manifest.json" > /dev/null 2>&1; then
                     echo "$ext"
                   fi
