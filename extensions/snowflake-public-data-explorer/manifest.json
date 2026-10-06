@@ -15,12 +15,12 @@
   },
   "environment": {
     "python": {
-      "requires": ">=3.12,<3.13"
+      "requires": ">=3.12"
     }
   },
   "files": {
     "requirements.txt.lock": {
-      "checksum": "8de70b22ba7e66d4b649b859baa1cb13"
+      "checksum": "24aa70513020133a5fa9f0608f948246"
     },
     "CHANGELOG.md": {
       "checksum": "989642f6ae6ea533c8bbb180ae131677"
@@ -38,10 +38,10 @@
       "checksum": "5099578149dc444c5ac96a1141506e16"
     },
     "pyproject.toml": {
-      "checksum": "4f698eab7f4dc51cbabb66318d5bd614"
+      "checksum": "32c821761fa735998247b2f47043ad37"
     },
     "uv.lock": {
-      "checksum": "8ce504518dd649533fb4d922d6142971"
+      "checksum": "b3959da3026965f894569556d8ca2da8"
     }
   },
   "extension": {
