@@ -19,7 +19,8 @@
     "llm",
     "chat",
     "quarto",
-    "r"
+    "r",
+    "snowflake"
   ],
   "requiredFeatures": [
     "API Publishing",
