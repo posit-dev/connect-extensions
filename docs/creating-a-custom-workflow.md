@@ -16,8 +16,12 @@ Replace the `EXTENSION_NAME` variable with your content's name, and add the
 custom build steps needed for your content. The custom steps will entirely
 depend on your content and what environment it needs to setup.
 
+The workflow file name must be the same as the extension directory name, with
+`.yml` added. For example, the workflow for `extensions/my-content-name/` must
+be `.github/workflows/my-content-name.yml`.
+
 ```yaml
-# ./github/workflows/my-custom-content.yml
+# .github/workflows/my-content-name.yml
 
 name: My Custom Content
 
