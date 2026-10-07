@@ -1,0 +1,133 @@
+# requirements.txt.lock generated from uv.lock by rsconnect-python on 2026-10-07 18:18:18.091587+00:00
+altair==6.3.0
+annotated-types==0.8.0
+anyio==4.15.1
+anywidget==0.11.0
+asgiref==3.12.1
+asn1crypto==1.5.1
+asttokens==3.0.2
+atpublic==8.0.1
+attrs==26.1.0
+babel==2.18.0
+boto3==1.43.109
+botocore==1.43.109
+certifi==2026.7.22
+cffi==2.1.1
+charset-normalizer==3.5.2
+chatlas==0.23.0
+chevron==0.14.0
+click==8.5.0
+cloudpickle==3.1.1
+colorama==0.4.6 ; sys_platform == 'win32'
+comm==0.2.3
+cryptography==50.0.2
+duckdb==1.5.6
+executing==2.2.1
+faicons==0.2.2
+fastjsonschema==2.22.2
+filelock==3.32.7
+ggsql==0.3.3
+great-tables==1.0.0
+h11==0.16.0
+htmltools==0.7.0
+httpcore==1.0.9
+httpcore2==2.13.1 ; sys_platform != 'emscripten'
+httpx==0.28.1
+httpx2==2.13.1
+httpx2-jsfetch==1.0 ; sys_platform == 'emscripten'
+ibis-framework==12.0.0
+idna==3.20
+importlib-metadata==9.0.1
+importlib-resources==7.1.0
+ipython==9.17.1
+ipython-pygments-lexers==1.1.1
+ipywidgets==8.1.9
+jedi==0.20.0
+jinja2==3.1.6
+jiter==0.17.0
+jmespath==1.1.0
+jsonschema==4.26.0
+jsonschema-specifications==2025.9.1
+jupyter-core==5.9.1
+jupyterlab-widgets==3.0.17
+libsass==0.23.0
+linkify-it-py==2.2.0
+markdown-it-py==4.2.0
+markupsafe==3.0.4
+matplotlib-inline==0.2.2
+mdit-py-plugins==0.6.1
+mdurl==0.1.2
+multimark==0.4.0
+narwhals==2.26.0
+nbformat==5.11.1
+nokap==0.1.0
+numpy==2.5.3
+openai==3.26.0
+opentelemetry-api==1.45.1
+orjson==3.13.0
+packaging==26.3
+pandas==3.0.6
+parso==0.8.7
+parsy==2.2
+pexpect==4.9.0 ; sys_platform != 'emscripten' and sys_platform != 'win32'
+platformdirs==4.12.3
+polars==2.0.0
+polars-runtime-32==2.0.0
+posit-sdk==0.17.0
+prompt-toolkit==3.0.53
+protobuf==6.33.6
+psutil==7.2.2 ; sys_platform != 'cygwin' and sys_platform != 'emscripten'
+psygnal==0.16.1
+ptyprocess==0.7.0 ; sys_platform != 'emscripten' and sys_platform != 'win32'
+pure-eval==0.2.4
+pyarrow==23.0.1
+pyarrow-hotfix==0.7
+pycparser==3.0 ; implementation_name != 'PyPy'
+pydantic==2.13.5
+pydantic-core==2.46.5
+pygments==2.21.0
+pyjwt==2.15.1
+pyopenssl==26.4.0
+python-dateutil==2.9.0.post0
+python-multipart==0.0.32 ; sys_platform != 'emscripten'
+pytz==2026.5
+pyyaml==6.0.3
+querychat==0.9.0
+questionary==2.1.1 ; sys_platform != 'emscripten'
+referencing==0.37.0
+requests==2.34.2
+rich==15.0.0
+rpds-py==2026.9.1
+ruff==0.16.10
+s3transfer==0.19.2
+setuptools==84.0.0
+shiny==1.8.0
+shinychat==0.7.2
+shinywidgets==0.8.1
+six==1.17.0
+sniffio==1.3.1
+snowflake-connector-python==4.8.0
+snowflake-core==1.13.2
+snowflake-snowpark-python==1.55.1
+sortedcontainers==2.4.0
+sqlalchemy==2.1.4
+sqlglot==30.21.0
+stack-data==0.6.3
+starlette==1.7.0
+tomlkit==0.15.1
+toolz==1.2.0
+traitlets==5.16.1
+truststore==0.10.4 ; sys_platform != 'emscripten'
+typing-extensions==4.16.0
+typing-inspection==0.4.4
+tzdata==2026.5
+tzlocal==5.4.4
+urllib3==2.8.0
+uvicorn==0.54.0 ; sys_platform != 'emscripten'
+vl-convert-python==1.9.0.post1
+watchfiles==1.3.0 ; sys_platform != 'emscripten'
+wcwidth==0.9.2
+websockets==17.2
+wheel==0.48.0
+widgetsnbextension==4.0.16
+zipp==4.1.1

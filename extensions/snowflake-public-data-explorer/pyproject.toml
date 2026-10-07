@@ -1,0 +1,37 @@
+[project]
+name = "snowflake-public-data-explorer"
+version = "0.0.1"
+description = "Ask questions about Snowflake public data, from Shiny on Posit Connect"
+readme = "README.md"
+requires-python = ">=3.12"
+
+dependencies = [
+    "chatlas",
+    "ibis-framework[snowflake]",
+    "posit-sdk",
+    "shiny",
+    "querychat[viz,polars]",
+    "shinychat",
+    "snowflake-connector-python",
+    "snowflake-core",
+    "snowflake-snowpark-python",
+]
+
+[tool.rsconnect]
+app_mode = "python-shiny"
+entrypoint = "app.py"
+title = "Snowflake Public Data Explorer"
+requirements_file = "uv.lock"
+
+[dependency-groups]
+dev = ["ruff"]
+
+# The Shiny application is not importable as a package.
+[tool.uv]
+package = false
+# Avoids an import-time warning from snowflake-connector-python on Python 3.14:
+# https://github.com/snowflakedb/snowflake-connector-python/issues/2950
+constraint-dependencies = ["pyarrow<24"]
+
+[tool.ruff]
+line-length = 120
