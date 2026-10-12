@@ -1,0 +1,45 @@
+---
+title: "ODBC integration test"
+format:
+  html:
+    embed-resources: true
+    code-overflow: wrap
+execute:
+  echo: false
+  error: false
+---
+
+This report tests the ODBC integration on this content from the content runtime.
+To test again after you change the integration or the runtime, render the report again.
+
+```{python}
+#| output: asis
+from datetime import datetime, timezone
+import platform
+
+import odbc_check
+
+results = odbc_check.run_checks()
+failed = [r for r in results if r.status == odbc_check.FAIL]
+
+if failed:
+    print("::: {.callout-important}\n## The test failed\n")
+    print("Fix the first failed check, then render the report again.\n:::\n")
+else:
+    print("::: {.callout-tip}\n## The test passed\n")
+    print("Content that uses this integration can connect to the database.\n:::\n")
+
+labels = {odbc_check.PASS: "Passed", odbc_check.FAIL: "Failed", odbc_check.SKIP: "Skipped"}
+for r in results:
+    print("## %s: %s\n" % (r.title, labels[r.status]))
+    print(r.message + "\n")
+    for d in r.details:
+        print("- " + d)
+    print()
+    if r.output:
+        print("```text\n%s\n```\n" % r.output)
+
+print("## Runtime\n")
+print("- Python %s on %s" % (platform.python_version(), platform.platform()))
+print("- Rendered at %s UTC" % datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S"))
+```
