@@ -5,6 +5,21 @@ All notable changes to the Runtime Version Scanner extension will be documented 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.6] - 2026-07-21
+
+### Changed
+
+- Replaced the setup modal with a full-screen setup screen matching the other
+  Connect extensions: a clean card with the standard "add a Connect Visitor API
+  Key integration" instructions. The admin prerequisite and Max Role requirement
+  now live in the README. (#XXX)
+
+### Removed
+
+- Removed the one-click "Use the … Integration" button, which associated the
+  integration using the deployer's credentials. The app now only ever acts as the
+  signed-in viewer and gives manual setup instructions instead. (#XXX)
+
 ## [1.0.5] - 2026-06-23
 
 ### Fixed
