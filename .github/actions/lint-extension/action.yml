@@ -150,3 +150,69 @@ runs:
           exit 1
         fi
       shell: bash
+
+    # The render-set guard below only applies to Quarto content.
+    - name: Detect Quarto appmode
+      id: quarto-appmode
+      run: |
+        APPMODE=$(jq -r '.metadata.appmode // ""' ./extensions/${{ inputs.extension-name }}/manifest.json)
+        if [[ "$APPMODE" == quarto-* ]]; then
+          echo "is-quarto=true" >> "$GITHUB_OUTPUT"
+        else
+          echo "is-quarto=false" >> "$GITHUB_OUTPUT"
+        fi
+      shell: bash
+
+    - name: Set up Quarto
+      if: steps.quarto-appmode.outputs.is-quarto == 'true'
+      uses: quarto-dev/quarto-actions/setup@v2
+
+    # Guards against the served-document bug (#392): Quarto renders every sibling
+    # document (e.g. CHANGELOG.md) as its own page, and with no pinned primary
+    # the default served document can silently flip to that page (e.g.
+    # CHANGELOG.html) instead of the entrypoint. Every build-time check stays
+    # green, so nothing else catches it. The standard is that a Quarto extension
+    # renders only what it serves: single-document content pins project.render to
+    # its entrypoint, while websites render their own pages. So this fails when a
+    # non-website extension renders more than one document.
+    - name: Check Quarto render set
+      if: steps.quarto-appmode.outputs.is-quarto == 'true'
+      run: |
+        set -euo pipefail
+        EXT_DIR=./extensions/${{ inputs.extension-name }}
+
+        # Without a _quarto.yml the directory is not a project, so Connect renders
+        # only the entrypoint and no sibling document becomes a page. This also
+        # catches engines that need a runtime this job doesn't install (e.g. a
+        # bare .R script needs Rscript just to be inspected), so a quarto
+        # inspect failure is treated the same as "not a project" rather than
+        # failing the lint.
+        if ! INSPECT=$(quarto inspect "$EXT_DIR" 2>/dev/null); then
+          echo "Not a Quarto project, or inspection needs a runtime this job doesn't have; only the entrypoint renders. OK."
+          exit 0
+        fi
+
+        # Websites legitimately render many pages and serve index.html by convention.
+        PROJECT_TYPE=$(jq -r '.config.project.type // "default"' <<< "$INSPECT")
+        if [ "$PROJECT_TYPE" == "website" ]; then
+          echo "Website project; many pages are expected. OK."
+          exit 0
+        fi
+
+        # Rendered input basenames. Quarto ignores README.md, so it never
+        # shows up here even if one is present.
+        INPUTS=$(jq -r '.files.input[] | split("/") | last' <<< "$INSPECT")
+        COUNT=$(wc -l <<< "$INPUTS")
+
+        # A lone document is unambiguously the served document. More than one
+        # rendered input, regardless of its extension (.md, .qmd, .ipynb,
+        # etc.), is a stray page that could become the served document.
+        if [ "$COUNT" -gt 1 ]; then
+          echo "Error: Quarto extension '${{ inputs.extension-name }}' renders multiple documents:"
+          echo "$INPUTS"
+          echo "Pin the entrypoint in _quarto.yml (project.render) so only it renders and becomes the served document."
+          exit 1
+        fi
+
+        echo "No stray pages render. OK."
+      shell: bash
