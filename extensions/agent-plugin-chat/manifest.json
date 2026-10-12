@@ -1,0 +1,49 @@
+{
+  "version": 1,
+  "locale": "en_US.UTF-8",
+  "metadata": {
+    "appmode": "python-shiny",
+    "entrypoint": "app"
+  },
+  "python": {
+    "version": "3.11.3",
+    "package_manager": {
+      "name": "pip",
+      "version": "23.1.2",
+      "package_file": "requirements.txt"
+    }
+  },
+  "environment": {
+    "python": {
+      "requires": "~=3.11"
+    }
+  },
+  "extension": {
+    "name": "agent-plugin-chat",
+    "title": "Python Shiny: Chat with Connect-managed skills",
+    "description": "A Python Shiny chat app whose skills come from the Connect agent plugin marketplaces its viewer may use. One deployment serves everyone: Connect resolves the marketplaces per signed-in viewer, so each person's agent gets only the skills an administrator granted them.",
+    "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/agent-plugin-chat",
+    "category": "example",
+    "tags": [
+      "python",
+      "shiny",
+      "chat",
+      "llm",
+      "agent-plugins"
+    ],
+    "requiredFeatures": [
+      "OAuth Integrations",
+      "Agent Plugins"
+    ],
+    "minimumConnectVersion": "2026.10.0",
+    "version": "0.0.1"
+  },
+  "files": {
+    "requirements.txt": {
+      "checksum": "b3648ea71a407f483a055e6debc65194"
+    },
+    "app.py": {
+      "checksum": "186eb9e8dea471c4af27329a959e5a26"
+    }
+  }
+}

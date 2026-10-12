@@ -19,12 +19,14 @@
     "llm",
     "chat",
     "quarto",
-    "r"
+    "r",
+    "agent-plugins"
   ],
   "requiredFeatures": [
     "API Publishing",
     "OAuth Integrations",
-    "Current User Execution"
+    "Current User Execution",
+    "Agent Plugins"
   ],
   "extensions": [
     {
