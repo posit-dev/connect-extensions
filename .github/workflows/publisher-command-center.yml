@@ -1,4 +1,4 @@
-name: Publisher Commander Center Extension
+name: Publisher Command Center
 
 on:
   workflow_call:
@@ -34,7 +34,20 @@ jobs:
           cache-dependency-path: extensions/${{ env.EXTENSION_NAME }}/package-lock.json
 
       - run: npm ci
+
+      # Run the frontend unit tests before building.
+      - name: Run frontend tests
+        run: npm test
+
       - run: npm run build
+
+      # Run the Python backend tests.
+      - uses: astral-sh/setup-uv@v5
+        with:
+          pyproject-file: ./extensions/${{ env.EXTENSION_NAME }}/pyproject.toml
+
+      - name: Run backend tests
+        run: uv run pytest
 
       # Now that the extension is built we need to upload an artifact to pass
       # to the package-extension action that contains the files we want to be
@@ -50,7 +63,6 @@ jobs:
             extensions/${{ env.EXTENSION_NAME }}/requirements.txt
             extensions/${{ env.EXTENSION_NAME }}/app.py
             extensions/${{ env.EXTENSION_NAME }}/manifest.json
-            extensions/${{ env.EXTENSION_NAME }}/connect-extension.toml
 
       # Package up the extension into a TAR using the generalized
       # package-extension action

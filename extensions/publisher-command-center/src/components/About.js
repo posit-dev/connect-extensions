@@ -1,30 +1,11 @@
 import m from "mithril";
 
-import { format, formatDistanceToNow } from "date-fns";
-
+import { formatDate, formatRelative } from "../utils/dates";
 import Content from "../models/Content";
 
 const About = {
-  error: null,
-
-  oninit: function (vnode) {
-    try {
-      Content.load(vnode.attrs.content_id);
-    } catch (err) {
-      this.error = "Failed to load author.";
-      console.error(err);
-    }
-  },
-
-  onremove: function () {
-    Content.reset();
-  },
-
-  view: function (vnode) {
-    if (this.error) {
-      return m("div", { class: "error" }, this.error);
-    }
-
+  view: function () {
+    // Reads the content that Edit has already loaded into the Content model.
     const content = Content.data;
     if (content === null) {
       return "";
@@ -40,16 +21,13 @@ const About = {
         m("p", desc || m("i", "No Description")),
         m(
           "p",
-          m(
-            "small.text-body-secondary",
-            "Updated " + formatDistanceToNow(updated, { addSuffix: true }),
-          ),
+          m("small.text-body-secondary", "Updated " + formatRelative(updated)),
         ),
         m(
           "p",
           m(
             "small.text-body-secondary",
-            "Created on " + format(created, "MMMM do, yyyy"),
+            "Created on " + formatDate(created, "MMMM do, yyyy"),
           ),
         ),
       ]),
