@@ -4,7 +4,9 @@ name: Bump Python Packages
 
 on:
   schedule:
-    - cron: '0 0 * * 0'  # Every Sunday at midnight UTC
+    # Cron can't express "every 2 weeks", so this runs every Sunday at
+    # midnight UTC and the check-schedule job skips odd weeks
+    - cron: '0 0 * * 0'
   # If you're working on the workflow, uncomment the following lines so it will
   # run on your pull request.
   # Comment it out if you don't want it to run.
@@ -15,7 +17,24 @@ on:
   workflow_dispatch:
 
 jobs:
+  check-schedule:
+    runs-on: ubuntu-latest
+    outputs:
+      run: ${{ steps.check.outputs.run }}
+    steps:
+      - name: Check whether this is an even week
+        id: check
+        run: |
+          # Scheduled runs only proceed every other week; other triggers always run
+          if [ "${{ github.event_name }}" != "schedule" ] || [ $(( $(date +%s) / 604800 % 2 )) -eq 0 ]; then
+            echo "run=true" >> $GITHUB_OUTPUT
+          else
+            echo "run=false" >> $GITHUB_OUTPUT
+          fi
+
   bump-packages:
+    needs: check-schedule
+    if: needs.check-schedule.outputs.run == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -62,7 +81,7 @@ jobs:
 
             Changes were made by running `scripts/bump-python-packages.sh`.
 
-            Extensions are not released until their `extension.version` is bumped.
+            Each extension whose requirements.txt changed has the patch version of its `extension.version` bumped in manifest.json, so it will be released on merge.
 
             🤖 This PR was created automatically by a scheduled GitHub Action.
           branch: automated/bump-python-packages

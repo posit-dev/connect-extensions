@@ -12,6 +12,9 @@
 #   starlette==1.8.0 ; python_full_version >= '3.10'
 # so newer Pythons get current releases without breaking older ones.
 #
+# Each extension whose requirements.txt changes also gets a patch version bump
+# in manifest.json (e.g. 1.0.3 -> 1.0.4), so the update is released on merge.
+#
 # Any extra arguments passed to this script are forwarded to `uv pip compile`,
 # e.g. `scripts/bump-python-packages.sh --no-upgrade` to refresh lockfiles
 # without bumping pinned versions.
@@ -60,5 +63,18 @@ for manifest in extensions/*/manifest.json; do
             --custom-compile-command "scripts/bump-python-packages.sh" \
             "$@"); then
         echo "WARNING: could not compile $dir/$source_file, skipping."
+        continue
+    fi
+
+    # If requirements.txt changed, bump the extension's patch version so the
+    # update is released on merge. Skip if manifest.json already has
+    # uncommitted changes, so rerunning the script doesn't bump twice.
+    if ! git diff --quiet HEAD -- "$dir/requirements.txt" && git diff --quiet HEAD -- "$manifest"; then
+        old_version=$(jq -r '.extension.version' "$manifest")
+        new_version=$(echo "$old_version" | awk -F. '{ print $1 "." $2 "." $3 + 1 }')
+        echo "Bumping $dir extension version $old_version -> $new_version"
+        # Edit in place with sed rather than jq to preserve the file's formatting
+        sed -E -i.bak "/\"extension\": *\{/,/\"version\":/ s/(\"version\": *)\"$old_version\"/\1\"$new_version\"/" "$manifest"
+        rm "$manifest.bak"
     fi
 done
