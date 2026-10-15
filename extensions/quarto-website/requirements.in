@@ -1,0 +1,10 @@
+pyyaml
+requests
+
+# jupyter
+notebook
+qtconsole
+jupyter-console
+nbconvert
+ipykernel
+ipywidgets

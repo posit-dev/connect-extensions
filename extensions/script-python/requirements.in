@@ -1,0 +1,8 @@
+# jupyter
+ipykernel
+nbclient
+nbformat
+pyyaml
+
+# 0.1.5 doesn't work on Python 3.9
+palmerpenguins!=0.1.5
