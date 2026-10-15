@@ -1,0 +1,68 @@
+# Workflow that runs scripts/bump-python-packages.sh on a schedule to
+# bump Python package versions in the extensions, and makes a pull request
+name: Bump Python Packages
+
+on:
+  schedule:
+    - cron: '0 0 * * 0'  # Every Sunday at midnight UTC
+  # If you're working on the workflow, uncomment the following lines so it will
+  # run on your pull request.
+  # push:
+  #   paths:
+  #     - '.github/workflows/bump-python-packages.yml'
+  #     - 'scripts/bump-python-packages.sh'
+  workflow_dispatch:
+
+jobs:
+  bump-packages:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      # The script picks the target Python version per extension from its
+      # manifest.json, so no Python version is set here
+      - name: Install uv
+        uses: astral-sh/setup-uv@1c37ad07a6a961277cf70c0d37d6f313000f5884 # v10.3.0
+
+      - name: Bump Python packages
+        run: scripts/bump-python-packages.sh
+
+      - name: Check for changes
+        id: changes
+        run: |
+          if git diff --quiet; then
+            echo "changed=false" >> $GITHUB_OUTPUT
+          else
+            echo "changed=true" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Generate token for GitHub App
+        if: steps.changes.outputs.changed == 'true'
+        id: generate-token
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
+        with:
+          client-id: ${{ secrets.POSIT_CONNECT_PROJECTS_CLIENT_ID }}
+          private-key: ${{ secrets.POSIT_CONNECT_PROJECTS_PEM }}
+          permission-contents: write
+          permission-pull-requests: write
+
+      - name: Create Pull Request
+        if: steps.changes.outputs.changed == 'true'
+        uses: peter-evans/create-pull-request@5f6978faf089d4d20b00c7766989d076bb2fc7f1 # v8.1.1
+        with:
+          token: ${{ steps.generate-token.outputs.token }}
+          author: posit-connect-projects[bot] <197281702+posit-connect-projects[bot]@users.noreply.github.com>
+          committer: posit-connect-projects[bot] <197281702+posit-connect-projects[bot]@users.noreply.github.com>
+          base: "main"
+          commit-message: "Bump Python package versions"
+          title: "chore(python): Bump Python package versions"
+          body: |
+            This PR updates the Python package versions in each extension's requirements.txt by recompiling it from its requirements.in (or pyproject.toml).
+
+            Changes were made by running `scripts/bump-python-packages.sh`.
+
+            Extensions are not released until their `extension.version` is bumped.
+
+            🤖 This PR was created automatically by a scheduled GitHub Action.
+          branch: automated/bump-python-packages
+          labels: dependencies

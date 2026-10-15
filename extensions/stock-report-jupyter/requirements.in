@@ -1,0 +1,10 @@
+matplotlib
+pandas
+
+# jupyter
+notebook
+qtconsole
+jupyter-console
+nbconvert
+ipykernel
+ipywidgets

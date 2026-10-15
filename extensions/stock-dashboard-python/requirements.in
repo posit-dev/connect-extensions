@@ -1,0 +1,7 @@
+dash>=2,<3
+dash-bootstrap-components
+pandas
+# plotly 6 breaks the graph title setting in update_volume_figure(), which
+# the integration test relies on.
+# TODO: adapt to work with newer plotly
+plotly>=5,<6
