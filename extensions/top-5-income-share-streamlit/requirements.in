@@ -1,3 +1,7 @@
 altair
 pandas
-streamlit
+# streamlit 1.57 replaced its tornado server with starlette, but Connect's
+# streamlit runtime before 2026.04.0 imports tornado and patches the tornado
+# server to add its request checks, so content using a newer streamlit fails to
+# start there. Remove this cap once the minimumConnectVersion is 2026.04.0+.
+streamlit<1.57
