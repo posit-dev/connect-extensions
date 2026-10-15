@@ -89,9 +89,9 @@
       "description": "Provides a way to interact with and query content using an LLM chat interface.",
       "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/chat-with-content",
       "latestVersion": {
-        "version": "0.0.7",
-        "released": "2026-06-16T16:17:32Z",
-        "url": "https://github.com/posit-dev/connect-extensions/releases/download/chat-with-content%40v0.0.7/chat-with-content.tar.gz",
+        "version": "0.0.8",
+        "released": "2026-10-15T15:45:11Z",
+        "url": "https://github.com/posit-dev/connect-extensions/releases/download/chat-with-content%40v0.0.8/chat-with-content.tar.gz",
         "minimumConnectVersion": "2025.04.0",
         "requiredFeatures": [
           "OAuth Integrations"
@@ -103,6 +103,20 @@
         }
       },
       "versions": [
+        {
+          "version": "0.0.8",
+          "released": "2026-10-15T15:45:11Z",
+          "url": "https://github.com/posit-dev/connect-extensions/releases/download/chat-with-content%40v0.0.8/chat-with-content.tar.gz",
+          "minimumConnectVersion": "2025.04.0",
+          "requiredFeatures": [
+            "OAuth Integrations"
+          ],
+          "requiredEnvironment": {
+            "python": {
+              "requires": "~=3.10"
+            }
+          }
+        },
         {
           "version": "0.0.7",
           "released": "2026-06-16T16:17:32Z",
@@ -259,9 +273,9 @@
       "description": "This report uses the publisher’s API key to monitor a single piece of content. It checks whether the content is reachable, but does not validate its functionality. When scheduled to run regularly, it will send an email alert if the content becomes unreachable.",
       "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/content-health-monitor",
       "latestVersion": {
-        "version": "1.0.1",
-        "released": "2026-05-08T13:58:19Z",
-        "url": "https://github.com/posit-dev/connect-extensions/releases/download/content-health-monitor%40v1.0.1/content-health-monitor.tar.gz",
+        "version": "1.0.2",
+        "released": "2026-10-15T15:45:04Z",
+        "url": "https://github.com/posit-dev/connect-extensions/releases/download/content-health-monitor%40v1.0.2/content-health-monitor.tar.gz",
         "minimumConnectVersion": "2025.04.0",
         "requiredEnvironment": {
           "python": {
@@ -273,6 +287,20 @@
         }
       },
       "versions": [
+        {
+          "version": "1.0.2",
+          "released": "2026-10-15T15:45:04Z",
+          "url": "https://github.com/posit-dev/connect-extensions/releases/download/content-health-monitor%40v1.0.2/content-health-monitor.tar.gz",
+          "minimumConnectVersion": "2025.04.0",
+          "requiredEnvironment": {
+            "python": {
+              "requires": "~=3.11"
+            },
+            "quarto": {
+              "requires": "~=1.4"
+            }
+          }
+        },
         {
           "version": "1.0.1",
           "released": "2026-05-08T13:58:19Z",
@@ -311,9 +339,9 @@
       "description": "A FastAPI server that exposes tools to AI assistants over the Model Context Protocol (MCP), running on Connect. Its tools run as the signed-in viewer, using their Connect identity instead of an API key, and ship as demos you can replace with your own. Meant to be used with the Python Shiny: AI Chat with MCP Tools extension, but works with any MCP client.",
       "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/simple-mcp-server",
       "latestVersion": {
-        "version": "0.0.9",
-        "released": "2026-09-17T14:58:56Z",
-        "url": "https://github.com/posit-dev/connect-extensions/releases/download/simple-mcp-server%40v0.0.9/simple-mcp-server.tar.gz",
+        "version": "0.0.10",
+        "released": "2026-10-15T15:45:05Z",
+        "url": "https://github.com/posit-dev/connect-extensions/releases/download/simple-mcp-server%40v0.0.10/simple-mcp-server.tar.gz",
         "minimumConnectVersion": "2025.04.0",
         "requiredFeatures": [
           "API Publishing",
@@ -326,6 +354,21 @@
         }
       },
       "versions": [
+        {
+          "version": "0.0.10",
+          "released": "2026-10-15T15:45:05Z",
+          "url": "https://github.com/posit-dev/connect-extensions/releases/download/simple-mcp-server%40v0.0.10/simple-mcp-server.tar.gz",
+          "minimumConnectVersion": "2025.04.0",
+          "requiredFeatures": [
+            "API Publishing",
+            "OAuth Integrations"
+          ],
+          "requiredEnvironment": {
+            "python": {
+              "requires": "~=3.11"
+            }
+          }
+        },
         {
           "version": "0.0.9",
           "released": "2026-09-17T14:58:56Z",
@@ -473,9 +516,9 @@
       "description": "Scan for security vulnerabilities in your published content on Connect using Posit Package Manager. View an overview of CVEs (Common Vulnerabilities and Exposures) across all your apps, and get guidance on upgrading affected packages.",
       "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/package-vulnerability-scanner",
       "latestVersion": {
-        "version": "3.0.6",
-        "released": "2026-07-02T17:58:38Z",
-        "url": "https://github.com/posit-dev/connect-extensions/releases/download/package-vulnerability-scanner%40v3.0.6/package-vulnerability-scanner.tar.gz",
+        "version": "3.0.7",
+        "released": "2026-10-15T15:42:27Z",
+        "url": "https://github.com/posit-dev/connect-extensions/releases/download/package-vulnerability-scanner%40v3.0.7/package-vulnerability-scanner.tar.gz",
         "minimumConnectVersion": "2025.04.0",
         "requiredFeatures": [
           "API Publishing"
@@ -489,6 +532,22 @@
         }
       },
       "versions": [
+        {
+          "version": "3.0.7",
+          "released": "2026-10-15T15:42:27Z",
+          "url": "https://github.com/posit-dev/connect-extensions/releases/download/package-vulnerability-scanner%40v3.0.7/package-vulnerability-scanner.tar.gz",
+          "minimumConnectVersion": "2025.04.0",
+          "requiredFeatures": [
+            "API Publishing"
+          ],
+          "requiredEnvironment": {
+            "image": "",
+            "prebuilt": false,
+            "python": {
+              "requires": "~=3.9"
+            }
+          }
+        },
         {
           "version": "3.0.6",
           "released": "2026-07-02T17:58:38Z",
@@ -698,9 +757,9 @@
       "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/publisher-command-center",
       "category": "extension",
       "latestVersion": {
-        "version": "0.0.8",
-        "released": "2026-06-11T17:13:12Z",
-        "url": "https://github.com/posit-dev/connect-extensions/releases/download/publisher-command-center%40v0.0.8/publisher-command-center.tar.gz",
+        "version": "0.0.9",
+        "released": "2026-10-15T15:42:35Z",
+        "url": "https://github.com/posit-dev/connect-extensions/releases/download/publisher-command-center%40v0.0.9/publisher-command-center.tar.gz",
         "minimumConnectVersion": "2025.04.0",
         "requiredFeatures": [
           "API Publishing",
@@ -713,6 +772,21 @@
         }
       },
       "versions": [
+        {
+          "version": "0.0.9",
+          "released": "2026-10-15T15:42:35Z",
+          "url": "https://github.com/posit-dev/connect-extensions/releases/download/publisher-command-center%40v0.0.9/publisher-command-center.tar.gz",
+          "minimumConnectVersion": "2025.04.0",
+          "requiredFeatures": [
+            "API Publishing",
+            "OAuth Integrations"
+          ],
+          "requiredEnvironment": {
+            "python": {
+              "requires": "~=3.8"
+            }
+          }
+        },
         {
           "version": "0.0.8",
           "released": "2026-06-11T17:13:12Z",
@@ -842,9 +916,9 @@
       "description": "A Python Shiny chat app that connects an LLM to tools over the Model Context Protocol (MCP), running on Connect. The tools run as the signed-in viewer, with their Connect permissions, not a shared key. Meant to be used with the FastAPI: MCP Server extension, but you can also point it at your own MCP server to build a chat over your own tools.",
       "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/simple-shiny-chat-with-mcp",
       "latestVersion": {
-        "version": "0.0.9",
-        "released": "2026-09-17T14:58:51Z",
-        "url": "https://github.com/posit-dev/connect-extensions/releases/download/simple-shiny-chat-with-mcp%40v0.0.9/simple-shiny-chat-with-mcp.tar.gz",
+        "version": "0.0.10",
+        "released": "2026-10-15T15:45:24Z",
+        "url": "https://github.com/posit-dev/connect-extensions/releases/download/simple-shiny-chat-with-mcp%40v0.0.10/simple-shiny-chat-with-mcp.tar.gz",
         "minimumConnectVersion": "2025.04.0",
         "requiredFeatures": [
           "OAuth Integrations"
@@ -856,6 +930,20 @@
         }
       },
       "versions": [
+        {
+          "version": "0.0.10",
+          "released": "2026-10-15T15:45:24Z",
+          "url": "https://github.com/posit-dev/connect-extensions/releases/download/simple-shiny-chat-with-mcp%40v0.0.10/simple-shiny-chat-with-mcp.tar.gz",
+          "minimumConnectVersion": "2025.04.0",
+          "requiredFeatures": [
+            "OAuth Integrations"
+          ],
+          "requiredEnvironment": {
+            "python": {
+              "requires": "~=3.11"
+            }
+          }
+        },
         {
           "version": "0.0.9",
           "released": "2026-09-17T14:58:51Z",
@@ -997,9 +1085,9 @@
       "description": "A Python script, scheduled to run on Connect, that imports and transforms data, saves the results as downloadable JSON and CSV files, and emails them on every run. A starting point for any recurring data job; swap in your own data source.",
       "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/script-python",
       "latestVersion": {
-        "version": "1.0.3",
-        "released": "2026-07-06T15:09:29Z",
-        "url": "https://github.com/posit-dev/connect-extensions/releases/download/script-python%40v1.0.3/script-python.tar.gz",
+        "version": "1.0.4",
+        "released": "2026-10-15T15:45:09Z",
+        "url": "https://github.com/posit-dev/connect-extensions/releases/download/script-python%40v1.0.4/script-python.tar.gz",
         "minimumConnectVersion": "2025.04.0",
         "requiredEnvironment": {
           "python": {
@@ -1011,6 +1099,20 @@
         }
       },
       "versions": [
+        {
+          "version": "1.0.4",
+          "released": "2026-10-15T15:45:09Z",
+          "url": "https://github.com/posit-dev/connect-extensions/releases/download/script-python%40v1.0.4/script-python.tar.gz",
+          "minimumConnectVersion": "2025.04.0",
+          "requiredEnvironment": {
+            "python": {
+              "requires": "~=3.9"
+            },
+            "quarto": {
+              "requires": "~=1.4"
+            }
+          }
+        },
         {
           "version": "1.0.3",
           "released": "2026-07-06T15:09:29Z",
@@ -1131,9 +1233,9 @@
       "description": "A Quarto document that executes Python and R code.",
       "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/pqr",
       "latestVersion": {
-        "version": "0.1.4",
-        "released": "2026-08-14T00:39:46Z",
-        "url": "https://github.com/posit-dev/connect-extensions/releases/download/pqr%40v0.1.4/pqr.tar.gz",
+        "version": "0.1.5",
+        "released": "2026-10-15T15:45:07Z",
+        "url": "https://github.com/posit-dev/connect-extensions/releases/download/pqr%40v0.1.5/pqr.tar.gz",
         "minimumConnectVersion": "2025.04.0",
         "requiredEnvironment": {
           "python": {
@@ -1148,6 +1250,23 @@
         }
       },
       "versions": [
+        {
+          "version": "0.1.5",
+          "released": "2026-10-15T15:45:07Z",
+          "url": "https://github.com/posit-dev/connect-extensions/releases/download/pqr%40v0.1.5/pqr.tar.gz",
+          "minimumConnectVersion": "2025.04.0",
+          "requiredEnvironment": {
+            "python": {
+              "requires": "~=3.11"
+            },
+            "quarto": {
+              "requires": "~=1.4"
+            },
+            "r": {
+              "requires": "~=4.3"
+            }
+          }
+        },
         {
           "version": "0.1.4",
           "released": "2026-08-14T00:39:46Z",
@@ -1248,9 +1367,9 @@
       "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/quarto-stock-report-python",
       "category": "example",
       "latestVersion": {
-        "version": "1.0.6",
-        "released": "2026-08-14T00:39:47Z",
-        "url": "https://github.com/posit-dev/connect-extensions/releases/download/quarto-stock-report-python%40v1.0.6/quarto-stock-report-python.tar.gz",
+        "version": "1.0.7",
+        "released": "2026-10-15T15:45:05Z",
+        "url": "https://github.com/posit-dev/connect-extensions/releases/download/quarto-stock-report-python%40v1.0.7/quarto-stock-report-python.tar.gz",
         "minimumConnectVersion": "2025.04.0",
         "requiredEnvironment": {
           "python": {
@@ -1262,6 +1381,20 @@
         }
       },
       "versions": [
+        {
+          "version": "1.0.7",
+          "released": "2026-10-15T15:45:05Z",
+          "url": "https://github.com/posit-dev/connect-extensions/releases/download/quarto-stock-report-python%40v1.0.7/quarto-stock-report-python.tar.gz",
+          "minimumConnectVersion": "2025.04.0",
+          "requiredEnvironment": {
+            "python": {
+              "requires": "~=3.11"
+            },
+            "quarto": {
+              "requires": "~=1.4"
+            }
+          }
+        },
         {
           "version": "1.0.6",
           "released": "2026-08-14T00:39:47Z",
@@ -1484,9 +1617,9 @@
       "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/quarto-website",
       "category": "example",
       "latestVersion": {
-        "version": "1.0.1",
-        "released": "2026-06-12T00:15:02Z",
-        "url": "https://github.com/posit-dev/connect-extensions/releases/download/quarto-website%40v1.0.1/quarto-website.tar.gz",
+        "version": "1.0.2",
+        "released": "2026-10-15T15:45:05Z",
+        "url": "https://github.com/posit-dev/connect-extensions/releases/download/quarto-website%40v1.0.2/quarto-website.tar.gz",
         "minimumConnectVersion": "2025.04.0",
         "requiredEnvironment": {
           "python": {
@@ -1498,6 +1631,20 @@
         }
       },
       "versions": [
+        {
+          "version": "1.0.2",
+          "released": "2026-10-15T15:45:05Z",
+          "url": "https://github.com/posit-dev/connect-extensions/releases/download/quarto-website%40v1.0.2/quarto-website.tar.gz",
+          "minimumConnectVersion": "2025.04.0",
+          "requiredEnvironment": {
+            "python": {
+              "requires": "~=3.8"
+            },
+            "quarto": {
+              "requires": "~=1.4"
+            }
+          }
+        },
         {
           "version": "1.0.1",
           "released": "2026-06-12T00:15:02Z",
@@ -1882,9 +2029,9 @@
       "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/stock-dashboard-python",
       "category": "example",
       "latestVersion": {
-        "version": "1.0.3",
-        "released": "2026-06-24T15:23:32Z",
-        "url": "https://github.com/posit-dev/connect-extensions/releases/download/stock-dashboard-python%40v1.0.3/stock-dashboard-python.tar.gz",
+        "version": "1.0.4",
+        "released": "2026-10-15T15:45:08Z",
+        "url": "https://github.com/posit-dev/connect-extensions/releases/download/stock-dashboard-python%40v1.0.4/stock-dashboard-python.tar.gz",
         "minimumConnectVersion": "2025.04.0",
         "requiredEnvironment": {
           "python": {
@@ -1893,6 +2040,17 @@
         }
       },
       "versions": [
+        {
+          "version": "1.0.4",
+          "released": "2026-10-15T15:45:08Z",
+          "url": "https://github.com/posit-dev/connect-extensions/releases/download/stock-dashboard-python%40v1.0.4/stock-dashboard-python.tar.gz",
+          "minimumConnectVersion": "2025.04.0",
+          "requiredEnvironment": {
+            "python": {
+              "requires": "~=3.9"
+            }
+          }
+        },
         {
           "version": "1.0.3",
           "released": "2026-06-24T15:23:32Z",
@@ -2012,9 +2170,9 @@
       "description": "This stock report is generated using Python and Jupyter Notebook. It uses cached price data to generate a market performance summary intended to run daily after market close.",
       "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/stock-report-jupyter",
       "latestVersion": {
-        "version": "1.0.3",
-        "released": "2026-06-16T16:17:13Z",
-        "url": "https://github.com/posit-dev/connect-extensions/releases/download/stock-report-jupyter%40v1.0.3/stock-report-jupyter.tar.gz",
+        "version": "1.0.4",
+        "released": "2026-10-15T15:45:09Z",
+        "url": "https://github.com/posit-dev/connect-extensions/releases/download/stock-report-jupyter%40v1.0.4/stock-report-jupyter.tar.gz",
         "minimumConnectVersion": "2025.04.0",
         "requiredEnvironment": {
           "python": {
@@ -2023,6 +2181,17 @@
         }
       },
       "versions": [
+        {
+          "version": "1.0.4",
+          "released": "2026-10-15T15:45:09Z",
+          "url": "https://github.com/posit-dev/connect-extensions/releases/download/stock-report-jupyter%40v1.0.4/stock-report-jupyter.tar.gz",
+          "minimumConnectVersion": "2025.04.0",
+          "requiredEnvironment": {
+            "python": {
+              "requires": "~=3.11"
+            }
+          }
+        },
         {
           "version": "1.0.3",
           "released": "2026-06-16T16:17:13Z",
@@ -2068,9 +2237,9 @@
       "description": "A Streamlit application makes it easy to transform your analysis into an interactive dashboard using Python so users can ask and answer questions in real-time, without having to touch any code.",
       "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/top-5-income-share-streamlit",
       "latestVersion": {
-        "version": "1.0.2",
-        "released": "2026-06-12T00:14:55Z",
-        "url": "https://github.com/posit-dev/connect-extensions/releases/download/top-5-income-share-streamlit%40v1.0.2/top-5-income-share-streamlit.tar.gz",
+        "version": "1.0.3",
+        "released": "2026-10-15T15:45:07Z",
+        "url": "https://github.com/posit-dev/connect-extensions/releases/download/top-5-income-share-streamlit%40v1.0.3/top-5-income-share-streamlit.tar.gz",
         "minimumConnectVersion": "2025.04.0",
         "requiredEnvironment": {
           "python": {
@@ -2079,6 +2248,17 @@
         }
       },
       "versions": [
+        {
+          "version": "1.0.3",
+          "released": "2026-10-15T15:45:07Z",
+          "url": "https://github.com/posit-dev/connect-extensions/releases/download/top-5-income-share-streamlit%40v1.0.3/top-5-income-share-streamlit.tar.gz",
+          "minimumConnectVersion": "2025.04.0",
+          "requiredEnvironment": {
+            "python": {
+              "requires": "~=3.9"
+            }
+          }
+        },
         {
           "version": "1.0.2",
           "released": "2026-06-12T00:14:55Z",
