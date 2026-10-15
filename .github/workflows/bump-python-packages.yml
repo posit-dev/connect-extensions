@@ -79,6 +79,8 @@ jobs:
           body: |
             This PR updates the Python package versions in each extension's requirements.txt by recompiling it from its requirements.in (or pyproject.toml).
 
+            Extensions with a uv.lock also have it upgraded with `uv lock --upgrade`.
+
             Changes were made by running `scripts/bump-python-packages.sh`.
 
             Each extension whose requirements.txt changed has the patch version of its `extension.version` bumped in manifest.json, so it will be released on merge.

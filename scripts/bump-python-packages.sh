@@ -12,6 +12,8 @@
 #   starlette==1.8.0 ; python_full_version >= '3.10'
 # so newer Pythons get current releases without breaking older ones.
 #
+# Extensions that have a uv.lock also get it upgraded with uv lock --upgrade.
+#
 # Each extension whose requirements.txt changes also gets a patch version bump
 # in manifest.json (e.g. 1.0.3 -> 1.0.4), so the update is released on merge.
 #
@@ -64,6 +66,15 @@ for manifest in extensions/*/manifest.json; do
             "$@"); then
         echo "WARNING: could not compile $dir/$source_file, skipping."
         continue
+    fi
+
+    # uv.lock is only used for local development (Connect installs from
+    # requirements.txt), but keep it current too
+    if [ -f "$dir/uv.lock" ]; then
+        echo "Upgrading $dir/uv.lock"
+        if ! (cd "$dir" && uv lock --upgrade); then
+            echo "WARNING: could not upgrade $dir/uv.lock, skipping."
+        fi
     fi
 
     # If requirements.txt changed, bump the extension's patch version so the
