@@ -7,6 +7,7 @@ on:
     - cron: '0 0 * * 0'  # Every Sunday at midnight UTC
   # If you're working on the workflow, uncomment the following lines so it will
   # run on your pull request.
+  # Comment it out if you don't want it to run.
   push:
     paths:
       - '.github/workflows/bump-python-packages.yml'
