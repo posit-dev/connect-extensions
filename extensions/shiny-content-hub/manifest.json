@@ -1645,19 +1645,22 @@
   },
   "files": {
     "app.R": {
-      "checksum": "b16510f923d0782e1b4f042ba03330c7"
+      "checksum": "c035e0bdc4dddad9b8b9d3a9536d1231"
     },
     "CHANGELOG.md": {
-      "checksum": "f26969d3b1b4b78c3f8a0a433d562f44"
+      "checksum": "f552b9931405d53ab13e3b9af6fc127c"
     },
     "R/content_hub.R": {
-      "checksum": "7ac3c7c679c74dbebc3d04f8b9e1ee1c"
+      "checksum": "f776e156103309053f5cf5aaa107ea07"
     },
     "README.md": {
-      "checksum": "160993ea020067ae8b39a461189e3faf"
+      "checksum": "a03ac71584a86526b411676122430e1b"
     },
     "www/styles.css": {
-      "checksum": "7fe00d41d47948b8a0aa4e7ea4fd990a"
+      "checksum": "a914d079929f92215c08d22ac2b9c4eb"
+    },
+    "R/portal.R": {
+      "checksum": "d5f3b6d484619f1b248d89ef3125a0f4"
     }
   },
   "users": null,
@@ -1669,7 +1672,7 @@
   "extension": {
     "name": "shiny-content-hub",
     "title": "R Shiny: Content Hub",
-    "description": "An R Shiny app that gives each viewer their own content hub: featured items and a searchable, filterable list of the reports, apps, and APIs on Connect that they can access. A Connect API integration lets the app list content with each viewer's own permissions, so nobody sees content they can't open and no shared API key is needed.",
+    "description": "An R Shiny app that gives each viewer their own content hub, organized by your tags: a tab for each tag, with content grouped into sections by the tags under it, and search. A Connect API integration lets the app list content with each viewer's own permissions, so nobody sees content they can't open and no shared API key is needed.",
     "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/shiny-content-hub",
     "category": "extension",
     "tags": [

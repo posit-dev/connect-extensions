@@ -1,87 +1,167 @@
 library(shiny)
 library(bslib)
 library(connectapi)
-library(reactable)
 
-# Shiny sources R/content_hub.R automatically: card_grid(), content_table(),
-# hub_items(), and the other helpers come from there.
+# Shiny sources the files in R/ automatically: card_grid(), hub_items(), and
+# filter_items() come from R/content_hub.R, and the tag helpers, such as
+# tab_sections(), from R/portal.R.
 
-# Building and sending a card per item gets slow past a few dozen (seconds
-# for a server with thousands of items), so the card view shows at most this
-# many. The table view has no limit; it pages through rows in the browser.
+# Building and sending a card per item gets slow past a few dozen, so each
+# section shows at most this many, the most recently updated.
 max_cards <- 30
 
-ui <- page_sidebar(
+ui <- page_navbar(
   title = "Content Hub",
+  id = "tabs",
   # The same Bootswatch theme as the Quarto: Content Hub extension, with the
   # header in the theme's primary color rather than Flatly's default grey.
   theme = bs_theme(version = 5, preset = "flatly", "navbar-bg" = "#2c3e50"),
   # The page scrolls as one long list instead of fitting the window.
   fillable = FALSE,
-  tags$head(tags$link(rel = "stylesheet", href = "styles.css")),
-  sidebar = sidebar(
-    textInput("search", "Search", placeholder = "Title, description, owner, or tag"),
-    selectizeInput(
-      "types",
-      "Type",
-      choices = NULL,
-      multiple = TRUE,
-      options = list(placeholder = "All types", plugins = list("remove_button"))
-    ),
-    selectizeInput(
-      "tags",
-      "Tag",
-      choices = NULL,
-      multiple = TRUE,
-      options = list(placeholder = "All tags", plugins = list("remove_button"))
-    ),
-    radioButtons("view", "View", c("Cards", "Table"))
-  ),
-  # Replace this introduction with a note for your own audience: who the hub
-  # is for, and where to go for help.
-  p(class = "lead mb-4", "Browse the reports, apps, and APIs on Posit Connect that you have access to."),
-  uiOutput("status"),
-  uiOutput("featured"),
-  uiOutput("all_content")
+  header = tagList(
+    tags$head(tags$link(rel = "stylesheet", href = "styles.css")),
+    div(
+      class = "pt-4",
+      # Replace this introduction with a note for your own audience: who the
+      # hub is for, and where to go for help.
+      p(class = "lead", "Browse the reports, apps, and APIs on Posit Connect that you have access to."),
+      uiOutput("status")
+    )
+  )
+  # The server adds a tab for each tag once it has the tag list.
 )
 
+# One tab: a search box above the tab's content, grouped into sections.
+tab_ui <- function(id) {
+  ns <- NS(id)
+  tagList(
+    div(
+      class = "hub-search",
+      textInput(ns("search"), NULL, placeholder = "Search by title, description, owner, type, or tag", width = "100%")
+    ),
+    uiOutput(ns("content"))
+  )
+}
+
+tab_server <- function(id, client, all_tags, tab) {
+  moduleServer(id, function(input, output, session) {
+    # Shiny doesn't render outputs in hidden tabs, so this fetch runs the
+    # first time the viewer opens the tab, and is kept for the rest of the
+    # session. A tab the viewer never opens costs nothing.
+    #
+    # The search matches every tag with this tab's name, plus the tags below
+    # them. Tag names needn't be unique, so keep only the content under this
+    # tab's own tag.
+    items <- reactive({
+      tryCatch(
+        {
+          content <- as.data.frame(search_content(client, q = tag_query(tab$name), include = "owner,tags"))
+          items <- hub_items(content)
+          items[has_any_tag(items, c(tab$id, descendant_ids(all_tags, tab$id))), , drop = FALSE]
+        },
+        error = function(e) {
+          structure(list(message = conditionMessage(e)), class = "hub_error")
+        }
+      )
+    })
+
+    # Re-filter only once the viewer pauses typing, not on every keystroke.
+    search <- debounce(reactive(input$search), 250)
+
+    output$content <- renderUI({
+      items <- items()
+      if (inherits(items, "hub_error")) {
+        return(div(class = "alert alert-warning", "Couldn't load this tab's content: ", items$message))
+      }
+      if (nrow(items) == 0) {
+        return(p(class = "text-muted", "There's no content here that you have access to."))
+      }
+      matches <- filter_items(items, search())
+      if (nrow(matches) == 0) {
+        return(p(class = "text-muted", "No content matches your search."))
+      }
+      lapply(tab_sections(matches, all_tags, tab$id), function(section) {
+        tags$section(
+          class = "hub-section",
+          if (!is.null(section$heading)) h2(section$heading),
+          card_grid(utils::head(section$items, max_cards)),
+          if (nrow(section$items) > max_cards) {
+            p(
+              class = "text-muted",
+              sprintf(
+                "Showing the %d most recently updated of %d items. Search to narrow the list.",
+                max_cards,
+                nrow(section$items)
+              )
+            )
+          }
+        )
+      })
+    })
+  })
+}
+
 server <- function(input, output, session) {
-  # Fetch the content list once per session, as the viewer.
+  # Connect to Connect as the viewer, and fetch the tag list.
   #
   # Connect passes each viewer's session token in a request header. With a
   # Connect API integration associated with this app, connect() exchanges the
   # token for a short-lived API key carrying that viewer's permissions, so
-  # get_content() returns exactly the content this viewer may access. That is
+  # every content search returns only content this viewer may access. That is
   # what makes the hub personal; no shared publisher key is involved.
   #
-  # The fetch runs inside a reactive rather than directly in the server
-  # function, so the page appears right away and the outputs show Shiny's busy
-  # indicator while the list loads, instead of a blank page.
+  # This runs inside a reactive rather than directly in the server function,
+  # so the page appears right away and shows Shiny's busy indicator while it
+  # loads, instead of a blank page.
   token <- session$request$HTTP_POSIT_CONNECT_USER_SESSION_TOKEN
-  result <- reactive({
+  hub <- reactive({
     if (is.null(token) && identical(Sys.getenv("RSTUDIO_PRODUCT"), "CONNECT")) {
       # On Connect, the header is missing only when nobody is logged in.
-      list(error = "anonymous")
-    } else {
-      tryCatch(
-        list(items = hub_items(get_content(connect(token = token)))),
-        error = function(e) list(error = "integration", message = conditionMessage(e))
-      )
+      return(list(error = "anonymous"))
     }
-  })
-  items <- reactive(result()$items)
+    connected <- tryCatch(
+      {
+        client <- connect(token = token)
+        list(client = client, tags = tag_table(client$tag()))
+      },
+      error = function(e) list(error = "integration", message = conditionMessage(e))
+    )
+    if (!is.null(connected$error)) {
+      return(connected)
+    }
 
-  observeEvent(items(), once = TRUE, {
-    updateSelectizeInput(session, "types", choices = sort(unique(items()$type)))
-    updateSelectizeInput(session, "tags", choices = sort(unique(unlist(items()$tags))))
+    # The tabs are the tags directly under HUB_TAG, or the top-level tags if
+    # it isn't set.
+    tags <- connected$tags
+    hub_tag <- trimws(Sys.getenv("HUB_TAG"))
+    parent_id <- NA
+    if (nzchar(hub_tag)) {
+      parent_id <- find_tag(tags, hub_tag)
+      if (is.na(parent_id)) {
+        return(list(error = "hub_tag", hub_tag = hub_tag))
+      }
+    }
+    c(connected, list(tabs = child_tags(tags, parent_id)))
+  })
+
+  observeEvent(hub(), once = TRUE, {
+    tabs <- hub()$tabs
+    req(tabs)
+    # lapply() rather than a for loop, so that each tab's server keeps its
+    # own `tab` instead of all of them seeing the loop's last one.
+    lapply(seq_len(nrow(tabs)), function(i) {
+      tab <- tabs[i, , drop = FALSE]
+      id <- paste0("tab_", tab$id)
+      nav_insert("tabs", nav_panel(tab$name, value = id, tab_ui(id)), select = i == 1)
+      tab_server(id, hub()$client, hub()$tags, tab)
+    })
   })
 
   output$status <- renderUI({
-    result <- result()
-    items <- items()
-    if (identical(result$error, "anonymous")) {
+    hub <- hub()
+    if (identical(hub$error, "anonymous")) {
       div(class = "alert alert-info", "Log in to Posit Connect to see the content available to you.")
-    } else if (identical(result$error, "integration")) {
+    } else if (identical(hub$error, "integration")) {
       div(
         class = "alert alert-warning",
         p(
@@ -101,56 +181,26 @@ server <- function(input, output, session) {
           ),
           "."
         ),
-        p(class = "small mb-0", "Details: ", result$message)
+        p(class = "small mb-0", "Details: ", hub$message)
       )
-    } else if (nrow(items) == 0) {
-      div(class = "alert alert-info", "You don't have access to any content on this server yet.")
-    }
-  })
-
-  # Featured content stays put while the viewer filters the list below it.
-  output$featured <- renderUI({
-    req(items(), nrow(items()) > 0)
-    featured <- featured_items(items(), parse_tags(Sys.getenv("FEATURED_TAGS")))
-    # A plain block wrapper carries the spacing: uiOutput()'s own container is
-    # display: contents, which ignores margins.
-    tags$section(class = "hub-section", h2(featured$heading), card_grid(featured$items))
-  })
-
-  # Re-filter only once the viewer pauses typing, not on every keystroke.
-  search <- debounce(reactive(input$search), 250)
-
-  matches <- reactive({
-    req(items())
-    filter_items(items(), search(), input$types, input$tags)
-  })
-
-  output$all_content <- renderUI({
-    req(items(), nrow(items()) > 0)
-    matches <- matches()
-    tags$section(
-      class = "hub-section",
-      h2("All content"),
-      if (nrow(matches) == 0) {
-        p(class = "text-muted", "No content matches these filters.")
-      } else if (input$view == "Table") {
-        content_table(matches)
-      } else {
-        tagList(
-          card_grid(utils::head(matches, max_cards)),
-          if (nrow(matches) > max_cards) {
-            p(
-              class = "text-muted",
-              sprintf(
-                "Showing the %d most recently updated of %d items. Search or filter to narrow the list, or switch to the table to see them all.",
-                max_cards,
-                nrow(matches)
-              )
-            )
-          }
+    } else if (identical(hub$error, "hub_tag")) {
+      div(
+        class = "alert alert-warning",
+        sprintf(
+          "There's no tag named \"%s\" on this server. Check the HUB_TAG environment variable in the hub's settings.",
+          hub$hub_tag
         )
-      }
-    )
+      )
+    } else if (nrow(hub$tabs) == 0) {
+      div(
+        class = "alert alert-info",
+        if (nzchar(Sys.getenv("HUB_TAG"))) {
+          sprintf("The \"%s\" tag has no tags under it to show as tabs.", Sys.getenv("HUB_TAG"))
+        } else {
+          "This server has no tags yet. Ask a Connect administrator to create some, and tag your content with them."
+        }
+      )
+    }
   })
 }
 

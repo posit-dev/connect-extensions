@@ -21,7 +21,7 @@ curated page of published work.
 If each viewer should see only the content they can access, use the
 [R Shiny: Content Hub](https://github.com/posit-dev/connect-extensions/tree/main/extensions/shiny-content-hub)
 extension instead. It's an interactive app that lists content with each
-viewer's own permissions.
+viewer's own permissions, with a tab for each of your tags.
 
 ## Who can see what
 

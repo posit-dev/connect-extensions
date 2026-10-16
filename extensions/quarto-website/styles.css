@@ -91,8 +91,8 @@
   opacity: 0.7;
 }
 
-/* Flatly draws unchecked radio buttons white-on-white; outline them so the
-   Shiny hub's View choice is visible against its sidebar. */
-.bslib-sidebar-layout .form-check-input:not(:checked) {
-  border-color: #adb5bd;
+/* The Shiny hub's search box, above each tab's content. */
+.hub-search {
+  max-width: 40rem;
+  margin-bottom: 1.5rem;
 }

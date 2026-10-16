@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Initial release: a content hub that lists, with each viewer's own
-  permissions, the Connect content they can access, with featured content,
-  search, type and tag filters, and card and table views. (#385)
+- Initial release: a content hub with a tab for each tag, grouping each tab's
+  content into sections by the tags under it, and search within each tab.
+  Content is listed with each viewer's own permissions, and each tab's content
+  is fetched when the viewer first opens it. `HUB_TAG` chooses which tag's
+  children become the tabs. (#385)

@@ -16,9 +16,9 @@ fake_content <- function() {
   ada <- list(first_name = "Ada", last_name = "Lovelace", username = "ada")
   content$owner <- list(ada, list(first_name = "", last_name = "", username = "grace"), ada, NULL, ada)
   content$tags <- list(
-    list(list(name = "Showcase")),
+    list(list(id = "1", name = "Showcase")),
     list(),
-    list(list(name = "finance"), list(name = "showcase")),
+    list(list(id = "2", name = "finance"), list(id = "1", name = "showcase")),
     list(),
     list()
   )
@@ -45,6 +45,7 @@ test_that("hub_items() normalizes content and drops never-deployed items", {
   expect_equal(items$description[[3]], "")
   expect_equal(items$tags[[2]], c("finance", "showcase"))
   expect_equal(items$tags[[3]], character(0))
+  expect_equal(items$tag_ids[[2]], c("2", "1"))
 })
 
 test_that("parse_tags() trims, lowercases, and drops empty entries", {

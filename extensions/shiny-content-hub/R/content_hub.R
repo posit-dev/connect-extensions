@@ -95,6 +95,8 @@ hub_items <- function(content) {
     updated = content$last_deployed_time
   )
   items$tags <- item_tags
+  # Tag names aren't unique across the tag hierarchy, so keep the IDs too.
+  items$tag_ids <- lapply(content$tags, function(tags) vapply(tags, function(tag) tag$id, character(1)))
   # Lowercased once here so searching stays cheap.
   items$search_text <- tolower(paste(
     title,
@@ -188,7 +190,18 @@ content_card <- function(item) {
 
 card_grid <- function(items) {
   cards <- lapply(seq_len(nrow(items)), function(i) content_card(items[i, , drop = FALSE]))
-  layout_column_wrap(width = "16rem", fill = FALSE, heights_equal = "row", class = "hub-grid", !!!cards)
+  layout_column_wrap(
+    width = "16rem",
+    fill = FALSE,
+    heights_equal = "row",
+    class = "hub-grid",
+    # auto-fill rather than layout_column_wrap()'s auto-fit keeps a column's
+    # width when there are fewer cards than columns, so one card doesn't
+    # stretch across the page. This comes after the style the function sets,
+    # so it wins.
+    style = "grid-template-columns: repeat(auto-fill, minmax(min(16rem, 100%), 1fr))",
+    !!!cards
+  )
 }
 
 # A sortable table of items. `searchable` adds reactable's own search box and
