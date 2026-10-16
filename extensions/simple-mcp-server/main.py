@@ -9,8 +9,8 @@ import pandas as pd
 from cachetools import TTLCache, cached
 from fastapi import FastAPI, Request
 from fastapi.templating import Jinja2Templates
-from mcp.server.fastmcp import FastMCP, Context
-from mcp.server.fastmcp.exceptions import ToolError
+from mcp.server.mcpserver import Context, MCPServer
+from mcp.server.mcpserver.exceptions import ToolError
 from mcp.server.transport_security import TransportSecuritySettings
 from posit import connect
 from posit.connect.errors import ClientError
@@ -37,18 +37,10 @@ def get_visitor_client(token: str | None) -> connect.Client:
         return client
 
 
-# --- FastMCP Server Initialization ---
-mcp = FastMCP(
-    name="MCP Server",
+# --- MCP Server Initialization ---
+mcp = MCPServer(
+    "MCP Server",
     instructions="MCP server for dataset operations and Connect 'whoami' via FastAPI.",
-    streamable_http_path="/mcp",
-    stateless_http=True,
-    # Connect terminates and authenticates requests in front of this app, and the
-    # served host varies per deployment, so disable the SDK's default DNS-rebinding
-    # Host check that would otherwise reject the Connect host.
-    transport_security=TransportSecuritySettings(
-        enable_dns_rebinding_protection=False
-    ),
 )
 
 # --- Datasets ---
@@ -90,17 +82,17 @@ async def connect_whoami(context: Context) -> str:
     Calls the Posit Connect /me endpoint using the visitor's session token.
     This tool requires a "Connect Visitor API Key" integration to be configured.
     """
-    # The underlying Starlette request, where Connect's injected headers live.
-    http_request = context.request_context.request
-    if http_request is None:
+    # The HTTP request headers, where Connect's injected headers live.
+    headers = context.headers
+    if headers is None:
         raise ToolError(
-            "Request context not available. This tool requires an HTTP-based transport."
+            "Request headers not available. This tool requires an HTTP-based transport."
         )
 
     # Connect injects this header on every request from a logged-in viewer. Reading
     # it (instead of a stored API key) is what lets the tool act as the viewer: the
     # AI assistant calls connect_whoami and Connect answers for whoever is using it.
-    session_token = http_request.headers.get("posit-connect-user-session-token")
+    session_token = headers.get("posit-connect-user-session-token")
 
     if not session_token:
         raise ToolError(
@@ -131,7 +123,7 @@ async def get_tools_info():
     # the landing page.
     tools = []
     for tool in await mcp.list_tools():
-        schema = tool.inputSchema or {}
+        schema = tool.input_schema or {}
         parameters = {}
         for prop_name, prop in schema.get("properties", {}).items():
             parameters[prop_name] = {
@@ -153,7 +145,19 @@ async def get_tools_info():
     return tools
 
 
-mcp_app = mcp.streamable_http_app()
+mcp_app = mcp.streamable_http_app(
+    streamable_http_path="/mcp",
+    # Clients on protocol revision 2026-07-28 are always stateless. This makes older
+    # (2025-11-25 and earlier) clients stateless too, so any Connect process can
+    # serve any request, with no Mcp-Session-Id to route on.
+    stateless_http=True,
+    # Connect terminates and authenticates requests in front of this app, and the
+    # served host varies per deployment, so disable the SDK's default DNS-rebinding
+    # Host check that would otherwise reject the Connect host.
+    transport_security=TransportSecuritySettings(
+        enable_dns_rebinding_protection=False
+    ),
+)
 
 
 @contextlib.asynccontextmanager

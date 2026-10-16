@@ -5,6 +5,16 @@ All notable changes to the FastAPI: MCP Server extension will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.0.11] - 2026-10-16
+
+### Changed
+
+- Upgraded to MCP Python SDK 2.x (`mcp` 2.3.0). The server now speaks protocol
+  revision `2026-07-28` (no `initialize` handshake, no sessions) and still serves
+  clients on `2025-11-25` and earlier. `FastMCP` is now `MCPServer`, and the
+  transport settings (`streamable_http_path`, `stateless_http`, `transport_security`)
+  moved from the constructor to `streamable_http_app()`. (#467)
+
 ## [0.0.9] - 2026-09-11
 
 ### Changed

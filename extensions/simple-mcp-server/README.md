@@ -18,8 +18,12 @@ a chat client that calls these tools, but any MCP client works too.
 ## How it works
 
 - FastAPI and the [MCP Python SDK](https://github.com/modelcontextprotocol/python-sdk)'s
-  `FastMCP` server host the MCP endpoint at `/mcp` (streamable HTTP) alongside a landing
-  page at `/`.
+  `MCPServer` (SDK 2.x) host the MCP endpoint at `/mcp` (streamable HTTP) alongside a
+  landing page at `/`.
+- The server speaks MCP protocol revision `2026-07-28`, which has no `initialize`
+  handshake and no sessions, so any Connect process can answer any request. Clients
+  on older revisions (`2025-11-25` and earlier) still work; `stateless_http=True` makes
+  them sessionless too.
 - Tools are plain Python functions decorated with `@mcp.tool()`. Their docstrings
   are what the AI reads to decide when to call them.
 - `connect_whoami` reads the `Posit-Connect-User-Session-Token` header that Connect

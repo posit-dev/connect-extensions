@@ -41,7 +41,7 @@ def your_new_tool(parameter: str) -> str:
 Use `ToolError` for proper error handling:
 
 ```python
-from mcp.server.fastmcp.exceptions import ToolError
+from mcp.server.mcpserver.exceptions import ToolError
 
 @mcp.tool()
 def example_tool(input_value: str) -> str:
