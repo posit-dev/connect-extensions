@@ -1,0 +1,125 @@
+/* Separate each grid of cards from the next section's heading. */
+.hub-grid,
+.hub-section {
+  margin-bottom: 2.5rem;
+}
+
+.hub-section h2 {
+  font-size: 1.5rem;
+}
+
+/* A gentle lift on hover signals that the whole card is a link. */
+.hub-card {
+  transition: box-shadow 0.15s ease, transform 0.15s ease;
+}
+
+.hub-card:hover,
+.hub-card:focus-within {
+  box-shadow: var(--bs-box-shadow);
+  transform: translateY(-2px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hub-card {
+    transition: none;
+  }
+
+  .hub-card:hover,
+  .hub-card:focus-within {
+    transform: none;
+  }
+}
+
+/* Colors here inherit from the page or are translucent, rather than using
+   Bootstrap's color variables: Quarto compiles separate light and dark
+   stylesheets, and those variables don't switch between them. */
+
+/* Content type, with its icon in the theme's accent color. Used on cards and
+   in the table. */
+.hub-type {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4em;
+  font-size: 0.875rem;
+  opacity: 0.75;
+}
+
+.hub-type svg {
+  color: var(--bs-primary);
+}
+
+.hub-card-title {
+  margin: 0;
+  font-size: 1.125rem;
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+.hub-card-title a {
+  color: inherit;
+  text-decoration: none;
+}
+
+/* Keep long descriptions from making one card much taller than its row. */
+.hub-card-description {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  line-clamp: 3;
+  overflow: hidden;
+  margin: 0;
+  opacity: 0.8;
+}
+
+.hub-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+  margin-bottom: 0.5rem;
+}
+
+.hub-tag {
+  padding: 0.1rem 0.6rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  background-color: rgba(127, 127, 127, 0.15);
+}
+
+.hub-card-byline {
+  margin: 0;
+  font-size: 0.8125rem;
+  opacity: 0.7;
+}
+
+/* The Shiny landing page's list of tabs stays in view while the page
+   scrolls, and scrolls on its own if it's taller than the window. */
+@media (min-width: 576px) {
+  #tabs {
+    position: sticky;
+    top: 1rem;
+    max-height: calc(100vh - 2rem);
+    overflow-y: auto;
+    flex-wrap: nowrap;
+  }
+}
+
+/* On narrow screens, where the list would sit above the content, it becomes
+   one row that scrolls sideways instead. */
+@media (max-width: 575.98px) {
+  #tabs {
+    flex-direction: row;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    margin-bottom: 1rem;
+  }
+
+  #tabs .nav-link {
+    white-space: nowrap;
+  }
+}
+
+/* The Shiny landing page's search box, above each tab's content. */
+.hub-search {
+  max-width: 40rem;
+  margin-bottom: 1.5rem;
+}
