@@ -19,7 +19,7 @@ list in the dashboard, such as a front door for a team or project, or a
 curated page of published work.
 
 If each viewer should see only the content they can access, use the
-[R Shiny: Custom Landing Page](https://github.com/posit-dev/connect-extensions/tree/main/extensions/shiny-landing-page)
+[Custom Landing Page](https://github.com/posit-dev/connect-extensions/tree/main/extensions/shiny-landing-page)
 example instead. It's an interactive app that lists content with each viewer's
 own permissions, with a tab for each of your tags.
 

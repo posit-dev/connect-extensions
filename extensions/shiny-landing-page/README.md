@@ -1,13 +1,13 @@
-# R Shiny: Custom Landing Page
+# Custom Landing Page
 
 ## About this example
 
-A custom landing page for your Posit Connect server, built with R Shiny,
-organized by your tags and personal to each viewer. Each tag gets a tab, such
-as one per department or team, listed down the side of the page. Each tab
-groups its content into sections by the tags under it: a Finance tab might
-have Reports and Dashboards sections, for example. Viewers can search within a
-tab by title, description, owner, type, or tag.
+A custom landing page for your Posit Connect server, organized by your tags
+and personal to each viewer. Each tag gets a tab, such as one per department
+or team, listed down the side of the page. Each tab groups its content into
+sections by the tags under it: a Finance tab might have Reports and Dashboards
+sections, for example. Viewers can search within a tab by title, description,
+owner, type, or tag.
 
 Each viewer sees only the content they can open. The app lists content with
 the viewer's own Connect permissions, through a Connect API integration, rather
