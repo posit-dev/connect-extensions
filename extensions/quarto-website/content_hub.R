@@ -1,9 +1,9 @@
-# Helpers that turn the Connect content list into the hub's cards and table.
+# Helpers that turn the Connect content list into cards and a table.
 #
-# The same file ships in both content hub extensions, as
-# quarto-website/content_hub.R (the static Quarto hub) and
-# shiny-content-hub/R/content_hub.R (the per-viewer Shiny hub). Keep the
-# copies identical; the Shiny hub's tests cover both.
+# The same file ships in two extensions, as quarto-website/content_hub.R (the
+# static Quarto content hub) and shiny-landing-page/R/content_hub.R (the
+# per-viewer Shiny landing page). Keep the copies identical; the Shiny landing
+# page's tests cover both.
 
 library(bslib)
 library(htmltools)
@@ -71,7 +71,7 @@ owner_name <- function(owner) {
 }
 
 # Normalize the data frame from connectapi::get_content() into one row per
-# item, holding only what the hub displays, newest first.
+# item, holding only what's displayed, newest first.
 hub_items <- function(content) {
   # Content that has never been successfully deployed has no bundle, and its
   # link leads to an empty page, so leave it out.
@@ -153,8 +153,8 @@ filter_items <- function(items, search = "", types = NULL, tags = NULL) {
 }
 
 # The whole card is the link (the title's stretched-link covers it). Links use
-# target="_top" so that, when the hub is viewed inside Connect's dashboard, the
-# item replaces the dashboard instead of opening in the hub's iframe.
+# target="_top" so that, when the page is viewed inside Connect's dashboard,
+# the item replaces the dashboard instead of opening in the page's iframe.
 content_card <- function(item) {
   item_tags <- item$tags[[1]]
   # Drop the day's leading zero: "Mar 1, 2026", not "Mar 01, 2026".

@@ -39,7 +39,7 @@ jobs:
               - .github/workflows/extensions.yml
             quarto-stock-report-python: extensions/quarto-stock-report-python/**
             quarto-website: extensions/quarto-website/**
-            shiny-content-hub: extensions/shiny-content-hub/**
+            shiny-landing-page: extensions/shiny-landing-page/**
             portfolio-dashboard: extensions/portfolio-dashboard/**
             quarto-document: extensions/quarto-document/**
             stock-api-plumber: extensions/stock-api-plumber/**

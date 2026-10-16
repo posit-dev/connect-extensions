@@ -1,7 +1,7 @@
-# Helpers that turn Connect's tag hierarchy into the hub's tabs and sections.
+# Helpers that turn Connect's tag hierarchy into the page's tabs and sections.
 #
 # Connect tags form a tree: a top-level tag such as "Departments" can hold
-# "Finance" and "Marketing", which can hold tags of their own. The hub shows
+# "Finance" and "Marketing", which can hold tags of their own. The page shows
 # one level of that tree as tabs, and groups each tab's content into sections
 # by the level below.
 
@@ -49,7 +49,7 @@ tag_path <- function(tags, id) {
   paste(path, collapse = "/")
 }
 
-# Find the tag that HUB_TAG names, by its path ("Departments/Finance") or just
+# Find the tag that PARENT_TAG names, by its path ("Departments/Finance") or just
 # its name ("Finance"), ignoring case. Tag names needn't be unique, so if the
 # name matches several tags, pick the one nearest the top of the tree.
 # Returns NA if no tag matches.

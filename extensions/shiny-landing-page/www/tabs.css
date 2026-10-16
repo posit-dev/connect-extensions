@@ -1,0 +1,56 @@
+/* The navbar's tabs, on one line that scrolls sideways when the tabs don't
+   fit; see tabs.js. */
+.navbar > .container-fluid {
+  flex-wrap: nowrap;
+}
+
+.hub-tab-strip {
+  display: flex;
+  flex: 1 1 auto;
+  align-items: center;
+  /* Lets the strip shrink below its tabs' total width, so they scroll. */
+  min-width: 0;
+}
+
+.hub-tab-strip #tabs {
+  flex-direction: row;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  min-width: 0;
+  scrollbar-width: none;
+}
+
+.hub-tab-strip #tabs::-webkit-scrollbar {
+  display: none;
+}
+
+.hub-tab-strip #tabs .nav-link {
+  white-space: nowrap;
+}
+
+.hub-tab-arrow {
+  flex: none;
+  padding: 0 0.5rem;
+  border: 0;
+  background: none;
+  color: inherit;
+  font-size: 1.75rem;
+  line-height: 1;
+  display: none;
+}
+
+.hub-tab-strip.overflowing .hub-tab-arrow {
+  display: block;
+}
+
+/* At either end of the line, keep the arrow's space so the tabs don't
+   shift, but hide it. */
+.hub-tab-arrow:disabled {
+  visibility: hidden;
+}
+
+/* The search box above each tab's content. */
+.hub-search {
+  max-width: 40rem;
+  margin-bottom: 1.5rem;
+}
