@@ -1,7 +1,3 @@
 /.quarto/
-*.html
-*_files
-/env/
-_site
-featured.yaml
-all.yaml
+index.html
+index_files/

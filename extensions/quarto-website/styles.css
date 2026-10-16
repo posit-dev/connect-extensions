@@ -1,0 +1,88 @@
+/* Separate each grid of cards from the next section's heading. */
+.hub-grid,
+.hub-section {
+  margin-bottom: 2.5rem;
+}
+
+/* A gentle lift on hover signals that the whole card is a link. */
+.hub-card {
+  transition: box-shadow 0.15s ease, transform 0.15s ease;
+}
+
+.hub-card:hover,
+.hub-card:focus-within {
+  box-shadow: var(--bs-box-shadow);
+  transform: translateY(-2px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hub-card {
+    transition: none;
+  }
+
+  .hub-card:hover,
+  .hub-card:focus-within {
+    transform: none;
+  }
+}
+
+/* Colors here inherit from the page or are translucent, rather than using
+   Bootstrap's color variables: Quarto compiles separate light and dark
+   stylesheets, and those variables don't switch between them. */
+
+/* Content type, with its icon in the theme's accent color. Used on cards and
+   in the table. */
+.hub-type {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4em;
+  font-size: 0.875rem;
+  opacity: 0.75;
+}
+
+.hub-type svg {
+  color: var(--bs-primary);
+}
+
+.hub-card-title {
+  margin: 0;
+  font-size: 1.125rem;
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+.hub-card-title a {
+  color: inherit;
+  text-decoration: none;
+}
+
+/* Keep long descriptions from making one card much taller than its row. */
+.hub-card-description {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  line-clamp: 3;
+  overflow: hidden;
+  margin: 0;
+  opacity: 0.8;
+}
+
+.hub-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+  margin-bottom: 0.5rem;
+}
+
+.hub-tag {
+  padding: 0.1rem 0.6rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  background-color: rgba(127, 127, 127, 0.15);
+}
+
+.hub-card-byline {
+  margin: 0;
+  font-size: 0.8125rem;
+  opacity: 0.7;
+}
