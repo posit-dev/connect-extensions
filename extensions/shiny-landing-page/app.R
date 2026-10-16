@@ -10,33 +10,29 @@ library(connectapi)
 # section shows at most this many, the most recently updated.
 max_cards <- 30
 
-ui <- page_navbar(
-  # Replace this title with your organization's name.
-  title = "Data Science at Example Organization",
-  id = "tabs",
-  # The same Bootswatch theme as the Quarto: Content Hub extension, with the
-  # header in the theme's primary color rather than Flatly's default grey.
-  theme = bs_theme(version = 5, preset = "flatly", "navbar-bg" = "#2c3e50"),
-  # The page scrolls as one long list instead of fitting the window.
-  fillable = FALSE,
-  # Keep the tabs in the navbar on narrow screens too, rather than behind a
-  # menu button; www/tabs.js makes them scroll sideways when they don't fit.
-  navbar_options = navbar_options(collapsible = FALSE),
-  header = tagList(
-    tags$head(
-      tags$link(rel = "stylesheet", href = "styles.css"),
-      tags$link(rel = "stylesheet", href = "tabs.css"),
-      tags$script(src = "tabs.js")
-    ),
-    div(
-      class = "pt-4",
-      # Replace this introduction with a note for your own audience: who the
-      # page is for, and where to go for help.
-      p(class = "lead", "Browse the reports, apps, and APIs on Posit Connect that you have access to."),
-      uiOutput("status")
-    )
+# Replace this title with your organization's name.
+title <- "Data Science at Example Organization"
+
+ui <- page(
+  title = title,
+  # The same Bootswatch theme as the Quarto: Content Hub extension.
+  theme = bs_theme(version = 5, preset = "flatly"),
+  tags$head(tags$link(rel = "stylesheet", href = "styles.css")),
+  tags$nav(
+    class = "navbar bg-primary",
+    `data-bs-theme` = "dark",
+    div(class = "container-fluid", span(class = "navbar-brand", title))
+  ),
+  div(
+    class = "container-fluid pt-4",
+    # Replace this introduction with a note for your own audience: who the
+    # page is for, and where to go for help.
+    p(class = "lead", "Browse the reports, apps, and APIs on Posit Connect that you have access to."),
+    uiOutput("status"),
+    # A vertical list of tabs has room for as many tags as the server has.
+    # The server adds a tab for each tag once it has the tag list.
+    navset_pill_list(id = "tabs", well = FALSE, widths = c(3, 9))
   )
-  # The server adds a tab for each tag once it has the tag list.
 )
 
 # One tab: a search box above the tab's content, grouped into sections.

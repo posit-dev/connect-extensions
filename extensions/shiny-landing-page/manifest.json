@@ -1645,22 +1645,22 @@
   },
   "files": {
     "app.R": {
-      "checksum": "c035e0bdc4dddad9b8b9d3a9536d1231"
+      "checksum": "a4fbb779dc1e75acbe179b8b81b17472"
     },
     "CHANGELOG.md": {
-      "checksum": "f552b9931405d53ab13e3b9af6fc127c"
+      "checksum": "863fea6934158cb6e7416d710c37444a"
     },
     "R/content_hub.R": {
-      "checksum": "f776e156103309053f5cf5aaa107ea07"
+      "checksum": "7e5744dc550e4b160e0f3374769ea199"
     },
     "README.md": {
-      "checksum": "a03ac71584a86526b411676122430e1b"
+      "checksum": "a2823c8c285172301b5c15785d9cf6f4"
     },
     "www/styles.css": {
-      "checksum": "a914d079929f92215c08d22ac2b9c4eb"
+      "checksum": "29eeba394a2e972ae31f504437698950"
     },
     "R/portal.R": {
-      "checksum": "d5f3b6d484619f1b248d89ef3125a0f4"
+      "checksum": "4962a114189afe7cf924b716e34a2116"
     }
   },
   "users": null,
@@ -1670,11 +1670,11 @@
     }
   },
   "extension": {
-    "name": "shiny-content-hub",
-    "title": "R Shiny: Content Hub",
-    "description": "An R Shiny app that gives each viewer their own content hub, organized by your tags: a tab for each tag, with content grouped into sections by the tags under it, and search. A Connect API integration lets the app list content with each viewer's own permissions, so nobody sees content they can't open and no shared API key is needed.",
-    "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/shiny-content-hub",
-    "category": "extension",
+    "name": "shiny-landing-page",
+    "title": "R Shiny: Custom Landing Page",
+    "description": "A custom landing page for your Connect server, built with R Shiny and organized by your tags: a tab for each tag, with content grouped into sections by the tags under it, and search. A Connect API integration lets the app list content with each viewer's own permissions, so nobody sees content they can't open and no shared API key is needed.",
+    "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/shiny-landing-page",
+    "category": "example",
     "tags": [
       "r",
       "shiny"

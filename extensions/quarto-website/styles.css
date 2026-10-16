@@ -90,3 +90,36 @@
   font-size: 0.8125rem;
   opacity: 0.7;
 }
+
+/* The Shiny landing page's list of tabs stays in view while the page
+   scrolls, and scrolls on its own if it's taller than the window. */
+@media (min-width: 576px) {
+  #tabs {
+    position: sticky;
+    top: 1rem;
+    max-height: calc(100vh - 2rem);
+    overflow-y: auto;
+    flex-wrap: nowrap;
+  }
+}
+
+/* On narrow screens, where the list would sit above the content, it becomes
+   one row that scrolls sideways instead. */
+@media (max-width: 575.98px) {
+  #tabs {
+    flex-direction: row;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    margin-bottom: 1rem;
+  }
+
+  #tabs .nav-link {
+    white-space: nowrap;
+  }
+}
+
+/* The Shiny landing page's search box, above each tab's content. */
+.hub-search {
+  max-width: 40rem;
+  margin-bottom: 1.5rem;
+}
