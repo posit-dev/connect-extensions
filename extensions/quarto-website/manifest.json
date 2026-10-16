@@ -1362,19 +1362,19 @@
       "checksum": "edd8e236035a2b7f418b9f8149f00ff7"
     },
     "CHANGELOG.md": {
-      "checksum": "300453abc7d98230eb77f67cb7a82d52"
+      "checksum": "5673ab3dd20168f35c0cb8f8830b4907"
     },
     "content_hub.R": {
-      "checksum": "3061d7948d65f09022f00213d388775b"
+      "checksum": "7ac3c7c679c74dbebc3d04f8b9e1ee1c"
     },
     "index.qmd": {
       "checksum": "a6d8cca7606771a53ab519f2b9cb3e91"
     },
     "README.md": {
-      "checksum": "a530066490eaf1e11107553dc3c09af0"
+      "checksum": "ed6eb55d7920e3d7ec9c05f0ef5e3e65"
     },
     "styles.css": {
-      "checksum": "47f3d2575d19fc52fb40dbfae3883a2d"
+      "checksum": "7fe00d41d47948b8a0aa4e7ea4fd990a"
     }
   },
   "users": null,

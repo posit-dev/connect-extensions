@@ -1645,19 +1645,19 @@
   },
   "files": {
     "app.R": {
-      "checksum": "4ed144db7b2813f1c7759f1f65685ba1"
+      "checksum": "b16510f923d0782e1b4f042ba03330c7"
     },
     "CHANGELOG.md": {
       "checksum": "f26969d3b1b4b78c3f8a0a433d562f44"
     },
     "R/content_hub.R": {
-      "checksum": "3061d7948d65f09022f00213d388775b"
+      "checksum": "7ac3c7c679c74dbebc3d04f8b9e1ee1c"
     },
     "README.md": {
-      "checksum": "91d468c9961e9ace10daba8177250c50"
+      "checksum": "160993ea020067ae8b39a461189e3faf"
     },
     "www/styles.css": {
-      "checksum": "47f3d2575d19fc52fb40dbfae3883a2d"
+      "checksum": "7fe00d41d47948b8a0aa4e7ea4fd990a"
     }
   },
   "users": null,

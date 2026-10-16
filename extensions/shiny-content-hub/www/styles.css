@@ -4,6 +4,10 @@
   margin-bottom: 2.5rem;
 }
 
+.hub-section h2 {
+  font-size: 1.5rem;
+}
+
 /* A gentle lift on hover signals that the whole card is a link. */
 .hub-card {
   transition: box-shadow 0.15s ease, transform 0.15s ease;
@@ -85,4 +89,10 @@
   margin: 0;
   font-size: 0.8125rem;
   opacity: 0.7;
+}
+
+/* Flatly draws unchecked radio buttons white-on-white; outline them so the
+   Shiny hub's View choice is visible against its sidebar. */
+.bslib-sidebar-layout .form-check-input:not(:checked) {
+  border-color: #adb5bd;
 }

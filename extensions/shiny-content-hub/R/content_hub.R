@@ -116,13 +116,15 @@ parse_tags <- function(x) {
   tolower(tags[nzchar(tags)])
 }
 
-# Content tagged with any featured tag is featured. If no tags are configured,
-# or nothing visible carries them, show the most recently updated content
-# instead so the top of the page is never empty.
-featured_items <- function(items, featured_tags, n = 6) {
+# Content tagged with any featured tag is featured, up to `max` items (the
+# most recently updated ones), so a widely used tag can't bury the page in
+# cards. If no tags are configured, or nothing visible carries them, show the
+# `n` most recently updated items instead so the top of the page is never
+# empty.
+featured_items <- function(items, featured_tags, n = 6, max = 12) {
   tagged <- vapply(items$tags, function(tags) any(tolower(tags) %in% featured_tags), logical(1))
   if (any(tagged)) {
-    list(heading = "Featured", items = items[tagged, , drop = FALSE])
+    list(heading = "Featured", items = utils::head(items[tagged, , drop = FALSE], max))
   } else {
     list(heading = "Recently updated", items = utils::head(items, n))
   }
@@ -192,6 +194,26 @@ card_grid <- function(items) {
 # A sortable table of items. `searchable` adds reactable's own search box and
 # per-column filters, for the static hub, which has no other way to filter.
 content_table <- function(items, searchable = FALSE) {
+  # Build the linked titles and icon labels as HTML strings up front.
+  # Returning htmltools tags from a cell function is much slower: reactable
+  # converts each one, which takes seconds for a few thousand rows. The data
+  # columns keep the plain values, so sorting and filtering use those.
+  title_html <- sprintf(
+    '<a href="%s" target="_top">%s</a>',
+    htmlEscape(items$url, attribute = TRUE),
+    htmlEscape(items$title)
+  )
+  icon_svgs <- vapply(
+    unique(items$icon),
+    function(icon) as.character(bsicons::bs_icon(icon, a11y = "deco")),
+    character(1)
+  )
+  type_html <- sprintf(
+    '<span class="hub-type">%s%s</span>',
+    icon_svgs[items$icon],
+    htmlEscape(items$type)
+  )
+
   data <- data.frame(
     title = items$title,
     type = items$type,
@@ -220,15 +242,13 @@ content_table <- function(items, searchable = FALSE) {
       title = colDef(
         name = "Title",
         minWidth = 200,
-        cell = function(value, index) {
-          tags$a(href = items$url[[index]], target = "_top", value)
-        }
+        html = TRUE,
+        cell = function(value, index) title_html[[index]]
       ),
       type = colDef(
         name = "Type",
-        # The icon is raw SVG, which reactable only renders from an HTML string.
         html = TRUE,
-        cell = function(value, index) as.character(type_label(value, items$icon[[index]]))
+        cell = function(value, index) type_html[[index]]
       ),
       owner = colDef(name = "Owner"),
       updated = colDef(name = "Updated", format = colFormat(date = TRUE)),

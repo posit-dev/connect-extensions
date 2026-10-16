@@ -17,8 +17,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   sorting. (#385)
 - The hub needs no configuration: it uses the server address and API key
   Connect supplies at render time. (#385)
-- When `FEATURED_TAGS` is unset or matches no content, the six most recently
-  updated items are featured. Tag names match case-insensitively. (#385)
+- Up to 12 tagged items are featured. When `FEATURED_TAGS` is unset or
+  matches no content, the six most recently updated items are featured. Tag
+  names match case-insensitively. (#385)
 - Content that has never been deployed is left out of the hub. (#385)
 
 ### Removed

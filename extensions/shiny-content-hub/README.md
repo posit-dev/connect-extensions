@@ -49,8 +49,9 @@ Optionally, choose which content to feature:
    name. To feature several tags, separate them with commas
    (`showcase, onboarding`). Tag names are not case-sensitive.
 
-Without `FEATURED_TAGS`, the hub features each viewer's six most recently
-updated items instead. It does the same if none of the featured content is
+The hub features up to 12 tagged items, the most recently updated ones.
+Without `FEATURED_TAGS`, it features each viewer's six most recently updated
+items instead. It does the same if none of the featured content is
 visible to the viewer, so the top of the page is never empty.
 
 ## Use it
@@ -60,10 +61,16 @@ visible to the viewer, so the top of the page is never empty.
   somewhere in the item's title, description, owner, type, or tags, in any
   order.
 - Use **Type** and **Tag** to filter the list, and **View** to switch between
-  cards and a sortable table.
+  cards and a sortable table. The card view shows the 30 most recently
+  updated matches; the table shows them all.
 
 The list is fetched when a viewer opens the hub, so it's always current.
 Reload the page to pick up content published since then.
+
+Like any Shiny app on Connect, the hub takes a few seconds to start if no
+process is already running. To keep one ready, set **Min processes** to 1 in
+the hub's settings, on the **Runtime** tab (**Advanced** before Connect
+2026.08.0).
 
 Administrators see every item on the server, because Connect gives
 administrators access to all content.

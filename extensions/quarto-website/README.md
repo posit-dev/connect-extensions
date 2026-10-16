@@ -56,7 +56,8 @@ Optionally, choose which content to feature:
    (`showcase, onboarding`). Tag names are not case-sensitive.
 3. Re-render the hub so it picks up the setting.
 
-Without `FEATURED_TAGS`, or if no content carries the featured tags, the hub
+The hub features up to 12 tagged items, the most recently updated ones.
+Without `FEATURED_TAGS`, or if no content carries the featured tags, it
 features the six most recently updated items instead.
 
 ## Use it
