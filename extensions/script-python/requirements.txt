@@ -128,7 +128,7 @@ platformdirs==4.4.0 ; python_full_version < '3.10'
     # via jupyter-core
 platformdirs==4.12.4 ; python_full_version == '3.10.*'
     # via jupyter-core
-platformdirs==4.13.0 ; python_full_version >= '3.11'
+platformdirs==4.13.3 ; python_full_version >= '3.11'
     # via jupyter-core
 prompt-toolkit==3.0.52 ; python_full_version < '3.10'
     # via ipython

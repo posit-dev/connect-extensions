@@ -227,7 +227,7 @@ pexpect==4.9.0 ; sys_platform != 'emscripten' and sys_platform != 'win32'
     # via ipython
 pillow==12.3.0
     # via matplotlib
-platformdirs==4.13.0
+platformdirs==4.13.3
     # via jupyter-core
 prometheus-client==0.26.0
     # via jupyter-server
@@ -262,7 +262,7 @@ python-dateutil==2.9.0.post0
     #   pandas
 python-json-logger==4.2.0
     # via jupyter-events
-pywinpty==3.0.5 ; os_name == 'nt'
+pywinpty==3.1.0 ; os_name == 'nt'
     # via
     #   jupyter-server
     #   jupyter-server-terminals

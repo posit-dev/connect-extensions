@@ -20,7 +20,7 @@ executing==2.3.0
     # via stack-data
 faicons==0.2.2
     # via great-tables
-great-tables==1.0.0
+great-tables==1.1.0
     # via -r requirements.in
 htmltools==0.7.0
     # via

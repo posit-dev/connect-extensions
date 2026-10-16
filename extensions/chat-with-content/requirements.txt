@@ -2,7 +2,7 @@
 #    scripts/bump-python-packages.sh
 annotated-types==0.8.0
     # via pydantic
-anthropic==1.14.0
+anthropic==1.15.0
     # via chat-with-content (pyproject.toml)
 anyio==4.15.1
     # via
@@ -134,7 +134,7 @@ platformdirs==4.12.4 ; python_full_version < '3.11'
     # via
     #   chatlas
     #   shiny
-platformdirs==4.13.0 ; python_full_version >= '3.11'
+platformdirs==4.13.3 ; python_full_version >= '3.11'
     # via
     #   chatlas
     #   shiny

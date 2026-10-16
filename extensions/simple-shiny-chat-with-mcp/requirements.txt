@@ -2,7 +2,7 @@
 #    scripts/bump-python-packages.sh
 annotated-types==0.8.0
     # via pydantic
-anthropic==1.14.0
+anthropic==1.15.0
     # via simple-shiny-chat-with-mcp (pyproject.toml)
 anyio==4.15.1
     # via
@@ -146,7 +146,7 @@ packaging==26.3
     #   htmltools
     #   posit-sdk
     #   shiny
-platformdirs==4.13.0
+platformdirs==4.13.3
     # via
     #   chatlas
     #   shiny
