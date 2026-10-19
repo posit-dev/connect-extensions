@@ -27,7 +27,7 @@ extension, a static page that lists what the publisher can see.
 
 ## Requirements
 
-- Posit Connect 2025.11.0 or newer, with OAuth integrations enabled. Before
+- Posit Connect 2026.02.0 or newer, with OAuth integrations enabled. Before
   Connect 2026.06.0, tabs for tags whose names contain `"`, `\`, or `/`
   don't load their content.
 - A **Connect API** integration, created by a Connect administrator. Any

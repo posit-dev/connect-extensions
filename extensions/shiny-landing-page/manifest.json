@@ -1654,7 +1654,7 @@
       "checksum": "855842b95299bd6049a297a348ed9495"
     },
     "README.md": {
-      "checksum": "58681d9aa103dcb176c72afde4516baa"
+      "checksum": "b5fb3bdb7dd5f3c5621784f6659093b5"
     },
     "www/styles.css": {
       "checksum": "058d5db09055a5b0d2217b95d7784c45"
@@ -1679,7 +1679,7 @@
       "r",
       "shiny"
     ],
-    "minimumConnectVersion": "2025.11.0",
+    "minimumConnectVersion": "2026.02.0",
     "requiredFeatures": [
       "OAuth Integrations"
     ],
