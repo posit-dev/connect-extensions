@@ -1,21 +1,12 @@
 project:
-  type: website
-  pre-render: prepare.py
-
-website:
-  title: Content Dashboard
-  navbar:
-    left:
-      - text: "Featured"
-        href: "index.qmd"
-      - text: "All"
-        href: "all.qmd"
-      - text: "About"
-        href: "about.qmd"
+  # Render only the hub so sibling Markdown (e.g. CHANGELOG.md) is not
+  # rendered into the output as a stray page.
+  render:
+    - index.qmd
 
 format:
-  html: default
-
-theme:
-  light: flatly
-  dark: darkly
+  html:
+    css: styles.css
+    theme:
+      light: flatly
+      dark: darkly

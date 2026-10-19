@@ -1,13 +1,43 @@
 ---
-title: Featured Content
-listing:
-  contents: featured.yaml
-  type: grid
-  categories: true
-  fields:
-    - image
-    - date
-    - title
-    - author
-    - categories
+title: Content Hub
+echo: false
+warning: false
+message: false
 ---
+
+<!--
+  Replace this introduction with a note for your own audience: who the hub is
+  for, and where to go for help.
+-->
+
+Browse the reports, apps, and APIs published on Posit Connect.
+
+```{r}
+#| include: false
+library(connectapi)
+source("content_hub.R")
+
+# connect() reads CONNECT_SERVER and CONNECT_API_KEY, which Connect sets
+# whenever it renders this document. The key carries the permissions of the
+# hub's owner, so the hub lists what the owner can see, not what each viewer
+# can see; the README covers who to share it with.
+client <- connect()
+items <- hub_items(get_content(client))
+featured <- featured_items(items, parse_tags(Sys.getenv("FEATURED_TAGS")))
+```
+
+The list below was last updated `r format(Sys.time(), "%B %d, %Y at %H:%M %Z")`.
+
+## `r featured$heading`
+
+```{r}
+card_grid(featured$items)
+```
+
+## All content
+
+```{r}
+# The page is static, so filtering happens in the browser: reactable's search
+# box and per-column filters work on the data embedded in the page.
+content_table(items, searchable = TRUE)
+```
