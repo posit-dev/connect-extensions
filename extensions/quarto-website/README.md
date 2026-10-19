@@ -75,6 +75,8 @@ make your changes, and publish it with
 [`quarto publish connect`](https://quarto.org/docs/publishing/rstudio-connect.html),
 [`rsconnect::deployDoc()`](https://rstudio.github.io/rsconnect/), or a
 [git-backed deployment](https://docs.posit.co/connect/user/git-backed/).
+For other ways to publish, such as from Positron or RStudio, see
+the [publishing overview](https://docs.posit.co/connect/user/publishing-overview/).
 
 - Change the hub's title and the introduction at the top of `index.qmd`.
 - Change which content appears by filtering `items` in `index.qmd`, for

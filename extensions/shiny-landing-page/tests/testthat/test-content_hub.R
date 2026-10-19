@@ -28,10 +28,10 @@ fake_content <- function() {
 test_that("content_type() groups app modes into familiar types", {
   expect_equal(
     content_type(
-      c("api", "python-fastapi", "shiny", "python-streamlit", "quarto-static", "static", "static", "tensorflow-saved-model", "something-new", NA),
-      c(NA, NA, NA, NA, NA, "pin", "plot", NA, NA, NA)
+      c("api", "python-fastapi", "shiny", "rmd-shiny", "quarto-shiny", "python-streamlit", "quarto-static", "static", "static", "tensorflow-saved-model", "something-new", NA),
+      c(NA, NA, NA, NA, NA, NA, NA, "pin", "plot", NA, NA, NA)
     ),
-    c("API", "API", "Application", "Application", "Document", "Pin", "Plot", "Model", "Document", "Document")
+    c("API", "API", "Application", "Application", "Application", "Application", "Document", "Pin", "Plot", "Model", "Document", "Document")
   )
 })
 
@@ -63,7 +63,7 @@ test_that("featured_items() matches tags case-insensitively", {
 
 test_that("featured_items() caps featured content at the most recent", {
   items <- hub_items(fake_content())
-  featured <- featured_items(items, "showcase", max = 1)
+  featured <- featured_items(items, "showcase", max_featured = 1)
 
   expect_equal(featured$items$title, "Forecast App")
 })

@@ -103,6 +103,18 @@
   }
 }
 
+/* The label at the top of the list of tabs, styled to read as a heading
+   rather than as another tab. */
+.hub-tabs-heading {
+  margin: 0;
+  padding: 0.5rem 1rem;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  opacity: 0.7;
+}
+
 /* On narrow screens, where the list would sit above the content, it becomes
    one row that scrolls sideways instead. */
 @media (max-width: 575.98px) {
@@ -113,8 +125,17 @@
     margin-bottom: 1rem;
   }
 
-  #tabs .nav-link {
+  #tabs .nav-link,
+  #tabs .hub-tabs-heading {
     white-space: nowrap;
+  }
+
+  #tabs > .bslib-nav-item {
+    align-self: center;
+  }
+
+  #tabs .hub-tabs-heading {
+    padding-left: 0;
   }
 }
 

@@ -1358,23 +1358,20 @@
     "_quarto.yml": {
       "checksum": "229f133671cc2a5ddb304733110d6747"
     },
-    ".gitignore": {
-      "checksum": "edd8e236035a2b7f418b9f8149f00ff7"
-    },
     "CHANGELOG.md": {
-      "checksum": "5673ab3dd20168f35c0cb8f8830b4907"
+      "checksum": "880252960580258ca4e805a3b44038bc"
     },
     "content_hub.R": {
-      "checksum": "7e5744dc550e4b160e0f3374769ea199"
+      "checksum": "855842b95299bd6049a297a348ed9495"
     },
     "index.qmd": {
       "checksum": "a6d8cca7606771a53ab519f2b9cb3e91"
     },
     "README.md": {
-      "checksum": "83f0abe0656e7a63df9fa3a56a514d3e"
+      "checksum": "53cb333a7d9e16944e957f4759e86b26"
     },
     "styles.css": {
-      "checksum": "29eeba394a2e972ae31f504437698950"
+      "checksum": "058d5db09055a5b0d2217b95d7784c45"
     }
   },
   "users": null,
@@ -1389,7 +1386,7 @@
   "extension": {
     "name": "quarto-website",
     "title": "Quarto: Content Hub",
-    "description": "A Quarto document that renders a content hub for your Connect server: featured items as cards, above a searchable, filterable table of the published reports, apps, and APIs. It lists content with the publisher's permissions, so every viewer sees the same page; schedule it to keep the list current. For a hub personalized to each viewer, use R Shiny: Content Hub.",
+    "description": "A Quarto document that renders a content hub for your Connect server: featured items as cards, above a searchable, filterable table of the published reports, apps, and APIs. It lists content with the publisher's permissions, so every viewer sees the same page; schedule it to keep the list current. For a hub personalized to each viewer, use the Custom Landing Page.",
     "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/quarto-website",
     "category": "extension",
     "tags": [

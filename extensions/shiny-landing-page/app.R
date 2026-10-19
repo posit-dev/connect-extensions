@@ -15,7 +15,6 @@ title <- "Data Science at Example Organization"
 
 ui <- page(
   title = title,
-  # The same Bootswatch theme as the Quarto: Content Hub extension.
   theme = bs_theme(version = 5, preset = "flatly"),
   tags$head(tags$link(rel = "stylesheet", href = "styles.css")),
   tags$nav(
@@ -110,9 +109,11 @@ server <- function(input, output, session) {
   #
   # Connect passes each viewer's session token in a request header. With a
   # Connect API integration associated with this app, connect() exchanges the
-  # token for a short-lived API key carrying that viewer's permissions, so
-  # every content search returns only content this viewer may access. That is
-  # what makes the page personal; no shared publisher key is involved.
+  # token for an API key carrying that viewer's permissions, so every content
+  # search returns only content this viewer may access. That is what makes the
+  # page personal; no shared publisher key is involved. Connect deletes the key
+  # when this app's process exits, so it lasts as long as any session using it,
+  # and tabs opened late in a long session still load.
   #
   # This runs inside a reactive rather than directly in the server function,
   # so the page appears right away and shows Shiny's busy indicator while it
@@ -145,12 +146,19 @@ server <- function(input, output, session) {
         return(list(error = "parent_tag", parent_tag = parent_tag))
       }
     }
-    c(connected, list(tabs = child_tags(tags, parent_id)))
+    c(connected, list(parent_id = parent_id, tabs = child_tags(tags, parent_id)))
   })
 
   observeEvent(site(), once = TRUE, {
     tabs <- site()$tabs
-    req(tabs)
+    req(nrow(tabs) > 0)
+    # Name what the tabs are, since a bare list of tag names doesn't say.
+    heading <- if (is.na(site()$parent_id)) {
+      "Tags"
+    } else {
+      site()$tags$name[[match(site()$parent_id, site()$tags$id)]]
+    }
+    nav_insert("tabs", nav_item(h2(class = "hub-tabs-heading", heading)))
     # lapply() rather than a for loop, so that each tab's server keeps its
     # own `tab` instead of all of them seeing the loop's last one.
     lapply(seq_len(nrow(tabs)), function(i) {

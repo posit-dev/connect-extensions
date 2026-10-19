@@ -109,6 +109,31 @@ jobs:
         with:
           extension-name: ${{ matrix.extension }}
 
+      # quarto-website and shiny-landing-page each ship a copy of the same
+      # helpers and styles, and only shiny-landing-page's tests cover them.
+      - name: Check shared content hub files match
+        if: matrix.extension == 'quarto-website' || matrix.extension == 'shiny-landing-page'
+        run: |
+          cmp extensions/quarto-website/content_hub.R extensions/shiny-landing-page/R/content_hub.R
+          cmp extensions/quarto-website/styles.css extensions/shiny-landing-page/www/styles.css
+
+      # R extensions with testthat tests run them here, with the packages
+      # recorded in their manifest, so a failure blocks packaging and release.
+      # testthat skips, rather than fails, tests whose packages are missing, so
+      # check that every package installed.
+      - uses: r-lib/actions/setup-r@v2
+        if: hashFiles(format('extensions/{0}/tests/testthat/*.R', matrix.extension)) != ''
+        with:
+          use-public-rspm: true
+
+      - name: Run R tests
+        if: hashFiles(format('extensions/{0}/tests/testthat/*.R', matrix.extension)) != ''
+        working-directory: extensions/${{ matrix.extension }}
+        run: |
+          Rscript -e 'pkgs <- c(commandArgs(TRUE), "testthat"); install.packages(pkgs); stopifnot(all(vapply(pkgs, requireNamespace, logical(1), quietly = TRUE)))' \
+            $(jq -r '.packages | keys | join(" ")' manifest.json)
+          Rscript -e 'testthat::test_dir("tests/testthat")'
+
       - uses: ./.github/actions/package-extension
         with:
           extension-name: ${{ matrix.extension }}

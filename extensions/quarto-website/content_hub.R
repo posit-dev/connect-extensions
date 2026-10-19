@@ -31,7 +31,7 @@ content_type <- function(app_mode, content_category) {
       } else if (
         # Every remaining python-* mode is an app framework (Shiny, Dash,
         # Streamlit, Bokeh, Gradio, Panel, ...); APIs were handled above.
-        mode %in% c("shiny", "jupyter-voila", "nodejs") || startsWith(mode, "python-")
+        mode %in% c("shiny", "rmd-shiny", "quarto-shiny", "jupyter-voila", "nodejs") || startsWith(mode, "python-")
       ) {
         "Application"
       } else {
@@ -118,15 +118,15 @@ parse_tags <- function(x) {
   tolower(tags[nzchar(tags)])
 }
 
-# Content tagged with any featured tag is featured, up to `max` items (the
+# Content tagged with any featured tag is featured, up to `max_featured` items (the
 # most recently updated ones), so a widely used tag can't bury the page in
 # cards. If no tags are configured, or nothing visible carries them, show the
 # `n` most recently updated items instead so the top of the page is never
 # empty.
-featured_items <- function(items, featured_tags, n = 6, max = 12) {
+featured_items <- function(items, featured_tags, n = 6, max_featured = 12) {
   tagged <- vapply(items$tags, function(tags) any(tolower(tags) %in% featured_tags), logical(1))
   if (any(tagged)) {
-    list(heading = "Featured", items = utils::head(items[tagged, , drop = FALSE], max))
+    list(heading = "Featured", items = utils::head(items[tagged, , drop = FALSE], max_featured))
   } else {
     list(heading = "Recently updated", items = utils::head(items, n))
   }

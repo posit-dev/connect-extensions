@@ -26,6 +26,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Removed the About page and the Python dependency. (#385)
 
+## [1.0.2] - 2026-10-15
+
+### Changed
+
+- Pinned the Python package versions in `requirements.txt`, compiled from a
+  new `requirements.in`. (#475)
+
 ## [1.0.1] - 2026-06-09
 
 ### Changed

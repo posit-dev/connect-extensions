@@ -1645,19 +1645,19 @@
   },
   "files": {
     "app.R": {
-      "checksum": "a4fbb779dc1e75acbe179b8b81b17472"
+      "checksum": "dd90029ff42120a369c73fee0b335fcc"
     },
     "CHANGELOG.md": {
       "checksum": "3913062f90cd0e23d579df30f0245386"
     },
     "R/content_hub.R": {
-      "checksum": "7e5744dc550e4b160e0f3374769ea199"
+      "checksum": "855842b95299bd6049a297a348ed9495"
     },
     "README.md": {
-      "checksum": "ea39366c9b93a56353a3642afa03346f"
+      "checksum": "58681d9aa103dcb176c72afde4516baa"
     },
     "www/styles.css": {
-      "checksum": "29eeba394a2e972ae31f504437698950"
+      "checksum": "058d5db09055a5b0d2217b95d7784c45"
     },
     "R/portal.R": {
       "checksum": "4962a114189afe7cf924b716e34a2116"
@@ -1679,7 +1679,7 @@
       "r",
       "shiny"
     ],
-    "minimumConnectVersion": "2025.04.0",
+    "minimumConnectVersion": "2025.11.0",
     "requiredFeatures": [
       "OAuth Integrations"
     ],

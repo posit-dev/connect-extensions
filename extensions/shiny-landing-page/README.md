@@ -27,7 +27,9 @@ extension, a static page that lists what the publisher can see.
 
 ## Requirements
 
-- Posit Connect 2025.04.0 or newer, with OAuth integrations enabled.
+- Posit Connect 2025.11.0 or newer, with OAuth integrations enabled. Before
+  Connect 2026.06.0, tabs for tags whose names contain `"`, `\`, or `/`
+  don't load their content.
 - A **Connect API** integration, created by a Connect administrator. Any
   **Max Role** works; viewers never get more access than their own role
   allows. See the
@@ -58,7 +60,8 @@ it instead of any tabs.
 ## Use it
 
 - Select a tab to see the content under that tag, and a card to open that
-  item in Connect. On narrow screens, the tabs form a row that scrolls
+  item in Connect. The list of tabs is headed **Tags**, or with the name of
+  the `PARENT_TAG` tag if it's set. On narrow screens, the tabs form a row that scrolls
   sideways.
 - Content tagged with a tag under the tab's tag appears in that tag's section.
   Content can appear in more than one section. Content that fits no section,
@@ -87,6 +90,8 @@ To customize the page, get the
 make your changes, and publish it with
 [`rsconnect::deployApp()`](https://rstudio.github.io/rsconnect/) or a
 [git-backed deployment](https://docs.posit.co/connect/user/git-backed/).
+For other ways to publish, such as from Positron or RStudio, see
+the [publishing overview](https://docs.posit.co/connect/user/publishing-overview/).
 
 - `app.R` holds the page layout, the per-viewer connection, and each tab.
   Change the title and the introduction at the top of the page there.
