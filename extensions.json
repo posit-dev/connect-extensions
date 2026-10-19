@@ -291,6 +291,47 @@
       "category": "extension"
     },
     {
+      "name": "shiny-landing-page",
+      "title": "Custom Landing Page",
+      "description": "A custom landing page for your Connect server, organized by your tags: a tab for each tag, with content grouped into sections by the tags under it, and search. A Connect API integration lets the app list content with each viewer's own permissions, so nobody sees content they can't open and no shared API key is needed.",
+      "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/shiny-landing-page",
+      "latestVersion": {
+        "version": "1.0.0",
+        "released": "2026-10-19T18:08:36Z",
+        "url": "https://github.com/posit-dev/connect-extensions/releases/download/shiny-landing-page%40v1.0.0/shiny-landing-page.tar.gz",
+        "minimumConnectVersion": "2026.02.0",
+        "requiredFeatures": [
+          "OAuth Integrations"
+        ],
+        "requiredEnvironment": {
+          "r": {
+            "requires": "~=4.1"
+          }
+        }
+      },
+      "versions": [
+        {
+          "version": "1.0.0",
+          "released": "2026-10-19T18:08:36Z",
+          "url": "https://github.com/posit-dev/connect-extensions/releases/download/shiny-landing-page%40v1.0.0/shiny-landing-page.tar.gz",
+          "minimumConnectVersion": "2026.02.0",
+          "requiredFeatures": [
+            "OAuth Integrations"
+          ],
+          "requiredEnvironment": {
+            "r": {
+              "requires": "~=4.1"
+            }
+          }
+        }
+      ],
+      "tags": [
+        "r",
+        "shiny"
+      ],
+      "category": "example"
+    },
+    {
       "name": "simple-mcp-server",
       "title": "FastAPI: MCP Server",
       "description": "A FastAPI server that exposes tools to AI assistants over the Model Context Protocol (MCP), running on Connect. Its tools run as the signed-in viewer, using their Connect identity instead of an API key, and ship as demos you can replace with your own. Meant to be used with the Python Shiny: AI Chat with MCP Tools extension, but works with any MCP client.",
@@ -1584,25 +1625,39 @@
     },
     {
       "name": "quarto-website",
-      "title": "Quarto Website",
-      "description": "This Quarto website uses the Posit Connect Server API together with Python to construct a dashboard that presents published content. Views showing featured and all content are included. Set the `FEATURED_TAGS` environment variable and feature content having a particular tag name.",
+      "title": "Quarto: Content Hub",
+      "description": "A Quarto document that renders a content hub for your Connect server: featured items as cards, above a searchable, filterable table of the published reports, apps, and APIs. It lists content with the publisher's permissions, so every viewer sees the same page; schedule it to keep the list current. For a hub personalized to each viewer, use the Custom Landing Page.",
       "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/quarto-website",
-      "category": "example",
+      "category": "extension",
       "latestVersion": {
-        "version": "1.0.2",
-        "released": "2026-10-15T15:45:05Z",
-        "url": "https://github.com/posit-dev/connect-extensions/releases/download/quarto-website%40v1.0.2/quarto-website.tar.gz",
+        "version": "2.0.0",
+        "released": "2026-10-19T18:08:32Z",
+        "url": "https://github.com/posit-dev/connect-extensions/releases/download/quarto-website%40v2.0.0/quarto-website.tar.gz",
         "minimumConnectVersion": "2025.04.0",
         "requiredEnvironment": {
-          "python": {
-            "requires": "~=3.8"
-          },
           "quarto": {
             "requires": "~=1.4"
+          },
+          "r": {
+            "requires": "~=4.1"
           }
         }
       },
       "versions": [
+        {
+          "version": "2.0.0",
+          "released": "2026-10-19T18:08:32Z",
+          "url": "https://github.com/posit-dev/connect-extensions/releases/download/quarto-website%40v2.0.0/quarto-website.tar.gz",
+          "minimumConnectVersion": "2025.04.0",
+          "requiredEnvironment": {
+            "quarto": {
+              "requires": "~=1.4"
+            },
+            "r": {
+              "requires": "~=4.1"
+            }
+          }
+        },
         {
           "version": "1.0.2",
           "released": "2026-10-15T15:45:05Z",
@@ -1646,7 +1701,10 @@
           }
         }
       ],
-      "tags": []
+      "tags": [
+        "quarto",
+        "r"
+      ]
     },
     {
       "name": "quarto-presentation",
