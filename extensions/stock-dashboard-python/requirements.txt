@@ -2,7 +2,7 @@
 #    scripts/bump-python-packages.sh
 blinker==1.9.0
     # via flask
-certifi==2026.7.22
+certifi==2026.10.23
     # via requests
 charset-normalizer==3.5.2
     # via requests
@@ -32,10 +32,12 @@ importlib-metadata==8.7.1 ; python_full_version < '3.10'
     # via
     #   dash
     #   flask
-importlib-metadata==9.0.1 ; python_full_version >= '3.10'
+importlib-metadata==9.0.1 ; python_full_version == '3.10.*'
     # via
     #   dash
     #   flask
+importlib-metadata==10.1.0 ; python_full_version >= '3.11'
+    # via dash
 itsdangerous==2.2.0
     # via flask
 jinja2==3.1.6
@@ -58,13 +60,13 @@ packaging==26.3
     # via plotly
 pandas==2.3.3 ; python_full_version < '3.11'
     # via -r requirements.in
-pandas==3.0.6 ; python_full_version >= '3.11'
+pandas==3.1.0 ; python_full_version >= '3.11'
     # via -r requirements.in
 plotly==5.24.1
     # via
     #   -r requirements.in
     #   dash
-python-dateutil==2.9.0.post0
+python-dateutil==3.0.0
     # via pandas
 pytz==2026.5 ; python_full_version < '3.11'
     # via pandas
@@ -76,7 +78,7 @@ retrying==1.4.2
     # via dash
 setuptools==82.0.1 ; python_full_version < '3.10'
     # via dash
-setuptools==84.0.0 ; python_full_version >= '3.10'
+setuptools==84.2.1 ; python_full_version >= '3.10'
     # via dash
 six==1.17.0
     # via python-dateutil
@@ -86,8 +88,10 @@ tenacity==9.2.1 ; python_full_version >= '3.10'
     # via plotly
 typing-extensions==4.16.0
     # via dash
-tzdata==2026.5 ; python_full_version < '3.11' or sys_platform == 'emscripten' or sys_platform == 'win32'
-    # via pandas
+tzdata==2026.5
+    # via
+    #   pandas
+    #   python-dateutil
 urllib3==2.6.3 ; python_full_version < '3.10'
     # via requests
 urllib3==2.8.0 ; python_full_version >= '3.10'
@@ -98,5 +102,5 @@ werkzeug==3.0.6
     #   flask
 zipp==3.23.1 ; python_full_version < '3.10'
     # via importlib-metadata
-zipp==4.1.1 ; python_full_version >= '3.10'
+zipp==4.1.2 ; python_full_version >= '3.10'
     # via importlib-metadata

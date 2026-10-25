@@ -14,9 +14,9 @@ attrs==26.1.0
     # via
     #   jsonschema
     #   referencing
-cachetools==7.2.1
+cachetools==7.2.4
     # via simple-mcp-server (pyproject.toml)
-certifi==2026.7.22
+certifi==2026.10.23
     # via requests
 cffi==2.1.1 ; platform_python_implementation != 'PyPy'
     # via cryptography
@@ -28,15 +28,15 @@ cloudpickle==3.1.2
     # via joblib
 cryptography==50.0.2
     # via pyjwt
-fastapi==0.143.2
+fastapi==0.162.0
     # via simple-mcp-server (pyproject.toml)
 h11==0.16.0
     # via
     #   httpcore2
     #   uvicorn
-httpcore2==2.13.1 ; sys_platform != 'emscripten'
+httpcore2==2.16.0 ; sys_platform != 'emscripten'
     # via httpx2
-httpx2==2.13.1
+httpx2==2.16.0
     # via mcp
 httpx2-jsfetch==1.0 ; python_full_version >= '3.12' and sys_platform == 'emscripten'
     # via httpx2
@@ -77,11 +77,11 @@ opentelemetry-api==1.45.1
     #   mcp
 packaging==26.3
     # via posit-sdk
-pandas==3.0.6
+pandas==3.1.0
     # via simple-mcp-server (pyproject.toml)
 posit-sdk==0.17.0
     # via simple-mcp-server (pyproject.toml)
-pycparser==3.11 ; implementation_name != 'PyPy' and platform_python_implementation != 'PyPy'
+pycparser==3.12 ; implementation_name != 'PyPy' and platform_python_implementation != 'PyPy'
     # via cffi
 pydantic==2.14.1
     # via
@@ -93,7 +93,7 @@ pydantic-core==2.50.1
     # via pydantic
 pyjwt==2.15.1
     # via mcp
-python-dateutil==2.9.0.post0
+python-dateutil==3.0.0
     # via pandas
 python-multipart==0.0.32
     # via mcp
@@ -117,9 +117,9 @@ scipy==1.18.1 ; python_full_version >= '3.12'
     # via scikit-learn
 six==1.17.0
     # via python-dateutil
-sse-starlette==3.5.0
+sse-starlette==3.5.1
     # via mcp
-starlette==1.8.0
+starlette==1.10.0
     # via
     #   fastapi
     #   mcp
@@ -149,8 +149,10 @@ typing-inspection==0.4.4
     #   fastapi
     #   mcp
     #   pydantic
-tzdata==2026.5 ; sys_platform == 'emscripten' or sys_platform == 'win32'
-    # via pandas
+tzdata==2026.5
+    # via
+    #   pandas
+    #   python-dateutil
 urllib3==2.8.0
     # via requests
 uvicorn==0.54.0
