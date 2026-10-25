@@ -47,7 +47,7 @@ packaging==26.3
     #   matplotlib
     #   patsy
     #   statsmodels
-pandas==3.0.6
+pandas==3.1.0
     # via
     #   -r requirements.in
     #   formulaic
@@ -56,13 +56,13 @@ pandas==3.0.6
     #   statsmodels
 patsy==1.0.3
     # via statsmodels
-pillow==12.3.0
+pillow==13.0.0
     # via matplotlib
 plotnine==0.15.8
     # via -r requirements.in
 pyparsing==3.3.3
     # via matplotlib
-python-dateutil==2.9.0.post0
+python-dateutil==3.0.0
     # via
     #   matplotlib
     #   pandas
@@ -86,9 +86,10 @@ statsmodels==0.15.0 ; python_full_version >= '3.14' or sys_platform != 'emscript
     # via plotnine
 typing-extensions==4.16.0 ; python_full_version >= '3.14' or sys_platform != 'emscripten'
     # via formulaic
-tzdata==2026.5 ; sys_platform == 'emscripten' or sys_platform == 'win32'
+tzdata==2026.5
     # via
     #   mizani
     #   pandas
+    #   python-dateutil
 wrapt==2.5.1 ; python_full_version >= '3.14' or sys_platform != 'emscripten'
     # via formulaic
