@@ -145,7 +145,7 @@ jobs:
       - name: Mark successful jobs
         run: echo "${{ matrix.extension }}" >> ${{ matrix.extension }}.packaged.successfully
 
-      - uses: actions/upload-artifact@v6
+      - uses: actions/upload-artifact@v7
         with:
           name: ${{ matrix.extension }}.packaged.successfully
           path: ${{ matrix.extension }}.packaged.successfully
@@ -158,7 +158,7 @@ jobs:
     outputs:
       successful_extensions: ${{ steps.collect.outputs.successful_extensions }}
     steps:
-      - uses: actions/download-artifact@v7
+      - uses: actions/download-artifact@v8
         with:
           # Uses artifacts generated from package-extension which are only present if packaging was successful
           pattern: "*.packaged.successfully"
@@ -338,7 +338,7 @@ jobs:
       GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
       - name: Download release check artifacts
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@v8
         with:
           pattern: would-release-*.json
           path: would-release
@@ -423,7 +423,7 @@ jobs:
       # Downloads every release data file from the release-extension action
       # merging them under the .releases/ directory
       - name: Download GitHub release data
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@v8
         with:
           pattern: release-*.json
           path: releases
@@ -469,7 +469,7 @@ jobs:
           ref: main
           token: ${{ steps.generate-token.outputs.token }}
 
-      - uses: actions/setup-node@v6
+      - uses: actions/setup-node@v7
         with:
           node-version: "lts/*"
           cache: "npm"
