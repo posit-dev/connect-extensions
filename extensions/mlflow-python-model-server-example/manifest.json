@@ -1,0 +1,55 @@
+{
+  "version": 1,
+  "locale": "en_US.UTF-8",
+  "metadata": {
+    "appmode": "python-fastapi",
+    "entrypoint": "app"
+  },
+  "python": {
+    "version": "3.12.7",
+    "package_manager": {
+      "name": "pip",
+      "version": "24.2",
+      "package_file": "requirements.txt"
+    }
+  },
+  "environment": {
+    "python": {
+      "requires": ">=3.11.0"
+    }
+  },
+  "extension": {
+    "name": "mlflow-python-model-server-example",
+    "title": "MLflow Python Model Server Example",
+    "description": "An example extension for serving MLflow models using FastAPI.",
+    "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/mlflow-python-model-server-example",
+    "category": "extension",
+    "tags": ["mlops", "mlflow", "python", "fastapi", "model serving"],
+    "minimumConnectVersion": "2025.04.0",
+    "requiredFeatures": [],
+    "version": "0.0.0"
+  },
+  "files": {
+    "requirements.txt": {
+      "checksum": "81e2f809ed393d7c2a9d01269aad37dc"
+    },
+    ".gitignore": {
+      "checksum": "693ec79eaa892babde62587aaacf0d8b"
+    },
+    ".python-version": {
+      "checksum": "61939823fbcc7e8de3b61ab105331baf"
+    },
+    "README.md": {
+      "checksum": "4449932182cbea9e598c5db783c8c83a"
+    },
+    "app.py": {
+      "checksum": "2fa4fdb34daad9df2fa2cf6c4e14e56f"
+    },
+    "install_model_deps.sh": {
+      "checksum": "81f8684f8ef26d9af5e07cd30f18a75c"
+    },
+    "openapi_schema.py": {
+      "checksum": "1f919dd6dd45043ceb8c7f1b1c937fe1"
+    }
+  }
+}
