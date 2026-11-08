@@ -22,18 +22,21 @@ anyio==4.12.1 ; python_full_version == '3.9.*'
     #   httpx
     #   starlette
     #   watchfiles
-anyio==4.15.1 ; python_full_version >= '3.10'
+anyio==4.16.0 ; python_full_version >= '3.10'
     # via
     #   httpx
+    #   httpx2
     #   starlette
     #   watchfiles
 cachetools==5.5.2 ; python_full_version < '3.9'
     # via publisher-command-center (pyproject.toml)
 cachetools==6.2.6 ; python_full_version == '3.9.*'
     # via publisher-command-center (pyproject.toml)
-cachetools==7.2.1 ; python_full_version >= '3.10'
+cachetools==7.3.0 ; python_full_version == '3.10.*'
     # via publisher-command-center (pyproject.toml)
-certifi==2026.7.22
+cachetools==8.0.0 ; python_full_version >= '3.11'
+    # via publisher-command-center (pyproject.toml)
+certifi==2026.10.23
     # via
     #   httpcore
     #   httpx
@@ -46,7 +49,7 @@ click==8.1.8 ; python_full_version < '3.10'
     #   rich-toolkit
     #   typer
     #   uvicorn
-click==8.5.0 ; python_full_version >= '3.10'
+click==8.5.1 ; python_full_version >= '3.10'
     # via
     #   rich-toolkit
     #   uvicorn
@@ -63,7 +66,7 @@ dnspython==2.7.0 ; python_full_version == '3.9.*'
     # via email-validator
 dnspython==2.8.0 ; python_full_version == '3.10.*'
     # via email-validator
-dnspython==2.9.0 ; python_full_version >= '3.11'
+dnspython==2.9.2 ; python_full_version >= '3.11'
     # via email-validator
 email-validator==2.3.0
     # via
@@ -75,7 +78,7 @@ fastapi==0.124.4 ; python_full_version < '3.9'
     # via publisher-command-center (pyproject.toml)
 fastapi==0.128.8 ; python_full_version == '3.9.*'
     # via publisher-command-center (pyproject.toml)
-fastapi==0.143.2 ; python_full_version >= '3.10'
+fastapi==0.162.2 ; python_full_version >= '3.10'
     # via publisher-command-center (pyproject.toml)
 fastapi-cli==0.0.18 ; python_full_version < '3.9'
     # via fastapi
@@ -93,14 +96,19 @@ fastar==0.12.0
     # via
     #   fastapi
     #   fastapi-cloud-cli
-googleapis-common-protos==1.75.5 ; python_full_version >= '3.10'
+googleapis-common-protos==1.76.0 ; python_full_version >= '3.10'
     # via opentelemetry-exporter-otlp-proto-http
 h11==0.16.0
     # via
     #   httpcore
+    #   httpcore2
     #   uvicorn
 httpcore==1.0.9
     # via httpx
+httpcore2==2.14.0 ; python_full_version == '3.10.*' and sys_platform != 'emscripten'
+    # via httpx2
+httpcore2==2.16.0 ; python_full_version >= '3.11' and sys_platform != 'emscripten'
+    # via httpx2
 httptools==0.6.4 ; python_full_version < '3.9'
     # via uvicorn
 httptools==0.9.0 ; python_full_version >= '3.9'
@@ -109,6 +117,12 @@ httpx==0.28.1
     # via
     #   fastapi
     #   fastapi-cloud-cli
+httpx2==2.14.0 ; python_full_version == '3.10.*'
+    # via fastapi
+httpx2==2.16.0 ; python_full_version >= '3.11'
+    # via fastapi
+httpx2-jsfetch==1.0 ; python_full_version >= '3.12' and sys_platform == 'emscripten'
+    # via httpx2
 idna==3.15 ; python_full_version < '3.9'
     # via
     #   anyio
@@ -120,6 +134,7 @@ idna==3.20 ; python_full_version >= '3.9'
     #   anyio
     #   email-validator
     #   httpx
+    #   httpx2
     #   requests
 jinja2==3.1.6
     # via fastapi
@@ -133,31 +148,31 @@ markupsafe==3.0.4 ; python_full_version >= '3.9'
     # via jinja2
 mdurl==0.1.2
     # via markdown-it-py
-opentelemetry-api==1.45.1 ; python_full_version >= '3.10'
+opentelemetry-api==1.45.2 ; python_full_version >= '3.10'
     # via
     #   fastapi
     #   opentelemetry-exporter-http-transport
     #   opentelemetry-exporter-otlp-proto-http
     #   opentelemetry-sdk
     #   opentelemetry-semantic-conventions
-opentelemetry-exporter-http-transport==0.66b1 ; python_full_version >= '3.10'
+opentelemetry-exporter-http-transport==0.66b2 ; python_full_version >= '3.10'
     # via opentelemetry-exporter-otlp-proto-http
-opentelemetry-exporter-otlp-common==0.66b1 ; python_full_version >= '3.10'
+opentelemetry-exporter-otlp-common==0.66b2 ; python_full_version >= '3.10'
     # via opentelemetry-exporter-otlp-proto-http
-opentelemetry-exporter-otlp-proto-common==1.45.1 ; python_full_version >= '3.10'
+opentelemetry-exporter-otlp-proto-common==1.45.2 ; python_full_version >= '3.10'
     # via opentelemetry-exporter-otlp-proto-http
-opentelemetry-exporter-otlp-proto-http==1.45.1 ; python_full_version >= '3.10'
+opentelemetry-exporter-otlp-proto-http==1.45.2 ; python_full_version >= '3.10'
     # via fastapi
-opentelemetry-proto==1.45.1 ; python_full_version >= '3.10'
+opentelemetry-proto==1.45.2 ; python_full_version >= '3.10'
     # via
     #   opentelemetry-exporter-otlp-proto-common
     #   opentelemetry-exporter-otlp-proto-http
-opentelemetry-sdk==1.45.1 ; python_full_version >= '3.10'
+opentelemetry-sdk==1.45.2 ; python_full_version >= '3.10'
     # via
     #   fastapi
     #   opentelemetry-exporter-otlp-common
     #   opentelemetry-exporter-otlp-proto-http
-opentelemetry-semantic-conventions==0.66b1 ; python_full_version >= '3.10'
+opentelemetry-semantic-conventions==0.66b2 ; python_full_version >= '3.10'
     # via opentelemetry-sdk
 packaging==26.2 ; python_full_version < '3.9'
     # via posit-sdk
@@ -179,7 +194,7 @@ pydantic==2.13.5 ; python_full_version == '3.9.*'
     #   fastapi-cloud-cli
     #   pydantic-extra-types
     #   pydantic-settings
-pydantic==2.14.1 ; python_full_version >= '3.10'
+pydantic==2.14.3 ; python_full_version >= '3.10'
     # via
     #   fastapi
     #   fastapi-cloud-cli
@@ -189,7 +204,7 @@ pydantic-core==2.27.2 ; python_full_version < '3.9'
     # via pydantic
 pydantic-core==2.46.5 ; python_full_version == '3.9.*'
     # via pydantic
-pydantic-core==2.50.1 ; python_full_version >= '3.10'
+pydantic-core==2.50.4 ; python_full_version >= '3.10'
     # via pydantic
 pydantic-extra-types==2.11.1 ; python_full_version >= '3.9'
     # via fastapi
@@ -197,7 +212,7 @@ pydantic-settings==2.11.0 ; python_full_version == '3.9.*'
     # via fastapi
 pydantic-settings==2.15.0 ; python_full_version == '3.10.*'
     # via fastapi
-pydantic-settings==2.16.0 ; python_full_version >= '3.11'
+pydantic-settings==2.16.2 ; python_full_version >= '3.11'
     # via fastapi
 pygments==2.19.2 ; python_full_version < '3.9'
     # via rich
@@ -215,7 +230,9 @@ python-dotenv==1.2.4 ; python_full_version >= '3.10'
     #   uvicorn
 python-multipart==0.0.20 ; python_full_version < '3.10'
     # via fastapi
-python-multipart==0.0.32 ; python_full_version >= '3.10'
+python-multipart==0.0.32 ; python_full_version == '3.10.*'
+    # via fastapi
+python-multipart==0.0.33 ; python_full_version >= '3.11'
     # via fastapi
 pyyaml==6.0.3
     # via uvicorn
@@ -242,7 +259,7 @@ rich-toolkit==0.20.6
     #   fastapi-cloud-cli
 rignore==0.8.1
     # via fastapi-cloud-cli
-sentry-sdk==2.72.0
+sentry-sdk==2.74.0
     # via fastapi-cloud-cli
 shellingham==1.5.4
     # via typer
@@ -254,10 +271,14 @@ starlette==0.49.3 ; python_full_version == '3.9.*'
     # via fastapi
 starlette==1.7.0 ; python_full_version == '3.10.*'
     # via fastapi
-starlette==1.8.0 ; python_full_version >= '3.11'
+starlette==1.10.0 ; python_full_version >= '3.11'
     # via fastapi
 tomli==2.5.0 ; python_full_version < '3.11'
     # via fastapi-cli
+truststore==0.10.5 ; python_full_version >= '3.10' and sys_platform != 'emscripten'
+    # via
+    #   httpcore2
+    #   httpx2
 typer==0.20.1 ; python_full_version < '3.9'
     # via
     #   fastapi-cli
@@ -266,7 +287,7 @@ typer==0.23.2 ; python_full_version == '3.9.*'
     # via
     #   fastapi-cli
     #   fastapi-cloud-cli
-typer==0.27.3 ; python_full_version >= '3.10'
+typer==0.28.0 ; python_full_version >= '3.10'
     # via
     #   fastapi-cli
     #   fastapi-cloud-cli
@@ -288,6 +309,7 @@ typing-extensions==4.16.0 ; python_full_version >= '3.9'
     #   anyio
     #   exceptiongroup
     #   fastapi
+    #   httpx2
     #   opentelemetry-api
     #   opentelemetry-exporter-otlp-proto-http
     #   opentelemetry-sdk
@@ -306,7 +328,7 @@ typing-inspection==0.4.2 ; python_full_version == '3.9.*'
     #   fastapi
     #   pydantic
     #   pydantic-settings
-typing-inspection==0.4.4 ; python_full_version >= '3.10'
+typing-inspection==0.4.5 ; python_full_version >= '3.10'
     # via
     #   fastapi
     #   pydantic
@@ -354,5 +376,5 @@ websockets==15.0.1 ; python_full_version == '3.9.*'
     # via uvicorn
 websockets==16.1.1 ; python_full_version == '3.10.*'
     # via uvicorn
-websockets==17.2 ; python_full_version >= '3.11'
+websockets==17.4 ; python_full_version >= '3.11'
     # via uvicorn

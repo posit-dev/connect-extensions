@@ -4,7 +4,7 @@ annotated-doc==0.0.5
     # via fastapi
 annotated-types==0.8.0
     # via pydantic
-anyio==4.15.1
+anyio==4.16.0
     # via
     #   httpx2
     #   mcp
@@ -14,29 +14,29 @@ attrs==26.1.0
     # via
     #   jsonschema
     #   referencing
-cachetools==7.2.1
+cachetools==8.0.0
     # via simple-mcp-server (pyproject.toml)
-certifi==2026.7.22
+certifi==2026.10.23
     # via requests
 cffi==2.1.1 ; platform_python_implementation != 'PyPy'
     # via cryptography
 charset-normalizer==3.5.2
     # via requests
-click==8.5.0
+click==8.5.1
     # via uvicorn
 cloudpickle==3.1.2
     # via joblib
 cryptography==50.0.2
     # via pyjwt
-fastapi==0.143.2
+fastapi==0.162.2
     # via simple-mcp-server (pyproject.toml)
 h11==0.16.0
     # via
     #   httpcore2
     #   uvicorn
-httpcore2==2.13.1 ; sys_platform != 'emscripten'
+httpcore2==2.16.0 ; sys_platform != 'emscripten'
     # via httpx2
-httpx2==2.13.1
+httpx2==2.16.0
     # via mcp
 httpx2-jsfetch==1.0 ; python_full_version >= '3.12' and sys_platform == 'emscripten'
     # via httpx2
@@ -59,7 +59,7 @@ mcp==2.3.0
     # via simple-mcp-server (pyproject.toml)
 mcp-types==2.3.0
     # via mcp
-narwhals==2.27.1
+narwhals==2.28.0
     # via scikit-learn
 numpy==2.4.6 ; python_full_version < '3.12'
     # via
@@ -71,31 +71,31 @@ numpy==2.5.4 ; python_full_version >= '3.12'
     #   pandas
     #   scikit-learn
     #   scipy
-opentelemetry-api==1.45.1
+opentelemetry-api==1.45.2
     # via
     #   fastapi
     #   mcp
 packaging==26.3
     # via posit-sdk
-pandas==3.0.6
+pandas==3.1.1
     # via simple-mcp-server (pyproject.toml)
 posit-sdk==0.17.0
     # via simple-mcp-server (pyproject.toml)
-pycparser==3.11 ; implementation_name != 'PyPy' and platform_python_implementation != 'PyPy'
+pycparser==3.12 ; implementation_name != 'PyPy' and platform_python_implementation != 'PyPy'
     # via cffi
-pydantic==2.14.1
+pydantic==2.14.3
     # via
     #   simple-mcp-server (pyproject.toml)
     #   fastapi
     #   mcp
     #   mcp-types
-pydantic-core==2.50.1
+pydantic-core==2.50.4
     # via pydantic
 pyjwt==2.15.1
     # via mcp
-python-dateutil==2.9.0.post0
+python-dateutil==4.0.0
     # via pandas
-python-multipart==0.0.32
+python-multipart==0.0.33
     # via mcp
 pywin32==312 ; sys_platform == 'win32'
     # via mcp
@@ -115,16 +115,14 @@ scipy==1.17.1 ; python_full_version < '3.12'
     # via scikit-learn
 scipy==1.18.1 ; python_full_version >= '3.12'
     # via scikit-learn
-six==1.17.0
-    # via python-dateutil
-sse-starlette==3.5.0
+sse-starlette==3.7.0
     # via mcp
-starlette==1.8.0
+starlette==1.10.0
     # via
     #   fastapi
     #   mcp
     #   sse-starlette
-threadpoolctl==3.7.0
+threadpoolctl==3.8.0
     # via scikit-learn
 truststore==0.10.5 ; sys_platform != 'emscripten'
     # via
@@ -144,13 +142,15 @@ typing-extensions==4.16.0
     #   referencing
     #   starlette
     #   typing-inspection
-typing-inspection==0.4.4
+typing-inspection==0.4.5
     # via
     #   fastapi
     #   mcp
     #   pydantic
-tzdata==2026.5 ; sys_platform == 'emscripten' or sys_platform == 'win32'
-    # via pandas
+tzdata==2026.6
+    # via
+    #   pandas
+    #   python-dateutil
 urllib3==2.8.0
     # via requests
 uvicorn==0.54.0
