@@ -27,7 +27,7 @@
     "tags": ["python", "fastapi", "mcp"],
     "requiredFeatures": ["API Publishing", "OAuth Integrations"],
     "minimumConnectVersion": "2025.04.0",
-    "version": "0.0.11"
+    "version": "0.0.12"
   },
   "files": {
     "requirements.txt": {
