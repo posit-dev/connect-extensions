@@ -51,7 +51,7 @@ jobs:
       # Without this the deployed app fails at startup mounting `dist/`.
       - name: Set up Node
         if: ${{ hashFiles(format('extensions/{0}/package.json', matrix.extension)) != '' }}
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@v7
         with:
           node-version: "lts/*"
           cache: "npm"
@@ -73,7 +73,7 @@ jobs:
       - name: Mark successful package
         run: echo "${{ matrix.extension }}" >> ${{ matrix.extension }}.packaged.successfully
 
-      - uses: actions/upload-artifact@v6
+      - uses: actions/upload-artifact@v7
         with:
           name: ${{ matrix.extension }}.packaged.successfully
           path: ${{ matrix.extension }}.packaged.successfully
@@ -87,7 +87,7 @@ jobs:
     outputs:
       extensions: ${{ steps.collect.outputs.extensions }}
     steps:
-      - uses: actions/download-artifact@v7
+      - uses: actions/download-artifact@v8
         with:
           pattern: "*.packaged.successfully"
           path: packages
