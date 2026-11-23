@@ -2854,13 +2854,13 @@
   "extension": {
     "name": "usage-metrics-dashboard",
     "title": "Usage Metrics Dashboard",
-    "description": "Understand usage patterns across your work on Connect. Browse an overview of usage across everything you've published, and dive into detailed breakdowns of data for an individual deployment, down to the level of individual visits.",
+    "description": "On Connect 2026.03.0 and later, use the built-in System > Usage page instead of this extension. Understand usage patterns across your work on Connect. Browse an overview of usage across everything you've published, and dive into detailed breakdowns of data for an individual deployment, down to the level of individual visits.",
     "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/usage-metrics-dashboard",
     "tags": [],
     "minimumConnectVersion": "2025.04.0",
     "requiredFeatures": [
       "OAuth Integrations"
     ],
-    "version": "1.0.15"
+    "version": "1.0.16"
   }
 }

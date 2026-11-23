@@ -1,5 +1,8 @@
 # Usage Metrics Dashboard
 
+> [!NOTE]
+> Connect 2026.03.0 and later include this dashboard's features. Publishers and administrators can open **System > Usage** to see usage across content, and the **Monitoring** tab in a content item's settings to see usage for that item. Use this extension only on earlier versions of Connect.
+
 A Shiny app that helps you understand usage patterns across your work on Connect. Browse an overview of usage across everything you've published, and dive into detailed breakdowns of data for an individual deployment, down to the level of individual visits.
 
 ## Setup
