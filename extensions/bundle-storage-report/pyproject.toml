@@ -1,0 +1,15 @@
+[project]
+name = "bundle-storage-report"
+version = "0.0.0"
+description = "Report bundle storage per content item on Posit Connect and set bundle retention limits in bulk."
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "faicons>=0.2.2",
+    "pandas>=2.0.0",
+    "posit-sdk>=0.10.0",
+    "shiny>=1.4.0",
+]
+
+[dependency-groups]
+dev = ["pytest>=8.0.0"]

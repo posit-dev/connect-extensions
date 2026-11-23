@@ -1,0 +1,60 @@
+{
+  "version": 1,
+  "locale": "en_US.UTF-8",
+  "metadata": {
+    "appmode": "python-shiny",
+    "entrypoint": "app"
+  },
+  "python": {
+    "version": "3.10.12",
+    "package_manager": {
+      "name": "pip",
+      "version": "25.3",
+      "package_file": "requirements.txt"
+    }
+  },
+  "environment": {
+    "python": {
+      "requires": "~=3.10"
+    }
+  },
+  "extension": {
+    "name": "bundle-storage-report",
+    "title": "Bundle Storage Report",
+    "description": "See which content uses the most bundle storage, with a focus on pins, where every version is a separate bundle. Filter, sort, and export storage per content item, then set bundle retention limits on many items at once. For administrators.",
+    "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/bundle-storage-report",
+    "category": "extension",
+    "tags": [
+      "python",
+      "shiny"
+    ],
+    "minimumConnectVersion": "2026.10.0",
+    "requiredFeatures": [
+      "OAuth Integrations"
+    ],
+    "version": "0.0.0"
+  },
+  "files": {
+    "requirements.txt": {
+      "checksum": "f9cda5437d22adf341e8ca1a50f11f03"
+    },
+    ".gitignore": {
+      "checksum": "9282a42fff3a28c105ae57acaddd591e"
+    },
+    "CHANGELOG.md": {
+      "checksum": "379662ae97651b85f870cc57d3ed8f4d"
+    },
+    "README.md": {
+      "checksum": "5c9dad38a3765844225e76f92fe7d9a6"
+    },
+    "app.py": {
+      "checksum": "8450e915cfdf811989c9bcf3be53b5c2"
+    },
+    "pyproject.toml": {
+      "checksum": "459d86e8a1bf6c1597d2a73a45beded9"
+    },
+    "storage_utils.py": {
+      "checksum": "32ed479b7292056d07dc37c885e93b4a"
+    }
+  }
+}

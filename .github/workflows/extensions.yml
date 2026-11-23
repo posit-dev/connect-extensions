@@ -37,6 +37,7 @@ jobs:
               - .github/actions/connect-integration-test/**
               - .github/workflows/connect-integration-tests.yml
               - .github/workflows/extensions.yml
+            bundle-storage-report: extensions/bundle-storage-report/**
             quarto-stock-report-python: extensions/quarto-stock-report-python/**
             quarto-website: extensions/quarto-website/**
             shiny-landing-page: extensions/shiny-landing-page/**
