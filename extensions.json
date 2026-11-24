@@ -2329,13 +2329,13 @@
     {
       "name": "usage-metrics-dashboard",
       "title": "Usage Metrics Dashboard",
-      "description": "Understand usage patterns across your work on Connect. Browse an overview of usage across everything you've published, and dive into detailed breakdowns of data for an individual deployment, down to the level of individual visits.",
+      "description": "On Connect 2026.03.0 and later, use the built-in System > Usage page instead of this extension. Understand usage patterns across your work on Connect. Browse an overview of usage across everything you've published, and dive into detailed breakdowns of data for an individual deployment, down to the level of individual visits.",
       "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/usage-metrics-dashboard",
       "category": "extension",
       "latestVersion": {
-        "version": "1.0.15",
-        "released": "2026-06-12T00:10:57Z",
-        "url": "https://github.com/posit-dev/connect-extensions/releases/download/usage-metrics-dashboard%40v1.0.15/usage-metrics-dashboard.tar.gz",
+        "version": "1.0.16",
+        "released": "2026-11-24T16:55:09Z",
+        "url": "https://github.com/posit-dev/connect-extensions/releases/download/usage-metrics-dashboard%40v1.0.16/usage-metrics-dashboard.tar.gz",
         "minimumConnectVersion": "2025.04.0",
         "requiredFeatures": [
           "OAuth Integrations"
@@ -2347,6 +2347,20 @@
         }
       },
       "versions": [
+        {
+          "version": "1.0.16",
+          "released": "2026-11-24T16:55:09Z",
+          "url": "https://github.com/posit-dev/connect-extensions/releases/download/usage-metrics-dashboard%40v1.0.16/usage-metrics-dashboard.tar.gz",
+          "minimumConnectVersion": "2025.04.0",
+          "requiredFeatures": [
+            "OAuth Integrations"
+          ],
+          "requiredEnvironment": {
+            "r": {
+              "requires": "~=4.3"
+            }
+          }
+        },
         {
           "version": "1.0.15",
           "released": "2026-06-12T00:10:57Z",
