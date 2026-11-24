@@ -99,7 +99,7 @@ NOT_ADMIN = message_ui(
     "Administrator access required",
     ui.p(
         "Bundle storage reporting and server-wide retention changes require "
-        "the Administrator role (the system:storage permission). Ask a Connect "
+        "the Administrator role. Ask a Connect "
         "administrator to view this report."
     ),
 )
