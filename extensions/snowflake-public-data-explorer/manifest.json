@@ -1,0 +1,66 @@
+{
+  "version": 1,
+  "locale": "en_US.UTF-8",
+  "metadata": {
+    "appmode": "python-shiny",
+    "entrypoint": "app.py"
+  },
+  "python": {
+    "version": "3.12.12",
+    "package_manager": {
+      "name": "uv",
+      "version": "26.2.1",
+      "package_file": "requirements.txt.lock"
+    }
+  },
+  "environment": {
+    "python": {
+      "requires": ">=3.12"
+    }
+  },
+  "files": {
+    "requirements.txt.lock": {
+      "checksum": "24aa70513020133a5fa9f0608f948246"
+    },
+    "CHANGELOG.md": {
+      "checksum": "989642f6ae6ea533c8bbb180ae131677"
+    },
+    "Makefile": {
+      "checksum": "035e4fb32ecc4084c9229a6d9e27446b"
+    },
+    "README.md": {
+      "checksum": "5a3a97c41ea8f92496dd810424326fe7"
+    },
+    "app.py": {
+      "checksum": "f3c76eb608e538a78393f35d56a13f2b"
+    },
+    "css/styles.css": {
+      "checksum": "5099578149dc444c5ac96a1141506e16"
+    },
+    "pyproject.toml": {
+      "checksum": "32c821761fa735998247b2f47043ad37"
+    },
+    "uv.lock": {
+      "checksum": "b3959da3026965f894569556d8ca2da8"
+    }
+  },
+  "extension": {
+    "name": "snowflake-public-data-explorer",
+    "version": "0.0.1",
+    "title": "Snowflake Public Data Explorer",
+    "description": "Explore the free public data in Snowflake by asking questions in plain language. Cortex writes the SQL, Snowflake runs it, and the dashboard shows the result alongside the query that produced it. After installing, associate with your Snowflake integration.",
+    "homepage": "https://github.com/posit-dev/connect-extensions/tree/main/extensions/snowflake-public-data-explorer",
+    "minimumConnectVersion": "2026.02.0",
+    "requiredFeatures": [
+      "OAuth Integrations"
+    ],
+    "category": "example",
+    "tags": [
+      "chat",
+      "llm",
+      "python",
+      "shiny",
+      "snowflake"
+    ]
+  }
+}
